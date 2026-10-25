@@ -1,30 +1,40 @@
 name: CI
-
-# Quality gates for every push to main and every pull request (`cargo xtask ci`), through the
-# suite's shared gate workflow in craft-common-actions.
 on:
   push:
     branches: [main]
   pull_request:
   workflow_dispatch:
-
 permissions:
   contents: read
-
-# A newer push to a PR branch cancels its older run; every push to main runs to the end.
 concurrency:
-  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  gate:
-    # Tracks @main so suite-wide CI fixes reach every app without a PR in each repository.
-    uses: storytold/craft-common-actions/.github/workflows/gate.yml@main
-    with:
-      # Same craft-fonts commit as release.yml.
-      craft-fonts-ref: abb83316d96aa59c1cf64784289e378fe9fa5695
-      timeout-minutes: 120
-      packages: >-
-        pkg-config libxkbcommon-dev libwayland-dev libx11-dev libxcb1-dev libxcursor-dev
-        libxrandr-dev libxi-dev libfontconfig1-dev libfreetype-dev mesa-vulkan-drivers
-        libasound2-dev
+  checks:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, ubuntu-24.04, macos-15]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Linux build dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libxkbcommon-dev libwayland-dev libx11-dev libxcb1-dev libxcursor-dev libxrandr-dev libxi-dev libfontconfig1-dev libfreetype-dev libasound2-dev mesa-vulkan-drivers ffmpeg
+      - name: Toolchain
+        run: rustup show active-toolchain
+      - run: cargo fmt --all -- --check
+      - run: cargo xtask layers
+      - run: cargo xtask assets
+      - run: cargo clippy --locked --workspace --all-targets -- -D warnings
+      - run: cargo test --locked --workspace --lib
+      - run: cargo test --locked -p filmcraft-cli --test it
+      - run: cargo build --locked --release -p filmcraft -p filmcraft-cli
+      - name: Browser compile check
+        if: runner.os == 'Linux'
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo xtask wasm
+  windows-package:
+    uses: ./.github/workflows/release.yml

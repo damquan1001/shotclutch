@@ -38,7 +38,12 @@ impl BridgeClient {
         if !matches!(host, "127.0.0.1" | "localhost" | "[::1]" | "::1") {
             return Err(AutomationError::BadRequest(format!("bridge address must be loopback, got `{addr}`")));
         }
-        Ok(Self { addr, token: std::env::var("FILMCRAFT_CONTROL_TOKEN").ok(), idle: Mutex::new(Vec::new()), next_id: AtomicU64::new(1) })
+        Ok(Self {
+            addr,
+            token: std::env::var("SHOTCLUTCH_CONTROL_TOKEN").or_else(|_| std::env::var("FILMCRAFT_CONTROL_TOKEN")).ok(),
+            idle: Mutex::new(Vec::new()),
+            next_id: AtomicU64::new(1),
+        })
     }
 
     /// Run engine command `id` in the app. A blocking export (`file.exportMedia` with

@@ -123,7 +123,7 @@ fn layer_of(name: &str) -> Option<u8> {
 }
 
 fn metadata() -> Result<Value, String> {
-    let out = Command::new(env!("CARGO")).args(["metadata", "--format-version", "1", "--no-deps"]).output().map_err(|e| e.to_string())?;
+    let out = Command::new(env!("CARGO")).args(["metadata", "--locked", "--format-version", "1", "--no-deps"]).output().map_err(|e| e.to_string())?;
     if !out.status.success() {
         return Err(String::from_utf8_lossy(&out.stderr).into());
     }
@@ -529,7 +529,7 @@ fn i18n_report() {
 /// arguments go to the benchmark (`cargo xtask bench-playback --scenario stack3 --res full`).
 fn bench_playback() -> Result<(), String> {
     let extra: Vec<String> = std::env::args().skip(2).collect();
-    run(Command::new(env!("CARGO")).args(["run", "--release", "-p", "filmcraft-ui-egui", "--example", "bench_playback", "--"]).args(&extra))
+    run(Command::new(env!("CARGO")).args(["run", "--locked", "--release", "-p", "filmcraft-ui-egui", "--example", "bench_playback", "--"]).args(&extra))
 }
 
 /// The benchmark suite (`crates/ui-egui/examples/bench/`): decode, playback, scrubbing, timeline
@@ -537,7 +537,7 @@ fn bench_playback() -> Result<(), String> {
 /// (`cargo xtask bench --sections decode,scrub --repeat 3 --label after`). See docs/performance.md.
 fn bench() -> Result<(), String> {
     let extra: Vec<String> = std::env::args().skip(2).collect();
-    run(Command::new(env!("CARGO")).args(["run", "--release", "-p", "filmcraft-ui-egui", "--example", "bench", "--"]).args(&extra))
+    run(Command::new(env!("CARGO")).args(["run", "--locked", "--release", "-p", "filmcraft-ui-egui", "--example", "bench", "--"]).args(&extra))
 }
 
 /// The workspace root (the parent of `xtask/`).

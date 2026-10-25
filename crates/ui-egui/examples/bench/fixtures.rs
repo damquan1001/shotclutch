@@ -6,14 +6,14 @@ use std::process::Command;
 
 /// `<repo>/target/fixtures/playback`, or `$FILMCRAFT_FIXTURES/playback` (lets worktrees share one set).
 pub fn fixtures_dir() -> PathBuf {
-    match std::env::var_os("FILMCRAFT_FIXTURES") {
+    match std::env::var_os("SHOTCLUTCH_FIXTURES").or_else(|| std::env::var_os("FILMCRAFT_FIXTURES")) {
         Some(d) => PathBuf::from(d).join("playback"),
         None => Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/fixtures/playback"),
     }
 }
 
 pub fn ffmpeg() -> Option<PathBuf> {
-    if let Some(p) = std::env::var_os("FILMCRAFT_FFMPEG") {
+    if let Some(p) = std::env::var_os("SHOTCLUTCH_FFMPEG").or_else(|| std::env::var_os("FILMCRAFT_FFMPEG")) {
         return Some(PathBuf::from(p));
     }
     let fixed = ["/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg", "/usr/bin/ffmpeg"].iter().map(PathBuf::from).find(|p| p.exists());

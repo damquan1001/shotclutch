@@ -28,7 +28,7 @@ pub const MAX_CONNECTIONS: usize = 16;
 const CONNECTION_TIMEOUT: Duration = Duration::from_secs(120);
 
 pub fn start(port: u16, ctx: egui::Context) -> Receiver<ControlRequest> {
-    start_with_token(port, ctx, std::env::var("FILMCRAFT_CONTROL_TOKEN").ok())
+    start_with_token(port, ctx, std::env::var("SHOTCLUTCH_CONTROL_TOKEN").or_else(|_| std::env::var("FILMCRAFT_CONTROL_TOKEN")).ok())
 }
 
 fn start_with_token(port: u16, ctx: egui::Context, token: Option<String>) -> Receiver<ControlRequest> {
@@ -36,17 +36,19 @@ fn start_with_token(port: u16, ctx: egui::Context, token: Option<String>) -> Rec
     // An inherited environment variable shares the credential with the owner's bridge process
     // without exposing it in command-line arguments, logs, or a shared discovery file.
     let Some(token) = token.filter(|t| t.len() == 64 && t.bytes().all(|b| b.is_ascii_hexdigit())) else {
-        eprintln!("filmcraft: control server disabled: FILMCRAFT_CONTROL_TOKEN must contain 64 random hex characters (see docs/control-protocol.md)");
+        eprintln!(
+            "shotclutch: control server disabled: SHOTCLUTCH_CONTROL_TOKEN (legacy FILMCRAFT_CONTROL_TOKEN) must contain 64 random hex characters (see docs/control-protocol.md)"
+        );
         return rx;
     };
     let listener = match TcpListener::bind(("127.0.0.1", port)) {
         Ok(l) => l,
         Err(e) => {
-            eprintln!("filmcraft: control server failed to bind 127.0.0.1:{port}: {e}");
+            eprintln!("shotclutch: control server failed to bind 127.0.0.1:{port}: {e}");
             return rx;
         }
     };
-    eprintln!("filmcraft: control server listening on 127.0.0.1:{port}");
+    eprintln!("shotclutch: control server listening on 127.0.0.1:{port}");
     std::thread::spawn(move || accept_loop(listener, tx, ctx, token));
     rx
 }
@@ -70,7 +72,7 @@ fn accept_loop(listener: TcpListener, tx: Sender<ControlRequest>, ctx: egui::Con
             serve(stream, &tx, &ctx, &token);
         });
         if let Err(e) = spawned {
-            eprintln!("filmcraft: control server could not start a connection thread: {e}");
+            eprintln!("shotclutch: control server could not start a connection thread: {e}");
         }
     }
 }
@@ -86,7 +88,7 @@ impl Drop for Slot {
 
 fn serve(stream: TcpStream, tx: &Sender<ControlRequest>, ctx: &egui::Context, token: &str) {
     if let Err(e) = serve_with_timeout(stream, tx, ctx, token, CONNECTION_TIMEOUT) {
-        eprintln!("filmcraft: could not configure control connection: {e}");
+        eprintln!("shotclutch: could not configure control connection: {e}");
     }
 }
 

@@ -1,23 +1,27 @@
-# Quick static checks for the release pipeline (seconds, no Rust build): workflow syntax,
-# packaging shell/PowerShell scripts, and the Linux desktop/AppStream/Flatpak metadata.
 name: Packaging lint
-
 on:
-  push:
-    branches: [main, release]
-    paths: [".github/workflows/**", "packaging/**", "assets/app-icon/**"]
   pull_request:
-    paths: [".github/workflows/**", "packaging/**", "assets/app-icon/**"]
   workflow_dispatch:
-
 permissions:
   contents: read
-
-concurrency:
-  group: packaging-lint-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  lint:
-    # Intentionally tracked at @main (not SHA-pinned) so org-wide CI improvements, security fixes, and build optimizations propagate without PR churn across all craftapp repos.
-    uses: storytold/craft-common-actions/.github/workflows/packaging-lint.yml@main
+  scripts:
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Parse all PowerShell packaging and qualification scripts
+        shell: pwsh
+        run: |
+          $failed = $false
+          Get-ChildItem packaging/windows,scripts/m0 -Filter *.ps1 -Recurse | ForEach-Object {
+            $tokens = $null; $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count) { $errors | Write-Error; $failed = $true }
+          }
+          if ($failed) { exit 1 }
+      - name: Validate installer identity and legal references
+        shell: pwsh
+        run: |
+          [xml]$wix = Get-Content packaging/windows/shotclutch.wxs
+          if ($wix.Wix.Package.Name -ne 'ShotClutch') { throw 'Wrong product identity' }
+          if ($wix.Wix.Package.UpgradeCode -eq '31E6FB14-9DBC-41DD-B24B-26B71FB31B62') { throw 'Upstream installer identity reused' }

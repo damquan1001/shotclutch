@@ -20,7 +20,12 @@ pub fn set_progress(label: &str) {
 /// budget). A panic in `f` is re-raised here; a timeout panics with the last [`set_progress`] label. A hung
 /// worker is abandoned (the failing test process exits anyway).
 pub fn with_deadline(secs: u64, f: impl FnOnce() + Send + 'static) {
-    let secs = std::env::var("FILMCRAFT_HOSTILE_TIMEOUT_SECS").ok().and_then(|v| v.parse::<u64>().ok()).filter(|&n| n > 0).unwrap_or(secs);
+    let secs = std::env::var("SHOTCLUTCH_HOSTILE_TIMEOUT_SECS")
+        .or_else(|_| std::env::var("FILMCRAFT_HOSTILE_TIMEOUT_SECS"))
+        .ok()
+        .and_then(|v| v.parse::<u64>().ok())
+        .filter(|&n| n > 0)
+        .unwrap_or(secs);
     run_with_deadline(secs, f);
 }
 

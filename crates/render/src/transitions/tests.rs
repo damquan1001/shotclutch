@@ -347,7 +347,7 @@ fn golden_fingerprints() {
         }
     }
     let path = golden_path();
-    if std::env::var_os("FILMCRAFT_BLESS").is_some() {
+    if std::env::var_os("SHOTCLUTCH_BLESS").or_else(|| std::env::var_os("FILMCRAFT_BLESS")).is_some() {
         std::fs::write(&path, lines.join("\n") + "\n").unwrap();
         return;
     }
@@ -382,7 +382,7 @@ fn golden_fingerprints() {
 #[test]
 #[ignore]
 fn contact_sheets() {
-    let Some(dir) = std::env::var_os("FILMCRAFT_TRANSITION_SHEETS") else { return };
+    let Some(dir) = std::env::var_os("SHOTCLUTCH_TRANSITION_SHEETS").or_else(|| std::env::var_os("FILMCRAFT_TRANSITION_SHEETS")) else { return };
     let (cw, chh) = (192usize, 108usize);
     let a = paint(cw, chh, |x, y| {
         let u = x / cw as f32;

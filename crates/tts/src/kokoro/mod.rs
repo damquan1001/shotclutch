@@ -79,7 +79,7 @@ mod tests {
     use super::*;
 
     fn model() -> Option<(Kokoro, VoicePack)> {
-        let dir = std::path::PathBuf::from(std::env::var_os("FILMCRAFT_KOKORO_DIR")?);
+        let dir = std::path::PathBuf::from(std::env::var_os("SHOTCLUTCH_KOKORO_DIR").or_else(|| std::env::var_os("FILMCRAFT_KOKORO_DIR"))?);
         let voice = [dir.join("af_heart.pt"), dir.join("voices/af_heart.pt")].into_iter().find(|p| p.exists())?;
         Some((Kokoro::load(&dir).unwrap(), VoicePack::load(&voice).unwrap()))
     }

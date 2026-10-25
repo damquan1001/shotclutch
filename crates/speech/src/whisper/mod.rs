@@ -271,7 +271,7 @@ impl Transcriber for Whisper {
         if !progress(0.0, "Analysing audio") {
             return Err(SpeechError::Cancelled);
         }
-        let trace = std::env::var_os("FILMCRAFT_SPEECH_TRACE").is_some();
+        let trace = std::env::var_os("SHOTCLUTCH_SPEECH_TRACE").or_else(|| std::env::var_os("FILMCRAFT_SPEECH_TRACE")).is_some();
         let clock = std::time::Instant::now();
         let (frames, mel) = crate::mel::log_mel(&padded, n_mels);
         if trace {

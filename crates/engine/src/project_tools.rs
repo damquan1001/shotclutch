@@ -8,7 +8,7 @@
 //! | `file.closeAllProjects` / `file.closeAllOtherProjects` | File ▸ Close All Projects / Close All Other Projects |
 //! | `file.saveAsTemplate` | File ▸ Save as Template… (`file.templates`, `file.newProjectFromTemplate`) |
 //! | `file.importFromMediaBrowser` | File ▸ Import from Media Browser (⌥⌘I) |
-//! | `file.exportSelectionProject` | File ▸ Export ▸ Selection as FilmCraft Project… |
+//! | `file.exportSelectionProject` | File ▸ Export ▸ Selection as ShotClutch Project… |
 //! | `file.exportAle` | File ▸ Export ▸ Avid Log Exchange… |
 //! | `file.mediaPropertiesFile` / `file.mediaProperties` | File ▸ Get Media File Properties for ▸ File… / Selection… (⇧⌘H) |
 //! | `file.projectSettings.general` / `.scratchDisks` | File ▸ Project Settings ▸ General… / Scratch Disks… |
@@ -124,7 +124,7 @@ pub(crate) fn commands() -> Vec<CommandSpec> {
         }),
         spec(
             "file.exportSelectionProject",
-            "Selection as FilmCraft Project…",
+            "Selection as ShotClutch Project…",
             &["File", "Export"],
             None,
             r#"{"path":str,"items":[id]?}"#,
@@ -336,7 +336,7 @@ fn only_one_project(_: &Session) -> std::result::Result<(), String> {
     Err("only one project is open".into())
 }
 
-const NO_CAPTIONS: &str = "the clip's media has no embedded captions FilmCraft can read (embedded CEA-608/708 caption streams are not supported yet)";
+const NO_CAPTIONS: &str = "the clip's media has no embedded captions ShotClutch can read (embedded CEA-608/708 caption streams are not supported yet)";
 
 fn no_embedded_captions(_: &Session) -> std::result::Result<(), String> {
     Err(NO_CAPTIONS.into())
@@ -888,8 +888,8 @@ fn pair_p(p: &Value, k: &str) -> Option<(f64, f64)> {
     Some((a.first()?.as_f64()?.clamp(0.0, 50.0), a.get(1)?.as_f64()?.clamp(0.0, 50.0)))
 }
 
-pub const RENDERER_GPU: &str = "FilmCraft GPU Acceleration (wgpu)";
-pub const RENDERER_SOFTWARE: &str = "FilmCraft Software Only (CPU)";
+pub const RENDERER_GPU: &str = "ShotClutch GPU Acceleration (wgpu)";
+pub const RENDERER_SOFTWARE: &str = "ShotClutch Software Only (CPU)";
 
 fn general_json(st: &filmcraft_project::ProjectSettings) -> Value {
     json!({
@@ -976,7 +976,7 @@ pub fn scratch_paths(s: &Session) -> Value {
 }
 
 /// Render previews folder of the open project: Scratch Disks ▸ Video Previews / `<project
-/// name>`, else `FilmCraft Previews/<project name>` next to the project (None while unsaved).
+/// name>`, else `ShotClutch Previews/<project name>` next to the project (None while unsaved).
 pub fn previews_dir(s: &Session) -> Option<std::path::PathBuf> {
     s.path.as_deref().map(|p| previews_dir_for(&s.project, p, &s.prefs.auto_save.scratch_folders))
 }
@@ -993,7 +993,7 @@ pub fn previews_dir_for(project: &Project, path: &str, chosen: &[String]) -> std
 }
 
 /// The Scratch Disks folder `dir` from the settings of the project saved at `project_path`, if
-/// FilmCraft may write there: a folder chosen in Project Settings ▸ Scratch Disks on this computer
+/// ShotClutch may write there: a folder chosen in Project Settings ▸ Scratch Disks on this computer
 /// (`chosen`, kept in the preferences), or a folder inside the project's own folder. Other folders
 /// named in a project file, and paths [`crate::doc_path::resolve`] refuses (other computers,
 /// devices), give None: the default location.
@@ -1045,7 +1045,7 @@ pub(crate) fn remember_scratch_folders(s: &mut Session, dirs: &[String]) {
 }
 
 /// Log and tell the user once when the project just opened names Scratch Disks folders that
-/// FilmCraft will not write to (see [`trusted_scratch`]).
+/// ShotClutch will not write to (see [`trusted_scratch`]).
 pub(crate) fn warn_untrusted_scratch(s: &mut Session) {
     let sc = &s.project.settings.scratch;
     let ignored: Vec<String> = [&sc.auto_save, &sc.video_previews, &sc.captured, &sc.audio_previews]
@@ -1169,7 +1169,7 @@ fn source_settings(s: &mut Session, p: &Value) -> Result<Value> {
         "codec": codec,
         "container": m.info.container,
         "settings": [],
-        "message": format!("{} has no source settings in FilmCraft. Source settings apply to camera raw formats (R3D, ARRIRAW, CinemaDNG, ProRes RAW…), which FilmCraft does not decode.", if codec.is_empty() { "This clip".to_string() } else { codec.to_uppercase() }),
+        "message": format!("{} has no source settings in ShotClutch. Source settings apply to camera raw formats (R3D, ARRIRAW, CinemaDNG, ProRes RAW…), which ShotClutch does not decode.", if codec.is_empty() { "This clip".to_string() } else { codec.to_uppercase() }),
     }))
 }
 
@@ -1191,7 +1191,7 @@ pub fn xmp_packet(it: &filmcraft_project::ProjectItem) -> String {
         }
     }
     format!(
-        "<?xpacket begin=\"\u{feff}\" id=\"W5M0MpCehiHzreSzNTczkc9d\"?>\n<x:xmpmeta xmlns:x=\"adobe:ns:meta/\">\n <rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\n  <rdf:Description rdf:about=\"\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:xmp=\"http://ns.adobe.com/xap/1.0/\" xmlns:xmpDM=\"http://ns.adobe.com/xmp/1.0/DynamicMedia/\" xmp:CreatorTool=\"FilmCraft\">\n{body}  </rdf:Description>\n </rdf:RDF>\n</x:xmpmeta>\n<?xpacket end=\"w\"?>\n"
+        "<?xpacket begin=\"\u{feff}\" id=\"W5M0MpCehiHzreSzNTczkc9d\"?>\n<x:xmpmeta xmlns:x=\"adobe:ns:meta/\">\n <rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\n  <rdf:Description rdf:about=\"\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:xmp=\"http://ns.adobe.com/xap/1.0/\" xmlns:xmpDM=\"http://ns.adobe.com/xmp/1.0/DynamicMedia/\" xmp:CreatorTool=\"ShotClutch\">\n{body}  </rdf:Description>\n </rdf:RDF>\n</x:xmpmeta>\n<?xpacket end=\"w\"?>\n"
     )
 }
 
@@ -1210,7 +1210,7 @@ fn update_metadata(s: &mut Session, p: &Value) -> Result<Value> {
         let Some(path) = media_of(&s.project, id).and_then(|(_, m)| file_path(m)) else { continue };
         let side = sidecar_path(path);
         if let Ok(old) = s.services.read_file(&side)
-            && !String::from_utf8_lossy(&old).contains("xmp:CreatorTool=\"FilmCraft\"")
+            && !String::from_utf8_lossy(&old).contains("xmp:CreatorTool=\"ShotClutch\"")
         {
             skipped.push(json!({"item": id.0, "path": side, "reason": "an XMP file written by another application exists"}));
             continue;
@@ -1396,7 +1396,7 @@ pub fn system_report() -> Value {
     let formats: Vec<Value> =
         filmcraft_export::Format::ALL.iter().map(|f| json!({"format": f.label(), "available": filmcraft_export::available(*f)})).collect();
     json!({
-        "app": format!("FilmCraft {}", env!("CARGO_PKG_VERSION")),
+        "app": format!("ShotClutch {}", env!("CARGO_PKG_VERSION")),
         "os": std::env::consts::OS,
         "family": std::env::consts::FAMILY,
         "arch": std::env::consts::ARCH,

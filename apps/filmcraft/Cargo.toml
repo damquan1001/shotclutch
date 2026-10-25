@@ -1,18 +1,22 @@
 [package]
 name = "filmcraft"
-description = "FilmCraft desktop app"
+description = "ShotClutch desktop app"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-default-run = "filmcraft"
+default-run = "shotclutch"
 build = "build.rs"
+
+[[bin]]
+name = "shotclutch"
+path = "src/main.rs"
 
 [lints]
 workspace = true
 
 [features]
 default = []
-# Speech-to-text (Text panel ▸ Transcribe) with Whisper on the CPU, and model downloads.
+# Speech-to-text (Text panel â–¸ Transcribe) with Whisper on the CPU, and model downloads.
 whisper = ["filmcraft-engine/whisper", "filmcraft-engine/speech-download"]
 # Natural Text to Speech voices (Kokoro-82M on the CPU, downloaded on first use).
 neural-voices = ["filmcraft-engine/neural-voices"]
@@ -55,7 +59,7 @@ objc2 = "0.6"
 winit = { version = "0.30", default-features = false }
 
 [target.'cfg(target_os = "linux")'.dependencies]
-# Settings ▸ Appearance ▸ Sync with system: the XDG desktop portal's colour scheme. The zbus the
+# Settings â–¸ Appearance â–¸ Sync with system: the XDG desktop portal's colour scheme. The zbus the
 # portal file dialogs (rfd) and accesskit already use.
 zbus = "5.19"
 

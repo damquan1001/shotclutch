@@ -16,7 +16,7 @@ pub fn workspace_root() -> PathBuf {
 
 /// Root of all generated fixtures: `$FILMCRAFT_FIXTURES_DIR` or `<workspace>/target/fixtures`.
 pub fn fixtures_root() -> PathBuf {
-    match std::env::var_os("FILMCRAFT_FIXTURES_DIR").filter(|v| !v.is_empty()) {
+    match std::env::var_os("SHOTCLUTCH_FIXTURES_DIR").or_else(|| std::env::var_os("FILMCRAFT_FIXTURES_DIR")).filter(|v| !v.is_empty()) {
         Some(d) => PathBuf::from(d),
         None => workspace_root().join("target").join("fixtures"),
     }

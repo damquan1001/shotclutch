@@ -5,7 +5,7 @@
 //! project as `<name>-YYYY-MM-DD_HH-MM-SS.fcproj`, keeping at most *Maximum Project Versions* files.
 //! Optionally the project file itself is saved too.
 //!
-//! **Recovery journal** (FilmCraft addition): while the project has unsaved changes, a snapshot is
+//! **Recovery journal** (ShotClutch addition): while the project has unsaved changes, a snapshot is
 //! written to `<data dir>/Recovery/<session>/snapshot.fcproj` shortly after each change (debounced,
 //! and at least every *N* seconds while edits keep coming). Each running app holds an OS lock on
 //! `<session>/lock`; when the process dies (crash, `kill -9`, power cut) the lock is released, so on
@@ -96,8 +96,8 @@ pub struct PlaybackPrefs {
     /// a paused frame. Off by default.
     pub draft_decode: bool,
     /// "Hardware decoding": `auto` (default: the system's hardware decoder for streams it
-    /// supports, e.g. VideoToolbox H.264 / HEVC on macOS, falling back to FilmCraft's own decoder)
-    /// or `off` (always FilmCraft's own decoders). Media already open keeps its decoder until it
+    /// supports, e.g. VideoToolbox H.264 / HEVC on macOS, falling back to ShotClutch's own decoder)
+    /// or `off` (always ShotClutch's own decoders). Media already open keeps its decoder until it
     /// is reopened.
     pub hardware_decoding: String,
 }
@@ -501,23 +501,50 @@ pub fn portable_data_dir(exe_dir: &Path) -> Option<PathBuf> {
 
 /// The data directory. `FILMCRAFT_DATA_DIR` overrides; a portable install ([`PORTABLE_MARKER`] next
 /// to the executable) uses `<exe dir>/data`; otherwise the per-user directory:
-/// macOS `~/Library/Application Support/FilmCraft`, Windows `%APPDATA%\FilmCraft`,
-/// elsewhere `$XDG_DATA_HOME/filmcraft` or `~/.local/share/filmcraft`.
+/// macOS `~/Library/Application Support/ShotClutch`, Windows `%APPDATA%\ShotClutch`,
+/// elsewhere `$XDG_DATA_HOME/filmcraft` or `~/.local/share/shotclutch`.
 pub fn default_data_dir() -> Option<PathBuf> {
     let env = |k: &str| std::env::var_os(k).filter(|v| !v.is_empty()).map(PathBuf::from);
-    if let Some(d) = env("FILMCRAFT_DATA_DIR") {
+    let portable = std::env::current_exe().ok().and_then(|exe| exe.parent().and_then(portable_data_dir));
+    data_dir_from(env, portable)
+}
+
+fn data_dir_from(env: impl Fn(&str) -> Option<PathBuf>, portable: Option<PathBuf>) -> Option<PathBuf> {
+    if let Some(d) = env("SHOTCLUTCH_DATA_DIR").or_else(|| env("FILMCRAFT_DATA_DIR")) {
         return Some(d);
     }
-    if let Some(d) = std::env::current_exe().ok().and_then(|exe| exe.parent().and_then(portable_data_dir)) {
-        return Some(d);
+    if portable.is_some() {
+        return portable;
     }
     if cfg!(target_os = "macos") {
-        return env("HOME").map(|h| h.join("Library/Application Support/FilmCraft"));
+        return env("HOME").map(|h| h.join("Library/Application Support/ShotClutch"));
     }
     if cfg!(windows) {
-        return env("APPDATA").map(|h| h.join("FilmCraft"));
+        return env("APPDATA").map(|h| h.join("ShotClutch"));
     }
-    env("XDG_DATA_HOME").map(|d| d.join("filmcraft")).or_else(|| env("HOME").map(|h| h.join(".local/share/filmcraft")))
+    env("XDG_DATA_HOME").map(|d| d.join("shotclutch")).or_else(|| env("HOME").map(|h| h.join(".local/share/shotclutch")))
+}
+
+#[cfg(test)]
+mod identity_tests {
+    use super::*;
+    #[test]
+    fn data_override_precedence_and_legacy_fallback() {
+        let env = |key: &str| match key {
+            "SHOTCLUTCH_DATA_DIR" => Some(PathBuf::from("new")),
+            "FILMCRAFT_DATA_DIR" => Some(PathBuf::from("old")),
+            _ => None,
+        };
+        assert_eq!(data_dir_from(env, Some(PathBuf::from("portable"))), Some(PathBuf::from("new")));
+        assert_eq!(data_dir_from(|k| if k == "SHOTCLUTCH_DATA_DIR" { None } else { env(k) }, None), Some(PathBuf::from("old")));
+        assert_eq!(data_dir_from(|_| None, Some(PathBuf::from("portable"))), Some(PathBuf::from("portable")));
+    }
+    #[test]
+    fn default_data_directory_is_separate_from_upstream() {
+        let dir = data_dir_from(|k| matches!(k, "APPDATA" | "HOME" | "XDG_DATA_HOME").then(|| PathBuf::from("account")), None).unwrap();
+        assert!(dir.to_string_lossy().to_ascii_lowercase().ends_with("shotclutch"));
+        assert!(!dir.to_string_lossy().contains("FilmCraft"));
+    }
 }
 
 pub fn unix_now() -> i64 {

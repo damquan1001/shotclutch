@@ -1484,7 +1484,7 @@ PERCENT  P ER0 S EH1 N T
     /// accuracy and phoneme error rate on the held-out words.
     #[test]
     fn measured_accuracy_against_cmudict() {
-        let Ok(path) = std::env::var("FILMCRAFT_CMUDICT") else {
+        let Ok(path) = std::env::var("SHOTCLUTCH_CMUDICT").or_else(|_| std::env::var("FILMCRAFT_CMUDICT")) else {
             eprintln!("measured_accuracy_against_cmudict: FILMCRAFT_CMUDICT not set; skipping");
             return;
         };

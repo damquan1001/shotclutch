@@ -1,11 +1,11 @@
-//! FilmCraft benchmark suite (`cargo xtask bench`): decode speed per codec, Program-monitor
+//! ShotClutch benchmark suite (`cargo xtask bench`): decode speed per codec, Program-monitor
 //! playback and scrubbing through the real frame scheduler, timeline UI frame time with a large
 //! sequence, export throughput, project save/open, and peak memory per section.
 //!
 //! ```sh
 //! cargo xtask bench                                   # every section, writes target/bench/bench-<label>.{json,md}
 //! cargo xtask bench --sections decode,scrub --repeat 3 --label after
-//! cargo xtask bench --sections decode --hw off --label hw-off   # FilmCraft's own decoders only
+//! cargo xtask bench --sections decode --hw off --label hw-off   # ShotClutch's own decoders only
 //! cargo run --release -p filmcraft-ui-egui --example bench -- --section timeline   # one section, this process
 //! ```
 //!
@@ -82,7 +82,7 @@ fn main() {
 fn run_section(name: &str, o: &Opts) -> Value {
     let t0 = std::time::Instant::now();
     let load0 = playback::load_avg();
-    let rows = match name {
+    let mut rows = match name {
         "decode" => sections::decode(o),
         "seek" => sections::seek(o),
         "playback" => sections::playback(o),
@@ -92,7 +92,12 @@ fn run_section(name: &str, o: &Opts) -> Value {
         "project" => sections::project(o),
         _ => panic!("unknown section {name} (one of {})", SECTIONS.join(", ")),
     };
-    json!({"section": name, "rows": rows, "wall_s": t0.elapsed().as_secs_f64(), "load_before": load0, "load_after": playback::load_avg()})
+    if cfg!(windows) {
+        for row in &mut rows {
+            row["load"] = Value::Null;
+        }
+    }
+    json!({"section": name, "rows": rows, "wall_s": t0.elapsed().as_secs_f64(), "load_before": if cfg!(windows) { Value::Null } else { json!(load0) }, "load_after": if cfg!(windows) { Value::Null } else { json!(playback::load_avg()) }})
 }
 
 /// Run each section in a child process under `/usr/bin/time` (peak RSS), then write JSON and
@@ -105,12 +110,12 @@ fn orchestrate(args: &[String], o: &Opts) {
     std::fs::create_dir_all(&out).expect("output dir");
     let exe = std::env::current_exe().expect("exe");
     let machine = machine_info();
-    println!("FilmCraft bench `{label}`: {}", machine["summary"].as_str().unwrap_or(""));
+    println!("ShotClutch bench `{label}`: {}", machine["summary"].as_str().unwrap_or(""));
     let mut results = Vec::new();
     for name in &wanted {
         let tmp = out.join(format!(".section-{name}-{}.json", std::process::id()));
-        let mut cmd = time_wrapper();
-        cmd.arg(&exe).args(["--section", name, "--json"]).arg(&tmp).args(["--repeat", &o.repeat.to_string()]);
+        let mut cmd = section_command(&exe);
+        cmd.args(["--section", name, "--json"]).arg(&tmp).args(["--repeat", &o.repeat.to_string()]);
         if o.quick {
             cmd.arg("--quick");
         }
@@ -133,6 +138,10 @@ fn orchestrate(args: &[String], o: &Opts) {
             .and_then(|b| serde_json::from_slice(&b).ok())
             .unwrap_or_else(|| json!({"section": name, "error": format!("section failed: {}", output.status)}));
         let _ = std::fs::remove_file(&tmp);
+        if !output.status.success() {
+            v["error"] = json!(format!("section failed: {}", output.status));
+        }
+        v["peak_rss_mb"] = Value::Null;
         if let Some(rss) = peak_rss_bytes(&stderr) {
             v["peak_rss_mb"] = json!(rss as f64 / 1e6);
         }
@@ -145,19 +154,20 @@ fn orchestrate(args: &[String], o: &Opts) {
     std::fs::write(&jp, serde_json::to_string_pretty(&doc).unwrap_or_default()).expect("write json");
     std::fs::write(&mp, markdown(&doc)).expect("write md");
     println!("wrote {} and {}", jp.display(), mp.display());
+    if doc["sections"].as_array().is_some_and(|sections| sections.iter().any(|s| s.get("error").is_some())) {
+        std::process::exit(1);
+    }
 }
 
-fn time_wrapper() -> Command {
+fn section_command(exe: &Path) -> Command {
     let time = Path::new("/usr/bin/time");
-    if time.exists() {
+    if cfg!(unix) && time.exists() {
         let mut c = Command::new(time);
-        c.arg(if cfg!(target_os = "macos") { "-l" } else { "-v" });
+        c.arg(if cfg!(target_os = "macos") { "-l" } else { "-v" }).arg(exe);
         c
     } else {
         // No `time`: run the section directly (no peak RSS).
-        let mut c = Command::new("env");
-        c.arg("--");
-        c
+        Command::new(exe)
     }
 }
 
@@ -194,15 +204,20 @@ fn machine_info() -> Value {
                 .and_then(|c| c.lines().find(|l| l.starts_with("model name")).and_then(|l| l.split(':').nth(1)).map(|s| s.trim().to_string()))
         })
         .or_else(|| sh("powershell", &["-NoProfile", "-Command", "(Get-CimInstance Win32_Processor | Select-Object -First 1).Name"]))
+        .or_else(|| std::env::var("PROCESSOR_IDENTIFIER").ok())
         .unwrap_or_else(|| "unknown CPU".into());
-    let mem_gb = sh("sysctl", &["-n", "hw.memsize"]).and_then(|m| m.parse::<u64>().ok()).map(|b| b as f64 / (1u64 << 30) as f64);
-    let os = sh("uname", &["-sr"]).unwrap_or_default();
-    let date = sh("date", &["-u", "+%Y-%m-%d %H:%M UTC"]).unwrap_or_default();
+    let windows = windows_machine_info();
+    let mem_gb = sh("sysctl", &["-n", "hw.memsize"])
+        .and_then(|m| m.parse::<u64>().ok())
+        .map(|b| b as f64 / (1u64 << 30) as f64)
+        .or_else(|| windows["memory_bytes"].as_f64().map(|b| b / (1u64 << 30) as f64));
+    let os = sh("uname", &["-sr"]).or_else(|| windows["os"].as_str().map(str::to_owned)).unwrap_or_else(|| std::env::consts::OS.into());
+    let date = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs().to_string()).unwrap_or_default();
     let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let commit = Command::new("git")
         .arg("-C")
         .arg(&repo)
-        .args(["rev-parse", "--short", "HEAD"])
+        .args(["rev-parse", "HEAD"])
         .output()
         .ok()
         .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
@@ -212,7 +227,37 @@ fn machine_info() -> Value {
         mem_gb.map(|g| format!(", {g:.0} GB")).unwrap_or_default(),
         playback::load_avg()
     );
-    json!({"cpu": cpu, "cores": cores, "memory_gb": mem_gb, "os": os, "commit": commit, "date": date, "rayon_threads": rayon::current_num_threads(), "load": playback::load_avg(), "summary": summary})
+    json!({"cpu": cpu, "cores": cores, "memory_gb": mem_gb, "os": os, "commit": commit, "date": date, "rayon_threads": rayon::current_num_threads(), "load": if cfg!(windows) { Value::Null } else { json!(playback::load_avg()) }, "summary": summary, "toolchain": sh("rustc", &["--version"]), "gpu": windows["gpu"], "hardware_collection": windows, "cache_policy": "fresh child per section; OS file cache uncontrolled; warm/cold cases as named", "resource_limits": "host defaults; no enforced per-process ceiling"})
+}
+
+/// Missing platform telemetry is explicit null, never a fabricated measurement.
+fn windows_machine_info() -> Value {
+    if !cfg!(windows) {
+        return Value::Null;
+    }
+    sh("powershell", &["-NoProfile", "-Command", "$ErrorActionPreference='Stop'; try { $os=Get-CimInstance Win32_OperatingSystem; $gpu=@(Get-CimInstance Win32_VideoController | Select-Object Name,DriverVersion,AdapterRAM); @{os=$os.Caption; memory_bytes=[double]$os.TotalVisibleMemorySize*1024; gpu=$gpu} | ConvertTo-Json -Depth 4 -Compress } catch { @{os=$null; memory_bytes=$null; gpu=$null; unavailable=$_.Exception.Message} | ConvertTo-Json -Compress }"])
+        .and_then(|s| serde_json::from_str(&s).ok()).unwrap_or(Value::Null)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn native_section_command_does_not_require_unix_env() {
+        let exe = Path::new("section runner.exe");
+        let cmd = section_command(exe);
+        if cfg!(windows) {
+            assert_eq!(cmd.get_program(), exe.as_os_str());
+        } else {
+            assert!(cmd.get_program() == exe.as_os_str() || cmd.get_args().any(|a| a == exe.as_os_str()));
+        }
+    }
+    #[test]
+    fn resource_units_are_explicit() {
+        assert_eq!(peak_rss_bytes("Maximum resident set size (kbytes): 123"), Some(123 * 1024));
+        assert_eq!(peak_rss_bytes(" 123 maximum resident set size"), Some(123));
+        assert_eq!(peak_rss_bytes("unavailable"), None);
+    }
 }
 
 // ------------------------------------------------------------------------------------ markdown
@@ -360,7 +405,7 @@ pub fn section_markdown(v: &Value) -> String {
 fn markdown(doc: &Value) -> String {
     let m = &doc["machine"];
     let mut s = format!(
-        "# FilmCraft benchmark `{}`\n\n- {}\n- repeat {} (best/median as noted), quick {}, monitor path {}\n\n",
+        "# ShotClutch benchmark `{}`\n\n- {}\n- repeat {} (best/median as noted), quick {}, monitor path {}\n\n",
         doc["label"].as_str().unwrap_or(""),
         m["summary"].as_str().unwrap_or(""),
         doc["repeat"],

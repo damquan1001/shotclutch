@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ShotClutch MSI (WiX Toolset v5: `dotnet tool install -g wix`). Built by package.ps1:
+
+    wix build shotclutch.wxs -arch x64 -d Version=1.2.3 -d BinDir=... -d IconPath=... -o out.msi
+
+  Per-machine install into Program Files and a Start Menu shortcut. No file associations.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package
+      Name="ShotClutch"
+      Manufacturer="ShotClutch contributors"
+      Version="$(var.Version)"
+      UpgradeCode="BB349D14-E803-4D51-B94A-17D55882EE78"
+      Scope="perMachine"
+      Compressed="yes"
+      Language="1033">
+    <SummaryInformation Description="ShotClutch video editor" Manufacturer="ShotClutch contributors" />
+    <!-- Same-version upgrades let successive pre-releases of one X.Y.Z replace each other
+         (MSI versions are numeric, so 1.2.3-rc.1 and 1.2.3-rc.2 are both 1.2.3). -->
+    <MajorUpgrade AllowSameVersionUpgrades="yes"
+        DowngradeErrorMessage="A newer version of ShotClutch is already installed." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Icon Id="ShotclutchIcon.ico" SourceFile="$(var.IconPath)" />
+    <Property Id="ARPPRODUCTICON" Value="ShotclutchIcon.ico" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/damquan1001/shotclutch" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/damquan1001/shotclutch" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/damquan1001/shotclutch/issues" />
+
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="INSTALLFOLDER" Name="ShotClutch" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder" />
+
+    <Feature Id="Main" Title="ShotClutch" Level="1">
+      <ComponentGroupRef Id="ShotclutchFiles" />
+      <ComponentGroupRef Id="LegalFiles" />
+    </Feature>
+  </Package>
+
+  <Fragment>
+    <ComponentGroup Id="ShotclutchFiles" Directory="INSTALLFOLDER">
+      <Component Id="ShotclutchApp" Guid="FE657C02-7D78-4DB0-AD45-BFA012E8DFA3">
+        <File Id="ShotclutchExe" Source="$(var.BinDir)\shotclutch.exe" KeyPath="yes">
+          <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder" Name="ShotClutch"
+              Description="ShotClutch video editor" WorkingDirectory="INSTALLFOLDER" Advertise="yes"
+              Icon="ShotclutchIcon.ico" IconIndex="0" />
+        </File>
+
+        <RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\App Paths\shotclutch.exe" Value="[#ShotclutchExe]" Type="string" />
+      </Component>
+
+      <Component Id="ShotclutchCli">
+        <File Id="ShotclutchCliExe" Source="$(var.BinDir)\shotclutch-cli.exe" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>
