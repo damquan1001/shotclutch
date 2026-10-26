@@ -1,0 +1,60 @@
+{
+  "sampling_note": "5-second observations; not event timestamps or root cause",
+  "increments": [
+    {
+      "seconds": 152.98500000000058,
+      "new_dropped": 4,
+      "total_dropped": 4
+    },
+    {
+      "seconds": 158.17200000000594,
+      "new_dropped": 2,
+      "total_dropped": 6
+    },
+    {
+      "seconds": 163.26600000000326,
+      "new_dropped": 2,
+      "total_dropped": 8
+    },
+    {
+      "seconds": 260.14100000000326,
+      "new_dropped": 3,
+      "total_dropped": 11
+    },
+    {
+      "seconds": 270.3130000000092,
+      "new_dropped": 1,
+      "total_dropped": 12
+    },
+    {
+      "seconds": 275.6100000000006,
+      "new_dropped": 3,
+      "total_dropped": 15
+    },
+    {
+      "seconds": 285.8600000000006,
+      "new_dropped": 2,
+      "total_dropped": 17
+    },
+    {
+      "seconds": 323.1570000000065,
+      "new_dropped": 11,
+      "total_dropped": 28
+    },
+    {
+      "seconds": 399.92200000000594,
+      "new_dropped": 1,
+      "total_dropped": 29
+    },
+    {
+      "seconds": 425.5320000000065,
+      "new_dropped": 1,
+      "total_dropped": 30
+    },
+    {
+      "seconds": 440.875,
+      "new_dropped": 2,
+      "total_dropped": 32
+    }
+  ]
+}

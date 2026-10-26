@@ -1,0 +1,13 @@
+{
+  "signing_requested": false,
+  "commit": "d0b9a11dc4ff25f93e855700ca33df865c5532c4",
+  "cargo_lock_sha256": "3A05488C275F867F2F9845258428E7EF6EB25F297A67C104D6AD09322C733013",
+  "product": "ShotClutch",
+  "target": "x86_64-pc-windows-msvc",
+  "wix": "5.0.2+aa65968c",
+  "version": "0.13.0",
+  "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "observed_commit": "d0b9a11dc4ff25f93e855700ca33df865c5532c4",
+  "build_date_utc": "2026-10-26",
+  "dirty": false
+}

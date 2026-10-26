@@ -1,0 +1,29 @@
+{
+  "platform": "linux-x86_64",
+  "locked_version": "9.0.2",
+  "publisher": "https://ffmpeg.martin-riedl.de/",
+  "tools": {
+    "ffmpeg": {
+      "url": "https://ffmpeg.martin-riedl.de/download/linux/amd64/1789931100_9.0.2/ffmpeg.zip",
+      "sha256": "fa8ecf4abbd290d98f7d188b8649cc6b391ae209a98452be955a15aab1909d7f",
+      "version": "ffmpeg version 9.0.2-https://www.martin-riedl.de Copyright (c) 2000-2026 the FFmpeg developers",
+      "executable_sha256": "2624cfce1acdb259fe72b6d020dac937a1e7e66cf3578d8c4d43704e69a42cba"
+    },
+    "ffprobe": {
+      "url": "https://ffmpeg.martin-riedl.de/download/linux/amd64/1789931100_9.0.2/ffprobe.zip",
+      "sha256": "3f428c49070be3d24ec338602b76d412e401ffcb8a5641ef0e729181a232fc32",
+      "version": "ffprobe version 9.0.2-https://www.martin-riedl.de Copyright (c) 2007-2026 the FFmpeg developers",
+      "executable_sha256": "fa300ee31cd55e7a8d052f16d017fde3b68d842dff39e0c29575ced5278947d6"
+    }
+  },
+  "verified_encoders": [
+    "aac",
+    "libaom-av1",
+    "libvpx-vp9",
+    "libx264",
+    "libx265",
+    "mp2",
+    "mpeg2video",
+    "prores_ks"
+  ]
+}

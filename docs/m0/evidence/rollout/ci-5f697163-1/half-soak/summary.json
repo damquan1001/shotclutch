@@ -1,0 +1,176 @@
+{
+  "binary_sha256": "e82cc4cc97178ff712c64bca471fc6666f66cac64c1ff1fc7f1b277396750d0a",
+  "fixture_sha256": "7637c37e4c487b5a2e3e7759a5d9aa11b8c789dd41bc102ee62279e86dde091b",
+  "requested_seconds": 600,
+  "result": "completed; evaluate counters and declared targets separately",
+  "physical_av_drift": null,
+  "physical_av_drift_note": "No loopback capture; application clock/monitor counters only",
+  "adapter": [
+    "2026-10-26T16:29:07.508Z INFO  [main] filmcraft_gpu::adapter: graphics adapter chosen: \"NVIDIA GeForce RTX 3060 Laptop GPU\" (Vulkan, discrete GPU, driver NVIDIA 555.97, 69 features, bus 0000:01:00.0)"
+  ],
+  "requested_resolution": "Half",
+  "samples": 119,
+  "gpu_device_metrics_scope": "Device-wide NVIDIA metrics include other applications; not per-process GPU allocation",
+  "build_info": {
+    "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+    "version": "0.13.0",
+    "build_date_utc": "2026-10-26",
+    "dirty": false,
+    "product": "ShotClutch",
+    "wix": "5.0.2+aa65968c",
+    "cargo_lock_sha256": "3A05488C275F867F2F9845258428E7EF6EB25F297A67C104D6AD09322C733013",
+    "commit": "5f697163cc5408cc95281c1f1656c881e87fadad",
+    "target": "x86_64-pc-windows-msvc",
+    "observed_commit": "5f697163cc5408cc95281c1f1656c881e87fadad",
+    "signing_requested": false
+  },
+  "last": {
+    "elapsed_seconds": 600.0780000000086,
+    "playhead_seconds": 600.1666666666666,
+    "audio_clock": true,
+    "playback": {
+      "audio": {
+        "callbacks": 56271,
+        "minLeadMs": 157.875,
+        "missingFrames": 0,
+        "underruns": 0
+      },
+      "draftDecode": false,
+      "dropRate": 5.553395901593825e-05,
+      "dropped": 1,
+      "playing": true,
+      "resolution": "1/2",
+      "shown": 18006,
+      "speed": 1.0
+    },
+    "monitor": {
+      "frame": 18006,
+      "playheadFrame": 18006,
+      "projectRevision": 4,
+      "revision": 4
+    },
+    "gpu": {
+      "cpuTransitions": 0,
+      "submitMs": 1.6601999998092651,
+      "transitions": 0,
+      "uploadedBytes": 56005862400
+    },
+    "decode": {
+      "cacheBudgetMB": 1073.741824,
+      "cacheHitRate": 0.5016089658233467,
+      "cacheHits": 9041,
+      "cacheMB": 401.2416,
+      "cacheMisses": 8983,
+      "decodeMs": 31846.7652,
+      "decodeMsPerSample": 1.7627035589749267,
+      "draftFrames": 0,
+      "evicted": 17908,
+      "framesDecoded": 18037,
+      "h264Threads": 16,
+      "hardware": {
+        "backend": "Media Foundation",
+        "declined": 0,
+        "enabled": true,
+        "fallbacks": 0,
+        "frames": 18037,
+        "sessions": 1,
+        "softwareFrames": 0
+      },
+      "liveDecoders": 1,
+      "planePoolMB": 18.77152,
+      "planesReused": 53706,
+      "requests": 18024,
+      "samplesDecoded": 18067,
+      "samplesSkipped": 0,
+      "seeks": 2
+    },
+    "ui": {
+      "fps": 144.339111328125,
+      "frameMs": 6.928129117593828
+    },
+    "process": {
+      "cpuS": 487.0625
+    },
+    "memory": {
+      "working_set_bytes": 925659136,
+      "peak_working_set_bytes": 925659136,
+      "private_bytes": 1239310336
+    }
+  },
+  "first": {
+    "elapsed_seconds": 0.0,
+    "playhead_seconds": 0.06666666666666667,
+    "audio_clock": true,
+    "playback": {
+      "audio": {
+        "callbacks": 14,
+        "minLeadMs": 157.875,
+        "missingFrames": 0,
+        "underruns": 0
+      },
+      "draftDecode": false,
+      "dropRate": 0.0,
+      "dropped": 0,
+      "playing": true,
+      "resolution": "1/2",
+      "shown": 5,
+      "speed": 1.0
+    },
+    "monitor": {
+      "frame": 4,
+      "playheadFrame": 4,
+      "projectRevision": 4,
+      "revision": 4
+    },
+    "gpu": {
+      "cpuTransitions": 0,
+      "submitMs": 1.1629999876022339,
+      "transitions": 0,
+      "uploadedBytes": 15552000
+    },
+    "decode": {
+      "cacheBudgetMB": 1073.741824,
+      "cacheHitRate": 0.36363636363636365,
+      "cacheHits": 8,
+      "cacheMB": 111.9744,
+      "cacheMisses": 14,
+      "decodeMs": 137.0165,
+      "decodeMsPerSample": 2.076007575757576,
+      "draftFrames": 0,
+      "evicted": 0,
+      "framesDecoded": 36,
+      "h264Threads": 16,
+      "hardware": {
+        "backend": "Media Foundation",
+        "declined": 0,
+        "enabled": true,
+        "fallbacks": 0,
+        "frames": 36,
+        "sessions": 1,
+        "softwareFrames": 0
+      },
+      "liveDecoders": 1,
+      "planePoolMB": 0.10912,
+      "planesReused": 0,
+      "requests": 22,
+      "samplesDecoded": 66,
+      "samplesSkipped": 0,
+      "seeks": 2
+    },
+    "ui": {
+      "fps": 176.79710388183594,
+      "frameMs": 5.6562012501537335
+    },
+    "process": {
+      "cpuS": 3.859375
+    },
+    "memory": {
+      "working_set_bytes": 598749184,
+      "peak_working_set_bytes": 598765568,
+      "private_bytes": 912818176
+    },
+    "gpu_device_snapshot": "NVIDIA GeForce RTX 3060 Laptop GPU, 555.97, 6144, 255, 21, 0, 46, 27.15"
+  },
+  "wall_seconds": 600.1410000000033,
+  "clock_progress_minus_wall_seconds": 0.021999999991294317
+}

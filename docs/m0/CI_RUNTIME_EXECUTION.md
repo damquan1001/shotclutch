@@ -39,6 +39,8 @@ The first Windows MSI/ZIP were downloaded and validated locally. MSI SHA-256: `5
 - Legacy FXC remains a known unqualified path; DXC tests do not repair or qualify it for consumers. No compiler DLL is added to application packages. Native desktop measurements below use NVIDIA Vulkan.
 - Aggregate names are now distinct: `CI required` and `Packaging required`. Linux/macOS release builds run independently of checks, while the final gate still requires every lane. Documentation-only push filtering avoids unnecessary repeated builds; PR triggers remain unfiltered. Python UTF-8 is explicit on Windows.
 
+Follow-up source `7cfbde41` started [CI 40358941028](https://github.com/damquan1001/shotclutch/actions/runs/40358941028); [packaging lint 40358941007](https://github.com/damquan1001/shotclutch/actions/runs/40358941007) passed. Review while compilation was running found that assigning an empty `WGPU_BACKEND` on non-Windows selected no backends in wgpu's parser. That run is superseded rather than accepted as complete coverage. The corrected workflow names explicit Direct3D 12/Vulkan/Metal profiles and requires an adapter probe on every hosted OS, preventing a green result based on silent GPU-test skips.
+
 ## Runtime preparation and provisional observations
 
 - Added a backend/section selector to the existing benchmark wrapper, preserving default software/CPU behavior and using the selected mode for both preparation and measurement. Empty measured sections fail. The inherited export section couples hardware encode/GPU export selection to `--hw`; that limitation is stated in each new manifest.
@@ -54,6 +56,85 @@ This Full-resolution observation exceeds document 14's proposed 0.1% drop target
 
 The seven-section auto-decode/GPU quick matrix completed all sections (94 rows). Hardware counters establish actual use where reported; repeated cached frames do not count as fresh hardware decoding. 4K AV1 playback dropped most frames and remains unqualified. The inherited benchmark does not expose the active adapter model; the separate native observation above does. [Raw matrix](evidence/rollout/runtime/measurements/gpu-auto-matrix/manifest.json).
 
+The same exact CI executable then completed **ten minutes at Half (1/2) preview resolution**: 18,006 shown / 1 dropped frame (**0.0056%**), 56,271 audio callbacks, zero underruns/missing frames, 925,659,136-byte peak working set (0.862 GiB), 18,037 Media Foundation hardware frames and no fallback. Internal playhead-minus-wall progress was +0.022 seconds. [Summary](evidence/rollout/ci-5f697163-1/half-soak/summary.json), [raw samples](evidence/rollout/ci-5f697163-1/half-soak/samples.jsonl). This meets the proposed drop-rate threshold for this observation, not the whole release matrix. The Full-resolution miss remains distinct. Renderer selection was NVIDIA Vulkan, while decoder logs identify the AMD Radeon Direct3D 11 hardware device: this is a **hybrid adapter path**, not an all-NVIDIA pipeline. Physical A/V drift remains unavailable in both observations.
+
+Each native run used a fresh application data directory. Fixture hash verification read the media before playback; OS caches were not flushed, so these are not cold-media measurements. Default decoder/frame-cache settings and actual counters remain in the samples. No heavy local build, fixture generation or other qualification workload ran concurrently with measured playback; operating-system/background activity remained uncontrolled.
+
+[Fresh primary profile](evidence/rollout/primary-profile.json), captured after the initial observations: Windows 11 Home Single Language 10.0.26200, Ryzen 7 4800H (8 cores / 16 threads), 33,737,945,088 bytes physical memory, AMD driver 31.0.21923.1000, NVIDIA driver 32.0.15.5597 (555.97) and Turbo power scheme. Storage model/capacity is captured without serial numbers. CPU thermals, physical A/V drift and per-process GPU allocation remain unavailable.
+
 Three interleaved upstream/fork software/CPU decode pairs used U/F, F/U, U/F order. Earlier slower decode results were **not reproduced**: per-pair median FPS changes for H.264 were +17.2%, +2.0%, +23.7%; HEVC +4.2%, +23.1%, +16.6%; VP9 +3.2%, +1.8%, +30.6%; AV1 +4.8%, +5.7%, +13.6%; ProRes +0.9%, +3.6%, +0.8%. This does not establish a speedup or root cause: thermal, clock, OS-cache and scheduling conditions were uncontrolled, and runs are short. The original slower baseline remains intact. [Raw pairs](evidence/rollout/runtime/interleaved/upstream-pair1/manifest.json). Heavy local builds/tests and native soak did not overlap these measurements.
 
 Physical loopback, additional lifecycle scenarios, a successful final-CI candidate and a second hardware profile remain separately reported coverage. The first candidate's measured runtime evidence is bound to its own revision rather than silently relabeled as a later build.
+
+### Native lifecycle observations on `5f697163`
+
+[Reproduction and raw command results](evidence/rollout/ci-5f697163-1/lifecycle/summary.json) use a copied generated short fixture, a private application data directory and a child PATH containing only the package directory and Windows System32. Oracle override variables were removed from the child. No installed application, user project or original fixture was moved or overwritten.
+
+- Fifty trim/undo/redo/undo cycles preserved the expected 59/60-frame durations. The saved project survived a controlled quit, reopened with one missing copied media file, relinked to the moved copy and reopened online at 60 frames.
+- The 1,802-second source project saved/reopened at 54,060 frames. A live ProRes export was cancelled in 0.578 seconds and reported `error: cancelled`.
+- The raw `jobs.cancel` command **left a 6,753,640-byte partial output**. The harness expected removal and therefore records a failure, not an all-pass lifecycle result. Source inspection shows cleanup belongs to the MCP `notifications/cancelled` wrapper (`crates/automation/src/long_job.rs`), while raw `jobs.cancel` only signals the export worker (`crates/engine/src/commands.rs`). These transports must not be reported as having identical cleanup semantics. Partial-output handling remains an explicit export/lifecycle limitation for subsequent qualification; no M1 export architecture was added here. The harness terminated only its own child after the failed expectation.
+
+The first attempt at this observation used an absent downloaded fixture path and stopped before launching an app. The corrected attempt above used `target/ci/local-fixtures/source.mp4`; that preparation error is not classified as a product failure.
+
+### Evidence interpretation
+
+- [Downloaded candidate binding](evidence/rollout/ci-5f697163-1/candidate.json) verifies the outer artifact archive against GitHub's reported SHA-256 before extraction, then records inner MSI/ZIP/executable hashes and clean commit provenance. Test-only DXC DLLs are absent from the portable payload. [Download reproduction](evidence/rollout/download-candidate.py).
+- Raw `Cargo.lock` SHA-256 differs between Windows (`3a05488c…`) and Unix (`de03a57a…`) because this Windows checkout uses CRLF. [Normalization proof](evidence/rollout/lockfile-line-endings.json) confirms that LF-normalized bytes equal the Git blob. This is not a dependency-resolution change.
+- First-run observed lane durations were approximately 40m33s Linux checks, 28m45s macOS checks, 62m54s Windows checks, 25m59s Windows packaging and 40s install lifecycle. The timing API reported run duration 3,785,000 ms but zero billable duration for all OS buckets; that response is not treated as proof of zero cost or remaining allowance. Account plan/budget remains unavailable through the inspected metadata. No paid runners, signing, release publishing or schedules were enabled.
+- Superseded `7cfbde41` completed macOS release compilation in 565.6 seconds before cancellation; [retained source-bound build report](evidence/rollout/ci-7cfbde41-1/release-macos/build/summary.json). All cancelled lanes remain incomplete. Corrected CI `d44a20e6` is running at [40360661267](https://github.com/damquan1001/shotclutch/actions/runs/40360661267); [packaging lint 40360661595](https://github.com/damquan1001/shotclutch/actions/runs/40360661595) passed.
+
+On 2026-10-27 (Asia/Bangkok), `d44a20e6` passed Linux release/WASM compilation, macOS release compilation, all three required adapter probes and the macOS workspace library tests. macOS then failed `graphics::tests::windows_default_leaves_out_gl`: the globally forced Metal profile changed eframe's `NativeOptions::default`, while that test intentionally checks its unmodified default list. This is CI environment leakage, not a product-source repair. [Retained diagnostics](evidence/rollout/ci-d44a20e6-1/checks-macos/evidence/checks/summary.json) identify the failure; the probe names the **Apple Paravirtual device / Metal** adapter.
+
+The runner repair uses CI-specific profile variables, maps them to `WGPU_*` only for library tests/the GPU probe, and records the applied overrides per command. Desktop/CLI default tests receive no forced backend. All **four helper regression guards** pass locally, including a new environment-isolation check; actionlint and Python syntax pass. Remaining jobs on the known-failing source are superseded after retaining completed evidence. No failed/cancelled aggregate is counted toward the two-green-run gate.
+
+Current isolated-profile source: **`d0b9a11dc4ff25f93e855700ca33df865c5532c4`**. [CI 40365205399](https://github.com/damquan1001/shotclutch/actions/runs/40365205399) and [packaging lint 40365205707](https://github.com/damquan1001/shotclutch/actions/runs/40365205707) are the next acceptance candidates. Do not advance CI-002 until two full green executions of one source revision exist. Main promotion and CI-003 remain separate from branch-level stabilization.
+
+### Current candidate results (`d0b9a11d`, attempt 1)
+
+**The complete aggregate passed.** Packaging lint, macOS full checks (**2,600 passing executions / 12 explicitly ignored**), Linux full checks (**2,646 / 12**), Windows full checks (**2,630 / 12**), both non-Windows release builds, Linux WASM and Windows package/install/render/uninstall passed. Each OS also passed its separate required adapter probe. Compiled targets were rebuilt; source-download cache state is retained per lane. Linux's adapter is **llvmpipe / Vulkan**, a CPU software implementation; macOS uses **Apple Paravirtual / Metal**; Windows uses **Microsoft Basic Render Driver / Direct3D 12** with pinned DXC. These establish hosted correctness coverage, not physical GPU performance. [macOS commands](evidence/rollout/ci-d0b9a11d-1/checks-macos/evidence/checks/summary.json), [Linux](evidence/rollout/ci-d0b9a11d-1/checks-ubuntu/evidence/checks/summary.json), [Windows](evidence/rollout/ci-d0b9a11d-1/checks-windows/evidence/checks/summary.json), [run/jobs/artifacts](evidence/rollout/ci-d0b9a11d-1/run.json), [ignored-test inventory](evidence/rollout/ci-d0b9a11d-1/ignored-tests-macos.json).
+
+[Current downloaded candidate](evidence/rollout/ci-d0b9a11d-1/candidate.json) passed the outer archive digest check and local MSI/ZIP validation. MSI SHA-256 is `ca4aec9da86d6344f8792bb807fc4e21800f099c501449ca42dc00ac0f1877a9`, ZIP `77391268f8e61c7ce2e01dda035c9e83037aa2c18b2705ada523dc53304845e3`, GUI executable `bbbccc48f9b2f4345b42782c7ee55eec06091d2fb973e7c6d53a230f9f852504`. The [fresh hosted install](evidence/rollout/ci-d0b9a11d-1/install-evidence/install/summary.json) confirms the same MSI, install/uninstall exit 0 and preserved user sentinel. Installed CLI output has [50 frames / 80,000 stereo sample frames](evidence/rollout/ci-d0b9a11d-1/install-evidence/install/workflow/verification.json).
+
+The downloaded GUI then passed isolated native workflows at 320×180 and **1920×1080**, with the app child restricted to its package directory and Windows System32, oracle overrides removed, and parent-only generation/verification. Both trim/undo/redo/save/reopen/export workflows produced 50 video frames and 80,000 stereo sample frames. Independent 1080p inspection also confirms 1920×1080, 30/1 fps, 48 kHz stereo. [1080p command evidence](evidence/rollout/ci-d0b9a11d-1/native-core-1080/evidence.json), [fixture/oracle context](evidence/rollout/ci-d0b9a11d-1/native-core-1080/verification-context.json). This does not represent a local MSI installation; the developer's installed application was preserved.
+
+Sustained observations on the same Windows 11 profile and fixture:
+
+| Candidate / preview | Duration | Shown / dropped | Drop rate | Audio underruns / missing frames | Peak working set |
+|---|---:|---:|---:|---:|---:|
+| `5f697163` / Full | 30 min | 53,868 / 99 | 0.1834% | 0 / 0 | 0.887 GiB |
+| `5f697163` / Half | 10 min | 18,006 / 1 | 0.0056% | 0 / 0 | 0.862 GiB |
+| `d0b9a11d` / Full | 30 min | 53,976 / 35 | 0.0648% | 0 / 0 | 0.874 GiB |
+| `d0b9a11d` / Half | 10 min | 17,975 / 32 | 0.1777% | 0 / 0 | 0.858 GiB |
+
+The latest Full observation meets the proposed 0.1% threshold; the latest Half observation misses it. Neither replaces the earlier result. No Windows playback optimization was implemented between these candidates, and conditions were not controlled enough to establish a cause or a stable performance guarantee. **Release performance qualification remains open.** Current Full hardware decoding reports 54,041 frames, one Media Foundation session, zero fallback/software frames; Half reports 18,037. Both selected NVIDIA Vulkan rendering and AMD hardware decoding. Internal clock-minus-wall differences were +0.0233 s (Full) and +0.0037 s (Half); neither is physical A/V drift. [Full raw observation](evidence/rollout/ci-d0b9a11d-1/full-soak/summary.json), [Half](evidence/rollout/ci-d0b9a11d-1/half-soak/summary.json), [sampled drop increments](evidence/rollout/ci-d0b9a11d-1/half-soak/drop-observations.json).
+
+The current candidate also completed 50 trim/history cycles at 1080p, offline/relink/reopen and a 54,060-frame long-project save/reopen. Active export cancellation took 1.032 seconds, returned `cancelled` after 16 frames, and retained the same 6,753,640-byte partial file behavior. Its report is explicitly `completed_with_limitations`, despite the reproduction script's generic completion message. [Lifecycle evidence](evidence/rollout/ci-d0b9a11d-1/lifecycle/summary.json). Physical loopback, strict offline consumer-VM lifecycle, a second physical machine and broader fixture/runtime qualification remain outstanding. Do not mark those lanes Done from these observations.
+
+### Measured headroom and two-run repeatability
+
+The successful Windows check job took **117.22 minutes against 120**, including 14m29s for the separate cold GPU probe and repeated feature-graph compilation across the selected test commands. That is too little runner-variation margin for a stable gate. Commit **`369ce617891c42fcf9c9307795339283e3d68dc4`** raises only Windows checks to 180 minutes; all workloads, pinned tools, cache policy and other job limits are unchanged. Its concurrency group separates push and manual events so two independent same-commit qualification executions can coexist. There are **no product/dependency/packaging source changes** from the successfully tested `d0b9a11d` candidate; runtime numbers remain bound to that original executable rather than relabeled.
+
+| Qualification source | Event | Run | Interim state |
+|---|---|---|---|
+| `369ce617` | Push | [40403013899](https://github.com/damquan1001/shotclutch/actions/runs/40403013899) | Running |
+| `369ce617` | Manual | [40403015233](https://github.com/damquan1001/shotclutch/actions/runs/40403015233) | Running |
+| `369ce617` | Packaging lint | [40403013833](https://github.com/damquan1001/shotclutch/actions/runs/40403013833) | Passed |
+
+Default-branch inspection confirmed the existing CI file already supports `workflow_dispatch`; dispatching the milestone branch required no main-branch change. Both runs resolve the identical full source SHA above. Both rebuild compiled targets on fresh ordinary hosted runners; no paid/larger runners or self-hosted registration were added. CI-002 remains open until both aggregate results and artifacts have been retained. The earlier successful complete `d0b9a11d` run remains valid evidence, but is not miscounted as a second execution of `369ce617`.
+
+## CI-003 — proposed required-check value (not applied)
+
+After green repeat runs and an authorized review/promotion, the proposed `required_status_checks` value is:
+
+```json
+{
+  "strict": true,
+  "contexts": [],
+  "checks": [
+    {"context": "CI required", "app_id": 15368},
+    {"context": "Packaging required", "app_id": 15368}
+  ]
+}
+```
+
+The observed `Packaging required` check is supplied by GitHub Actions app 15368. Distinct aggregate names avoid the former ambiguous `required` contexts. PR triggers are unfiltered, so documentation-only PRs still produce required checks. The proposal binds the supplier app and requires an up-to-date branch; it does not select unrelated review/bypass/admin policies. Re-read existing protection before applying changes and preserve any intervening owner configuration. Private-repository protection also depends on the account plan, which the inspected API did not disclose. [GitHub protection API](https://docs.github.com/en/rest/branches/branch-protection). Main remains unchanged and unprotected; no policy, merge, PR, schedule or paid plan has been applied by this rollout.

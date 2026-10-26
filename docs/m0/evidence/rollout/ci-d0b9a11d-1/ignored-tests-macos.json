@@ -1,0 +1,50 @@
+[
+  {
+    "log": "05.log",
+    "test": "test effects::essential::tests::dialogue_chain_realtime ... ignored"
+  },
+  {
+    "log": "05.log",
+    "test": "test sync::tests::long_recordings_timing ... ignored"
+  },
+  {
+    "log": "05.log",
+    "test": "test ffmpeg_probe::probe_reconstruction ... ignored"
+  },
+  {
+    "log": "05.log",
+    "test": "test ffmpeg_probe::probe_weights ... ignored"
+  },
+  {
+    "log": "05.log",
+    "test": "test essential_sound_tests::perf_full_dialogue_chain_realtime_factor ... ignored"
+  },
+  {
+    "log": "05.log",
+    "test": "test multicam_tests::perf_grid_of_four_1080p_angles ... ignored"
+  },
+  {
+    "log": "05.log",
+    "test": "test proxies_tests::proxy_playback_perf_4k ... ignored, benchmark: 4K fixture via ffmpeg"
+  },
+  {
+    "log": "05.log",
+    "test": "test deblock::speed::edge_filter_speed ... ignored"
+  },
+  {
+    "log": "05.log",
+    "test": "test preview_tests::effect_costs ... ignored"
+  },
+  {
+    "log": "05.log",
+    "test": "test transitions::tests::contact_sheets ... ignored"
+  },
+  {
+    "log": "05.log",
+    "test": "test transitions::tests::lens_blur_frame_time ... ignored"
+  },
+  {
+    "log": "05.log",
+    "test": "test tests::perf_scopes_at_1080p ... ignored"
+  }
+]

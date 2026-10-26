@@ -1,0 +1,51 @@
+{
+  "revision": "d0b9a11dc4ff25f93e855700ca33df865c5532c4",
+  "os": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "architecture": "x86_64",
+  "cpu": "x86_64",
+  "logical_cores": 2,
+  "physical_memory_bytes": null,
+  "image_version": "20261023.334.3",
+  "image_os": "ubuntu24",
+  "run_id": "40365205399",
+  "attempt": "1",
+  "dependency_cache_hit": null,
+  "compiled_target_cache": "disabled",
+  "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "cargo_lock_sha256": "de03a57ae05724d3eb2321db9577ad115939ed99f70dccfcfd43ab23eb9285fa",
+  "min_free_disk_bytes": 11859804160,
+  "profile_overrides": {
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0"
+  },
+  "gpu_required": true,
+  "gpu_test_profile": {
+    "SHOTCLUTCH_CI_GPU_BACKEND": "vulkan",
+    "SHOTCLUTCH_CI_DX12_COMPILER": "auto"
+  },
+  "commands": [
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "filmcraft-gpu",
+        "--lib",
+        "qualification_adapter",
+        "--",
+        "--nocapture"
+      ],
+      "log": "01.log",
+      "exit_code": 0,
+      "gpu_environment": {
+        "WGPU_BACKEND": "vulkan",
+        "WGPU_DX12_COMPILER": "auto"
+      },
+      "wall_seconds": 284.2046858560001
+    }
+  ],
+  "result": "passed"
+}

@@ -1,0 +1,57 @@
+{
+  "background_activity": "Uncontrolled; no other heavy qualification workload during measured playback",
+  "scope": "Primary laptop; captured after initial observations; not a second machine",
+  "gpus": [
+    {
+      "Name": "Meta Virtual Monitor",
+      "DriverVersion": "15.52.32.370",
+      "DriverDate": "2026-04-23T07:00:00+07:00"
+    },
+    {
+      "Name": "AMD Radeon(TM) Graphics",
+      "DriverVersion": "31.0.21923.1000",
+      "DriverDate": "2025-03-06T07:00:00+07:00"
+    },
+    {
+      "Name": "NVIDIA GeForce RTX 3060 Laptop GPU",
+      "DriverVersion": "32.0.15.5597",
+      "DriverDate": "2024-05-29T07:00:00+07:00"
+    }
+  ],
+  "cpu": {
+    "Name": "AMD Ryzen 7 4800H with Radeon Graphics         ",
+    "NumberOfCores": 8,
+    "NumberOfLogicalProcessors": 16,
+    "MaxClockSpeed": 2901
+  },
+  "disks": [
+    {
+      "Model": "Generic STORAGE DEVICE USB Device",
+      "Size": 63861073920,
+      "InterfaceType": "USB"
+    },
+    {
+      "Model": "Lexar SSD NM620 1TB",
+      "Size": 1024203640320,
+      "InterfaceType": "SCSI"
+    },
+    {
+      "Model": "KIOXIA-EXCERIA PLUS G3 SSD",
+      "Size": 1000202273280,
+      "InterfaceType": "SCSI"
+    }
+  ],
+  "os": {
+    "architecture": "64-bit",
+    "build": "26200",
+    "caption": "Microsoft Windows 11 Home Single Language",
+    "version": "10.0.26200"
+  },
+  "cpu_thermals": null,
+  "power_scheme": "Power Scheme GUID: 6fecc5ae-f350-48a5-b669-b472cb895ccf  (Turbo)",
+  "physical_av_drift": null,
+  "collected_utc": "2026-10-26T17:22:45.6793876Z",
+  "cache": "Fresh private app data; fixture hash read before playback; OS cache not flushed",
+  "physical_memory_bytes": 33737945088,
+  "gpu_per_process_memory": null
+}

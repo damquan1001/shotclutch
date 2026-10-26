@@ -1,0 +1,1116 @@
+[
+  {
+    "command": "file.import",
+    "result": {
+      "errors": [],
+      "items": [
+        1
+      ]
+    }
+  },
+  {
+    "command": "file.newSequenceFromClip",
+    "result": {
+      "clips": [
+        6,
+        7
+      ],
+      "sequence": 4
+    }
+  },
+  {
+    "command": "sequence.inspect",
+    "result": {
+      "audio": [
+        {
+          "enabled": true,
+          "id": 3,
+          "items": [
+            {
+              "clip": 7,
+              "duration": 508032000000,
+              "durationFrames": 60,
+              "effects": [
+                {
+                  "effect": "volume",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "bypass": {
+                      "keyframes": 0,
+                      "value": "Bool(false)"
+                    },
+                    "level": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    }
+                  }
+                },
+                {
+                  "effect": "channel_volume",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "bypass": {
+                      "keyframes": 0,
+                      "value": "Bool(false)"
+                    },
+                    "left": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    },
+                    "right": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    }
+                  }
+                },
+                {
+                  "effect": "panner",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "balance": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    }
+                  }
+                }
+              ],
+              "enabled": true,
+              "end": 508032000000,
+              "endFrame": 60,
+              "gainDb": 0.0,
+              "item": 1,
+              "label": "Iris",
+              "link": 5,
+              "name": "source.mp4",
+              "reverse": false,
+              "sourceIn": 0,
+              "sourceOut": 508032000000,
+              "speed": 1.0,
+              "start": 0,
+              "startFrame": 0
+            }
+          ],
+          "label": null,
+          "locked": false,
+          "muted": false,
+          "name": "Audio 1",
+          "solo": false,
+          "syncLock": true,
+          "transitions": []
+        }
+      ],
+      "duration": 508032000000,
+      "durationFrames": 60,
+      "gapSelection": null,
+      "id": 4,
+      "in": null,
+      "markers": [],
+      "name": "source.mp4",
+      "out": null,
+      "playhead": null,
+      "selection": [],
+      "settings": {
+        "audio_master": "Stereo",
+        "color": {
+          "auto_tone_map": true,
+          "wide_gamut": false,
+          "working": "Rec709"
+        },
+        "drop_frame": false,
+        "frame_rate": {
+          "den": 1,
+          "num": 30
+        },
+        "height": 1080,
+        "max_bit_depth": false,
+        "max_render_quality": false,
+        "par": [
+          1,
+          1
+        ],
+        "preset": "1920x1080 30",
+        "preview_codec": "ProRes 422",
+        "sample_rate": 48000,
+        "width": 1920,
+        "working_space": "Rec. 709"
+      },
+      "split": {
+        "audioIn": null,
+        "audioOut": null,
+        "videoIn": null,
+        "videoOut": null
+      },
+      "transitionSelection": [],
+      "video": [
+        {
+          "enabled": true,
+          "id": 2,
+          "items": [
+            {
+              "clip": 6,
+              "duration": 508032000000,
+              "durationFrames": 60,
+              "effects": [
+                {
+                  "effect": "motion",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "anchor": {
+                      "keyframes": 0,
+                      "value": "Vec2(Vec2 { x: 960.0, y: 540.0 })"
+                    },
+                    "anti_flicker": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    },
+                    "position": {
+                      "keyframes": 0,
+                      "value": "Vec2(Vec2 { x: 960.0, y: 540.0 })"
+                    },
+                    "rotation": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    },
+                    "scale": {
+                      "keyframes": 0,
+                      "value": "Float(100.0)"
+                    },
+                    "scale_width": {
+                      "keyframes": 0,
+                      "value": "Float(100.0)"
+                    },
+                    "uniform_scale": {
+                      "keyframes": 0,
+                      "value": "Bool(true)"
+                    }
+                  }
+                },
+                {
+                  "effect": "opacity",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "blend": {
+                      "keyframes": 0,
+                      "value": "Choice(0)"
+                    },
+                    "opacity": {
+                      "keyframes": 0,
+                      "value": "Float(100.0)"
+                    }
+                  }
+                },
+                {
+                  "effect": "time_remap",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "speed": {
+                      "keyframes": 0,
+                      "value": "Float(100.0)"
+                    }
+                  }
+                }
+              ],
+              "enabled": true,
+              "end": 508032000000,
+              "endFrame": 60,
+              "gainDb": 0.0,
+              "item": 1,
+              "label": "Iris",
+              "link": 5,
+              "name": "source.mp4",
+              "reverse": false,
+              "sourceIn": 0,
+              "sourceOut": 508032000000,
+              "speed": 1.0,
+              "start": 0,
+              "startFrame": 0
+            }
+          ],
+          "label": null,
+          "locked": false,
+          "muted": false,
+          "name": "Video 1",
+          "solo": false,
+          "syncLock": true,
+          "transitions": []
+        }
+      ]
+    }
+  },
+  {
+    "command": "timeline.trim",
+    "result": {
+      "delta": -84672000000
+    }
+  },
+  {
+    "command": "sequence.inspect",
+    "result": {
+      "audio": [
+        {
+          "enabled": true,
+          "id": 3,
+          "items": [
+            {
+              "clip": 7,
+              "duration": 423360000000,
+              "durationFrames": 50,
+              "effects": [
+                {
+                  "effect": "volume",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "bypass": {
+                      "keyframes": 0,
+                      "value": "Bool(false)"
+                    },
+                    "level": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    }
+                  }
+                },
+                {
+                  "effect": "channel_volume",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "bypass": {
+                      "keyframes": 0,
+                      "value": "Bool(false)"
+                    },
+                    "left": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    },
+                    "right": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    }
+                  }
+                },
+                {
+                  "effect": "panner",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "balance": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    }
+                  }
+                }
+              ],
+              "enabled": true,
+              "end": 423360000000,
+              "endFrame": 50,
+              "gainDb": 0.0,
+              "item": 1,
+              "label": "Iris",
+              "link": 5,
+              "name": "source.mp4",
+              "reverse": false,
+              "sourceIn": 0,
+              "sourceOut": 423360000000,
+              "speed": 1.0,
+              "start": 0,
+              "startFrame": 0
+            }
+          ],
+          "label": null,
+          "locked": false,
+          "muted": false,
+          "name": "Audio 1",
+          "solo": false,
+          "syncLock": true,
+          "transitions": []
+        }
+      ],
+      "duration": 423360000000,
+      "durationFrames": 50,
+      "gapSelection": null,
+      "id": 4,
+      "in": null,
+      "markers": [],
+      "name": "source.mp4",
+      "out": null,
+      "playhead": null,
+      "selection": [],
+      "settings": {
+        "audio_master": "Stereo",
+        "color": {
+          "auto_tone_map": true,
+          "wide_gamut": false,
+          "working": "Rec709"
+        },
+        "drop_frame": false,
+        "frame_rate": {
+          "den": 1,
+          "num": 30
+        },
+        "height": 1080,
+        "max_bit_depth": false,
+        "max_render_quality": false,
+        "par": [
+          1,
+          1
+        ],
+        "preset": "1920x1080 30",
+        "preview_codec": "ProRes 422",
+        "sample_rate": 48000,
+        "width": 1920,
+        "working_space": "Rec. 709"
+      },
+      "split": {
+        "audioIn": null,
+        "audioOut": null,
+        "videoIn": null,
+        "videoOut": null
+      },
+      "transitionSelection": [],
+      "video": [
+        {
+          "enabled": true,
+          "id": 2,
+          "items": [
+            {
+              "clip": 6,
+              "duration": 423360000000,
+              "durationFrames": 50,
+              "effects": [
+                {
+                  "effect": "motion",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "anchor": {
+                      "keyframes": 0,
+                      "value": "Vec2(Vec2 { x: 960.0, y: 540.0 })"
+                    },
+                    "anti_flicker": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    },
+                    "position": {
+                      "keyframes": 0,
+                      "value": "Vec2(Vec2 { x: 960.0, y: 540.0 })"
+                    },
+                    "rotation": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    },
+                    "scale": {
+                      "keyframes": 0,
+                      "value": "Float(100.0)"
+                    },
+                    "scale_width": {
+                      "keyframes": 0,
+                      "value": "Float(100.0)"
+                    },
+                    "uniform_scale": {
+                      "keyframes": 0,
+                      "value": "Bool(true)"
+                    }
+                  }
+                },
+                {
+                  "effect": "opacity",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "blend": {
+                      "keyframes": 0,
+                      "value": "Choice(0)"
+                    },
+                    "opacity": {
+                      "keyframes": 0,
+                      "value": "Float(100.0)"
+                    }
+                  }
+                },
+                {
+                  "effect": "time_remap",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "speed": {
+                      "keyframes": 0,
+                      "value": "Float(100.0)"
+                    }
+                  }
+                }
+              ],
+              "enabled": true,
+              "end": 423360000000,
+              "endFrame": 50,
+              "gainDb": 0.0,
+              "item": 1,
+              "label": "Iris",
+              "link": 5,
+              "name": "source.mp4",
+              "reverse": false,
+              "sourceIn": 0,
+              "sourceOut": 423360000000,
+              "speed": 1.0,
+              "start": 0,
+              "startFrame": 0
+            }
+          ],
+          "label": null,
+          "locked": false,
+          "muted": false,
+          "name": "Video 1",
+          "solo": false,
+          "syncLock": true,
+          "transitions": []
+        }
+      ]
+    }
+  },
+  {
+    "command": "edit.undo",
+    "result": {
+      "undone": "Ripple Trim"
+    }
+  },
+  {
+    "command": "sequence.inspect",
+    "result": {
+      "audio": [
+        {
+          "enabled": true,
+          "id": 3,
+          "items": [
+            {
+              "clip": 7,
+              "duration": 508032000000,
+              "durationFrames": 60,
+              "effects": [
+                {
+                  "effect": "volume",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "bypass": {
+                      "keyframes": 0,
+                      "value": "Bool(false)"
+                    },
+                    "level": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    }
+                  }
+                },
+                {
+                  "effect": "channel_volume",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "bypass": {
+                      "keyframes": 0,
+                      "value": "Bool(false)"
+                    },
+                    "left": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    },
+                    "right": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    }
+                  }
+                },
+                {
+                  "effect": "panner",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "balance": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    }
+                  }
+                }
+              ],
+              "enabled": true,
+              "end": 508032000000,
+              "endFrame": 60,
+              "gainDb": 0.0,
+              "item": 1,
+              "label": "Iris",
+              "link": 5,
+              "name": "source.mp4",
+              "reverse": false,
+              "sourceIn": 0,
+              "sourceOut": 508032000000,
+              "speed": 1.0,
+              "start": 0,
+              "startFrame": 0
+            }
+          ],
+          "label": null,
+          "locked": false,
+          "muted": false,
+          "name": "Audio 1",
+          "solo": false,
+          "syncLock": true,
+          "transitions": []
+        }
+      ],
+      "duration": 508032000000,
+      "durationFrames": 60,
+      "gapSelection": null,
+      "id": 4,
+      "in": null,
+      "markers": [],
+      "name": "source.mp4",
+      "out": null,
+      "playhead": null,
+      "selection": [],
+      "settings": {
+        "audio_master": "Stereo",
+        "color": {
+          "auto_tone_map": true,
+          "wide_gamut": false,
+          "working": "Rec709"
+        },
+        "drop_frame": false,
+        "frame_rate": {
+          "den": 1,
+          "num": 30
+        },
+        "height": 1080,
+        "max_bit_depth": false,
+        "max_render_quality": false,
+        "par": [
+          1,
+          1
+        ],
+        "preset": "1920x1080 30",
+        "preview_codec": "ProRes 422",
+        "sample_rate": 48000,
+        "width": 1920,
+        "working_space": "Rec. 709"
+      },
+      "split": {
+        "audioIn": null,
+        "audioOut": null,
+        "videoIn": null,
+        "videoOut": null
+      },
+      "transitionSelection": [],
+      "video": [
+        {
+          "enabled": true,
+          "id": 2,
+          "items": [
+            {
+              "clip": 6,
+              "duration": 508032000000,
+              "durationFrames": 60,
+              "effects": [
+                {
+                  "effect": "motion",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "anchor": {
+                      "keyframes": 0,
+                      "value": "Vec2(Vec2 { x: 960.0, y: 540.0 })"
+                    },
+                    "anti_flicker": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    },
+                    "position": {
+                      "keyframes": 0,
+                      "value": "Vec2(Vec2 { x: 960.0, y: 540.0 })"
+                    },
+                    "rotation": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    },
+                    "scale": {
+                      "keyframes": 0,
+                      "value": "Float(100.0)"
+                    },
+                    "scale_width": {
+                      "keyframes": 0,
+                      "value": "Float(100.0)"
+                    },
+                    "uniform_scale": {
+                      "keyframes": 0,
+                      "value": "Bool(true)"
+                    }
+                  }
+                },
+                {
+                  "effect": "opacity",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "blend": {
+                      "keyframes": 0,
+                      "value": "Choice(0)"
+                    },
+                    "opacity": {
+                      "keyframes": 0,
+                      "value": "Float(100.0)"
+                    }
+                  }
+                },
+                {
+                  "effect": "time_remap",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "speed": {
+                      "keyframes": 0,
+                      "value": "Float(100.0)"
+                    }
+                  }
+                }
+              ],
+              "enabled": true,
+              "end": 508032000000,
+              "endFrame": 60,
+              "gainDb": 0.0,
+              "item": 1,
+              "label": "Iris",
+              "link": 5,
+              "name": "source.mp4",
+              "reverse": false,
+              "sourceIn": 0,
+              "sourceOut": 508032000000,
+              "speed": 1.0,
+              "start": 0,
+              "startFrame": 0
+            }
+          ],
+          "label": null,
+          "locked": false,
+          "muted": false,
+          "name": "Video 1",
+          "solo": false,
+          "syncLock": true,
+          "transitions": []
+        }
+      ]
+    }
+  },
+  {
+    "command": "edit.redo",
+    "result": {
+      "redone": "Ripple Trim"
+    }
+  },
+  {
+    "command": "file.saveAs",
+    "result": {
+      "backup": null,
+      "bytes": 4493,
+      "ms": 5.4521,
+      "path": "E:\\Development\\Projects\\shotclutch\\target\\qualification\\ci-d0b9a11d-1\\native-core-1080\\smoke.fcproj"
+    }
+  },
+  {
+    "command": "file.open",
+    "result": {
+      "migrated": false,
+      "missingMedia": 0,
+      "path": "E:\\Development\\Projects\\shotclutch\\target\\qualification\\ci-d0b9a11d-1\\native-core-1080\\smoke.fcproj",
+      "schemaVersion": 15
+    }
+  },
+  {
+    "command": "sequence.inspect",
+    "result": {
+      "audio": [
+        {
+          "enabled": true,
+          "id": 3,
+          "items": [
+            {
+              "clip": 7,
+              "duration": 423360000000,
+              "durationFrames": 50,
+              "effects": [
+                {
+                  "effect": "volume",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "bypass": {
+                      "keyframes": 0,
+                      "value": "Bool(false)"
+                    },
+                    "level": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    }
+                  }
+                },
+                {
+                  "effect": "channel_volume",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "bypass": {
+                      "keyframes": 0,
+                      "value": "Bool(false)"
+                    },
+                    "left": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    },
+                    "right": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    }
+                  }
+                },
+                {
+                  "effect": "panner",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "balance": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    }
+                  }
+                }
+              ],
+              "enabled": true,
+              "end": 423360000000,
+              "endFrame": 50,
+              "gainDb": 0.0,
+              "item": 1,
+              "label": "Iris",
+              "link": 5,
+              "name": "source.mp4",
+              "reverse": false,
+              "sourceIn": 0,
+              "sourceOut": 423360000000,
+              "speed": 1.0,
+              "start": 0,
+              "startFrame": 0
+            }
+          ],
+          "label": null,
+          "locked": false,
+          "muted": false,
+          "name": "Audio 1",
+          "solo": false,
+          "syncLock": true,
+          "transitions": []
+        }
+      ],
+      "duration": 423360000000,
+      "durationFrames": 50,
+      "gapSelection": null,
+      "id": 4,
+      "in": null,
+      "markers": [],
+      "name": "source.mp4",
+      "out": null,
+      "playhead": null,
+      "selection": [],
+      "settings": {
+        "audio_master": "Stereo",
+        "color": {
+          "auto_tone_map": true,
+          "wide_gamut": false,
+          "working": "Rec709"
+        },
+        "drop_frame": false,
+        "frame_rate": {
+          "den": 1,
+          "num": 30
+        },
+        "height": 1080,
+        "max_bit_depth": false,
+        "max_render_quality": false,
+        "par": [
+          1,
+          1
+        ],
+        "preset": "1920x1080 30",
+        "preview_codec": "ProRes 422",
+        "sample_rate": 48000,
+        "width": 1920,
+        "working_space": "Rec. 709"
+      },
+      "split": {
+        "audioIn": null,
+        "audioOut": null,
+        "videoIn": null,
+        "videoOut": null
+      },
+      "transitionSelection": [],
+      "video": [
+        {
+          "enabled": true,
+          "id": 2,
+          "items": [
+            {
+              "clip": 6,
+              "duration": 423360000000,
+              "durationFrames": 50,
+              "effects": [
+                {
+                  "effect": "motion",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "anchor": {
+                      "keyframes": 0,
+                      "value": "Vec2(Vec2 { x: 960.0, y: 540.0 })"
+                    },
+                    "anti_flicker": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    },
+                    "position": {
+                      "keyframes": 0,
+                      "value": "Vec2(Vec2 { x: 960.0, y: 540.0 })"
+                    },
+                    "rotation": {
+                      "keyframes": 0,
+                      "value": "Float(0.0)"
+                    },
+                    "scale": {
+                      "keyframes": 0,
+                      "value": "Float(100.0)"
+                    },
+                    "scale_width": {
+                      "keyframes": 0,
+                      "value": "Float(100.0)"
+                    },
+                    "uniform_scale": {
+                      "keyframes": 0,
+                      "value": "Bool(true)"
+                    }
+                  }
+                },
+                {
+                  "effect": "opacity",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "blend": {
+                      "keyframes": 0,
+                      "value": "Choice(0)"
+                    },
+                    "opacity": {
+                      "keyframes": 0,
+                      "value": "Float(100.0)"
+                    }
+                  }
+                },
+                {
+                  "effect": "time_remap",
+                  "enabled": true,
+                  "masks": 0,
+                  "params": {
+                    "speed": {
+                      "keyframes": 0,
+                      "value": "Float(100.0)"
+                    }
+                  }
+                }
+              ],
+              "enabled": true,
+              "end": 423360000000,
+              "endFrame": 50,
+              "gainDb": 0.0,
+              "item": 1,
+              "label": "Iris",
+              "link": 5,
+              "name": "source.mp4",
+              "reverse": false,
+              "sourceIn": 0,
+              "sourceOut": 423360000000,
+              "speed": 1.0,
+              "start": 0,
+              "startFrame": 0
+            }
+          ],
+          "label": null,
+          "locked": false,
+          "muted": false,
+          "name": "Video 1",
+          "solo": false,
+          "syncLock": true,
+          "transitions": []
+        }
+      ]
+    }
+  },
+  {
+    "command": "file.exportMedia",
+    "result": {
+      "cancel": "jobs.cancel",
+      "job": 1,
+      "path": "E:\\Development\\Projects\\shotclutch\\target\\qualification\\ci-d0b9a11d-1\\native-core-1080\\render.mov",
+      "poll": "jobs.list"
+    }
+  },
+  {
+    "command": "jobs.list",
+    "result": [
+      {
+        "done": 0,
+        "etaSeconds": null,
+        "finished": false,
+        "id": 1,
+        "label": "Export render.mov",
+        "offlineMedia": [],
+        "progress": 0.0,
+        "result": null,
+        "status": "Exporting 50 frames (Apple ProRes)",
+        "total": 50
+      }
+    ]
+  },
+  {
+    "command": "jobs.list",
+    "result": [
+      {
+        "done": 0,
+        "etaSeconds": null,
+        "finished": false,
+        "id": 1,
+        "label": "Export render.mov",
+        "offlineMedia": [],
+        "progress": 0.0,
+        "result": null,
+        "status": "Exporting 50 frames (Apple ProRes)",
+        "total": 50
+      }
+    ]
+  },
+  {
+    "command": "jobs.list",
+    "result": [
+      {
+        "done": 0,
+        "etaSeconds": null,
+        "finished": false,
+        "id": 1,
+        "label": "Export render.mov",
+        "offlineMedia": [],
+        "progress": 0.0,
+        "result": null,
+        "status": "Exporting 50 frames (Apple ProRes)",
+        "total": 50
+      }
+    ]
+  },
+  {
+    "command": "jobs.list",
+    "result": [
+      {
+        "done": 0,
+        "etaSeconds": null,
+        "finished": false,
+        "id": 1,
+        "label": "Export render.mov",
+        "offlineMedia": [],
+        "progress": 0.0,
+        "result": null,
+        "status": "Exporting 50 frames (Apple ProRes)",
+        "total": 50
+      }
+    ]
+  },
+  {
+    "command": "jobs.list",
+    "result": [
+      {
+        "done": 16,
+        "etaSeconds": 2.320139175,
+        "finished": false,
+        "id": 1,
+        "label": "Export render.mov",
+        "offlineMedia": [],
+        "progress": 0.3199999928474426,
+        "result": null,
+        "status": "Exporting 50 frames (Apple ProRes)",
+        "total": 50
+      }
+    ]
+  },
+  {
+    "command": "jobs.list",
+    "result": [
+      {
+        "done": 16,
+        "etaSeconds": 2.864514025,
+        "finished": false,
+        "id": 1,
+        "label": "Export render.mov",
+        "offlineMedia": [],
+        "progress": 0.3199999928474426,
+        "result": null,
+        "status": "Exporting 50 frames (Apple ProRes)",
+        "total": 50
+      }
+    ]
+  },
+  {
+    "command": "jobs.list",
+    "result": [
+      {
+        "done": 32,
+        "etaSeconds": 0.9050436,
+        "finished": false,
+        "id": 1,
+        "label": "Export render.mov",
+        "offlineMedia": [],
+        "progress": 0.6399999856948853,
+        "result": null,
+        "status": "Exporting 50 frames (Apple ProRes)",
+        "total": 50
+      }
+    ]
+  },
+  {
+    "command": "jobs.list",
+    "result": [
+      {
+        "done": 50,
+        "etaSeconds": null,
+        "finished": true,
+        "id": 1,
+        "label": "Export render.mov",
+        "offlineMedia": [],
+        "progress": 1.0,
+        "result": {
+          "bytes": 21486273,
+          "frames": 50,
+          "path": "E:\\Development\\Projects\\shotclutch\\target\\qualification\\ci-d0b9a11d-1\\native-core-1080\\render.mov",
+          "render_fps": 28.30607929665054,
+          "seconds": 1.766405
+        },
+        "status": "Done in 1.8s",
+        "total": 50
+      }
+    ]
+  },
+  {
+    "verification": "passed",
+    "frames": 50,
+    "stereo_samples": 80000,
+    "environment_alias_precedence": "new port/token override invalid legacy values",
+    "clean_machine_install": "not performed",
+    "oracle_tools_on_child_path": false
+  }
+]

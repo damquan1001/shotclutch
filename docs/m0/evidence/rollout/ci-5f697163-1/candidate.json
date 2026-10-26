@@ -1,0 +1,60 @@
+{
+  "run_id": 40292136788,
+  "attempt": 1,
+  "run_url": "https://github.com/damquan1001/shotclutch/actions/runs/40292136788",
+  "revision": "5f697163cc5408cc95281c1f1656c881e87fadad",
+  "aggregate_status_at_download": "completed",
+  "aggregate_conclusion_at_download": "failure",
+  "artifact": {
+    "id": 12637833311,
+    "node_id": "MDg6QXJ0aWZhY3QxMjYzNzgzMzMxMQ==",
+    "name": "shotclutch-windows-x64-5f697163cc5408cc95281c1f1656c881e87fadad-1",
+    "size_in_bytes": 74084184,
+    "url": "https://api.github.com/repos/damquan1001/shotclutch/actions/artifacts/12637833311",
+    "archive_download_url": "https://api.github.com/repos/damquan1001/shotclutch/actions/artifacts/12637833311/zip",
+    "expired": false,
+    "digest": "sha256:84a178ef780caeb772aca04dca3128170dab7d1322c33ea1dbed94c78c0f6949",
+    "created_at": "2026-10-26T08:51:11Z",
+    "updated_at": "2026-10-26T08:51:11Z",
+    "expires_at": "2026-11-25T08:51:08Z",
+    "workflow_run": {
+      "id": 40292136788,
+      "repository_id": 1433518465,
+      "head_repository_id": 1433518465,
+      "head_branch": "codex/m0-foundation",
+      "head_sha": "5f697163cc5408cc95281c1f1656c881e87fadad"
+    }
+  },
+  "downloaded_archive_digest": "sha256:84a178ef780caeb772aca04dca3128170dab7d1322c33ea1dbed94c78c0f6949",
+  "build_info": {
+    "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+    "version": "0.13.0",
+    "build_date_utc": "2026-10-26",
+    "dirty": false,
+    "product": "ShotClutch",
+    "wix": "5.0.2+aa65968c",
+    "cargo_lock_sha256": "3A05488C275F867F2F9845258428E7EF6EB25F297A67C104D6AD09322C733013",
+    "commit": "5f697163cc5408cc95281c1f1656c881e87fadad",
+    "target": "x86_64-pc-windows-msvc",
+    "observed_commit": "5f697163cc5408cc95281c1f1656c881e87fadad",
+    "signing_requested": false
+  },
+  "files": {
+    "packages\\shotclutch-0.13.0-windows-x64-portable.zip": {
+      "bytes": 42120037,
+      "sha256": "964a88f287287e4874fd05bc9a064f0af977c54d4febdf864c687808213dc5a3"
+    },
+    "packages\\shotclutch-0.13.0-windows-x64.msi": {
+      "bytes": 32251904,
+      "sha256": "51769179d8da5e9e9cec932c3e542446b44c197cc6ff6db0eb50714517196967"
+    },
+    "portable\\shotclutch-0.13.0-windows-x64-portable\\shotclutch-cli.exe": {
+      "bytes": 45496832,
+      "sha256": "1087ab25c8ef91c09fe0aeb091260501cfbbfb0521fcd0b277b8a14520d5c4e4"
+    },
+    "portable\\shotclutch-0.13.0-windows-x64-portable\\shotclutch.exe": {
+      "bytes": 61411328,
+      "sha256": "e82cc4cc97178ff712c64bca471fc6666f66cac64c1ff1fc7f1b277396750d0a"
+    }
+  }
+}

@@ -1,0 +1,3 @@
+shotclutch: control server listening on 127.0.0.1:59808
+shotclutch: control server listening on 127.0.0.1:58207
+2026-10-26T16:28:14.736Z WARN  [filmcraft-frames-0] filmcraft_engine::media_pool: media offline: E:\Development\Projects\shotclutch\target\qualification\ci-5f697163-1\lifecycle-v2\source.mp4: media offline: The system cannot find the file specified. (os error 2)

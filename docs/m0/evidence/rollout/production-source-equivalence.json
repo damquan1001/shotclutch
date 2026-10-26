@@ -1,0 +1,9 @@
+{
+  "qualified_runtime_source": "d0b9a11dc4ff25f93e855700ca33df865c5532c4",
+  "repeatability_source": "369ce617891c42fcf9c9307795339283e3d68dc4",
+  "changed_product_dependency_packaging_paths": [],
+  "production_source_identical": true,
+  "only_workflow_changes": [
+    ".github/workflows/ci.yml"
+  ]
+}

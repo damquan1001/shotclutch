@@ -1,0 +1,15 @@
+{
+  "source_sha256": "b34d1d3a6fb0ab80a5a7ed584a854c96a4d4184fa46c97ac27cbdbe245f73b40",
+  "render_sha256": "3dd772b8fb0b2f07da1ae3761b800183e9bf2b375294204043a711fd05ae2088",
+  "oracle_tools_on_app_path": false,
+  "parent_ffmpeg": "ffmpeg version 8.1.1-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers",
+  "parent_ffprobe": "ffprobe version 8.1.1-full_build-www.gyan.dev Copyright (c) 2007-2026 the FFmpeg developers",
+  "input_dimensions": [
+    320,
+    180
+  ],
+  "generated_seconds": 2,
+  "input_frame_rate": "30/1",
+  "expected_output_frames": 50,
+  "expected_stereo_sample_frames": 80000
+}

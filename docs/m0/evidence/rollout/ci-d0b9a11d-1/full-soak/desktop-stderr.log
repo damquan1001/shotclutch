@@ -1,0 +1,13 @@
+2026-10-26T17:49:28.988Z INFO  [main] shotclutch: ShotClutch 0.13.0 (windows x86_64)
+2026-10-26T17:49:28.989Z INFO  [main] shotclutch: log file E:\Development\Projects\shotclutch\target\qualification\ci-d0b9a11d-1\full-soak\data\Logs\shotclutch.log
+2026-10-26T17:49:28.989Z INFO  [main] shotclutch: hardware decoding: Available("Media Foundation")
+2026-10-26T17:49:32.291Z INFO  [main] filmcraft_gpu::adapter: graphics adapter available: "AMD Radeon(TM) Graphics" (Vulkan, integrated GPU, driver AMD proprietary driver 25.5.1 (AMD proprietary shader compiler), 59 features)
+2026-10-26T17:49:32.291Z INFO  [main] filmcraft_gpu::adapter: graphics adapter available: "NVIDIA GeForce RTX 3060 Laptop GPU" (Vulkan, discrete GPU, driver NVIDIA 555.97, 69 features, bus 0000:01:00.0)
+2026-10-26T17:49:32.292Z INFO  [main] filmcraft_gpu::adapter: graphics adapter available: "AMD Radeon(TM) Graphics" (Dx12, integrated GPU, driver 31.0.21923.1000, 36 features, bus 0000:06:00.0)
+2026-10-26T17:49:32.292Z INFO  [main] filmcraft_gpu::adapter: graphics adapter available: "NVIDIA GeForce RTX 3060 Laptop GPU" (Dx12, discrete GPU, driver 32.0.15.5597, 36 features, bus 0000:01:00.0)
+2026-10-26T17:49:32.292Z INFO  [main] filmcraft_gpu::adapter: graphics adapter available: "AMD Radeon(TM) Graphics" (Dx12, integrated GPU, driver 31.0.21923.1000, 36 features, bus 0000:06:00.0)
+2026-10-26T17:49:32.292Z INFO  [main] filmcraft_gpu::adapter: graphics adapter available: "Microsoft Basic Render Driver" (Dx12, software, driver 10.0.26100.9711, 36 features)
+2026-10-26T17:49:32.292Z INFO  [main] filmcraft_gpu::adapter: graphics adapter chosen: "NVIDIA GeForce RTX 3060 Laptop GPU" (Vulkan, discrete GPU, driver NVIDIA 555.97, 69 features, bus 0000:01:00.0)
+shotclutch: control server listening on 127.0.0.1:61092
+2026-10-26T17:49:34.099Z INFO  [filmcraft-frames-0] filmcraft_platform::media_foundation::gpu: hardware decoding: Direct3D 11 device on AMD Radeon(TM) Graphics
+2026-10-26T17:49:34.487Z INFO  [filmcraft-frames-0] filmcraft_platform::media_foundation: hardware decoding: Microsoft H264 Video Decoder MFT on AMD Radeon(TM) Graphics
