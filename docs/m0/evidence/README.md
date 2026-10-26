@@ -9,6 +9,7 @@ These files record execution on the Windows development machine. They do not est
 - `upstream/` and `shotclutch/`: raw measured JSON, per-section process wall time and peak working set, stderr workload summaries, and manifests containing hardware, software, settings, fixture hashes and source revisions. Preparation/warmup runs are excluded from these retained measurements.
 - `baseline-integrity.json`: SHA-256 verification of every archived upstream source file after builds; no upstream source repair was applied.
 - `benchmark-executables.json`: hashes of the two benchmark executables used for the captures.
+- `msi-wizard/`: the subsequent installer UX diagnosis, corrected MSI/ZIP hashes, artifact validation, build provenance and binary bindings. Earlier `packages/` records describe the initial package build; the parent evidence report identifies the current artifacts.
 
 ## Executed checks
 

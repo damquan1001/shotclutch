@@ -107,6 +107,7 @@ M0 implementation and local evidence are ready on `codex/m0-foundation`. In Revi
 | CORE-001 | In Review | Codex | Production `3aeef472`; standalone desktop/CLI, ShotClutch identity, compatibility aliases, capability/legal audit and short edit/export verified. [Evidence](m0/EVIDENCE.md). Expected clean-machine launch/edit remains untested. Next: run CLEAN-001 before closure. |
 | CORE-005 | In Review | Codex | Production `3aeef472`; locked upstream/fork builds, Rust 1.95, pinned repository-owned CI, unsigned MSI/ZIP and upstream policy verified locally. [Check logs](m0/evidence/README.md), [package provenance](m0/evidence/packages/build-info.json). Next: review results and execute CI when authorized to push; CORE-001 dependency remains open. |
 | PERF-001 | In Review | Codex | Harness `f35fac68`; seven matching software/CPU sections, generated media hashes and machine profile retained. [Comparison](m0/BENCHMARKS.md), [raw upstream](m0/evidence/upstream/manifest.json), [raw ShotClutch](m0/evidence/shotclutch/manifest.json). Next: review baseline limitations; release budgets remain PERF-002. CORE-001 dependency remains open. |
+| MSI-UX-001 | In Review | Codex | User reported the MSI appeared to do nothing. Host events confirm successful installation; missing interactive setup/completion was diagnosed. Fix `b5102d3c` adds a visible wizard and Finish launch checkbox; rebuilt artifact validation passes. [Diagnosis](m0/evidence/msi-wizard/diagnosis.json). Live setup welcome window detected; UI tool blocks Windows Installer click-through. Next: user/manual completion and clean-environment acceptance. |
 
 For each new active requirement, add owner, change/branch or commit, test/benchmark report, expected versus actual result, review outcome, next action and any blocker ID. Do not substitute prose status updates for reproducible evidence.
 
@@ -159,6 +160,7 @@ A future blocker entry must identify observed failure, reproduction/evidence, im
 
 - 2026-10-26 — Authored the full 01–17 documentation baseline, including shared requirements, proposed contracts, milestone gates, and this tracker. No code implementation or measured performance is claimed.
 - 2026-10-26 — Delivered M0 implementation and local evidence on `codex/m0-foundation`: 1,383 passing targeted tests, 3 explicitly ignored performance tests, successful native desktop workflow and unsigned Windows packages, and paired quick CPU baselines. CLEAN-001 remains open; M1–M5 remain Planned.
+- 2026-10-26 — Corrected the MSI's missing visible setup/completion flow after the user report. Original installation was successful on the development PC; updated wizard package and launch gating pass artifact checks. Full click-through remains manual because the UI tool blocks `msiexec.exe`.
 
 ## Change log
 

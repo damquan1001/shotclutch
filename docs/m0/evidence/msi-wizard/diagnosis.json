@@ -1,0 +1,43 @@
+{
+  "installer_source_commit": "b5102d3c46e39bfd8b6cdc11462d95dae37961c8",
+  "reported_symptom": "Double-clicking MSI appeared to do nothing",
+  "original_install": {
+    "event_id": 11707,
+    "success_event_id": 1033,
+    "status": 0,
+    "local_time": "2026-10-26 13:55:14",
+    "product_code": "{F287B65B-A825-4830-949E-2582519E1AA3}",
+    "installed_cli_version": "shotclutch-cli 0.13.0",
+    "start_menu_shortcut_present": true
+  },
+  "cause": "Original package supplied no interactive wizard and did not launch the application after installation",
+  "ui_extension": {
+    "name": "WixToolset.UI.wixext",
+    "version": "5.0.2",
+    "dll_sha256": "5CE7F958B6A2B57BCB98C19615C5A3DA46976A6E78A6AF055FDEF99E9E9E8F06"
+  },
+  "rebuilt_msi_preview": {
+    "window_title": "ShotClutch Setup",
+    "installer_action": "WelcomeDlg",
+    "gui_automation": "blocked by computer-use product policy for msiexec.exe",
+    "finish_launch_click_through": "not verified",
+    "installation_started_by_preview": false
+  },
+  "executable_bindings": [
+    {
+      "file": "shotclutch.exe",
+      "tested_static_sha256": "9FCDAB6AF6C214EA14FE1B6FE133640FAA8E6B1F41462414E0D1AEBFEC2143B0",
+      "current_packaged_sha256": "9FCDAB6AF6C214EA14FE1B6FE133640FAA8E6B1F41462414E0D1AEBFEC2143B0",
+      "previous_msi_installed_sha256": "9FCDAB6AF6C214EA14FE1B6FE133640FAA8E6B1F41462414E0D1AEBFEC2143B0",
+      "match": true
+    },
+    {
+      "file": "shotclutch-cli.exe",
+      "tested_static_sha256": "B036F23DADECDA490B81F971DAD40414D88D15712B0C6139924918CD7161497B",
+      "current_packaged_sha256": "B036F23DADECDA490B81F971DAD40414D88D15712B0C6139924918CD7161497B",
+      "previous_msi_installed_sha256": "B036F23DADECDA490B81F971DAD40414D88D15712B0C6139924918CD7161497B",
+      "match": true
+    }
+  ],
+  "clean_machine_install": "not performed"
+}

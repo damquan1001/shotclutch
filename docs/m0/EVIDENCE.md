@@ -27,7 +27,7 @@ M0 is **not closed** until the clean-machine installation gate is satisfied. Loc
 | Python tools and comparison guards | Passed | Python syntax compilation; `target/m0/comparison-guard-test/result.txt` uses explicitly synthetic inputs |
 | Final Clippy/format refresh | Passed | [Full-target release Clippy](evidence/checks/clippy-final.log), [format](evidence/checks/fmt-final.log); no lint suppression |
 | CLI unit/integration and benchmark tests | Passed: 16 CLI unit, 16 integration, 2 benchmark tests | `target/m0/tests-cli-final.log` (unit phase), `target/m0/tests-cli-integration-final.log`, `target/m0/tests-benchmark-final.log` |
-| Final unsigned MSI and ZIP | Passed, clean manifest | `target/m0/package-clean.log`, `target/m0/package-validation-clean.log`; WiX 5.0.2, static CRT, legal files, source/lockfile provenance; ZIP executables match the tested static binaries |
+| Unsigned MSI and ZIP | Passed initial qualification and subsequent wizard correction | Initial clean-manifest reports under `evidence/packages`; [current wizard package checks](evidence/msi-wizard/validation.json) also verify interactive dialogs and launch gating |
 | Comparable performance captures | Passed as baseline capture, not release performance qualification | [Checked comparison](BENCHMARKS.md); seven sections, three repeats, 19 identical fixture hashes and 94 raw rows per build; every section exit code 0 |
 
 Library coverage comprises automation, edit algebra, engine, export, format, project, time, and UI library tests. The ignored tests are `essential_sound_tests::perf_full_dialogue_chain_realtime_factor`, `multicam_tests::perf_grid_of_four_1080p_angles`, and `proxies_tests::proxy_playback_perf_4k`. They remain separate performance obligations; no ignored test is counted as passed.
@@ -38,14 +38,24 @@ The reports referenced by local `target/m0/` paths above are also retained under
 
 The live desktop smoke passed both initially and against the final static-CRT binary. It generated a two-second H.264/AAC input, imported it through the authenticated desktop command service, made a sequence, ripple-trimmed ten frames, undid/redid, saved/reopened, and exported ProRes. Independent ffprobe/ffmpeg validation found **50 video frames and 80,000 stereo sample frames at 48 kHz**. New port/token environment variables overrode deliberately invalid legacy values. The credential was neither logged nor saved.
 
-Final evidence: [desktop responses and verification](evidence/desktop/evidence.json). ZIP executable hashes match the tested static binaries; installer metadata and notice payloads passed inspection. The package manifest was refreshed from a clean documentation tree using unchanged tested binaries; it records production source `3aeef472` and observed documentation revision `0bd65fe4`, with `dirty: false`. This development-machine workflow does not establish clean-machine installation or long-form playback performance.
+Final application evidence: [desktop responses and verification](evidence/desktop/evidence.json). ZIP executable hashes match the tested static binaries; installer metadata and notice payloads passed inspection. The initial package manifest records production source `3aeef472` and observed documentation revision `0bd65fe4`, with `dirty: false`. The subsequent wizard correction below retains the same application binaries and records its own packaging provenance. This development-machine workflow does not establish clean-machine installation or long-form playback performance.
 
 Unsigned local artifacts (not published):
 
-- `dist/release/shotclutch-0.13.0-windows-x64.msi`, SHA-256 `9745ECA5C4185777691022A675647E378BEC3AC74E6608AB66079D944AD85DD2`.
-- `dist/release/shotclutch-0.13.0-windows-x64-portable.zip`, SHA-256 `0DC1468FEC9004590FA6C576E5D6A3CCE3171C7D9FBF88A002EC42A1A0F3281B`.
+- `dist/release/shotclutch-0.13.0-windows-x64.msi`, SHA-256 `01C6E1AF465213C46EFE2F496BEAB74230B17F849C3090F5405BDBB1F803EAAF`.
+- `dist/release/shotclutch-0.13.0-windows-x64-portable.zip`, SHA-256 `35D0BEB9F1C1907D6F6A6725A91B0E3466155654A2C578BC92CAE91B6E47C291`.
 
-See [package inspection](evidence/packages/validation.json) and [build provenance](evidence/packages/build-info.json). These artifacts retain workspace version 0.13.0; no v0.1 package-version migration was made.
+See [current package inspection](evidence/msi-wizard/validation.json) and [build provenance](evidence/msi-wizard/build-info.json). Initial package inspection/provenance remains in `evidence/packages` as historical qualification evidence. These artifacts retain workspace version 0.13.0; no v0.1 package-version migration was made.
+
+## Installer usability correction
+
+The user reported that the portable executable worked but opening the MSI did nothing. Windows Installer events on this development machine show that the original MSI installed successfully (11707 / 1033, status 0), followed by two successful reconfigurations. Both installed executables and the Start menu shortcut exist, and the installed CLI runs. The original MSI lacked a setup dialog set and did not launch the application after installation; it gave the user no useful completion flow.
+
+Correction source: `b5102d3c46e39bfd8b6cdc11462d95dae37961c8`. The package now includes the version-pinned [WiXUI InstallDir dialog set](https://docs.firegiant.com/wix/tools/wixext/wixui/), actual MIT/Apache license text, destination selection, progress, completion and a Launch ShotClutch checkbox on Finish. Launch is tied to that UI event and is absent from the silent execution sequences. Re-running an already installed package has a maintenance flow. Application version, upgrade identity and tested binaries are retained.
+
+Artifact validation passes checks for the welcome/license/destination/progress/completion/maintenance dialogs, installed executable launch target, checkbox condition, silent-install sequences, product identity and legal payload. A live preview exposes a `ShotClutch Setup` window and the installer log reaches `WelcomeDlg`. The computer-use tool blocks controlling `msiexec.exe`, so no automated Finish click or launch was performed. The preview window was left available to the user; complete click-through, clean-machine install and uninstall remain unverified for this correction.
+
+[Diagnosis and binary bindings](evidence/msi-wizard/diagnosis.json), [package build log](evidence/msi-wizard/build.log) and [validation](evidence/msi-wizard/validation.json) are retained. Installed, newly packaged and previously tested static executables have identical hashes. The replacement package was built before the fix commit: its manifest truthfully records `dirty: true`, observed parent `9e70433b` and application source `3aeef472`; the corresponding installer-source changes are now committed at `b5102d3c`.
 
 ## Measured baseline
 
