@@ -26,8 +26,8 @@ M0 is **not closed** until the clean-machine installation gate is satisfied. Loc
 | Workflow syntax | Passed with checksum-verified actionlint 1.7.12 | `target/m0/actionlint.log`; local shellcheck integration unavailable; CI defines Unix shell/metadata checks |
 | Python tools and comparison guards | Passed | Python syntax compilation; `target/m0/comparison-guard-test/result.txt` uses explicitly synthetic inputs |
 | Final Clippy/format refresh | Pending final evidence collection | Full-target Clippy passed after the bounded Rust 1.95 repairs; refresh logs after final metadata changes |
-| Real-media CLI and benchmark tests | Pending | Final execution logs will be recorded here |
-| Final unsigned MSI and ZIP | Built and validated; clean-manifest refresh pending | WiX 5.0.2, static CRT, both legal inventories and embedded commit/lockfile provenance inspected; ZIP executables match the tested static binaries |
+| CLI unit/integration and benchmark tests | Passed: 16 CLI unit, 16 integration, 2 benchmark tests | `target/m0/tests-cli-final.log` (unit phase), `target/m0/tests-cli-integration-final.log`, `target/m0/tests-benchmark-final.log` |
+| Final unsigned MSI and ZIP | Passed, clean manifest | `target/m0/package-clean.log`, `target/m0/package-validation-clean.log`; WiX 5.0.2, static CRT, legal files, source/lockfile provenance; ZIP executables match the tested static binaries |
 | Comparable performance captures | Pending measurement | Prepared media are not measured baseline evidence |
 
 Library coverage comprises automation, edit algebra, engine, export, format, project, time, and UI library tests. The ignored tests are `essential_sound_tests::perf_full_dialogue_chain_realtime_factor`, `multicam_tests::perf_grid_of_four_1080p_angles`, and `proxies_tests::proxy_playback_perf_4k`. They remain separate performance obligations; no ignored test is counted as passed.
@@ -36,7 +36,7 @@ Library coverage comprises automation, edit algebra, engine, export, format, pro
 
 The live desktop smoke passed both initially and against the final static-CRT binary. It generated a two-second H.264/AAC input, imported it through the authenticated desktop command service, made a sequence, ripple-trimmed ten frames, undid/redid, saved/reopened, and exported ProRes. Independent ffprobe/ffmpeg validation found **50 video frames and 80,000 stereo sample frames at 48 kHz**. New port/token environment variables overrode deliberately invalid legacy values. The credential was neither logged nor saved.
 
-Final evidence: `target/m0/desktop-smoke-final/evidence.json`. ZIP executable hashes match the tested static binaries; installer metadata and notice payloads passed inspection. The manifest will be refreshed from a clean documentation tree without rebuilding unchanged code. This development-machine workflow does not establish clean-machine installation or long-form playback performance.
+Final evidence: `target/m0/desktop-smoke-final/evidence.json`. ZIP executable hashes match the tested static binaries; installer metadata and notice payloads passed inspection. The package manifest was refreshed from a clean documentation tree using unchanged tested binaries; it records production source `3aeef472` and observed documentation revision `0bd65fe4`, with `dirty: false`. This development-machine workflow does not establish clean-machine installation or long-form playback performance.
 
 ## Findings and remaining gates
 
@@ -45,3 +45,5 @@ Validation found two M0 branding regressions and corrected them: a fixed nine-by
 Clean Windows installation, remote CI execution, other-platform runtime qualification, GPU performance qualification, and a second hardware tier remain unverified. Run the procedure in `QUALIFICATION.md` in a fresh VM/Sandbox or equivalent environment and attach its results. The original application-suite dependency is not required by the native pipeline; strict offline/clean-environment acceptance remains an explicit gate rather than an inference from source.
 
 M1–M5 features and the performance release budgets in document 14 are not completed by these M0 checks.
+
+CLI integration qualification initially stopped at the renamed MCP display-name assertion. The assertion now expects `shotclutch`; resource URIs remain compatible. The MPEG probe test now uses the shared Windows-capable oracle finder, so required FFmpeg discovery cannot silently skip that test on Windows. Both real-media workflows and all 16 integration tests pass. Combined targeted checks total **1,383 passing tests**, plus the three explicitly ignored performance tests above.

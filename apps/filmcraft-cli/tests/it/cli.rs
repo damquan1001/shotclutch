@@ -55,15 +55,12 @@ fn long_help_matches_help_command() {
 
 #[test]
 fn probe_reports_mpeg_transport_and_program_streams() {
-    let Some(ffmpeg) = ["/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg", "/usr/bin/ffmpeg"].into_iter().find(|p| std::path::Path::new(p).exists()) else {
-        eprintln!("SKIPPED (probe_reports_mpeg_transport_and_program_streams): ffmpeg not found");
-        return;
-    };
+    let Some(ffmpeg) = filmcraft_testkit::ffmpeg_or_skip("CLI MPEG probe") else { return };
     let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/cli-tests").join(format!("mpeg-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     for (name, fmt, extra) in [("a.ts", "mpegts", &["-mpegts_m2ts_mode", "0"][..]), ("b.vob", "vob", &[][..])] {
         let out = dir.join(name);
-        let st = Command::new(ffmpeg)
+        let st = Command::new(&ffmpeg)
             .args(["-v", "error", "-y", "-f", "lavfi", "-i", "testsrc2=size=320x240:rate=25", "-f", "lavfi", "-i", "sine=frequency=440:sample_rate=48000"])
             .args(["-t", "0.5", "-c:v", "mpeg2video", "-c:a", "mp2", "-ac", "2", "-f", fmt])
             .args(extra)
