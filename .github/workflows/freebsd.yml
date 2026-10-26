@@ -1,6 +1,10 @@
 name: FreeBSD build and package (unqualified until run)
 on:
   workflow_dispatch:
+  push:
+    branches: [release]
+  schedule:
+    - cron: "37 2 * * *"
   pull_request:
     paths: ['packaging/freebsd/**', 'packaging/env.sh', '.github/workflows/freebsd.yml']
 permissions:

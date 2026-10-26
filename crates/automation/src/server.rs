@@ -309,7 +309,7 @@ impl FilmcraftMcp {
         match self.bridge_client() {
             Some(b) => wrap(b.call(method, params).await),
             None => Ok(fail(
-                "this tool drives the live app: run `filmcraft-cli mcp --bridge 127.0.0.1:<port>` with the app started as `filmcraft --control <port>`",
+                "this tool drives the live app: run `shotclutch-cli mcp --bridge 127.0.0.1:<port>` with the app started as `shotclutch --control <port>`",
             )),
         }
     }
@@ -606,7 +606,7 @@ impl FilmcraftMcp {
     }
 }
 
-const INSTRUCTIONS: &str = "ShotClutch video editor (Premiere Pro-class). Every edit is an engine command: `command_list` to discover ids/params, `command_run` to execute (undoable; `command_batch` runs several). `doc_inspect` (or `project_inspect`/`sequence_inspect`) returns ids you can pass to commands; `render_preview` shows the result. In bridge mode the `ui_*` tools drive the live app: `ui_elements` lists clickable ids, `ui_click`/`ui_drag`/`ui_key` operate it, `ui_screenshot` shows it. Time is in ticks: 254016000000 per second (commands also accept `seconds`, `frame` or `timecode`).";
+const INSTRUCTIONS: &str = "ShotClutch local-first video editor. Every edit is an engine command: `command_list` to discover ids/params, `command_run` to execute (undoable; `command_batch` runs several). `doc_inspect` (or `project_inspect`/`sequence_inspect`) returns ids you can pass to commands; `render_preview` shows the result. In bridge mode the `ui_*` tools drive the live app: `ui_elements` lists clickable ids, `ui_click`/`ui_drag`/`ui_key` operate it, `ui_screenshot` shows it. Time is in ticks: 254016000000 per second (commands also accept `seconds`, `frame` or `timecode`).";
 
 /// Resources: the project (as `doc_inspect`) and the command catalog (as `command_list`).
 const DOCUMENT_URI: &str = "filmcraft://document";
@@ -623,7 +623,7 @@ fn cache_hints(context: &rmcp::service::RequestContext<rmcp::RoleServer>, ttl_ms
 impl ServerHandler for FilmcraftMcp {
     fn get_info(&self) -> rmcp::model::ServerConfig {
         rmcp::model::ServerConfig::new(rmcp::model::ServerCapabilities::builder().enable_tools().enable_resources().build())
-            .with_server_info(rmcp::model::Implementation::new("filmcraft", env!("CARGO_PKG_VERSION")))
+            .with_server_info(rmcp::model::Implementation::new("shotclutch", env!("CARGO_PKG_VERSION")))
             .with_instructions(INSTRUCTIONS.to_string())
     }
 
@@ -806,7 +806,7 @@ mod tests {
     async fn tools_are_titled_and_annotated() {
         let mut c = Client::start(demo());
         let init = c.init().await;
-        assert_eq!(init["result"]["serverInfo"]["name"], "filmcraft");
+        assert_eq!(init["result"]["serverInfo"]["name"], "shotclutch");
         let tools = c.ask(json!({"jsonrpc":"2.0","id":1,"method":"tools/list"})).await["result"]["tools"].as_array().cloned().unwrap();
         for t in &tools {
             assert!(t["title"].is_string(), "{} has no title", t["name"]);

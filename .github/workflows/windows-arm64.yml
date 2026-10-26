@@ -1,6 +1,10 @@
 name: Windows ARM64 package and installation (unqualified until run)
 on:
   workflow_dispatch:
+  push:
+    branches: [release]
+  schedule:
+    - cron: "41 4 * * *"
   pull_request:
     paths: ['packaging/windows/**', '.github/workflows/windows-arm64.yml']
 permissions:

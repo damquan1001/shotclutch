@@ -50,12 +50,15 @@ try {
   }
   $hardware = @{cpu=$env:PROCESSOR_IDENTIFIER; logical_cores=[Environment]::ProcessorCount; os=[Environment]::OSVersion.VersionString; gpu=$null; memory_bytes=$null}
   try {
-    $hardware.gpu = @(Get-CimInstance Win32_VideoController | Select-Object Name,DriverVersion,AdapterRAM)
+    $hardware.gpu = @(Get-CimInstance Win32_VideoController | Select-Object Name,DriverVersion,AdapterRAM,CurrentHorizontalResolution,CurrentVerticalResolution,CurrentRefreshRate)
+    $hardware.cpu_details = @(Get-CimInstance Win32_Processor | Select-Object Name,NumberOfCores,NumberOfLogicalProcessors,MaxClockSpeed)
+    $hardware.storage = @(Get-CimInstance Win32_DiskDrive | Select-Object Model,InterfaceType,Size)
+    $hardware.power_scheme = (& powercfg /getactivescheme | Out-String).Trim()
     $hardware.memory_bytes = [double](Get-CimInstance Win32_OperatingSystem).TotalVisibleMemorySize * 1024
   } catch { $hardware.unavailable = $_.Exception.Message }
-  $fixtureRoot = Join-Path $root 'target/fixtures'
+  $fixtureRoot = Join-Path $root 'target/fixtures/playback'
   $fixtures = @(Get-ChildItem -LiteralPath $fixtureRoot -File -Recurse | ForEach-Object { @{path=$_.FullName.Substring($fixtureRoot.Length+1); bytes=$_.Length; sha256=(Get-FileHash -LiteralPath $_.FullName).Hash} })
-  @{label=$Label; revision=$Revision; checkout=$checkoutPath; collected_utc=[DateTime]::UtcNow.ToString('o'); rustc=(& rustc --version); cargo=(& cargo --version); hardware=$hardware; settings=@{repeat=$Repeat; quick=[bool]$Quick; decoder='software'; compositor='CPU'; cache='unmeasured quick preparation per section; measured fresh child; OS cache uncontrolled; case-specific caches in raw report'; ceilings='host defaults'; inherited_load_caveat='upstream Windows empty load is unavailable, not an idle-machine measurement'}; fixtures=$fixtures; sections=$results} | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $out 'manifest.json')
+  @{label=$Label; revision=$Revision; checkout=$checkoutPath; collected_utc=[DateTime]::UtcNow.ToString('o'); rustc=(& rustc --version); cargo=(& cargo --version); cargo_lock_sha256=(Get-FileHash -LiteralPath (Join-Path $checkoutPath 'Cargo.lock')).Hash; ffmpeg=(& ffmpeg -version | Select-Object -First 1); ffprobe=(& ffprobe -version | Select-Object -First 1); hardware=$hardware; settings=@{repeat=$Repeat; quick=[bool]$Quick; decoder='software'; compositor='CPU'; cache='unmeasured quick preparation per section; measured fresh child; OS cache uncontrolled; case-specific caches in raw report'; ceilings='host defaults'; inherited_load_caveat='upstream Windows empty load is unavailable, not an idle-machine measurement'}; fixtures=$fixtures; sections=$results} | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $out 'manifest.json')
 } finally {
   Pop-Location
   foreach ($key in $previous.Keys) { [Environment]::SetEnvironmentVariable($key, $previous[$key]) }

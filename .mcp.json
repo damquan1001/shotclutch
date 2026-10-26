@@ -1,11 +1,11 @@
 {
   "mcpServers": {
-    "filmcraft": {
-      "command": "target/release/filmcraft-cli",
+    "shotclutch": {
+      "command": "target/release/shotclutch-cli",
       "args": ["mcp", "--bridge", "127.0.0.1:9876"]
     },
-    "filmcraft-headless": {
-      "command": "target/release/filmcraft-cli",
+    "shotclutch-headless": {
+      "command": "target/release/shotclutch-cli",
       "args": ["mcp", "--demo"]
     }
   }

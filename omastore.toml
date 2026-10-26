@@ -1,11 +1,12 @@
+# Linux delivery metadata; runtime/packages remain unqualified until the platform gate passes.
 kind = "app"
 categories = ["AudioVideo", "Video", "AudioVideoEditing"]
-icon = "assets/app-icon/hicolor/256x256/apps/ai.storyteller.filmcraft.png"
+icon = "assets/app-icon/shotclutch.png"
 
 [linux.x86_64]
-asset = "filmcraft-{version}-linux-x86_64.tar.gz"
-exec = "filmcraft-{version}-linux-x86_64/bin/filmcraft"
+asset = "shotclutch-{version}-linux-x86_64.tar.gz"
+exec = "shotclutch-{version}-linux-x86_64/bin/shotclutch"
 
 [linux.aarch64]
-asset = "filmcraft-{version}-linux-aarch64.tar.gz"
-exec = "filmcraft-{version}-linux-aarch64/bin/filmcraft"
+asset = "shotclutch-{version}-linux-aarch64.tar.gz"
+exec = "shotclutch-{version}-linux-aarch64/bin/shotclutch"

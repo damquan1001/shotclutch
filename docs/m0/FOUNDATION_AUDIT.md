@@ -5,11 +5,13 @@ Audit date: 2026-10-26. Initial qualification platform: Windows x64. Owner: Code
 ## Source identity
 
 - Fork origin: `https://github.com/damquan1001/shotclutch.git`.
-- Inherited source baseline: `3a5f217b` (full hash recorded in the evidence manifest).
+- Inherited source baseline: `3a5f217b348bf0c9dc1678f305c34b6c88617f37`.
 - User documentation baseline: `b739515e04b3467ed8b681e6296f7dc5867f43dd` (`quick clean up`). It already committed the 01–17 specifications, moved historical documentation, and removed upstream root documents, logos, and screenshots before M0 started.
 - Working tree at M0 branch creation: clean. No existing changes were reset or overwritten.
 - Implementation branch: `codex/m0-foundation`. The local upstream remote was newer than the inherited baseline; M0 does not silently incorporate those changes.
 - Rust workspace version: 0.13.0; toolchain: 1.95.0; edition: 2024. The product specification version 0.1 is not a file-format or Cargo-version migration.
+
+The captured Cargo metadata contains **54 workspace packages**. The compiled engine command inventory contains **710 commands**; this is an inventory count, not an acceptance or feature-parity score. Raw inventories are retained under `target/m0/`.
 
 ## Capability inventory
 
@@ -46,3 +48,11 @@ Removed ArtCraft trademarks are no longer embedded. The ShotClutch play/frame ic
 - DEC-002: retain the inherited project/time/command foundation. No schema/timebase replacement in M0. Document mismatches above for M1.
 - Retain internal crate names, command IDs and project compatibility. Rename product surfaces and isolate default user data. Legacy environment aliases remain available; no automatic migration of FilmCraft preferences or recovery journals.
 - Replace external moving CI workflows with local jobs and pin third-party actions. Build the unsigned package in CI; publishing is a separate future release operation.
+
+## Validation findings and bounded repairs
+
+The inherited source builds unchanged. Rust 1.95 Clippy required equivalent boolean/match simplifications in ProRes allocation validation, UI dialog/timeline conditions and desktop audio state handling. These are fork gate repairs, not repairs applied to the untouched benchmark baseline. No warning suppression was added.
+
+Qualification caught and corrected two branding regressions: the DPX creator field must use the new name's actual byte length, and log rotation must consistently use ShotClutch filenames. A DPX header assertion protects the creator field; log-filter coverage includes the renamed executable target. Shipped project migrations and serialized interchange keys retain their historical identity.
+
+The MCP display name and launch configuration use ShotClutch. Existing `filmcraft://document` and `filmcraft://commands` resource URIs remain compatibility identifiers. Platform workflow behavior was checked against upstream craft-common-actions revision `6182ccebfdcec1b76f308ebe187f78d286b3cf39`; the fork owns its job definitions and pins third-party actions. ARM64 MSI installation and FreeBSD build/package jobs are retained; no remote run is claimed.

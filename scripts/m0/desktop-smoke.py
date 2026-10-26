@@ -3,6 +3,7 @@
 Run from the repository root with Python 3, FFmpeg and ffprobe on PATH.
 The token is private to the child environment and is never persisted.
 """
+import argparse
 import json
 import os
 from pathlib import Path
@@ -14,7 +15,11 @@ import time
 
 def main():
     root = Path(__file__).resolve().parents[2]
-    out = root / "target/m0/desktop-smoke"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--bin-dir", type=Path, default=root / "target/release")
+    parser.add_argument("--output", type=Path, default=root / "target/m0/desktop-smoke")
+    options = parser.parse_args()
+    out = options.output.resolve()
     out.mkdir(parents=True, exist_ok=True)
     source = out / "source.mp4"
     subprocess.run([
@@ -35,7 +40,7 @@ def main():
     startup.wShowWindow = subprocess.SW_HIDE
     log = (out / "desktop.log").open("w", encoding="utf-8")
     process = subprocess.Popen([
-        str(root / "target/release/shotclutch.exe"), "--empty", "--no-recover",
+        str(options.bin_dir.resolve() / "shotclutch.exe"), "--empty", "--no-recover",
         "--data-dir", str(out / "data"),
     ], env=env, startupinfo=startup, stdout=log, stderr=log)
     evidence = []

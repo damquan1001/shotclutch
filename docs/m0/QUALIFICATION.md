@@ -11,9 +11,15 @@ Run these from the repository root, one after another, with no other builds or w
 ./scripts/m0/benchmark.ps1 -Checkout . -Revision <milestone-commit> -Label shotclutch -Quick
 ```
 
+After both runs, create the checked comparison with:
+
+```powershell
+python scripts/m0/compare-benchmarks.py target/m0/measurements/upstream target/m0/measurements/shotclutch --output docs/m0/BENCHMARKS.md
+```
+
 The runner calls each existing section directly, so the untouched Windows benchmark needs no Unix launcher repair. The new native orchestrator can also run `cargo run --locked --release -p filmcraft-ui-egui --example bench -- --quick --cpu --hw off --out target/m0/native-bench`.
 
-Record software decode/CPU runs as such. Quick runs establish reproducible baselines; they do not qualify the release budgets in document 14. Run full scenarios and qualified GPU/hardware paths before making performance claims. The manifest records raw section results, fixture SHA-256, repeat count, process peak working set, runtime/toolchain and hardware. Null telemetry means unavailable. Fresh processes do not imply a cold OS filesystem cache. Do not compare quality/backend changes as equivalent speedups.
+Record software decode/CPU runs as such. Quick runs establish reproducible baselines; they do not qualify the release budgets in document 14. Run full scenarios and qualified GPU/hardware paths before making performance claims. The manifest records raw section results, fixture SHA-256, repeat count, process peak working set, runtime/toolchain, generator versions, and available CPU/GPU, memory, storage, display and power-profile details. Null telemetry means unavailable. Fresh processes do not imply a cold OS filesystem cache. Do not compare quality/backend changes as equivalent speedups.
 
 ## Corpus coverage
 
