@@ -1,0 +1,523 @@
+{
+  "activeSequence": null,
+  "dialog": null,
+  "elements": 0,
+  "fps": 57.0308723449707,
+  "input": {
+    "effectiveWindowFocused": false,
+    "mode": "interactive",
+    "nativeWindowFocused": false
+  },
+  "keyboardFocus": null,
+  "pixelsPerPoint": 1.0,
+  "playback": {
+    "audioClock": false,
+    "dropped": 0,
+    "loop": false,
+    "playing": false,
+    "preroll": false,
+    "shown": 0,
+    "speed": 1.0
+  },
+  "playhead": 0,
+  "selection": [],
+  "sourcePlayback": {
+    "audioClock": false,
+    "playhead": 0,
+    "playing": false
+  },
+  "ui": {
+    "add_tracks": {
+      "audio": 1,
+      "audio_after": 0,
+      "audio_type": "standard",
+      "submix": 0,
+      "submix_after": 0,
+      "submix_type": "stereo",
+      "video": 1,
+      "video_after": 0
+    },
+    "audio_fx_editors": [],
+    "audio_gain": {
+      "adjust_db": 0.0,
+      "all_peaks_db": 0.0,
+      "max_peak_db": 0.0,
+      "mode": "",
+      "set_db": 0.0
+    },
+    "caption_search": "",
+    "clip_dialog": null,
+    "closed_floating": [],
+    "collapsed_fx": [],
+    "color_dialog": null,
+    "create_proxies": null,
+    "dark": true,
+    "delete_tracks": {
+      "audio": false,
+      "audio_target": "empty",
+      "captions": false,
+      "captions_target": "empty",
+      "video": false,
+      "video_target": "empty"
+    },
+    "dock": {
+      "Split": {
+        "a": {
+          "Split": {
+            "a": {
+              "Split": {
+                "a": {
+                  "Tabs": {
+                    "active": 0,
+                    "panels": [
+                      "Source",
+                      "EffectControls",
+                      "AudioClipMixer",
+                      "Metadata"
+                    ]
+                  }
+                },
+                "b": {
+                  "Tabs": {
+                    "active": 0,
+                    "panels": [
+                      "Program"
+                    ]
+                  }
+                },
+                "size": {
+                  "Ratio": 0.5
+                },
+                "vertical": false
+              }
+            },
+            "b": {
+              "Tabs": {
+                "active": 0,
+                "panels": [
+                  "Properties",
+                  "EssentialGraphics",
+                  "Text"
+                ]
+              }
+            },
+            "size": {
+              "FixedB": 450.0
+            },
+            "vertical": false
+          }
+        },
+        "b": {
+          "Split": {
+            "a": {
+              "Tabs": {
+                "active": 0,
+                "panels": [
+                  "Project",
+                  "MediaBrowser",
+                  "Libraries",
+                  "Info",
+                  "Effects",
+                  "Markers",
+                  "History"
+                ]
+              }
+            },
+            "b": {
+              "Split": {
+                "a": {
+                  "Tabs": {
+                    "active": 0,
+                    "panels": [
+                      "Tools"
+                    ]
+                  }
+                },
+                "b": {
+                  "Split": {
+                    "a": {
+                      "Tabs": {
+                        "active": 0,
+                        "panels": [
+                          "Timeline"
+                        ]
+                      }
+                    },
+                    "b": {
+                      "Tabs": {
+                        "active": 0,
+                        "panels": [
+                          "AudioMeters"
+                        ]
+                      }
+                    },
+                    "size": {
+                      "FixedB": 116.0
+                    },
+                    "vertical": false
+                  }
+                },
+                "size": {
+                  "FixedA": 64.0
+                },
+                "vertical": false
+              }
+            },
+            "size": {
+              "Ratio": 0.28999999165534973
+            },
+            "vertical": false
+          }
+        },
+        "size": {
+          "Ratio": 0.5699999928474426
+        },
+        "vertical": true
+      }
+    },
+    "edit_cameras": null,
+    "effect_controls_split": 0.0,
+    "effects_search": "",
+    "essential_sound_tab": "Edit",
+    "expanded_bins": [],
+    "expanded_fx": [
+      "Video Transitions",
+      "Video Transitions/Dissolve"
+    ],
+    "export": {
+      "customEnd": 10.0,
+      "customStart": 0.0,
+      "fileName": "",
+      "forSequence": null,
+      "location": "",
+      "manager": null,
+      "openSections": [
+        "video",
+        "audio"
+      ],
+      "preset": "Match Source \u2013 Adaptive High Bitrate",
+      "quickOpen": false,
+      "quickPath": "",
+      "quickPreset": "",
+      "range": "entire",
+      "settings": {
+        "adaptiveBitrate": 0.20000000298023224,
+        "alpha": false,
+        "apvProfile": "",
+        "audio": {
+          "bitrate_kbps": 320,
+          "bits": 16,
+          "channels": 2,
+          "codec": "aac",
+          "flac_level": 5,
+          "float": false,
+          "sample_rate": 48000
+        },
+        "bitrateKbps": 10000,
+        "bitrateMode": "vbr1Pass",
+        "burnCaptions": false,
+        "captionSidecar": null,
+        "crf": 23.0,
+        "dnxProfile": "",
+        "effects": {
+          "image_overlay": {
+            "enabled": false,
+            "offset": [
+              0.0,
+              0.0
+            ],
+            "opacity": 100.0,
+            "path": "",
+            "placement": "topRight",
+            "size_percent": 15.0
+          },
+          "loudness": {
+            "enabled": false,
+            "target_lufs": -23.0,
+            "true_peak_dbtp": -2.0
+          },
+          "name_overlay": {
+            "enabled": false,
+            "offset": [
+              0.0,
+              0.0
+            ],
+            "opacity": 100.0,
+            "placement": "bottomCenter",
+            "size_percent": 5.0,
+            "text": ""
+          },
+          "timecode_overlay": {
+            "enabled": false,
+            "offset": [
+              0.0,
+              0.0
+            ],
+            "opacity": 100.0,
+            "placement": "bottomCenter",
+            "size_percent": 5.0,
+            "text": ""
+          },
+          "video_limiter": {
+            "enabled": false,
+            "max_percent": 100.0,
+            "min_percent": 0.0
+          }
+        },
+        "exrCompression": "none",
+        "fieldOrder": "progressive",
+        "format": "h264",
+        "frameRate": null,
+        "frameSize": null,
+        "gpuRendering": "off",
+        "h264Level": null,
+        "h264Profile": "high",
+        "hardwareEncoding": "off",
+        "includeAudio": true,
+        "keyframeDistance": null,
+        "maxBitrateKbps": null,
+        "maxRenderQuality": false,
+        "maxThreads": 0,
+        "metadata": {
+          "comment": "",
+          "copyright": "",
+          "creator": "",
+          "description": "",
+          "title": ""
+        },
+        "multiplexer": "mp4",
+        "mxfVideoCodec": "dnxhr",
+        "partOfBatch": false,
+        "path": "",
+        "pixelAspect": null,
+        "proresProfile": "",
+        "quality": 90,
+        "range": null,
+        "renderAtMaxDepth": false,
+        "scale": 1.0,
+        "scaling": "scaleToFit",
+        "sdr": false
+      }
+    },
+    "extras": {
+      "dialog": null,
+      "dynamic_waveforms": true,
+      "opened": []
+    },
+    "failed_link": null,
+    "floating": [],
+    "focused": "Timeline",
+    "gfx_edit": null,
+    "gfx_templates": {
+      "category": "",
+      "export": null,
+      "query": "",
+      "replace": null,
+      "selected": null,
+      "tab": ""
+    },
+    "guide_dialog": null,
+    "keyframe_selection": [],
+    "keys": {
+      "icon_columns": 1,
+      "maximized": null,
+      "saved_heights": null
+    },
+    "language": "en",
+    "link_media": null,
+    "lumetri_grid_folder": null,
+    "make_offline": null,
+    "mask_pen": null,
+    "media_browser": {
+      "editColumns": null,
+      "expanded": [],
+      "hover": null,
+      "pathEdit": null,
+      "treeWidth": 0.0
+    },
+    "mixer_fx_open": false,
+    "mixer_hidden": [],
+    "mixer_meter_input_only": false,
+    "mode": "Edit",
+    "multicam_record": true,
+    "panels": {
+      "events": {
+        "level": "",
+        "seen": 0,
+        "selected": null
+      },
+      "inspectorSource": "project",
+      "progress": {
+        "showFinished": true
+      },
+      "reference": {
+        "display": "composite",
+        "ganged": false,
+        "scopes": [
+          "vectorscopeYuv",
+          "waveform"
+        ],
+        "time": 0
+      },
+      "scopes": {
+        "brightness": "normal",
+        "clamp": true,
+        "colorSpace": "auto",
+        "paradeType": "rgb",
+        "preset": "",
+        "scale": "bits8",
+        "shown": [
+          "parade"
+        ],
+        "targets": "75",
+        "waveformType": "rgb"
+      },
+      "timecode": {
+        "rows": [
+          {
+            "display": "Timecode",
+            "mode": "current",
+            "source": "active"
+          }
+        ],
+        "showName": true
+      }
+    },
+    "pen_points": [],
+    "play_after_render": true,
+    "program": {
+      "compare_ref": null,
+      "display": "Composite",
+      "guides": [],
+      "high_quality": false,
+      "lock_guides": false,
+      "multicam": false,
+      "pan": [
+        0.0,
+        0.0
+      ],
+      "paused_res": "Full",
+      "res": "Half",
+      "safe_margins": false,
+      "show_guides": true,
+      "show_rulers": false,
+      "show_transport": true,
+      "snap": true,
+      "time_zoom": null,
+      "transparency_grid": false,
+      "transport_hidden": [
+        "playback.loop"
+      ],
+      "zoom": null
+    },
+    "project_manager": null,
+    "project_panel": {
+      "activeTab": null,
+      "anchor": null,
+      "bin": null,
+      "dialog": null,
+      "hover": null,
+      "rename": null,
+      "selectedBin": null,
+      "tabs": []
+    },
+    "project_search": "",
+    "save_preset": null,
+    "sequence_settings": {
+      "audio_tracks": 3,
+      "auto_tone_map": true,
+      "drop_frame": false,
+      "fps_den": 1001,
+      "fps_num": 24000,
+      "height": 1080,
+      "max_render_quality": false,
+      "mix": "Stereo",
+      "name": "",
+      "new_sequence": false,
+      "sample_rate": 48000,
+      "scale_motion": true,
+      "tab": "general",
+      "video_tracks": 3,
+      "wide_gamut": false,
+      "width": 1920,
+      "working_space": "rec709"
+    },
+    "settings": null,
+    "show_header": true,
+    "show_menu_bar": true,
+    "show_scopes": false,
+    "show_status_bar": true,
+    "source": {
+      "compare_ref": null,
+      "display": "Composite",
+      "guides": [],
+      "high_quality": false,
+      "lock_guides": false,
+      "multicam": false,
+      "pan": [
+        0.0,
+        0.0
+      ],
+      "paused_res": "Full",
+      "res": "Half",
+      "safe_margins": false,
+      "show_guides": true,
+      "show_rulers": false,
+      "show_transport": true,
+      "snap": true,
+      "time_zoom": null,
+      "transparency_grid": false,
+      "transport_hidden": [
+        "playback.loop"
+      ],
+      "zoom": null
+    },
+    "status": "",
+    "sync_dialog": null,
+    "text_props_dialog": null,
+    "text_tab": "Captions",
+    "timeline": {
+      "a_scroll": 0.0,
+      "audio_track_h": 56.0,
+      "fit_pending": true,
+      "follow": true,
+      "header_w": 204.0,
+      "pps": 40.0,
+      "scroll": 0.0,
+      "show_thumbnails": true,
+      "show_waveforms": true,
+      "split": 0.5,
+      "target_pps": 40.0,
+      "target_scroll": 0.0,
+      "thumbnail_mode": "Head",
+      "track_lanes": {},
+      "v_scroll": 0.0,
+      "video_track_h": 60.0
+    },
+    "tool": "Selection",
+    "transcript_search": "",
+    "transcript_sel": null,
+    "transition_duration": {
+      "frames": 0,
+      "transition": 0
+    },
+    "tts": {
+      "advancedOpen": true,
+      "confirmDownload": false,
+      "downloadJob": null,
+      "language": "en-US",
+      "loadedFrom": null,
+      "pace": 1.0,
+      "pending": null,
+      "pitch": "default",
+      "text": "",
+      "voice": "basic-female"
+    },
+    "workspace": "Editing",
+    "workspace_dialog": null
+  },
+  "window": [
+    1600.0,
+    980.0
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": 121871598223,
+  "run_id": 40403015233,
+  "workflow_name": "CI",
+  "head_branch": "codex/m0-foundation",
+  "run_url": "https://api.github.com/repos/damquan1001/shotclutch/actions/runs/40403015233",
+  "run_attempt": 1,
+  "node_id": "CR_kwDOVXHBgc8AAAAcYB0Cjw",
+  "head_sha": "369ce617891c42fcf9c9307795339283e3d68dc4",
+  "url": "https://api.github.com/repos/damquan1001/shotclutch/actions/jobs/121871598223",
+  "html_url": "https://github.com/damquan1001/shotclutch/actions/runs/40403015233/job/121871598223",
+  "status": "completed",
+  "conclusion": "failure",
+  "created_at": "2026-10-26T21:54:44Z",
+  "started_at": "2026-10-26T21:54:44Z",
+  "completed_at": "2026-10-26T21:54:47Z",
+  "name": "windows-package / install",
+  "steps": [],
+  "check_run_url": "https://api.github.com/repos/damquan1001/shotclutch/check-runs/121871598223",
+  "labels": [
+    "windows-2025"
+  ],
+  "runner_id": 0,
+  "runner_name": "",
+  "runner_group_id": 0,
+  "runner_group_name": ""
+}

@@ -122,6 +122,18 @@ The successful Windows check job took **117.22 minutes against 120**, including 
 
 Default-branch inspection confirmed the existing CI file already supports `workflow_dispatch`; dispatching the milestone branch required no main-branch change. Both runs resolve the identical full source SHA above. Both rebuild compiled targets on fresh ordinary hosted runners; no paid/larger runners or self-hosted registration were added. CI-002 remains open until both aggregate results and artifacts have been retained. The earlier successful complete `d0b9a11d` run remains valid evidence, but is not miscounted as a second execution of `369ce617`.
 
+### External billing block on repeat installation jobs
+
+Both `369ce617` runs built their Windows packages, but GitHub refused to start the fresh install jobs. Each failed with **zero executed steps** and an annotation about recent failed account payments or a spending limit. This does not identify which account condition applies. [Push startup annotation](evidence/rollout/ci-369ce617-push/billing-annotation.json), [manual annotation](evidence/rollout/ci-369ce617-manual/billing-annotation.json). No installer step ran in those jobs, so these are account/infrastructure blocks rather than MSI test results.
+
+The account owner was asked to review GitHub Settings → Billing & plans. No payment, budget, repository visibility or spending-limit change was made. Already-running checks continue and their results will be retained; no new hosted retry will start until the billing block is resolved. The two-green aggregate acceptance gate remains **outstanding**.
+
+Retry care: package/fixture artifact names include `github.run_attempt`. After the warning is resolved, rerun the **package producer and its dependent install/aggregate jobs**, or rerun the whole workflow. Rerunning only an install job on a new attempt would request a new-attempt artifact that the previous package job did not produce. Preserve the successful cold check reports and both startup failures before retrying; do not manufacture an aggregate pass or change test selection to bypass the account block.
+
+Both already-produced `369ce617` package sets were independently downloaded, verified against their own GitHub artifact digests and validated locally. Both exact GUI executables passed the isolated native 1080p trim/history/save/reopen/export workflow, with independently checked 1920×1080 at 30/1 fps, 50 video frames and 80,000 stereo sample frames at 48 kHz. Input and rendered-output hashes match between the two local executions. No MSI was installed on the development host. [Push artifact binding](evidence/rollout/ci-369ce617-push/candidate.json), [manual binding](evidence/rollout/ci-369ce617-manual/candidate.json), [push native verification](evidence/rollout/ci-369ce617-push/native-core-1080/verification-context.json), [manual verification](evidence/rollout/ci-369ce617-manual/native-core-1080/verification-context.json).
+
+Build repeatability is **not claimed as whole-file byte reproducibility**. The two GUI binaries differ in 20 bytes and the CLI binaries in 24 bytes. Inspection confines every differing byte to COFF/debug timestamps and the CodeView debug GUID; `.text` and all other sections except `.rdata` match. [Binary comparison](evidence/rollout/repeat-binary-comparison.json). Locked build procedures, identical machine-code sections and matching functional output establish bounded repeat evidence; deterministic linker/package metadata remains an explicit future improvement rather than a fabricated identical hash.
+
 ## CI-003 — proposed required-check value (not applied)
 
 After green repeat runs and an authorized review/promotion, the proposed `required_status_checks` value is:

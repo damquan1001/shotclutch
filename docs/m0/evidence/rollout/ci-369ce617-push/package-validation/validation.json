@@ -1,0 +1,9 @@
+{
+  "installer_wizard": "present",
+  "msi_sha256": "2B5ECFC93608B587787235A22F104F39AB301E980743B6DF72188309513EFB64",
+  "version": "shotclutch-cli 0.13.0",
+  "finish_launch": "checkbox-gated; absent from silent install sequences",
+  "result": "passed",
+  "zip_sha256": "B190D2A68D6D9609D1B4B56E6656772DF79FD019E29A2DFCBB22D95183EFC820",
+  "clean_machine_install": "not performed"
+}

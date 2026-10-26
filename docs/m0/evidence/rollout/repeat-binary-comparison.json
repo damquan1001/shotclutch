@@ -1,0 +1,330 @@
+{
+  "source": "369ce617891c42fcf9c9307795339283e3d68dc4",
+  "executables": {
+    "shotclutch.exe": {
+      "push": {
+        "sha256": "a756f87ac884255b4b1a90eea9b85d1a6657d27d0cacb7555b64b55c04800f67",
+        "coff_timestamp": 1793051438,
+        "coff_timestamp_as_utc": "2026-10-26T21:50:38+00:00",
+        "sections_sha256": {
+          ".text": "54cedac68693a5859aff01dc49e41c6e0214f0993b02a8adbb66c42ca4af481d",
+          ".rdata": "66b45afa7b6c2e296905db9763c0acee370516b10d2fe183226e1053f0213d87",
+          ".data": "339ef12b7ac14ea5d776f741ae1d3986dbde8fc7dfe7f5a89d026e5fa448e10c",
+          ".pdata": "674ccc8aa62d46435519509cdb9982445402569366287e5f383d4e90723e983c",
+          ".fptable": "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560",
+          ".rsrc": "80c42de77a3a77c4214e41c75ecc3964c68373afc70a3dca3a25b49217a7e3dc",
+          ".reloc": "a138bd68bdb266ee72c1ad1362d8b47957b41b61855bc363b13c430b8de4a392"
+        },
+        "coff_debug_metadata_offsets": [
+          256,
+          257,
+          258,
+          259,
+          54080100,
+          54080101,
+          54080102,
+          54080103,
+          54081260,
+          54081261,
+          54081262,
+          54081263,
+          54081264,
+          54081265,
+          54081266,
+          54081267,
+          54081268,
+          54081269,
+          54081270,
+          54081271,
+          54081272,
+          54081273,
+          54081274,
+          54081275,
+          54080128,
+          54080129,
+          54080130,
+          54080131,
+          54080156,
+          54080157,
+          54080158,
+          54080159
+        ],
+        "debug_entries": [
+          {
+            "type": 2,
+            "timestamp": 1793051438,
+            "codeview_guid_hex": "2ccf12ddf5386146824ce8cd34ac31b9"
+          },
+          {
+            "type": 12,
+            "timestamp": 1793051438
+          },
+          {
+            "type": 13,
+            "timestamp": 1793051438
+          }
+        ]
+      },
+      "manual": {
+        "sha256": "077dd49c86edb4eb0829d89436689dd4a6e956042ad563e99752508a8e858487",
+        "coff_timestamp": 1793051621,
+        "coff_timestamp_as_utc": "2026-10-26T21:53:41+00:00",
+        "sections_sha256": {
+          ".text": "54cedac68693a5859aff01dc49e41c6e0214f0993b02a8adbb66c42ca4af481d",
+          ".rdata": "24daf2ecccbb64c1a3569132d50dc7ae05ffb60a34fcf25188f5fe731a43bc3a",
+          ".data": "339ef12b7ac14ea5d776f741ae1d3986dbde8fc7dfe7f5a89d026e5fa448e10c",
+          ".pdata": "674ccc8aa62d46435519509cdb9982445402569366287e5f383d4e90723e983c",
+          ".fptable": "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560",
+          ".rsrc": "80c42de77a3a77c4214e41c75ecc3964c68373afc70a3dca3a25b49217a7e3dc",
+          ".reloc": "a138bd68bdb266ee72c1ad1362d8b47957b41b61855bc363b13c430b8de4a392"
+        },
+        "coff_debug_metadata_offsets": [
+          256,
+          257,
+          258,
+          259,
+          54080100,
+          54080101,
+          54080102,
+          54080103,
+          54081260,
+          54081261,
+          54081262,
+          54081263,
+          54081264,
+          54081265,
+          54081266,
+          54081267,
+          54081268,
+          54081269,
+          54081270,
+          54081271,
+          54081272,
+          54081273,
+          54081274,
+          54081275,
+          54080128,
+          54080129,
+          54080130,
+          54080131,
+          54080156,
+          54080157,
+          54080158,
+          54080159
+        ],
+        "debug_entries": [
+          {
+            "type": 2,
+            "timestamp": 1793051621,
+            "codeview_guid_hex": "b0353b8eaca4ed49b4e4539625720475"
+          },
+          {
+            "type": 12,
+            "timestamp": 1793051621
+          },
+          {
+            "type": 13,
+            "timestamp": 1793051621
+          }
+        ]
+      },
+      "equal_sections": {
+        ".text": true,
+        ".rdata": false,
+        ".data": true,
+        ".pdata": true,
+        ".fptable": true,
+        ".rsrc": true,
+        ".reloc": true
+      },
+      "whole_file_identical": false,
+      "different_byte_count": 20,
+      "different_byte_offsets": [
+        256,
+        54080100,
+        54080128,
+        54080156,
+        54081260,
+        54081261,
+        54081262,
+        54081263,
+        54081264,
+        54081265,
+        54081266,
+        54081267,
+        54081268,
+        54081269,
+        54081270,
+        54081271,
+        54081272,
+        54081273,
+        54081274,
+        54081275
+      ],
+      "differences_confined_to_coff_debug_timestamps_and_codeview_guid": true
+    },
+    "shotclutch-cli.exe": {
+      "push": {
+        "sha256": "00591b530dbdf6db6d482b3633a182ee1831b57650d724655a86fe1666feb83e",
+        "coff_timestamp": 1793051262,
+        "coff_timestamp_as_utc": "2026-10-26T21:47:42+00:00",
+        "sections_sha256": {
+          ".text": "dde324c039962ded357e122175927c63948ebaaa4733512666a542a6263eba6d",
+          ".rdata": "a53f083ad604b7684d81313702e2afe0902b15f6fbaedfd2e6f80686b78bd54e",
+          ".data": "32c42eaeaa086f112ec431b0416067e1b6a39e5ffbeedf7502cf3f37f90a5c5c",
+          ".pdata": "943aeda11fb54f59b2b4890f206c9a0ee307888bf740a585b814cc5317623cfa",
+          ".fptable": "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560",
+          ".reloc": "6d85f83b2f30f6f48d194bca8524d33e915217fa6504abff49d11199b062dd43"
+        },
+        "coff_debug_metadata_offsets": [
+          248,
+          249,
+          250,
+          251,
+          39838884,
+          39838885,
+          39838886,
+          39838887,
+          39839972,
+          39839973,
+          39839974,
+          39839975,
+          39839976,
+          39839977,
+          39839978,
+          39839979,
+          39839980,
+          39839981,
+          39839982,
+          39839983,
+          39839984,
+          39839985,
+          39839986,
+          39839987,
+          39838912,
+          39838913,
+          39838914,
+          39838915,
+          39838940,
+          39838941,
+          39838942,
+          39838943
+        ],
+        "debug_entries": [
+          {
+            "type": 2,
+            "timestamp": 1793051262,
+            "codeview_guid_hex": "25c925a3c91bdc4291fb6e1cdca135eb"
+          },
+          {
+            "type": 12,
+            "timestamp": 1793051262
+          },
+          {
+            "type": 13,
+            "timestamp": 1793051262
+          }
+        ]
+      },
+      "manual": {
+        "sha256": "5034472a9d956cef9f18b6642701bbc4feb38d2d55b79ae89c0c86ca21f9caf4",
+        "coff_timestamp": 1793051443,
+        "coff_timestamp_as_utc": "2026-10-26T21:50:43+00:00",
+        "sections_sha256": {
+          ".text": "dde324c039962ded357e122175927c63948ebaaa4733512666a542a6263eba6d",
+          ".rdata": "9b4e76d5518dd7e094011559e7f6be29110f87a5d3be389579994c7415542252",
+          ".data": "32c42eaeaa086f112ec431b0416067e1b6a39e5ffbeedf7502cf3f37f90a5c5c",
+          ".pdata": "943aeda11fb54f59b2b4890f206c9a0ee307888bf740a585b814cc5317623cfa",
+          ".fptable": "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560",
+          ".reloc": "6d85f83b2f30f6f48d194bca8524d33e915217fa6504abff49d11199b062dd43"
+        },
+        "coff_debug_metadata_offsets": [
+          248,
+          249,
+          250,
+          251,
+          39838884,
+          39838885,
+          39838886,
+          39838887,
+          39839972,
+          39839973,
+          39839974,
+          39839975,
+          39839976,
+          39839977,
+          39839978,
+          39839979,
+          39839980,
+          39839981,
+          39839982,
+          39839983,
+          39839984,
+          39839985,
+          39839986,
+          39839987,
+          39838912,
+          39838913,
+          39838914,
+          39838915,
+          39838940,
+          39838941,
+          39838942,
+          39838943
+        ],
+        "debug_entries": [
+          {
+            "type": 2,
+            "timestamp": 1793051443,
+            "codeview_guid_hex": "117836d108375f438bd30f6bd4357fa0"
+          },
+          {
+            "type": 12,
+            "timestamp": 1793051443
+          },
+          {
+            "type": 13,
+            "timestamp": 1793051443
+          }
+        ]
+      },
+      "equal_sections": {
+        ".text": true,
+        ".rdata": false,
+        ".data": true,
+        ".pdata": true,
+        ".fptable": true,
+        ".reloc": true
+      },
+      "whole_file_identical": false,
+      "different_byte_count": 24,
+      "different_byte_offsets": [
+        248,
+        249,
+        39838884,
+        39838885,
+        39838912,
+        39838913,
+        39838940,
+        39838941,
+        39839972,
+        39839973,
+        39839974,
+        39839975,
+        39839976,
+        39839977,
+        39839978,
+        39839979,
+        39839980,
+        39839981,
+        39839982,
+        39839983,
+        39839984,
+        39839985,
+        39839986,
+        39839987
+      ],
+      "differences_confined_to_coff_debug_timestamps_and_codeview_guid": true
+    }
+  }
+}
