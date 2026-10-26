@@ -34,12 +34,6 @@
     <keyword>color grading</keyword>
     <keyword>nle</keyword>
   </keywords>
-  <screenshots>
-    <screenshot type="default">
-      <caption>Color workspace: a documentary cut with Lumetri Color, scopes, captions and loudness meters</caption>
-      <image>https://raw.githubusercontent.com/storytold/filmcraft/main/docs/images/filmcraft-hero.png</image>
-    </screenshot>
-  </screenshots>
   <branding>
     <color type="primary" scheme_preference="light">#9fd0ff</color>
     <color type="primary" scheme_preference="dark">#1f64ba</color>
@@ -53,7 +47,7 @@
     <control>tablet</control>
   </supports>
   <provides>
-    <binary>filmcraft</binary>
+    <binary>shotclutch</binary>
     <mediatype>application/x-filmcraft</mediatype>
   </provides>
   <content_rating type="oars-1.1"/>
