@@ -1,0 +1,70 @@
+{
+  "revision": "369ce617891c42fcf9c9307795339283e3d68dc4",
+  "os": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "architecture": "x86_64",
+  "cpu": "x86_64",
+  "logical_cores": 2,
+  "physical_memory_bytes": null,
+  "image_version": "20261023.334.3",
+  "image_os": "ubuntu24",
+  "run_id": "40403015233",
+  "attempt": "1",
+  "dependency_cache_hit": null,
+  "compiled_target_cache": "disabled",
+  "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "cargo_lock_sha256": "de03a57ae05724d3eb2321db9577ad115939ed99f70dccfcfd43ab23eb9285fa",
+  "min_free_disk_bytes": 10589544448,
+  "profile_overrides": {
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0"
+  },
+  "gpu_required": false,
+  "gpu_test_profile": {
+    "SHOTCLUTCH_CI_GPU_BACKEND": null,
+    "SHOTCLUTCH_CI_DX12_COMPILER": null
+  },
+  "commands": [
+    {
+      "command": [
+        "cargo",
+        "build",
+        "--locked",
+        "--release",
+        "-p",
+        "filmcraft",
+        "-p",
+        "filmcraft-cli"
+      ],
+      "log": "01.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 1150.880739178
+    },
+    {
+      "command": [
+        "rustup",
+        "target",
+        "add",
+        "wasm32-unknown-unknown"
+      ],
+      "log": "02.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 1.843296503999909
+    },
+    {
+      "command": [
+        "cargo",
+        "xtask",
+        "wasm"
+      ],
+      "log": "03.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 214.57428774999994
+    }
+  ],
+  "result": "passed"
+}

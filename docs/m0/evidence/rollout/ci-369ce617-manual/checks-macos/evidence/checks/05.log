@@ -1,0 +1,3008 @@
+   Compiling serde_core v1.0.229
+   Compiling thiserror v2.0.21
+   Compiling bytemuck v1.25.2
+   Compiling either v1.18.0
+   Compiling zerocopy v0.8.59
+   Compiling serde v1.0.229
+   Compiling core-foundation-sys v0.8.7
+   Compiling once_cell v1.21.4
+   Compiling rayon v1.12.0
+   Compiling iana-time-zone v0.1.65
+   Compiling arrayvec v0.7.8
+   Compiling log v0.4.34
+   Compiling chrono v0.4.45
+   Compiling half v2.7.1
+   Compiling craft-media v0.1.0 (https://github.com/storytold/craft-libs?rev=f0ad6c1e1d297908915f4be315b0fcfc9be7b5d4#f0ad6c1e)
+   Compiling memchr v2.8.3
+   Compiling filmcraft-color v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/color)
+   Compiling smallvec v1.16.2
+   Compiling tiff v0.11.3
+   Compiling getrandom v0.4.3
+   Compiling image v0.25.10
+   Compiling filmcraft-bitstream v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/bitstream)
+   Compiling serde_json v1.0.151
+   Compiling filmcraft-time v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/time)
+   Compiling filmcraft-dng v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/dng)
+   Compiling bitflags v1.3.2
+   Compiling filmcraft-frame v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/frame)
+   Compiling filmcraft-testkit v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/testkit)
+   Compiling filmcraft-media v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/media)
+   Compiling font-types v0.12.5
+   Compiling read-fonts v0.41.0
+   Compiling dispatch2 v0.3.1
+   Compiling objc2-core-foundation v0.3.2
+   Compiling filmcraft-geom v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/geom)
+   Compiling skrifa v0.44.0
+   Compiling harfrust v0.12.0
+   Compiling filmcraft-project v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/project)
+   Compiling errno v0.3.14
+   Compiling rustix v1.1.5
+   Compiling objc2-foundation v0.3.2
+   Compiling lazy_static v1.5.0
+   Compiling symphonia-core v0.5.5
+   Compiling objc2-core-graphics v0.3.2
+   Compiling fastrand v2.5.0
+   Compiling tempfile v3.27.0
+   Compiling simdutf8 v0.1.5
+   Compiling encoding_rs v0.8.42
+   Compiling objc2-metal v0.3.2
+   Compiling indexmap v2.14.2
+   Compiling symphonia-metadata v0.5.5
+   Compiling roxmltree v0.21.1
+   Compiling parking_lot_core v0.9.12
+   Compiling parking_lot v0.12.5
+   Compiling filmcraft-text v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/text)
+   Compiling uuid v1.26.1
+   Compiling pin-project-lite v0.2.17
+   Compiling naga-types v30.0.1
+   Compiling symphonia-utils-xiph v0.5.5
+   Compiling getrandom v0.3.4
+   Compiling filmcraft-captions v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/captions)
+   Compiling wgpu-types v30.0.1
+   Compiling rand_core v0.9.5
+   Compiling naga v30.0.1
+   Compiling objc-sys v0.3.5
+   Compiling accesskit v0.24.1
+   Compiling objc2-quartz-core v0.3.2
+   Compiling polycool v0.4.0
+   Compiling kurbo v0.13.1
+   Compiling wgpu-naga-bridge v30.0.1
+   Compiling raw-window-metal v1.1.0
+   Compiling objc2 v0.5.2
+   Compiling filmcraft-render v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/render)
+   Compiling filmcraft-prores v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/prores)
+   Compiling filmcraft-aac v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/aac)
+   Compiling filmcraft-apv v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/apv)
+   Compiling filmcraft-dnx v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/dnx)
+   Compiling filmcraft-isobmff v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/isobmff)
+   Compiling filmcraft-mxf v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/mxf)
+   Compiling color v0.3.3
+   Compiling euclid v0.22.14
+   Compiling typenum v1.20.1
+   Compiling linebender_resource_handle v0.1.1
+   Compiling extended v0.1.0
+   Compiling symphonia-format-riff v0.5.5
+   Compiling peniko v0.6.1
+   Compiling generic-array v0.14.7
+   Compiling wgpu-hal v30.0.1
+   Compiling guillotiere v0.7.0
+   Compiling block2 v0.5.1
+   Compiling symphonia-format-ogg v0.5.5
+   Compiling symphonia-bundle-flac v0.5.5
+   Compiling symphonia-format-isomp4 v0.5.5
+   Compiling symphonia-codec-vorbis v0.5.5
+   Compiling symphonia-bundle-mp3 v0.5.5
+   Compiling symphonia-codec-pcm v0.5.5
+   Compiling symphonia-codec-alac v0.5.5
+   Compiling symphonia-codec-aac v0.5.5
+   Compiling ppv-lite86 v0.2.21
+   Compiling tracing-core v0.1.36
+   Compiling wait-timeout v0.2.1
+   Compiling quick-error v1.2.3
+   Compiling bit-vec v0.8.0
+   Compiling fnv v1.0.7
+   Compiling fearless_simd v0.4.1
+   Compiling dispatch v0.2.0
+   Compiling objc2-foundation v0.2.2
+   Compiling vello_common v0.1.0
+   Compiling rusty-fork v0.3.1
+   Compiling bit-set v0.8.0
+   Compiling tracing v0.1.44
+   Compiling symphonia v0.5.5
+   Compiling rand_chacha v0.9.0
+   Compiling wgpu-core-deps-apple v30.0.1
+   Compiling rand_xorshift v0.4.0
+   Compiling rand v0.9.5
+   Compiling hashbrown v0.16.1
+   Compiling filmcraft-h264enc v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/h264enc)
+   Compiling filmcraft-av1 v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/av1)
+   Compiling filmcraft-mpa v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/mpa)
+   Compiling filmcraft-h264 v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/h264)
+   Compiling filmcraft-vp9 v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/vp9)
+   Compiling filmcraft-flac v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/flac)
+   Compiling filmcraft-hevc v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/hevc)
+   Compiling filmcraft-matroska v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/matroska)
+   Compiling filmcraft-mpeg2v v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/mpeg2v)
+   Compiling core-foundation v0.9.4
+   Compiling emath v0.36.2
+   Compiling filmcraft-vp8 v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/vp8)
+   Compiling filmcraft-mpegts v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/mpegts)
+   Compiling filmcraft-ac3 v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/ac3)
+   Compiling filmcraft-ogg v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/ogg)
+   Compiling foreign-types-shared v0.3.1
+   Compiling regex-syntax v0.8.11
+   Compiling unarray v0.1.4
+   Compiling filmcraft-opus v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/opus)
+   Compiling filmcraft-avi v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/avi)
+   Compiling proptest v1.11.0
+   Compiling foreign-types v0.5.0
+   Compiling ecolor v0.36.2
+   Compiling core-graphics-types v0.1.3
+   Compiling wgpu-core v30.0.1
+   Compiling ahash v0.8.12
+   Compiling unicode-general-category v1.1.0
+   Compiling objc2-app-kit v0.2.2
+   Compiling vello_cpu v0.1.0
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling nohash-hasher v0.2.0
+   Compiling epaint_default_fonts v0.36.2
+   Compiling self_cell v1.3.0
+   Compiling epaint v0.36.2
+   Compiling digest v0.10.7
+   Compiling wgpu v30.0.1
+   Compiling core-graphics v0.23.2
+   Compiling filmcraft-codecs v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/codecs)
+   Compiling filmcraft-export v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/export)
+   Compiling itertools v0.15.0
+   Compiling cpufeatures v0.2.17
+   Compiling cursor-icon v1.2.0
+   Compiling smol_str v0.2.2
+   Compiling dpi v0.1.2
+   Compiling futures-sink v0.3.34
+   Compiling futures-core v0.3.34
+   Compiling winit v0.30.13
+   Compiling sha2 v0.10.9
+   Compiling egui v0.36.2
+   Compiling accesskit_consumer v0.38.0
+   Compiling objc2-core-audio-types v0.3.2
+   Compiling filmcraft-cfb v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/cfb)
+   Compiling objc2-core-audio v0.3.2
+   Compiling accesskit_macos v0.26.3
+   Compiling futures-channel v0.3.34
+   Compiling objc2-core-video v0.3.2
+   Compiling objc2-app-kit v0.3.2
+   Compiling rustc-hash v2.1.3
+   Compiling slab v0.4.12
+   Compiling futures-io v0.3.34
+   Compiling futures-task v0.3.34
+   Compiling futures-util v0.3.34
+   Compiling type-map v0.5.1
+   Compiling arboard v3.6.1
+   Compiling objc2-core-media v0.3.2
+   Compiling accesskit_winit v0.32.2
+   Compiling filmcraft-interchange v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/interchange)
+   Compiling filmcraft-speech v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/speech)
+   Compiling filmcraft-format v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/format)
+   Compiling filmcraft-edit v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/edit)
+   Compiling filmcraft-scopes v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/scopes)
+   Compiling filmcraft-tts v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/tts)
+   Compiling socket2 v0.6.5
+   Compiling mio v1.2.3
+   Compiling craft-docpath v0.1.0 (https://github.com/storytold/craft-libs?rev=82a24b006eefa036b43c09a67fb9a3fbd17ffe63#82a24b00)
+   Compiling bytes v1.12.1
+   Compiling ref-cast v1.0.27
+   Compiling egui-winit v0.36.2
+   Compiling tokio v1.53.1
+   Compiling objc2-video-toolbox v0.3.2
+   Compiling egui-wgpu v0.36.2
+   Compiling futures-executor v0.3.34
+   Compiling toml_parser v1.1.3+spec-1.1.0
+   Compiling accesskit_consumer v0.35.0
+   Compiling serde_spanned v1.1.1
+   Compiling toml_datetime v1.1.1+spec-1.1.0
+   Compiling dyn-clone v1.0.20
+   Compiling pollster v1.0.1
+   Compiling eframe v0.36.2
+   Compiling schemars v1.2.2
+   Compiling toml v1.1.6+spec-1.1.0
+   Compiling kittest v0.4.0
+   Compiling futures v0.3.34
+   Compiling tokio-util v0.7.19
+   Compiling filmcraft-ui-egui v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/ui-egui)
+   Compiling filmcraft-gpu v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/gpu)
+   Compiling filmcraft-engine v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/engine)
+   Compiling rmcp v3.5.0
+   Compiling egui_kittest v0.36.2
+   Compiling filmcraft-platform v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/platform)
+   Compiling craft-ui v0.1.0 (https://github.com/storytold/craft-libs?rev=5c874d51eeb3de70e735c8ce87a59a7dedd47675#5c874d51)
+   Compiling base64 v0.22.1
+   Compiling filmcraft-golden v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/golden)
+   Compiling filmcraft-automation v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/automation)
+   Compiling filmcraft-audio-dsp v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/audio-dsp)
+   Compiling filmcraft-tts-text v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/tts-text)
+   Compiling filmcraft-web v0.13.0 (/Users/runner/work/shotclutch/shotclutch/apps/filmcraft-web)
+    Finished `test` profile [optimized] target(s) in 9m 53s
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_aac-9d23fdc41e2b1d45)
+
+running 18 tests
+test config::tests::adts_roundtrip ... ok
+test config::tests::he_aac_asc_parses_core ... ok
+test config::tests::asc_roundtrip ... ok
+test config::tests::amd4_channel_configurations ... ok
+test config::tests::asc_with_pce ... ok
+test decoder::tests::sbr_fill_element_marks_implicit_he_aac ... ok
+test encoder::psy::tests::tone_is_masked_less_than_noise ... ok
+test huffman::tests::scalefactor_roundtrip ... ok
+test ics::tests::grouping_roundtrip ... ok
+test encoder::quant::tests::bit_count_matches_written_bits ... ok
+test huffman::tests::codebooks_are_complete_prefix_codes ... ok
+test huffman::tests::spectral_roundtrip_every_book ... ok
+test tables::tests::band_tables_are_monotonic_and_complete ... ok
+test tns::tests::coef_quant_roundtrip ... ok
+test tns::tests::encoder_decoder_filters_are_inverse ... ok
+test mdct::tests::inverse_matches_definition ... ok
+test mdct::tests::tdac_perfect_reconstruction ... ok
+test mdct::tests::forward_matches_definition ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_ac3-a3a527a7cbbc53eb)
+
+running 13 tests
+test eac3::tests::default_band_structures ... ok
+test tests::computed_window_matches_table_7_33 ... ok
+test tests::channel_order ... ok
+test eac3::tests::spectral_extension_translation_and_scaling ... ok
+test eac3::tests::attenuation_matches_table_e3_14 ... ok
+test tests::eac3_headers ... ok
+test tests::eac3_single_block_frames_reuse_exponents_across_syncframes ... ok
+test tests::eac3_tools_we_do_not_decode_are_refused ... ok
+test tests::headers_and_gains ... ok
+test tests::tables_are_consistent ... ok
+test tests::inverse_fft_matches_the_definition ... ok
+test tests::garbage_never_panics ... ok
+test tests::eac3_garbage_never_panics ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_apv-3c11d0a719335b1a)
+
+running 1 test
+test dct::tests::fdct_idct_roundtrip_10bit ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_audio_dsp-c5a1290c4a342992)
+
+running 128 tests
+test biquad::tests::bandpass_and_allpass ... ok
+test biquad::tests::notch_is_deep_at_centre ... ok
+test biquad::tests::peaking_hits_gain_at_centre ... ok
+test channels::tests::convert_applies_the_matrix_per_sample ... ok
+test channels::tests::bs775_downmix_coefficients_are_exact ... ok
+test channels::tests::panner_matrices ... ok
+test channels::tests::panner_point_gains_are_equal_power ... ok
+test channels::tests::upmix_places_on_front_speakers ... ok
+test design::tests::butterworth_matches_closed_form ... ok
+test design::tests::chebyshev_ripple_bounds ... ok
+test design::tests::complex_helpers ... ok
+test biquad::tests::shelves_reach_their_gain ... ok
+test biquad::tests::lowpass_highpass_minus_3db_at_cutoff ... ok
+test ducking::tests::activity_bridges_then_drops_blips ... ok
+test design::tests::highpass_bandpass_bandstop_shapes ... ok
+test ducking::tests::duck_keyframes_basic_and_merge ... ok
+test ducking::tests::duck_keyframes_clamped_to_clip ... ok
+test ducking::tests::sensitivity_mapping ... ok
+test ducking::tests::envelope_levels ... ok
+test effects::channel::tests::amplify_reaches_exact_gain ... ok
+test effects::channel::tests::channel_volume_per_channel ... ok
+test effects::channel::tests::invert_swap_fill ... ok
+test effects::channel::tests::pan_is_constant_power ... ok
+test design::tests::bessel_is_minus_3db_at_cutoff_and_monotonic ... ok
+test effects::dynamics::tests::compressor_attack_time ... ok
+test effects::dynamics::tests::compressor_static_curve ... ok
+test effects::dynamics::tests::limiter_is_transparent_below_ceiling_with_reported_latency ... ok
+test effects::dynamics::tests::gate_attenuates_below_threshold_and_holds ... ok
+test design::tests::elliptic_meets_ripple_and_stopband ... ok
+test effects::dynamics::tests::limiter_reduces_loud_sine_to_ceiling_smoothly ... ok
+test effects::eq::tests::gain_change_glides_without_jump ... ok
+test effects::dynamics::tests::compressor_steady_state_matches_curve ... ok
+test effects::eq::tests::default_parametric_is_flat ... ok
+test effects::eq::throughput_tests::flat_eq_fast_path_preserves_samples_and_filter_tails ... ok
+test effects::eq::tests::simple_eq_gains ... ok
+test effects::eq::throughput_tests::settled_and_automated_eq_matches_original_loop ... ok
+test effects::essential::tests::deesser_zero_reduction_is_identity ... ok
+test biquad::tests::state_flushes_to_zero_no_denormals ... ok
+test effects::essential::tests::dereverb_zero_amount_is_delayed_identity ... ok
+test effects::essential::tests::dialogue_chain_realtime ... ignored
+test effects::dynamics::tests::limiter_never_exceeds_ceiling ... ok
+test effects::essential::tests::stereo_width_laws ... ok
+test effects::eq::tests::parametric_bands_match_analytic_response ... ok
+test effects::essential::tests::deesser_reduces_sibilance_keeps_voice ... ok
+test effects::premiere_tests::binaural_and_ambisonic_rendering ... ok
+test effects::premiere_tests::channel_and_stereo_tools ... ok
+test effects::essential::tests::speech_enhance_presence_noise_and_level ... ok
+test effects::premiere_tests::chorus_flanger_and_phaser_modulate ... ok
+test effects::essential::tests::dereverb_suppresses_tail ... ok
+test effects::premiere_tests::click_remover_repairs_clicks ... ok
+test effects::premiere_tests::delays_put_echoes_where_asked ... ok
+test effects::premiere_tests::distortion_harmonics ... ok
+test effects::premiere_tests::dynamics_rack_sections ... ok
+test effects::pitch::tests::zero_shift_is_delayed_identity ... ok
+test effects::premiere_tests::fft_filter_applies_its_curve ... ok
+test effects::premiere_tests::flanger_static_comb_notch ... ok
+test effects::premiere_tests::latency_is_where_the_impulse_lands ... ok
+test effects::premiere_tests::loudness_meter_passes_through_and_measures ... ok
+test effects::premiere_tests::graphic_eq_bands_hit_their_gain ... ok
+test effects::premiere_tests::mastering_and_vocal_enhancer ... ok
+test effects::premiere_tests::neutral_settings_are_delayed_identity ... ok
+test effects::premiere_tests::notch_filter_removes_tones ... ok
+test effects::premiere_tests::parametric_eq_full_sections ... ok
+test effects::premiere_tests::every_effect_is_deterministic_and_latency_is_constant ... ok
+test effects::pitch::tests::octave_up_and_down ... ok
+test effects::premiere_tests::multiband_crossovers_sum_flat_and_bands_compress_independently ... ok
+test effects::premiere_tests::tube_compressor_levels ... ok
+test effects::premiere_tests::surround_reverb_tail_decays ... ok
+test effects::restoration::tests::dehum_removes_hum_keeps_program ... ok
+test effects::premiere_tests::scientific_filter_matches_its_design ... ok
+test effects::restoration::tests::denoise_zero_reduction_is_delayed_identity ... ok
+test effects::restoration::tests::denoise_reduces_noise_and_keeps_bursts ... ok
+test effects::tests::registry_is_consistent ... ok
+test effects::tests::reset_restores_initial_behaviour ... ok
+test effects::tests::zero_length_and_single_sample_blocks ... ok
+test effects::time::tests::delay_impulse_and_feedback ... ok
+test effects::time::tests::reverb_decays_and_is_bounded ... ok
+test effects::time::tests::reverb_stable_with_longest_decay_and_noise ... ok
+test effects::time::tests::tempo_sync ... ok
+test effects::time::throughput_tests::circular_reads_match_modulo_reference ... ok
+test effects::time::throughput_tests::reverb_automation_and_tail_match_original_loop ... ok
+test effects::util::tests::allpass_is_unit_magnitude ... ok
+test effects::util::tests::delay_line_reads_integer_and_fractional ... ok
+test fft::tests::matches_naive_dft_and_round_trips ... ok
+test loudness::tests::interleaved_matches_planar ... ok
+test loudness::tests::k_weighting_matches_bs1770_table_at_48k ... ok
+test loudness::tests::k_weighting_shape_is_sample_rate_independent ... ok
+test loudness::tests::log_sweep_matches_analytic_k_weighting ... ok
+test loudness::tests::normalize_helpers ... ok
+test loudness::tests::reset_clears_everything ... ok
+test loudness::tests::silence_and_below_gate ... ok
+test effects::premiere_tests::convolution_reverb_impulses ... ok
+test effects::tests::block_size_independence_with_param_changes ... ok
+test effects::premiere_tests::realtime_factor_sanity ... ok
+test loudness::tests::surround_weights ... ok
+test loudness::tests::tech3341_case5_relative_gate ... ok
+test loudness::tests::tiny_blocks_equal_big_blocks ... ok
+test loudness::tests::true_peak_of_intersample_peak_signal ... ok
+test oversample::tests::phases_have_unity_dc_and_interpolate_sines ... ok
+test remix::tests::analysis_duration_and_similarity_storage_are_bounded ... ok
+test loudness::tests::tech3341_case1_and_2_stereo_sine ... ok
+test loudness::tests::tech3341_case3_4_gating ... ok
+test remix::tests::plans_hit_targets_at_beat_boundaries ... ok
+test remix::tests::public_analysis_rate_is_bounded_before_fft_planning ... ok
+test remix::tests::deterministic_and_parameters_matter ... ok
+test remix::tests::silence_and_noise_have_no_beat ... ok
+test loudness::tests::tech3342_loudness_range ... ok
+test remix::tests::text_roundtrip ... ok
+test resample::tests::a_seek_starts_afresh_and_hostile_input_stays_finite ... ok
+test resample::tests::a_tone_converts_to_the_same_tone ... ok
+test resample::tests::output_is_the_same_however_the_stream_is_cut ... ok
+test resample::tests::the_source_is_pulled_as_one_continuous_stream ... ok
+test smooth::tests::ramps_linearly_and_lands_exactly ... ok
+test smooth::tests::retarget_mid_ramp_is_continuous ... ok
+test smooth::tests::zero_ramp_is_immediate ... ok
+test sync::tests::decimate_does_not_plan_a_filter_for_empty_or_extreme_requests ... ok
+test sync::tests::decimate_keeps_low_frequencies_and_removes_high_ones ... ok
+test remix::tests::render_crossfades_without_clicks_and_ignores_block_size ... ok
+test sync::tests::echo_and_heavy_noise ... ok
+test sync::tests::long_recordings_timing ... ignored
+test sync::tests::inverted_polarity_is_found ... ok
+test remix::tests::similarity_prefers_same_section ... ok
+test sync::tests::max_lag_limits_the_search ... ok
+test sync::tests::unrelated_signals_are_not_reliable ... ok
+test sync::tests::pure_delay_exact_both_signs ... ok
+test remix::tests::finds_tempo_and_beats ... ok
+test effects::tests::extreme_settings_stay_finite_and_denormal_free ... ok
+test sync::tests::multi_mic_offsets_within_one_sample ... ok
+
+test result: ok. 126 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 4.23s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_automation-0fd9c7f3c298e661)
+
+running 23 tests
+test bridge::tests::a_slow_command_does_not_block_later_calls ... ok
+test bridge::tests::credential_is_sent_on_every_request ... ok
+test bridge::tests::other_commands_are_forwarded ... ok
+test long_job::tests::files_older_than_the_export_are_kept ... ok
+test long_job::tests::numbered_files_beside_a_movie_are_kept ... ok
+test long_job::tests::only_the_exports_own_files_are_removed ... ok
+test long_job::tests::sequence_frames_have_at_least_three_digits ... ok
+test server::tests::a_poisoned_session_lock_keeps_serving ... ok
+test server::tests::doc_inspect_handles_an_active_sequence_id_above_i64_max ... ok
+test server::tests::doc_inspect_pins_the_sequence_to_the_reported_active_id ... ok
+test bridge::tests::an_abandoned_call_leaves_no_late_reply_behind ... ok
+test server::tests::headless_commands_and_render ... ok
+test server::tests::media_import_schema_and_params ... ok
+test server::tests::modern_clients_get_result_type_and_cache_hints ... ok
+test server::tests::render_scale_zero_means_no_limit ... ok
+test server::tests::rendering_at_a_time_does_not_move_the_playhead ... ok
+test server::tests::resources_document_and_commands ... ok
+test server::tests::strict_arguments_and_parse_errors ... ok
+test server::tests::tools_are_titled_and_annotated ... ok
+test bridge::tests::a_blocking_export_is_polled_as_a_job ... ok
+test bridge::tests::a_failed_blocking_export_is_an_error ... ok
+test bridge::tests::a_polled_export_reports_its_offline_media ... ok
+test server::tests::export_progress_and_cancel ... ok
+
+test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.10s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_av1-1776a6251a400e86)
+
+running 10 tests
+test decoder::tests::frames_beyond_the_limits_are_refused ... ok
+test decoder::tests::frames_up_to_the_level_6_3_limits_are_allowed ... ok
+test frame::tests::row_bands_never_overlap_or_panic ... ok
+test frame::tests::row_bands_split_whole_rows ... ok
+test header::tests::film_grain_points_must_strictly_increase ... ok
+test grain::tests::equal_scaling_points_do_not_panic ... ok
+test transform::tests::adst_is_close_to_sine_transform ... ok
+test transform::tests::adst_basis_matches_sine ... ok
+test transform::tests::dct_dc_is_flat ... ok
+test transform::tests::dct_matches_float ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_avi-3b7f70a31b837433)
+
+running 5 tests
+test tests::not_avi_and_truncated_recordings ... ok
+test tests::opendml_repeated_index_offsets_are_read_once ... ok
+test tests::headers_and_every_index_path_agree ... ok
+test tests::opendml_standard_indexes ... ok
+test tests::mutations_never_panic ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_bitstream-ec85186a2b18ab23)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_captions-2fdef96bb7253055)
+
+running 58 tests
+test burn::tests::hidden_track_draws_nothing ... ok
+test burn::tests::bottom_centre_with_box ... ok
+test burn::tests::outline_draws_around_text ... ok
+test burn::tests::top_anchor_and_vtt_line ... ok
+test burn::tests::track_font_is_used ... ok
+test burn::tests::wraps_and_composites ... ok
+test cea608::tests::chars ... ok
+test cea608::tests::pac_roundtrip ... ok
+test cea608::tests::parity ... ok
+test mcc::tests::abbreviations_round_trip ... ok
+test mcc::tests::cdp_structure_and_checksum ... ok
+test burn::tests::overlay_is_clipped_to_the_frame_for_an_unbroken_word ... ok
+test mcc::tests::decoder_keeps_708_text_within_declared_window_dimensions ... ok
+test mcc::tests::empty_schedules_have_no_data_lines ... ok
+test mcc::tests::export_size_depends_on_caption_data_not_empty_frames ... ok
+test mcc::tests::distant_and_long_cues_round_trip_near_tick_limit ... ok
+test scc::tests::cue_at_zero_is_delayed_not_lost ... ok
+test scc::tests::decode_known_popon ... ok
+test scc::tests::decode_rollup ... ok
+test scc::tests::timecode_rejects_signed_fields ... ok
+test scc::tests::timecodes ... ok
+test mcc::tests::writes_and_reads_608_and_708 ... ok
+test scc::tests::wrapping_discards_an_unrepresentable_word_without_quadratic_copying ... ok
+test scc::tests::wraps_long_lines ... ok
+test scc::tests::write_then_read ... ok
+test srt::tests::basic ... ok
+test srt::tests::rejects_garbage ... ok
+test srt::tests::skips_inverted_cue ... ok
+test srt::tests::sloppy ... ok
+test stl::tests::iso6937_round_trip ... ok
+test stl::tests::literal_angle_brackets_are_not_discarded_as_markup ... ok
+test stl::tests::programme_start_is_subtracted ... ok
+test stl::tests::writes_gsi_and_extension_blocks ... ok
+test tests::clock ... ok
+test tests::decode ... ok
+test stl::tests::unterminated_markup_is_encoded_in_one_pass ... ok
+test tests::detects ... ok
+test tests::normalize_cuts_overlaps ... ok
+test ttml::tests::deeply_nested_ttml_is_rejected_before_xml_parsing ... ok
+test ttml::tests::default_tick_rate_preserves_fractional_frame_rate ... ok
+test ttml::tests::duplicate_and_crossing_spans_have_bounded_output ... ok
+test ttml::tests::fractional_tick_offsets_keep_exact_caption_times ... ok
+test ttml::tests::invalid_and_overflowed_time_expressions_are_ignored ... ok
+test ttml::tests::invalid_timing_parameters_return_an_error ... ok
+test ttml::tests::missing_timing_parameters_keep_defaults ... ok
+test ttml::tests::offset_time_without_integer_digits_is_rejected ... ok
+test ttml::tests::time_expressions ... ok
+test ttml::tests::reads_styles_spans_and_nesting ... ok
+test vtt::tests::multiple_voices_with_tab_separator ... ok
+test ttml::tests::writes_imsc1_with_frames_and_spans ... ok
+test vtt::tests::note_prefixed_cue_id_is_a_cue ... ok
+test vtt::tests::parse_sample ... ok
+test vtt::tests::style_region_identifier_cue_is_kept ... ok
+test vtt::tests::voices ... ok
+test vtt::tests::without_signature ... ok
+test burn::tests::margin_is_a_fraction_of_frame_height ... ok
+test burn::tests::unknown_or_empty_font_falls_back_to_inter ... ok
+test burn::tests::hostile_outline_is_bounded ... ok
+
+test result: ok. 58 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.35s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_cfb-fa1f094d3553ccc3)
+
+running 11 tests
+test tests::difat_self_loop_fails_fast ... ok
+test tests::header_fields ... ok
+test tests::duplicated_fat_sector_chain_loop_fails_fast ... ok
+test tests::names ... ok
+test tests::not_cfb ... ok
+test tests::chains_filling_the_file_still_read ... ok
+test tests::unicode_names ... ok
+test tests::truncation_never_panics ... ok
+test tests::round_trip_v3_and_v4 ... ok
+test tests::large_file_needs_difat ... ok
+test tests::mutation_never_panics_or_hangs ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_codecs-a2ea39477902cc0e)
+
+running 133 tests
+test audio::mpeg_audio_tests::layer_comes_from_the_frame_header ... ok
+test audio::he_aac_tests::output_rate_doubles_for_he_aac ... ok
+test audio::he_aac_tests::upsampler_interpolates_continuously_across_packets ... ok
+test audio::mpeg_layer12_tests::mono_mp2_at_384k_decodes ... ok
+test audio::mpeg_audio_tests::mp4_mpeg_audio_decodes_the_layer_its_frames_name ... ok
+test audio::packet_time_tests::fixed_frame_lengths ... ok
+test audio::gapless_tests::mp3_encoder_delay_is_trimmed ... ok
+test audio::packet_time_tests::hostile_values_stay_finite ... ok
+test audio::packet_time_tests::rounded_stamps_give_back_to_back_packets ... ok
+test audio::packet_time_tests::real_gaps_and_overlaps_resynchronise ... ok
+test audio::packet_time_tests::unstamped_packets_follow_on_and_unknown_lengths_resynchronise ... ok
+test audio::surround_order_tests::reorder_leaves_mismatched_channel_counts_alone ... ok
+test audio::mpeg_layer12_tests::raw_streams_resync_after_damage ... ok
+test audio_timing_tests::a_real_gap_stays_where_the_timestamps_put_it ... ok
+test audio_timing_tests::playing_at_another_rate_leaves_no_holes ... ok
+test audio_timing_tests::obs_remuxed_mp4_plays_back_to_back ... ok
+test avi_tests::copied_h264_keeps_its_timing_with_a_fine_time_base ... ok
+test avi_tests::drop_frames_hold_the_previous_picture ... ok
+test avi_tests::h264_frames_are_bit_exact_with_random_access_and_mp3_plays ... ok
+test avi_tests::jpeg_without_huffman_tables_uses_the_standard_ones ... ok
+test avi_tests::mjpeg_and_pcm ... ok
+test avi_tests::mp2_and_ac3_audio ... ok
+test avi_tests::mpeg4_part2_is_named_and_its_audio_plays ... ok
+test avi_tests::uncompressed_video_is_bit_exact ... ok
+test audio_timing_tests::matroska_codec_delay_is_trimmed_to_the_sample ... ok
+test gop::tests::a_monitor_replaces_a_decoder_made_for_a_thumbnail ... ok
+test gop::tests::background_requests_leave_no_decoders_behind ... ok
+test gop::tests::caches_in_use_keep_their_decoders_whatever_the_cap ... ok
+test gop::tests::caches_in_use_keep_their_frames_whatever_the_shared_budget ... ok
+test gop::tests::cancelled_request_stops_decoding_and_keeps_state ... ok
+test gop::tests::catching_up_skips_late_non_reference_samples_only ... ok
+test gop::tests::draft_frames_are_served_to_draft_requests_only ... ok
+test gop::tests::evicted_frames_are_decoded_into_again ... ok
+test gop::tests::frames_held_by_a_threaded_decoder_do_not_restart_it ... ok
+test gop::tests::idle_caches_give_up_their_decoders_beyond_the_cap ... ok
+test gop::tests::idle_caches_give_up_their_frames_beyond_the_shared_budget ... ok
+test gop::tests::intra_caches_give_up_their_spare_decoders_too ... ok
+test gop::tests::intra_frames_decode_in_parallel_once_each ... ok
+test gop::tests::large_frames_cannot_enlarge_the_gop_cache_ceiling ... ok
+test gop::tests::leading_pictures_of_an_open_gop_decode_from_the_gop_before ... ok
+test gop::tests::long_gop_continue_does_not_restart_for_the_next_frame ... ok
+test gop::tests::long_gop_seek_keeps_the_target_and_does_not_walk_twice ... ok
+test gop::tests::open_gop_sync_walks_a_long_chain_of_leading_pictures_without_recursing ... ok
+test audio::surround_order_tests::aac_51_decodes_in_wav_order ... ok
+test gop::tests::running_decoder_continues_through_a_nearby_sync_sample ... ok
+test hw::tests::hostile_records_are_errors ... ok
+test hw::tests::nal_splitting_is_bounded ... ok
+test hw::tests::parameter_sets_compare_without_trailing_zero_bytes ... ok
+test hw::tests::repeated_parameter_sets_are_checked_once_per_distinct_nal ... ok
+test hw::tests::switch_defaults_to_auto ... ok
+test hw_frame::tests::av1_sequence_headers_compare_by_picture_format ... ok
+test mkv::multi_audio_tests::every_audio_track_is_inspected_and_decoded_independently ... ok
+test audio_timing_tests::matroska_millisecond_stamps_play_back_to_back ... ok
+test mp4::corrupt_audio_tests::failed_aac_packet_does_not_materialize_its_hostile_duration ... ok
+test mkv::origin_tests::timestamp_preserving_remux_starts_at_the_first_picture ... ok
+test mp4::corrupt_audio_tests::failed_packet_span_matches_per_sample_silence_at_extreme_timestamps ... ok
+test mp4::corrupt_audio_tests::failed_aac_packet_silences_overlap_independent_of_request_boundary ... ok
+test mp4::he_aac_tests::hostile_audio_edit_offset_never_overflows ... ok
+test mp4::multi_audio_tests::every_audio_track_is_inspected_and_decoded_independently ... ok
+test mp4::tests::avc_pixel_format_comes_from_avcc_not_the_profile ... ok
+test mp4::he_aac_tests::he_aac_plays_at_the_output_rate ... ok
+test mp4::tests::damaged_track_headers_never_panic ... ok
+test gop::tests::a_burst_of_single_requests_does_not_keep_every_clips_frames ... ok
+test gop::tests::a_burst_of_single_requests_does_not_keep_every_decoder_and_frame ... ok
+test mp4::tests::hevc_pixel_format_comes_from_hvcc ... ok
+test mp4::tests::hevc_pixel_format_prefers_the_sps_over_the_hvcc_fields ... ok
+test mp4::tests::duration_follows_the_edit_list ... ok
+test mp4::tests::prores_alpha_comes_from_the_frame_header ... ok
+test mp4::tests::rtmd_fields_parse_and_reject_damaged_metadata ... ok
+test mp4::tests::rtmd_fields_reject_drop_frame_skipped_labels ... ok
+test mp4::tests::mirrored_or_scaled_matrices_are_not_mistaken_for_rotations ... ok
+test mpeg::tests::damaged_timestamps_never_give_a_zero_rate ... ok
+test mpeg::tests::every_audio_pid_is_a_stream ... ok
+test mpeg::tests::presentation_drops_leading_pictures_and_orders_by_key ... ok
+test mpeg::tests::timestamp_interpolation_handles_long_missing_runs_without_rescanning ... ok
+test mxf::tests::timecode_frames_at_the_media_rate ... ok
+test rounded_pts_tests::mp4_variable_rate_and_on_grid_frame_times_stay_put ... ok
+test rounded_pts_tests::mp4_with_a_1ms_timescale_shows_every_frame_once ... ok
+test rounded_pts_tests::mp4_with_frames_1ms_after_the_grid_shows_every_frame_once ... ok
+test rounded_pts_tests::mp4_with_frames_on_the_grid_shows_every_frame_once ... ok
+test rounded_pts_tests::webm_with_1ms_timestamps_shows_every_frame_once ... ok
+test stream_color_tests::av1_sequence_header_colour ... ok
+test stream_color_tests::bt601_sd_h264_without_colr_has_bt601_primaries ... ok
+test stream_color_tests::colr_wins_over_the_bitstream ... ok
+test stream_color_tests::full_range_h264_without_colr_is_full_range ... ok
+test stream_color_tests::hevc_pq_without_colr_is_rec2100_pq ... ok
+test stream_color_tests::hostile_parameter_sets_never_panic ... ok
+test stream_color_tests::matroska_without_colour_uses_the_bitstream ... ok
+test stream_color_tests::resolve_takes_each_field_from_the_first_source_that_knows_it ... ok
+test stream_color_tests::unspecified_or_missing_vui_keeps_the_size_defaults ... ok
+test tests::aac_mp4_decodes ... ok
+test tests::aiff_file_decodes ... ok
+test mp4::tests::display_matrix_rotates_frames_and_reported_size ... ok
+test tests::dnxhd_and_dnxhr_movs_decode ... ok
+test tests::h264_mp4_decodes_and_seeks ... ok
+test tests::matroska_h264_aac ... ok
+test tests::matroska_hevc_flac ... ok
+test tests::matroska_prores_pcm ... ok
+test tests::matroska_reordered_video_without_default_duration_keeps_its_rate ... ok
+test tests::mjpeg_mov_with_pcm ... ok
+test tests::mkv_vp9_422_seeks_bit_exact ... ok
+test tests::mkv_vp9_444_12bit_seeks_bit_exact ... ok
+test tests::mkv_vp9_rgb ... ok
+test tests::mp3_file_decodes ... ok
+test tests::mp4_av1_inter_gop_seeks_bit_exact ... ok
+test tests::mp4_av1_intra_seeks_bit_exact ... ok
+test tests::mp4_colour_comes_from_the_sps_without_colr ... ok
+test tests::mp4_flac_audio ... ok
+test tests::mp4_vp9_10bit_seeks_bit_exact ... ok
+test tests::opus_mkv_mono_speechlike_16k ... ok
+test tests::opus_mkv_surround_51 ... ok
+test tests::opus_mp4_stereo ... ok
+test tests::opus_webm_stereo ... ok
+test tests::prores_mov_decodes ... ok
+test tests::quicktime_uncompressed_video ... ok
+test tests::seek_backwards_and_forwards_mjpeg ... ok
+test tests::vp8_webm_alpha_layer_matches_libvpx ... ok
+test tests::vp8_webm_random_access_matches_libvpx ... ok
+test tests::vp9_random_access_ignores_bogus_sync_flags ... ok
+test tests::vp9_webm_alpha_layer_matches_libvpx ... ok
+test tests::webm_av1_inter_gop_10bit_seeks_bit_exact ... ok
+test tests::webm_av1_intra_10bit_seeks_bit_exact ... ok
+test tests::webm_vp9_altref_superframes_seek_bit_exact ... ok
+test tests::webm_vp9_seeks_bit_exact ... ok
+test video::disposable_tests::h264_non_reference_access_units ... ok
+test video::disposable_tests::hevc_sub_layer_non_reference_pictures_of_the_top_layer ... ok
+test webm_alpha::tests::alpha_luma_becomes_the_alpha_plane_at_the_frame_depth ... ok
+test webm_alpha::tests::an_alpha_picture_of_another_size_is_ignored ... ok
+test y4m::tests::colour_space_names ... ok
+test tests::apv_mp4_and_raw_bitstream_decode ... ok
+test mp4::tests::unedited_composition_delay_starts_at_the_first_picture ... ok
+test mp4::tests::clean_aperture_crops_frames_and_reported_size ... ok
+test gop::tests::rayon_frame_requests_while_decoding_on_rayon_never_deadlock ... ok
+
+test result: ok. 133 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.66s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_color-ed19e56779a901cc)
+
+running 31 tests
+test grade::tests::hlg_known_nit_values ... ok
+test log::tests::published_reference_values ... ok
+test log::tests::domain_conversion_roundtrip ... ok
+test grade::tests::pq_known_nit_values ... ok
+test grade::tests::sdr_is_the_srgb_signal ... ok
+test lut::tests::cube_shaper_per_channel_domain_round_trips ... ok
+test log::tests::roundtrip_every_curve ... ok
+test lut::tests::tetrahedral_exact_on_affine_and_nodes ... ok
+test lut::tests::cube_title_with_hash_roundtrips ... ok
+test lut::tests::cube_roundtrip_3d_1d_and_shaper ... ok
+test spaces::tests::bt2020_to_709_matches_bt2087 ... ok
+test lut::tests::tetrahedral_matches_brute_force ... ok
+test spaces::tests::bt709_npm_matches_published_matrix ... ok
+test spaces::tests::ids_parse ... ok
+test tests::hex ... ok
+test tests::hsl_roundtrip ... ok
+test tests::limited_range_levels ... ok
+test tests::parse_hex_rejects_signs ... ok
+test tests::transfer_roundtrips ... ok
+test tests::ycbcr_roundtrip ... ok
+test transform::tests::channel_roundtrips_every_curve ... ok
+test transform::tests::gamut_compression ... ok
+test transform::tests::eetf_properties ... ok
+test lut::tests::threedl_roundtrip_and_orientation ... ok
+test transform::tests::pq_and_hlg_reference_white ... ok
+test transform::tests::sdr_in_hdr_keeps_values_and_display_tone_maps ... ok
+test transform::tests::tone_map_preserves_hue_and_maps_peak ... ok
+test transform::tests::gpu_params_cover_display_referred_media_only ... ok
+test transform::tests::log_sources_land_sensibly_in_rec709 ... ok
+test lut::tests::cube_sizes_up_to_65_and_errors ... ok
+test lut::tests::huge_3dl_mesh_is_rejected ... ok
+
+test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_dng-8bd8ea26b99ea219)
+
+running 18 tests
+test color::tests::an_srgb_camera_maps_to_itself ... ok
+test color::tests::hostile_calibrations_are_errors ... ok
+test color::tests::forward_matrix_white_balances_by_the_neutral ... ok
+test color::tests::inverse_round_trips_and_refuses_singular ... ok
+test color::tests::interpolation_weight_follows_inverse_temperature ... ok
+test color::tests::mccamy_temperatures ... ok
+test color::tests::rec709_matrix_matches_the_published_one ... ok
+test color::tests::white_xy_gives_the_neutral ... ok
+test demosaic::tests::bayer_detection ... ok
+test demosaic::tests::a_vertical_edge_does_not_smear_far ... ok
+test demosaic::tests::known_samples_are_kept_and_linear_ramps_are_exact ... ok
+test process::tests::black_white_linearisation_and_white_balance ... ok
+test process::tests::active_area_and_default_crop ... ok
+test process::tests::matrix_and_clipping_of_negatives ... ok
+test demosaic::tests::tiny_and_empty_pictures_do_not_panic ... ok
+test process::tests::short_black_level_is_an_error ... ok
+test process::tests::per_cfa_black_levels_and_deltas ... ok
+test demosaic::tests::flat_fields_stay_flat_for_every_bayer_phase_and_other_patterns ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_dnx-29b79f3dc2b0d110)
+
+running 7 tests
+test ffmpeg_probe::probe_reconstruction ... ignored
+test ffmpeg_probe::probe_weights ... ignored
+test dct::tests::fdct_inverts_idct ... ok
+test tables::tests::ri_size_matches_examples ... ok
+test tables::tests::zigzag_is_permutation ... ok
+test tables::tests::luts_decode_every_code ... ok
+test dct::tests::idct_matches_double_reference ... ok
+
+test result: ok. 5 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_edit-9e9e163b5df98204)
+
+running 77 tests
+test captions::tests::add_clamps_to_next ... ok
+test captions::tests::delete_ripple_and_sync ... ok
+test captions::tests::locked_refuses ... ok
+test captions::tests::overwrite_cuts_splits_and_removes_what_is_under ... ok
+test captions::tests::split_and_merge ... ok
+test captions::tests::trim_and_move_clamp ... ok
+test frame_size::tests::same_aspect_scales_position_and_scale_together ... ok
+test frame_size::tests::aspect_change_fits_the_old_frame_inside_the_new_one ... ok
+test frame_size::tests::automatic_position_stays_automatic ... ok
+test frame_size::tests::keyframes_scale_too ... ok
+test frame_size::tests::same_size_or_empty_frame_changes_nothing ... ok
+test frame_size::tests::scale_is_capped_at_the_parameter_range ... ok
+test frame_size::tests::scale_to_frame_clips_keep_their_scale_but_move ... ok
+test tests::close_gap_works ... ok
+test tests::a_ripple_trim_of_the_second_clips_end_keeps_the_transition_within_it ... ok
+test tests::a_transition_stays_within_its_clips_after_a_regular_trim_or_speed_change ... ok
+test tests::a_regular_trim_shortens_a_transition_longer_than_its_clips ... ok
+test tests::extract_and_lift ... ok
+test tests::edits_that_move_a_cut_keep_its_transition_on_its_clips ... ok
+test tests::fades_follow_a_non_ripple_speed_change ... ok
+test tests::fades_follow_a_regular_trim ... ok
+test tests::held_regular_in_trim_stops_at_previous_clip ... ok
+test tests::insert_ripples_sync_locked_tracks ... ok
+test tests::linked_rate_stretch_uses_the_tighter_neighbour ... ok
+test tests::move_rejects_repeated_clip_ids_without_mutation ... ok
+test tests::hostile_speeds_are_refused_or_clamped_never_overflow ... ok
+test tests::move_with_insert_and_overwrite ... ok
+test tests::moving_an_edge_keeps_the_media_under_the_timeline ... ok
+test tests::overwrite_splits_underlying ... ok
+test tests::razor_keeps_content_continuous ... ok
+test tests::rate_stretch_and_speed ... ok
+test tests::regular_trim_respects_neighbours_and_handles ... ok
+test tests::reversed_trim_uses_the_handle_its_playback_direction_consumes ... ok
+test tests::ripple_delete_and_conflict ... ok
+test tests::ripple_trim_group_takes_a_split_edit_along ... ok
+test tests::ripple_delete_closes_the_time_free_on_every_track ... ok
+test tests::ripple_trim_shifts_following ... ok
+test tests::roll_keeps_the_transition_on_its_clips ... ok
+test tests::roll_reversed_clips_keeps_media_mapping ... ok
+test tests::roll_slip_slide ... ok
+test tests::shorter_head_closes_the_stretch_after_the_cut_on_sync_locked_tracks ... ok
+test tests::shorter_head_into_an_l_cut_keeps_the_earlier_sound_where_it_is ... ok
+test tests::slide_keeps_reversed_neighbours_content ... ok
+test tests::speed_on_a_linked_group_ripples_once ... ok
+test tests::transitions_stay_on_their_cuts ... ok
+test tests::transitions_travel_with_moved_clips ... ok
+test tests::trim_on_a_locked_track_is_refused ... ok
+test tests::unused_kind_import ... ok
+test through::tests::clip_to_range_keeps_frames_in_place ... ok
+test through::tests::discontinuous_neighbours_are_not_through_edits ... ok
+test through::tests::gaps_on_tracks_and_sequence ... ok
+test through::tests::join_only_listed_edits ... ok
+test through::tests::pieces_with_different_settings_are_not_through_edits ... ok
+test through::tests::razor_makes_a_through_edit_and_join_heals_it ... ok
+test through::tests::reversed_and_speed_changed_pieces_join ... ok
+test transcript::tests::a_cut_word_is_kept_by_its_midpoint_and_clamped ... ok
+test transcript::tests::captions_follow_line_length_speaker_and_pause_rules ... ok
+test transcript::tests::captions_never_overlap_with_dense_words ... ok
+test transcript::tests::duplicate_tracks_read_once_and_disabled_or_reversed_clips_are_silent ... ok
+test transcript::tests::extract_text_closes_the_gap ... ok
+test transcript::tests::merge_ranges_joins_overlaps ... ok
+test transcript::tests::fillers_are_found_with_phrases_and_removed ... ok
+test transcript::tests::search_word_at_and_paragraphs ... ok
+test transcript::tests::pauses_are_found_and_removed_in_one_pass ... ok
+test transcript::tests::speed_scales_word_times ... ok
+test transcript::tests::two_clips_of_the_same_media_repeat_words_in_edit_order ... ok
+test transcript::tests::word_ranges_snap_outward ... ok
+test transcript::tests::words_map_through_the_clip ... ok
+test transitions::tests::alignment_reads_the_span ... ok
+test transitions::tests::custom_start_resizes_around_its_middle ... ok
+test transitions::tests::dragging_a_transition ... ok
+test transitions::tests::duration_changes_follow_the_alignment ... ok
+test transitions::tests::locked_tracks_refuse ... ok
+test transitions::tests::remove_takes_only_the_named_transitions ... ok
+test transitions::tests::spans_stay_on_the_cut_and_inside_the_clips ... ok
+test tests::insert_then_extract_is_identity ... ok
+test tests::never_overlaps ... ok
+
+test result: ok. 77 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_engine-5988037c66299c99)
+
+running 723 tests
+test aaf_omf_tests::commands_are_registered_with_menus_and_validate_params ... ok
+test aaf_omf_tests::aaf_embedded_trimmed_audio_round_trips_sample_exact ... ok
+test aaf_omf_tests::aaf_keeps_a_nested_sequence_as_a_sequence ... ok
+test aaf_omf_tests::aaf_video_mixdown ... ok
+test aaf_omf_tests::selected_streams::aaf_essence_distinguishes_streams_and_linked_refusal_precedes_writes ... ok
+test animated_image_tests::animated_gif_imports_as_a_clip_and_reopens ... ok
+test audio_effects_tests::audio_effect_on_video_clip_applies_to_linked_audio ... ok
+test audio_effects_tests::effects_list_has_every_audio_effect_in_its_folder ... ok
+test aaf_omf_tests::aaf_separate_aiff_breakout_and_linked ... ok
+test audio_effects_tests::parameters_are_set_by_id_and_change_the_sound ... ok
+test audio_effects_tests::shared_names_resolve_by_track_kind ... ok
+test audio_placement_tests::clip_peaks_measure_the_stream_the_clip_plays ... ok
+test audio_placement_tests::hostile_track_counts_are_an_error_not_a_crash ... ok
+test audio_placement_tests::import_keeps_every_audio_stream_and_places_linked_clips ... ok
+test audio_placement_tests::missing_audio_tracks_are_cloned_from_the_destination ... ok
+test audio_placement_tests::placing_media_with_two_streams_expands_tracks_and_keeps_stream_indices ... ok
+test audio_placement_tests::specs_always_place_one_clip_on_the_destination ... ok
+test audio_placement_tests::specs_append_container_streams_after_channel_map_clips ... ok
+test audio_placement_tests::specs_are_capped_for_hostile_channel_maps ... ok
+test audio_placement_tests::specs_put_further_clips_on_the_tracks_below ... ok
+test autosave::identity_tests::data_override_precedence_and_legacy_fallback ... ok
+test autosave::identity_tests::default_data_directory_is_separate_from_upstream ... ok
+test aaf_omf_tests::omf_renders_clip_effects_into_embedded_audio ... ok
+test aaf_omf_tests::omf_renders_the_sound_of_a_nested_sequence ... ok
+test autosave_tests::discard_default_failure_does_not_select_another_candidate ... ok
+test autosave_tests::discard_failure_keeps_only_not_yet_deleted_candidates ... ok
+test autosave_tests::discard_failure_preserves_candidates_and_allows_retry ... ok
+test autosave_tests::discard_selected_failure_keeps_unselected_candidates ... ok
+test autosave_tests::discard_selection_and_unknown_id_preserve_other_candidates ... ok
+test aaf_omf_tests::embedded_aaf_and_omf_import_leave_existing_media_files_intact ... ok
+test autosave_tests::portable_marker_keeps_data_next_to_the_executable ... ok
+test audio_effects_tests::every_audio_effect_applies_to_clips_and_tracks_and_renders ... ok
+test autosave_tests::preferences_get_set_and_persist ... ok
+test autosave_tests::project_captured_folder_outside_the_project_is_not_used ... ok
+test autosave_tests::quitting_with_unsaved_changes_keeps_them_for_next_launch ... ok
+test autosave_tests::scan_keeps_snapshot_when_session_metadata_is_unreadable ... ok
+test autosave_tests::project_scratch_folders_outside_the_project_are_not_used ... ok
+test captions::tests::caption_commands_need_tracks_and_navigate ... ok
+test captions::tests::caption_list_track_filter_never_falls_back_to_every_track ... ok
+test captions::tests::caption_track_follows_sync_locked_insert ... ok
+test captions::tests::captions_copy_cut_and_paste ... ok
+test autosave_tests::journal_costs_the_ui_thread_only_a_handoff ... ok
+test captions::tests::captions_duplicate_copies_and_overwrites ... ok
+test clip_ops_tests::a_cyclic_subclip_chain_has_no_media_duration ... ok
+test clip_ops_tests::add_edit_cuts_only_the_selected_clips ... ok
+test clip_ops_tests::applied_transform_centres_its_points_in_the_clip_picture ... ok
+test clip_ops_tests::audio_channels_rejects_a_channel_less_call_with_no_item_selected ... ok
+test clip_ops_tests::audio_source_channels_pick_what_a_clip_plays ... ok
+test clip_ops_tests::close_project_and_save_all ... ok
+test clip_ops_tests::color_matte_color_changes_and_undoes ... ok
+test clip_ops_tests::consolidate_keeps_counting_leaders_with_distinct_source_rates ... ok
+test autosave_tests::crash_recovery_end_to_end ... ok
+test clip_ops_tests::field_options_and_time_interpolation_are_stored ... ok
+test clip_ops_tests::fit_and_fill_frame ... ok
+test captions::tests::captions_import_edit_export_and_burn_in ... ok
+test clip_ops_tests::frame_hold_options_add_frame_hold_and_hold_segment ... ok
+test avi_import_tests::avi_imports_plays_and_probes ... ok
+test clip_ops_tests::label_commands_and_select_label_group ... ok
+test clip_ops_tests::keyboard_slip_keeps_linked_clips_in_sync_past_the_shorter_handle ... ok
+test clip_ops_tests::linked_rate_stretch_keeps_one_speed_when_a_neighbour_blocks_the_sound ... ok
+test clip_ops_tests::linked_slip_keeps_picture_and_sound_aligned_at_unequal_media_limits ... ok
+test clip_ops_tests::menus_and_shortcuts_follow_premiere ... ok
+test clip_ops_tests::make_and_edit_subclips ... ok
+test clip_ops_tests::modify_audio_channels_and_breakout_to_mono ... ok
+test clip_ops_tests::modify_timecode_and_reset ... ok
+test clip_ops_tests::new_sequence_from_clip_bin_from_selection_and_offline_file ... ok
+test clip_ops_tests::paste_attributes_with_scaled_keyframes_and_remove_attributes ... ok
+test clip_ops_tests::remove_unused_and_consolidate_duplicates ... ok
+test clip_ops_tests::replace_from_bin_keeps_the_source_in_on_request ... ok
+test clip_ops_tests::replace_with_clip_from_source_match_frame_and_bin ... ok
+test clip_ops_tests::replace_from_source_match_frame_on_a_reversed_clip ... ok
+test clip_ops_tests::replace_with_clip_reports_clips_that_run_past_the_new_media ... ok
+test clip_ops_tests::reset_keeps_keyframes_and_resets_one_parameter ... ok
+test clip_ops_tests::select_all_matching_selects_every_use_of_the_source ... ok
+test clip_ops_tests::speed_duration_moves_fade_out_to_the_new_clip_end ... ok
+test clip_ops_tests::subclip_source_monitor_trims_and_markers ... ok
+test clip_ops_tests::toggle_animation_creates_a_parameter_missing_from_an_older_instance ... ok
+test clip_ops_tests::extract_audio_writes_a_wav_and_imports_it ... ok
+test clip_ops_tests::frame_blending_renders_in_between_frames ... ok
+test color_tests::export_builtin_and_library_luts ... ok
+test color_tests::hdr_lumetri_and_mastering_metadata_through_commands ... ok
+test color_tests::import_lut_set_input_and_look_then_undo ... ok
+test color_tests::lumetri_presets_list_apply_and_thumbnails ... ok
+test doc_path::tests::foreign_drive_paths_without_a_document_are_refused ... ok
+test doc_path::tests::relative_paths_are_taken_from_the_document_folder ... ok
+test color_tests::interpret_footage_and_sequence_colour_settings ... ok
+test color_tests::set_param_fills_in_parameters_missing_from_old_instances ... ok
+test essential_sound_tests::commands_are_registered ... ok
+test color_tests::apply_match_grades_the_clip_towards_the_reference ... ok
+test essential_sound_tests::ducking_generates_volume_keyframes_under_dialogue ... ok
+test essential_sound_tests::perf_full_dialogue_chain_realtime_factor ... ignored
+test essential_sound_tests::presets_apply_save_and_delete ... ok
+test essential_sound_tests::auto_match_measures_a_mono_clip_as_one_channel ... ok
+test essential_sound_tests::repair_stages_improve_their_metrics ... ok
+test essential_sound_tests::type_settings_effects_undo_redo_and_clear ... ok
+test explicit_targets_tests::clip_commands_take_explicit_clips_without_a_selection ... ok
+test explicit_targets_tests::link_and_speed_take_explicit_clips_without_a_selection ... ok
+test explicit_targets_tests::link_leaves_clips_without_a_partner_unlinked ... ok
+test explicit_targets_tests::link_multiple_video_and_audio_pairs_creates_one_link_per_pair ... ok
+test explicit_targets_tests::named_clips_that_are_not_usable_say_why ... ok
+test explicit_targets_tests::naming_nothing_usable_does_not_enable_a_command ... ok
+test explicit_targets_tests::naming_targets_lifts_only_the_selection_condition ... ok
+test explicit_targets_tests::project_delete_takes_explicit_bins_and_items_without_a_selection ... ok
+test explicit_targets_tests::replace_from_bin_takes_an_explicit_item_and_clips_without_any_selection ... ok
+test explicit_targets_tests::unlink_with_an_unlinked_clip_in_the_selection_still_unlinks ... ok
+test export_tests::aac_audio_keeps_a_dot_aac_path_as_adts_and_adds_m4a_otherwise ... ok
+test export_tests::caption_sidecars_keep_only_the_exported_interval ... ok
+test export_tests::crf_param_picks_constant_quality ... ok
+test export_tests::default_export_dir_never_needs_a_real_filesystem ... ok
+test essential_sound_tests::deess_and_dereverb_improve_their_metrics ... ok
+test export_tests::export_integer_parameters_cannot_wrap_or_overflow ... ok
+test essential_sound_tests::auto_match_hits_the_target_loudness ... ok
+test export_tests::exr_compression_param_is_parsed_and_defaults_to_none ... ok
+test export_tests::export_without_wait_says_where_to_poll ... ok
+test export_tests::hardware_encoding_is_off_unless_asked_for ... ok
+test export_tests::hostile_export_ranges_are_rejected_without_panicking ... ok
+test export_tests::jobs_and_queue_items_report_the_time_they_have_left ... ok
+test export_tests::max_threads_reaches_the_export_settings ... ok
+test export_tests::nested_camel_case_settings_are_honoured ... ok
+test export_tests::project_names_become_one_export_filename_component ... ok
+test export_tests::queue_cancels_a_running_export_and_retries_a_failed_one ... ok
+test export_tests::queue_exports_several_sequences_and_ranges ... ok
+test export_tests::queue_folder_paths_expand_home_and_take_either_separator ... ok
+test export_tests::queue_move_by_extreme_offsets_clamps_instead_of_overflowing ... ok
+test essential_sound_tests::rendered_mix_is_identical_however_requests_are_cut_and_matches_export ... ok
+test autosave_tests::auto_save_ring_rotates_and_can_save_the_project ... ok
+test export_tests::ranges_resolve_and_sidecar_captions_are_written ... ok
+test export_tests::unknown_settings_keys_are_errors_not_ignored ... ok
+test export_tests::user_presets_persist_with_favourites_import_and_export ... ok
+test export_tests::wav_resolve_honours_explicit_sample_rates ... ok
+test export_tools::guard_tests::panicking_job_is_reported_as_failed ... ok
+test file_tests::legacy_project_opens_and_first_save_keeps_a_backup ... ok
+test file_tests::new_project_answers_with_its_name_and_revision ... ok
+test file_tests::open_demo_project_clears_saved_path_so_save_does_not_overwrite ... ok
+test file_tests::project_is_named_after_its_file ... ok
+test file_tests::saved_file_is_versioned_and_save_copy_keeps_state ... ok
+test frame_export_tests::a_frame_still_loading_is_reported_not_saved_blank ... ok
+test frame_export_tests::an_earlier_deferred_read_does_not_fail_the_export ... ok
+test frame_export_tests::frame_export_selects_the_correct_monitor_time_and_original_media ... ok
+test frame_export_tests::frame_export_snapshots_are_independent_of_later_monitor_selection ... ok
+test frame_export_tests::source_frame_export_works_without_an_active_sequence_and_rejects_bad_params ... ok
+test gap_selection_tests::a_gap_on_a_locked_track_cannot_be_selected_or_closed ... ok
+test gap_selection_tests::a_stale_gap_is_refused ... ok
+test gap_selection_tests::an_edit_that_changes_the_gap_drops_it ... ok
+test gap_selection_tests::clicking_between_two_clips_selects_the_gap_and_delete_closes_it ... ok
+test gap_selection_tests::close_gap_is_available_for_custom_shortcuts ... ok
+test gap_selection_tests::close_gap_rejects_invalid_context_and_explicit_parameters_without_editing ... ok
+test gap_selection_tests::close_gap_without_a_selected_gap_closes_every_gap_in_one_undo_step ... ok
+test gap_selection_tests::close_gap_without_a_selected_gap_only_closes_gaps_between_in_and_out ... ok
+test gap_selection_tests::close_gap_without_a_selected_gap_refuses_without_editing ... ok
+test gap_selection_tests::close_gap_without_params_closes_selected_gap_in_one_undo_step ... ok
+test gap_selection_tests::empty_time_after_the_last_clip_is_not_a_gap ... ok
+test gap_selection_tests::hostile_select_gap_parameters_are_errors ... ok
+test gap_selection_tests::ripple_delete_closes_a_selected_gap_too ... ok
+test gap_selection_tests::selecting_a_clip_or_deselecting_all_drops_the_gap ... ok
+test gap_selection_tests::the_empty_time_before_the_first_clip_is_a_gap ... ok
+test gap_selection_tests::the_gap_selection_is_part_of_the_ui_state ... ok
+test graphic_templates::tests::builtin_templates_apply_and_thumbnail ... ok
+test graphic_templates::tests::caption_formats_through_the_engine ... ok
+test graphic_templates::tests::character_style_drag_merges_only_its_target_and_range ... ok
+test graphic_templates::tests::character_style_merge_preserves_default_calls_and_separate_clips ... ok
+test graphic_templates::tests::character_styles_follow_edits ... ok
+test graphic_templates::tests::copy_paste_duplicates_a_graphic_clip ... ok
+test graphic_templates::tests::mogrt_files_are_never_read ... ok
+test graphic_templates::tests::pins_follow_text_growth ... ok
+test graphic_templates::tests::replace_fonts_in_project ... ok
+test graphic_templates::tests::responsive_time_protects_intro_and_outro_when_trimmed ... ok
+test graphic_templates::tests::rolls_at_exact_times ... ok
+test graphic_templates::tests::source_graphics_share_edits ... ok
+test graphic_templates::tests::template_export_install_apply_round_trip ... ok
+test graphic_templates::tests::template_thumbnail_dimensions_fit_a_bounded_rectangle ... ok
+test graphic_templates::tests::upgrade_caption_to_graphic ... ok
+test graphics::tests::a_layer_saved_before_the_box_height_existed_can_still_get_one ... ok
+test graphics::tests::a_property_drag_is_one_undo_step ... ok
+test graphics::tests::align_and_distribute_layers ... ok
+test graphics::tests::align_menu_commands_frame_group_and_selection ... ok
+test graphics::tests::align_to_frame_moves_selected_video_clips_by_position_only ... ok
+test graphics::tests::arrange_select_and_reset ... ok
+test graphics::tests::distribute_centres_and_spaces ... ok
+test graphics::tests::graphic_duration_does_not_set_its_timeline_position ... ok
+test graphics::tests::graphic_duration_keeps_explicit_time_frame_and_timecode_placement ... ok
+test graphics::tests::graphic_placement_takes_a_track_and_a_time ... ok
+test graphics::tests::graphic_renders_in_the_program_and_survives_save ... ok
+test graphics::tests::interchange_export_reports_the_title_it_cannot_carry ... ok
+test graphics::tests::linear_gradient_fill_sets_and_evaluates ... ok
+test graphics::tests::new_layer_from_file_places_the_image_above ... ok
+test graphics::tests::new_layer_menu_items_make_shapes_and_vertical_text ... ok
+test graphics::tests::new_text_makes_a_graphic_clip_above_the_footage ... ok
+test graphics::tests::paragraph_text_wraps_in_its_box_and_hides_what_does_not_fit ... ok
+test graphics::tests::select_next_graphic_and_reset_duration ... ok
+test graphics::tests::text_type_converts_both_ways_and_keeps_the_text_in_place ... ok
+test graphics::tests::text_type_refuses_what_it_cannot_convert ... ok
+test graphics::tests::typing_coalesces_into_one_undo_step_and_props_set ... ok
+test history_tests::clear_history_forgets_every_step_and_keeps_the_project ... ok
+test history_tests::delete_redoable_actions_forgets_the_undone_steps_only ... ok
+test history_tests::history_commands_ignore_unexpected_parameters ... ok
+test image_sequence_tests::image_sequence_survives_save_and_reopen ... ok
+test image_sequence_tests::import_accepts_uppercase_extensions ... ok
+test image_sequence_tests::import_as_image_sequence_with_missing_frames ... ok
+test image_sequence_tests::import_cinemadng_folder_as_one_clip ... ok
+test image_sequence_tests::import_image_sequences_setting_detects_a_numbered_still ... ok
+test image_sequence_tests::import_replace_starts_from_an_empty_project ... ok
+test image_sequence_tests::import_unicode_image_sequence_with_missing_frames ... ok
+test individual_selection_tests::explicit_clear_and_ripple_targets_keep_the_linked_selection_setting ... ok
+test individual_selection_tests::implicit_clear_keeps_an_individually_selected_partner_and_undo ... ok
+test individual_selection_tests::implicit_ripple_delete_keeps_the_partner_on_an_unsynced_track ... ok
+test individual_selection_tests::individual_ripple_sync_lock_conflict_is_atomic ... ok
+test individual_selection_tests::linked_false_is_local_to_selection_and_respects_add_toggle ... ok
+test interchange::embedded_audio_tests::numbered_names_keep_the_path_separators ... ok
+test interchange::embedded_audio_tests::virtual_extraction_keeps_existing_media ... ok
+test export_tests::quick_export_uses_and_remembers_a_preset ... ok
+test interchange_auto_points_tests::a_project_saved_after_an_interchange_import_opens_again ... ok
+test export_tests::queue_orders_cancels_and_retries ... ok
+test interchange_auto_points_tests::a_linked_clip_gets_its_anchor_from_the_real_size_of_the_media ... ok
+test interchange_auto_points_tests::an_edl_clip_is_centred_in_its_real_size_not_the_assumed_sequence_size ... ok
+test keyboard_tests::clip_volume_keys_and_scrub_toggle ... ok
+test keyboard_tests::edit_point_navigation_follows_targets_or_any_track ... ok
+test keyboard_tests::extend_previous_and_next_edit_roll_cuts_to_the_playhead ... ok
+test keyboard_tests::keyboard_slide_keeps_linked_partners_aligned_at_a_neighbour_limit ... ok
+test keyboard_tests::nudge_object_moves_motion_position_of_video_clips ... ok
+test keyboard_tests::nudge_slip_and_slide_the_selection_with_undo ... ok
+test interchange_auto_points_tests::an_interchange_import_links_media_without_reading_the_files_whole ... ok
+test keyboard_tests::premiere_engine_entries_exist ... ok
+test keyboard_tests::reveal_nested_sequence_opens_it_at_the_matching_frame ... ok
+test keyboard_tests::select_clip_at_playhead_next_previous_and_go_to_selected_clip ... ok
+test keyboard_tests::shortcut_tables_have_no_key_used_twice_in_one_scope ... ok
+test keyboard_tests::targeting_toggles ... ok
+test keyboard_tests::text_layer_keys_change_size_leading_alignment_and_position ... ok
+test keyframe_move::tests::bounds_clamp_the_group_without_changing_its_spacing ... ok
+test keyframe_move::tests::invalid_references_and_hostile_requests_cannot_make_partial_edits ... ok
+test keyframe_move::tests::media_times_follow_clip_speed_and_reverse ... ok
+test keyframe_move::tests::movement_across_lanes_is_atomic_and_one_undo_step ... ok
+test linked_speed_tests::faster_with_ripple_moves_later_clips_once ... ok
+test linked_speed_tests::slower_with_ripple_moves_later_clips_once ... ok
+test linked_speed_tests::speed_on_a_missing_clip_is_an_error ... ok
+test linked_speed_tests::speed_with_ripple_on_a_named_picture_and_sound ... ok
+test linked_speed_tests::speed_with_ripple_on_a_split_edit ... ok
+test linked_speed_tests::speed_with_ripple_on_linked_clips_of_one_track ... ok
+test linked_speed_tests::speed_with_ripple_on_two_clips_ripples_each ... ok
+test linked_speed_tests::speed_without_ripple_leaves_later_clips ... ok
+test linked_trim_tests::unlinked_rate_stretch_leaves_the_partner_alone ... ok
+test linked_trim_tests::unlinked_trim_leaves_the_partner_alone ... ok
+test locked_clip_edits_tests::locked_track_refuses_move_on_the_same_track ... ok
+test locked_clip_edits_tests::locked_track_refuses_roll_slip_slide_speed ... ok
+test locked_clip_edits_tests::locked_track_refuses_trim_out_and_keeps_duration ... ok
+test locked_clip_edits_tests::unlocked_track_still_trims_out ... ok
+test marker_export::tests::command_exports_sorted_unicode_review_notes_without_changing_the_edit ... ok
+test marker_export::tests::drop_frame_and_sequence_start_timecode_are_used_for_both_bounds ... ok
+test marker_export::tests::empty_sequence_writes_a_header_and_no_sequence_is_disabled ... ok
+test marker_export::tests::hostile_parameters_and_damaged_timing_fail_before_writing ... ok
+test marker_export::tests::locked_tracks_custom_labels_and_unusual_paths_export_without_dirtying ... ok
+test marker_export::tests::oversized_reports_and_write_errors_are_actionable ... ok
+test marker_export::tests::spreadsheet_formulas_are_escaped_in_all_user_text_columns ... ok
+test masks_tests::add_vertex_on_animated_path_clamps_oversized_index_and_rejects_empty_path ... ok
+test masks_tests::keyframed_mask_path_interpolates ... ok
+test keyboard_tests::poster_frame_and_export_frame ... ok
+test masks_tests::merged_drag_is_one_undo_step_and_project_round_trips ... ok
+test masks_tests::move_vertex_moves_a_list_of_vertices_together ... ok
+test masks_tests::opacity_mask_cuts_out_the_clip ... ok
+test masks_tests::path_json_round_trip_keeps_tangents ... ok
+test masks_tests::rounded_rectangle_masks_cut_their_corners ... ok
+test masks_tests::masked_effect_applies_only_inside_the_mask ... ok
+test masks_tests::rounding_an_animated_mask_rounds_every_keyframe_and_only_the_chosen_corners ... ok
+test masks_tests::tracking_runs_in_the_background_and_can_be_cancelled ... ok
+test media_browser::tests::format_date_is_utc_minutes ... ok
+test media_browser_tests::ale_logs_are_not_offered_for_import ... ok
+test media_browser_tests::favorites_add_and_remove ... ok
+test media_browser_tests::file_type_filter ... ok
+test media_browser_tests::import_the_selection_and_open_in_source ... ok
+test media_browser_tests::import_with_ingest_settings ... ok
+test media_browser_tests::importing_a_folder_mirrors_its_sub_folders_as_bins ... ok
+test media_browser_tests::listing_puts_folders_first_and_hides_unsupported_files ... ok
+test media_browser_tests::navigation_back_forward_up_and_recent ... ok
+test media_browser_tests::path_helpers ... ok
+test media_browser_tests::probe_and_columns ... ok
+test masks_tests::tracking_follows_known_motion_forward_and_backward ... ok
+test media_pool::tests::cyclic_subclips_do_not_recurse_in_media_or_rendering ... ok
+test media_pool::tests::export_sources_never_show_the_damaged_slate ... ok
+test media_pool::tests::ffmpeg_unsupported_h264_profile_shows_the_unreadable_slate ... ok
+test media_pool::tests::fs_services_open_media_through_a_file_reader ... ok
+test media_pool::tests::monitors_show_the_slate_for_persistently_failing_frames_only ... ok
+test media_pool::tests::open_file_prefers_the_hosts_reader ... ok
+test media_pool::tests::still_decoding_frames_never_show_the_slate ... ok
+test media_pool::tests::undecodable_frames_show_the_unreadable_slate ... ok
+test interchange_auto_points_tests::relinking_later_resolves_the_anchor_that_waited_for_the_real_size ... ok
+test export_tests::h264_presets_hit_their_bitrates ... ok
+test media_watch_tests::a_background_look_reads_changed_media_again ... ok
+test mixer_tests::audio_gain_modes_and_peak ... ok
+test mixer_tests::audio_gain_reports_only_audio_items_it_updates ... ok
+test mixer_tests::audio_gain_reports_the_clamped_stored_gain ... ok
+test mixer_tests::audio_transition_schema_lists_edge_params_and_reverse ... ok
+test mixer_tests::clip_automation_spanning_two_clips_writes_both ... ok
+test mixer_tests::clip_mixer_latch_and_write_hold_until_stop ... ok
+test mixer_tests::clip_mixer_touch_writes_clip_keyframes_and_ramps_back ... ok
+test mixer_tests::default_audio_transition_is_used_by_apply ... ok
+test mixer_tests::every_mixer_command_is_registered_with_a_label ... ok
+test mixer_tests::keyframes_by_command_and_pen_edits ... ok
+test mixer_tests::latch_holds_until_stop ... ok
+test mixer_tests::read_mode_does_not_record_and_commits_once_without_a_pass ... ok
+test mixer_tests::recorded_pass_plays_back_through_the_mix ... ok
+test mixer_tests::strip_settings_undo_redo_and_inspect ... ok
+test mixer_tests::submixes_sends_and_inserts ... ok
+test mixer_tests::surround_sequence_settings_and_panner_lanes ... ok
+test mixer_tests::touch_over_existing_automation_and_custom_automatch ... ok
+test mixer_tests::touch_records_while_held_and_returns_over_automatch ... ok
+test mixer_tests::write_overwrites_from_start_and_switches_to_touch ... ok
+test media_watch_tests::a_file_still_being_written_is_tried_again ... ok
+test media_watch_tests::a_rerendered_movie_is_read_again_without_an_undo_step ... ok
+test multicam_tests::audio_sync_multicam_sample_accurate ... ok
+test export_tests::every_builtin_preset_exports_and_ffprobe_confirms ... ok
+test multicam_tests::any_nest_can_be_multicam ... ok
+test multicam_tests::grid_pages_decode_only_their_angles_at_reduced_resolution ... ok
+test multicam_tests::edit_cameras_and_save_load ... ok
+test multicam_tests::merge_clips_by_audio ... ok
+test multicam_tests::more_than_sixteen_angles_page_and_switch ... ok
+test multicam_tests::camera_keys_cut_and_select ... ok
+test multicam_tests::multicam_from_clips_selected_in_the_timeline ... ok
+test multicam_tests::multicam_menu_items_are_enabled_only_for_clips_they_work_on ... ok
+test multicam_tests::perf_grid_of_four_1080p_angles ... ignored
+test multicam_tests::flatten_replaces_with_camera_clips ... ok
+test multicam_tests::selection_top_down_and_view_toggles ... ok
+test multicam_tests::timecode_marker_and_in_point_sync_within_one_frame ... ok
+test multicam_tests::timeline_synchronize_by_audio_and_timecode ... ok
+test narration_tests::a_project_subset_keeps_only_the_narrations_of_kept_items ... ok
+test narration_tests::create_never_overwrites_and_adds_a_track_when_every_track_is_busy ... ok
+test narration_tests::create_on_an_occupied_or_unknown_track_is_refused_and_changes_nothing ... ok
+test narration_tests::create_places_the_narration_at_the_playhead_as_one_undo_step ... ok
+test narration_tests::edit_is_disabled_without_a_narration_clip ... ok
+test narration_tests::edit_on_a_locked_track_is_refused ... ok
+test narration_tests::edit_without_changes_keeps_settings_and_settings_inherit ... ok
+test narration_tests::editing_to_longer_speech_keeps_the_clip_length_and_the_whole_speech ... ok
+test narration_tests::editing_to_shorter_speech_pads_the_file_with_exact_silence ... ok
+test narration_tests::hostile_parameters_are_refused_without_changes ... ok
+test narration_tests::narrations_survive_save_and_reload ... ok
+test narration_tests::natural_voices_are_listed_and_explain_what_is_missing ... ok
+test narration_tests::preview_changes_nothing_and_hands_the_audio_to_the_host ... ok
+test narration_tests::render_fills_the_cache_that_create_and_preview_use ... ok
+test narration_tests::the_narration_is_heard_in_the_mix ... ok
+test narration_tests::undo_and_redo_of_an_edit_are_exact ... ok
+test narration_tests::unique_wav_path_gives_up_instead_of_looping_forever ... ok
+test narration_tests::voices_lists_the_built_in_voices ... ok
+test nest_editing_tests::a_sequence_can_be_edited_into_itself_as_clips_but_not_as_a_nest ... ok
+test nest_editing_tests::from_the_source_monitor_the_marked_part_of_a_sequence_is_edited_in ... ok
+test nest_editing_tests::mark_in_and_out_in_the_source_monitor_mark_a_sequence_like_a_clip ... ok
+test nest_editing_tests::match_frame_on_a_nest_loads_the_nested_sequence_at_the_frame_it_shows ... ok
+test nest_editing_tests::reveal_in_project_selects_the_clips_item_and_asks_the_ui_to_show_it ... ok
+test nest_editing_tests::source_tracks_with_clips_go_to_consecutive_tracks_and_missing_tracks_are_added ... ok
+test nest_editing_tests::the_nest_toggle_is_on_by_default_and_can_be_set ... ok
+test nest_editing_tests::with_the_toggle_off_a_sequence_edits_in_as_its_clips_with_their_transitions ... ok
+test nest_editing_tests::with_the_toggle_on_a_sequence_edits_in_as_one_nest ... ok
+test nest_fidelity_tests::a_nest_of_another_size_comes_in_at_its_own_size ... ok
+test nest_fidelity_tests::fit_and_fill_frame_scale_a_nest_to_the_sequence ... ok
+test nest_fidelity_tests::scale_to_frame_size_on_a_nest_fills_the_frame_and_leaves_scale_alone ... ok
+test nesting_tests::a_clip_on_a_selected_track_numbered_at_or_above_the_sound_track_does_not_push_the_nest ... ok
+test nesting_tests::a_clip_sharing_a_track_with_the_selection_pushes_the_nest_above_it_when_the_sound_is_on_a_higher_track ... ok
+test nesting_tests::a_nest_can_be_trimmed_out_to_reveal_what_its_sequence_gained ... ok
+test nesting_tests::a_nest_keeps_its_length_when_its_sequence_gets_shorter ... ok
+test nesting_tests::a_nest_whose_sound_track_is_taken_is_picture_only_and_moves_up_a_video_track ... ok
+test nesting_tests::a_nest_with_no_track_to_go_on_gets_a_new_one ... ok
+test multicam_tests::live_switch_recording_from_playback_clock ... ok
+test nesting_tests::a_project_opened_with_a_cycle_can_still_be_edited_and_repaired ... ok
+test nesting_tests::a_sequence_cannot_be_placed_in_a_sequence_it_contains ... ok
+test nesting_tests::a_sequence_cannot_be_placed_in_itself ... ok
+test nesting_tests::after_nest_nothing_is_selected_and_the_new_sequence_is_selected_in_the_project ... ok
+test nesting_tests::clips_on_two_video_tracks_with_their_sound_on_one_track_nest_as_a_linked_pair ... ok
+test nesting_tests::clips_with_their_sound_on_several_tracks_nest_as_picture_only_and_the_sound_stays ... ok
+test nesting_tests::make_subsequence_loads_the_new_sequence_in_the_source_monitor ... ok
+test nesting_tests::nest_leaves_transitions_to_clips_outside_the_selection_out ... ok
+test nesting_tests::pasting_a_nest_into_its_own_sequence_is_refused ... ok
+test nesting_tests::sound_on_a_track_other_than_a1_keeps_an_empty_a1_in_the_nest ... ok
+test nesting_tests::the_outer_sequence_shows_changes_made_inside_a_nest ... ok
+test panels_tests::events_log_failed_commands_jobs_and_messages ... ok
+test nesting_tests::nest_keeps_transitions_track_names_and_channel_layouts ... ok
+test panels_tests::events_report_background_jobs ... ok
+test panels_tests::metadata_edits_are_undoable_and_saved_in_the_project ... ok
+test panels_tests::metadata_targets_follow_the_selection ... ok
+test panels_tests::project_notes_are_saved_and_typing_is_one_undo_step ... ok
+test panels_tests::project_notes_refuse_bad_input ... ok
+test par_tests::default_media_scaling_uses_the_display_size ... ok
+test par_tests::an_anamorphic_clip_fills_a_square_pixel_sequence ... ok
+test par_tests::generators_made_for_a_non_square_sequence_have_its_pixels ... ok
+test par_tests::hostile_file_pixel_aspects_make_square_sequences ... ok
+test par_tests::interpret_footage_pixel_aspect_wins_over_the_file_and_undoes ... ok
+test par_tests::new_sequence_from_clip_carries_the_pixel_aspect ... ok
+test paste_media_tests::a_pasted_image_sits_above_the_footage_without_overwriting_it ... ok
+test paste_media_tests::a_track_is_added_when_every_track_is_busy ... ok
+test paste_media_tests::paste_insert_inserts_on_the_targeted_track ... ok
+test paste_media_tests::pasted_images_are_saved_next_to_the_project ... ok
+test paste_media_tests::without_place_files_are_only_imported ... ok
+test perf::tests::perf_stats_query_reports_decode_counters ... ok
+test place_items_tests::a_failing_item_places_nothing ... ok
+test place_items_tests::a_panic_in_a_group_rolls_back_and_keeps_the_history_limit ... ok
+test par_tests::ffmpeg_anamorphic_files_fill_a_square_frame_and_make_anamorphic_sequences ... ok
+test place_items_tests::hostile_times_never_panic_and_leave_nothing_half_placed ... ok
+test place_items_tests::items_are_checked ... ok
+test place_items_tests::items_land_back_to_back_in_one_undo_step ... ok
+test place_items_tests::items_on_a_new_track_share_that_one_track ... ok
+test place_items_tests::new_sequence_from_items_is_one_undo_step ... ok
+test presets_tests::export_and_import_go_through_host_services ... ok
+test presets_tests::fade_in_and_fade_out_add_up_on_one_clip ... ok
+test presets_tests::builtins_apply_and_user_presets_persist ... ok
+test presets_tests::mask_geometry_scales_to_the_target_frame_size ... ok
+test presets_tests::keyframe_modes_retime_onto_the_target ... ok
+test presets_tests::save_without_keyframes_keeps_the_value_at_the_playhead ... ok
+test previews_tests::bar_state_serializes_lowercase ... ok
+test previews_tests::float_wav_round_trip ... ok
+test presets_tests::presets_with_masks_and_intrinsics_round_trip_through_files ... ok
+test multicam_tests::multicam_clip_structure_and_render ... ok
+test previews_tests::render_commands_are_registered_like_premiere ... ok
+test previews_tests::preview_files_are_streamed_not_read_whole ... ok
+test previews_tests::previews_survive_save_and_open ... ok
+test previews_tests::render_selection_and_audio_previews ... ok
+test previews_tests::saving_without_previews_creates_no_previews_folder ... ok
+test previews_tests::render_turns_green_edit_invalidates_and_undo_restores ... ok
+test previews_tests::render_in_to_out_renders_only_the_marked_frames ... ok
+test project_manager_tests::nested_subclip_keeps_its_whole_parent_chain_used ... ok
+test project_panel_tests::bins_rename_nest_and_list ... ok
+test project_panel_tests::freeform_positions_are_undoable_and_saved_with_the_project ... ok
+test project_manager_tests::collect_files_copies_used_media_and_opens ... ok
+test project_panel_tests::freeform_stacks_and_arrangements ... ok
+test project_panel_tests::metadata_display_chooses_and_orders_columns ... ok
+test project_panel_tests::select_all_in_a_bin_skips_closed_bins_and_other_bins ... ok
+test project_panel_tests::select_all_rejects_bad_bins_without_touching_the_selection ... ok
+test project_panel_tests::select_all_selects_every_project_item ... ok
+test project_panel_tests::sorting_by_a_column_and_reversing ... ok
+test project_panel_tests::usage_counts_sequence_uses ... ok
+test project_panel_tests::view_presets_save_restore_and_manage ... ok
+test project_panel_tests::view_settings_are_preferences ... ok
+test project_panel_tests::view_presets_persist_in_the_preferences_file ... ok
+test project_tools::tests::automate_to_sequence_clamps_transition_to_overlap ... ok
+test project_tools::tests::automate_to_sequence_places_clips_with_overlap_and_transitions ... ok
+test project_tools::tests::clear_deletes_a_bin_with_everything_in_it ... ok
+test project_tools::tests::deleting_media_used_on_the_timeline_makes_it_offline ... ok
+test project_tools::tests::edit_offline_sets_the_log_fields ... ok
+test project_tools::tests::close_commands_and_templates ... ok
+test project_tools::tests::edit_original_opens_media_files_only ... ok
+test project_tools::tests::edit_original_update_metadata_and_clip_items ... ok
+test project_tools::tests::export_selection_project_and_ale ... ok
+test project_tools::tests::file_edit_clip_menu_order_and_shortcuts_match_premiere ... ok
+test project_tools::tests::export_selection_project_of_a_bin_exports_its_contents ... ok
+test project_tools::tests::find_and_find_next_in_the_project_and_timeline ... ok
+test project_tools::tests::file_reveal_enabled_for_imported_clip ... ok
+test project_tools::tests::search_bins_update_live ... ok
+test project_tools::tests::system_report_lists_the_build ... ok
+test project_tools::tests::media_properties_settings_and_scratch_disks ... ok
+test multicam_tests::switch_audio_follows_video ... ok
+test project_manager_tests::consolidate_trims_to_used_ranges_with_handles ... ok
+test proxies_tests::attach_checks_duration_and_export_ignores_proxies ... ok
+test proxies_tests::ingest_copy_does_not_create_a_destination_when_the_source_is_missing ... ok
+test proxies_tests::ingest_copy_keeps_sources_already_at_destination_and_extensionless_names ... ok
+test proxies_tests::create_attach_toggle_renders_the_same_picture ... ok
+test proxies_tests::ingest_copy_preserves_same_named_takes_and_existing_files ... ok
+test proxies_tests::proxy_playback_perf_4k ... ignored, benchmark: 4K fixture via ffmpeg
+test proxies_tests::ingest_copies_and_creates_proxies_on_import ... ok
+test proxies_tests::ingest_copy_and_proxy_preserves_same_named_takes_and_existing_files ... ok
+test proxies_tests::ingest_transcode_preserves_same_named_takes_and_existing_files ... ok
+test relink_tests::deleting_bin_keeps_subclip_source_but_removes_unused_media ... ok
+test relink_tests::auto_relink_by_prefix_and_by_folder_search ... ok
+test proxies_tests::render_previews_ignore_proxies ... ok
+test relink_tests::explicit_folder_remaps_normalize_both_prefixes_and_respect_boundaries ... ok
+test relink_tests::deleting_subclip_and_source_does_not_keep_an_unused_source ... ok
+test relink_tests::deleting_sequence_and_its_media_does_not_keep_an_unused_source ... ok
+test relink_tests::deleting_bin_preserves_intermediate_subclip_needed_by_surviving_clip ... ok
+test relink_tests::identity_and_remap_helpers ... ok
+test relink_tests::export_names_the_offline_media_it_rendered ... ok
+test relink_tests::jobs_list_reports_an_exports_offline_media ... ok
+test relink_tests::fingerprint_mismatch_is_refused_unless_forced ... ok
+test relink_tests::make_offline_shows_the_slate_until_relinked ... ok
+test relink_tests::relink_search_does_not_follow_directory_symlinks ... ok
+test relink_tests::forced_relink_takes_the_new_files_properties ... ok
+test relink_tests::moved_media_opens_offline_and_relinks_others_by_folder ... ok
+test relink_tests::reimport_clears_offline_list_after_path_resolves ... ok
+test remix_tests::menu_commands_and_disabled_reasons ... ok
+test ripple_delete_tests::ripple_delete_of_a_j_cut_clip_closes_one_gap ... ok
+test ripple_delete_tests::ripple_delete_of_a_straight_cut_clip_is_unchanged ... ok
+test ripple_delete_tests::ripple_delete_of_an_l_cut_clip_keeps_the_next_clip_in_sync ... ok
+test ripple_delete_tests::ripple_delete_of_two_neighbours_with_a_split_edit_between_them ... ok
+test ripple_delete_tests::ripple_delete_of_two_neighbours_with_sounds_on_alternating_tracks ... ok
+test ripple_head_tests::ripple_delete_head_advances_the_source_in_point ... ok
+test ripple_head_tests::ripple_delete_head_closes_the_head_and_shifts_later_clips ... ok
+test ripple_head_tests::ripple_delete_head_needs_the_playhead_past_the_in_point ... ok
+test ripple_head_tests::ripple_delete_head_past_the_end_removes_the_whole_clip ... ok
+test ripple_head_tests::ripple_delete_head_ripples_sequence_markers ... ok
+test roll_linked_tests::roll_delta_is_zero_when_a_clip_cannot_roll_by_the_asked_amount ... ok
+test roll_linked_tests::roll_delta_stops_at_the_start_of_the_media ... ok
+test roll_linked_tests::roll_linked_reversed_clips_keeps_media_mapping ... ok
+test roll_linked_tests::roll_moves_linked_audio_cut ... ok
+test roll_linked_tests::roll_without_linked_selection_leaves_audio ... ok
+test remix_tests::mixed_audio_is_the_source_pieces ... ok
+test media_browser_tests::probing_large_unstreamable_files_does_not_read_them_whole ... ok
+test remix_tests::remix_shorter_and_longer_hits_target_at_beats_with_undo ... ok
+test scene_detect::tests::background_job_reports_progress_and_cancel_changes_nothing ... ok
+test scopes_tests::scopes_read_finds_the_colour_bar_targets ... ok
+test sequence_extras::tests::apply_default_transitions_to_selected_clips ... ok
+test sequence_extras::tests::apply_video_transition_goes_to_the_selection_not_the_playhead ... ok
+test remix_tests::overlaps_are_refused_and_noise_cannot_be_remixed ... ok
+test scopes_tests::scopes_read_reports_exact_levels_of_a_colour_matte ... ok
+test sequence_extras::tests::flash_cue_markers_round_trip ... ok
+test sequence_extras::tests::sequence_and_markers_menu_order_matches_premiere ... ok
+test sequence_extras::tests::show_active_caption_track_only ... ok
+test sequence_extras::tests::simplify_moves_clips_down_where_they_fit ... ok
+test sequence_extras::tests::simplify_sequence_makes_a_clean_copy ... ok
+test sequence_extras::tests::cmd_d_on_an_adjustment_layer_fades_its_effects_in_and_out ... ok
+test sequence_inspect_tests::sequence_inspect_reports_a_reversed_clip ... ok
+test sequence_inspect_tests::sequence_inspect_reports_clip_ends_gain_and_marker_comments ... ok
+test sequence_extras::tests::transcribe_sequence_runs_transcript_generate_on_its_audio ... ok
+test sequence_tabs_tests::a_damaged_view_in_a_project_file_is_cleaned_up_or_ignored ... ok
+test sequence_tabs_tests::a_tab_moves_to_another_place_among_the_tabs ... ok
+test sequence_tabs_tests::close_others_keeps_one_tab_and_shows_it ... ok
+test sequence_tabs_tests::a_saved_project_reopens_with_its_tabs_and_their_views ... ok
+test sequence_tabs_tests::the_view_of_a_deleted_sequence_is_forgotten ... ok
+test sequence_tools_tests::add_tracks_places_and_types_them ... ok
+test sequence_tools_tests::add_tracks_refuses_what_it_cannot_do ... ok
+test sequence_tools_tests::commands_are_registered_in_premiere_menu_order ... ok
+test sequence_tabs_tests::each_sequence_reopens_with_its_playhead_where_it_was_left ... ok
+test sequence_tools_tests::copy_paste_includes_sequence_markers ... ok
+test sequence_tools_tests::delete_tracks_empty_and_specific ... ok
+test sequence_tools_tests::delete_tracks_removes_caption_tracks ... ok
+test sequence_tools_tests::duplicate_frame_markers_color_only_master_clips_with_duplicates ... ok
+test sequence_tools_tests::duplicate_frame_markers_compare_the_frames_a_fast_clip_shows ... ok
+test sequence_tools_tests::duplicate_frame_markers_cover_the_repeated_frames ... ok
+test sequence_tools_tests::duplicate_frame_markers_follow_speed_reverse_and_holds ... ok
+test sequence_tools_tests::go_to_gap_in_sequence_and_in_track ... ok
+test sequence_tools_tests::go_to_in_out_without_marks_go_to_the_sequence_ends ... ok
+test sequence_tools_tests::join_by_cut_rejects_hostile_parameters ... ok
+test sequence_tools_tests::join_one_through_edit_by_its_cut ... ok
+test sequence_tools_tests::lift_and_extract_over_no_clips_keep_the_clipboard ... ok
+test sequence_tools_tests::lift_and_extract_put_the_range_on_the_clipboard ... ok
+test sequence_tools_tests::make_subsequence_from_in_out_and_from_selection ... ok
+test sequence_tools_tests::move_to_new_track_adds_it_in_one_undo_step ... ok
+test sequence_tools_tests::place_on_new_tracks_adds_them_in_one_undo_step ... ok
+test sequence_tools_tests::reverse_match_frame_finds_the_source_frame ... ok
+test sequence_tools_tests::range_and_chapter_markers ... ok
+test sequence_tools_tests::selection_follows_playhead ... ok
+test sequence_tools_tests::ripple_sequence_markers_follow_ripple_edits ... ok
+test sequence_tools_tests::source_mark_in_out_and_split_honour_frame_seconds_and_timecode ... ok
+test sequence_tools_tests::source_split_points_make_l_and_j_cuts ... ok
+test sequence_tools_tests::split_points_on_the_sequence ... ok
+test sequence_tools_tests::through_edits_show_and_join ... ok
+test settings_tests::appearance_choices_validate_and_legacy_theme_still_selects ... ok
+test sequence_tools_tests::unknown_marker_colours_are_rejected_not_stored_as_green ... ok
+test settings_tests::appearance_defaults_and_legacy_theme_migrate ... ok
+test settings_tests::builtin_label_presets_are_complete_and_distinct ... ok
+test settings_tests::categories_follow_premiere_order ... ok
+test scene_detect::tests::detects_the_cuts_of_an_ffmpeg_concat_and_cuts_linked_audio ... ok
+test settings_tests::default_transition_durations ... ok
+test settings_tests::drop_import_to_timeline_defaults_to_on ... ok
+test settings_tests::drop_import_to_timeline_defaults_to_on_for_older_prefs ... ok
+test settings_tests::drop_import_to_timeline_is_in_the_settings_registry ... ok
+test settings_tests::drop_import_to_timeline_round_trips_through_prefs ... ok
+test settings_tests::every_schema_key_exists_with_a_valid_default ... ok
+test settings_tests::favorite_themes_validate_and_persist_without_changing_other_settings ... ok
+test settings_tests::graphics_text_uses_the_text_settings ... ok
+test settings_tests::hardware_decoding_setting_drives_the_decoder_switch ... ok
+test settings_tests::interface_language_defaults_to_the_system_language ... ok
+test settings_tests::auto_transcribe_on_import_and_transcription_defaults ... ok
+test settings_tests::interface_language_persists_and_rejects_hostile_values ... ok
+test settings_tests::label_defaults_names_and_colours ... ok
+test settings_tests::label_presets_reject_bad_files ... ok
+test settings_tests::default_media_scaling ... ok
+test settings_tests::output_mapping_and_smart_quotes ... ok
+test settings_tests::media_cache_location_policy_and_clean ... ok
+test settings_tests::label_presets_import_export_and_delete ... ok
+test settings_tests::prefs_set_validates_and_reset_works_per_category ... ok
+test settings_tests::prefs_persist_through_the_data_directory ... ok
+test settings_tests::recent_projects_are_remembered ... ok
+test settings_tests::step_many_frames ... ok
+test settings_tests::schema_command_describes_every_category ... ok
+test settings_tests::v1_preferences_migrate_and_bad_values_are_repaired ... ok
+test settings_tests::still_image_default_duration_and_indeterminate_timebase ... ok
+test shortcuts_tests::chords_parse_normalise_and_display_per_os ... ok
+test shortcuts_tests::clear_close_sequence_also_clears_file_close ... ok
+test shortcuts_tests::assign_reassigns_conflicts_and_undoes ... ok
+test shortcuts_tests::clear_new_bin_frees_cmd_b_in_the_project_panel_too ... ok
+test shortcuts_tests::compat_presets_map_other_editors ... ok
+test shortcuts_tests::custom_presets_persist_export_and_import ... ok
+test shortcuts_tests::default_keymaps_have_no_conflicts_on_any_platform ... ok
+test shortcuts_tests::delete_clears_timeline_clips_and_project_items ... ok
+test scene_detect::tests::detects_cuts_in_our_own_render_and_applies_cuts_markers_and_subclips ... ok
+test shortcuts_tests::list_searches_labels_and_keys ... ok
+test shortcuts_tests::reassigning_new_bin_moves_its_project_panel_key_too ... ok
+test source_monitor::tests::hostile_ranges_and_rates_return_errors_without_panicking ... ok
+test shortcuts_tests::panel_shortcuts_override_application_ones_with_focus ... ok
+test source_monitor::tests::ranges_snap_and_clamp_without_crossing_or_changing_move_duration ... ok
+test settings_tests::transcription_without_speech_to_text_says_so ... ok
+test source_monitor::tests::source_clips_are_remembered_and_closed_in_turn ... ok
+test source_monitor::tests::source_markers_are_undoable_and_independent_of_sequence_markers ... ok
+test source_monitor::tests::invalid_marker_parameters_do_not_edit_the_project ... ok
+test source_monitor::tests::timeline_clip_opens_in_source_at_the_matching_frame ... ok
+test source_placement_tests::inspect_duration_frames_counts_a_partial_last_frame_like_export ... ok
+test source_placement_tests::audio_only_source_drops_only_sound ... ok
+test source_placement_tests::malformed_source_spans_are_bounded ... ok
+test source_placement_tests::invalid_stream_choices_and_locked_destinations_do_not_mutate_project ... ok
+test source_placement_tests::sub_frame_place_ends_at_requested_end_and_inspect_matches_export_frames ... ok
+test source_placement_tests::source_insert_and_overwrite_keep_subclip_sound ... ok
+test source_placement_tests::subclip_audio_can_be_placed_on_an_audio_track ... ok
+test source_placement_tests::marked_range_places_video_audio_or_linked_both_as_one_undo_step ... ok
+test shortcuts_tests::defaults_follow_the_registry_and_the_premiere_audit ... ok
+test source_placement_tests::subclip_placement_keeps_parent_channel_map_and_all_audio_streams ... ok
+test source_placement_tests::subclip_placement_can_add_tracks_for_parent_streams ... ok
+test source_placement_tests::unmarked_source_defaults_to_full_span_without_writing_marks ... ok
+test source_placement_tests::subclip_placement_keeps_parent_streams_range_and_history ... ok
+test split_edit_ripple_trim_tests::lengthening_before_a_j_cut_keeps_the_sound_with_its_picture ... ok
+test split_edit_ripple_trim_tests::ripple_trim_is_refused_when_the_early_sound_has_no_room ... ok
+test split_edit_ripple_trim_tests::shortening_before_a_j_cut_keeps_the_sound_with_its_picture ... ok
+test split_edit_ripple_trim_tests::shortening_the_head_after_an_l_cut_keeps_the_earlier_sound_in_place ... ok
+test split_edit_ripple_trim_tests::shorter_head_grabbed_by_the_early_sound_gives_the_same_result ... ok
+test split_edit_ripple_trim_tests::shorter_head_is_refused_when_a_sync_locked_track_has_material_in_the_stretch ... ok
+test split_edit_ripple_trim_tests::shorter_head_on_a_j_cut_take_shortens_picture_and_sound_together ... ok
+test tests::a_merge_key_folds_several_parameters_into_one_undo_step ... ok
+test tests::add_edit_undo_redo ... ok
+test tests::commands_are_unique_and_described ... ok
+test tests::add_keyframe_toggles_the_keyframe_at_the_playhead ... ok
+test tests::dragging_an_effect_parameter_is_one_undo_step ... ok
+test tests::demo_project_is_valid_and_renders ... ok
+test tests::effects_and_keyframes ... ok
+test tests::effects_list_reports_transition_folders ... ok
+test tests::empty_items_do_not_panic_keyframe_commands ... ok
+test tests::enable_flips_each_selected_clip ... ok
+test tests::enable_on_an_individual_selection_leaves_the_linked_partner ... ok
+test tests::every_video_transition_applies_via_command ... ok
+test tests::fps_validation_keeps_real_rates_and_refuses_degenerate_ones ... ok
+test tests::frame_steps_in_new_custom_rate_sequences_move_in_the_requested_direction ... ok
+test tests::export_interchange_refuses_an_unknown_format ... ok
+test tests::invalid_preview_scales_are_rejected_without_allocating ... ok
+test tests::keyframe_drags_are_one_undo_step ... ok
+test tests::move_items_to_bin_and_back_with_undo ... ok
+test tests::negative_place_and_marker_times_are_refused ... ok
+test tests::interchange_roundtrip_through_files ... ok
+test tests::overflowing_frame_steps_are_errors_and_leave_the_playhead_unchanged ... ok
+test tests::reverting_to_a_lost_mark_does_nothing ... ok
+test tests::reverting_to_a_mark_takes_back_a_gesture_without_redo ... ok
+test tests::ripple_trim_to_playhead_follows_the_selection ... ok
+test tests::ripple_trim_to_playhead_q_w ... ok
+test tests::selecting_an_effect_replaces_the_mask_selection ... ok
+test tests::sequence_parameters_are_bounded_and_failed_changes_are_atomic ... ok
+test tests::save_and_open_roundtrip ... ok
+test tests::sequence_settings_scales_motion_with_the_frame_size_in_one_undo_step ... ok
+test tests::set_param_keeps_a_keyframe_outside_the_clip_at_its_time ... ok
+test tests::sequence_settings_timecode_render_quality_and_colour ... ok
+test tests::set_param_reports_the_stored_vector_value ... ok
+test tests::set_param_reports_static_value_and_parameter ... ok
+test tests::set_param_writes_a_keyframe_when_asked_or_animated ... ok
+test tests::set_param_takes_a_choice_by_name ... ok
+test tests::source_insert_three_point ... ok
+test tests::slide_moves_linked_audio_with_the_video ... ok
+test tests::transition_duration_alignment_and_position ... ok
+test tests::transition_params_and_reverse_via_commands ... ok
+test tests::transitions_and_markers ... ok
+test tests::transitions_select_and_delete ... ok
+test tests::trim_linked_and_ripple_delete ... ok
+test tests::trim_mode_roll_ripple_and_toggle ... ok
+test tests::zero_fps_is_refused ... ok
+test timeline_move_tests::a_clip_on_a_locked_track_cannot_move_to_another_track ... ok
+test timeline_move_tests::a_linked_partner_on_a_locked_track_stays_and_the_listed_clip_still_moves ... ok
+test timeline_move_tests::a_move_that_lands_on_another_clip_reports_what_it_cut ... ok
+test timeline_move_tests::copy_leaves_the_originals_and_links_the_copies ... ok
+test timeline_move_tests::a_partner_whose_position_does_not_change_is_left_alone ... ok
+test timeline_move_tests::duplicate_move_targets_are_rejected_and_retry_is_undoable ... ok
+test sequence_extras::tests::normalize_mix_track_hits_the_target_peak ... ok
+test timeline_move_tests::duplicate_new_track_move_preserves_redo_and_retry_is_undoable ... ok
+test timeline_move_tests::duplicate_selection_already_in_session_keeps_nudges_equivalent_to_unique_selection ... ok
+test timeline_move_tests::duplicate_selection_expansion_is_unique_without_an_active_sequence ... ok
+test stored_paths_tests::interchange_media_paths_open_only_on_this_computer_or_beside_the_document ... ok
+test timeline_move_tests::duplicate_new_track_move_preserves_full_undo_history ... ok
+test timeline_move_tests::hostile_times_are_refused_or_clamped_never_a_panic ... ok
+test timeline_move_tests::duplicate_selection_inputs_keep_first_occurrence_and_toggle_once ... ok
+test timeline_move_tests::move_takes_linked_partners_along ... ok
+test timeline_move_tests::new_track_group_keeps_clips_from_the_same_source_together ... ok
+test timeline_move_tests::duplicate_selection_delete_matches_unique_selection_with_and_without_links ... ok
+test timeline_move_tests::new_track_moves_respect_the_track_limit ... ok
+test timeline_move_tests::refused_new_track_moves_preserve_document_and_both_history_stacks ... ok
+test timeline_move_tests::new_track_moves_and_copies_are_one_atomic_edit ... ok
+test timeline_move_tests::the_group_stops_together_at_the_sequence_start ... ok
+test timeline_move_tests::duplicate_selection_public_admission_keeps_nudges_equivalent_to_unique_selection ... ok
+test track_params_tests::naming_a_missing_track_is_an_error_not_a_default ... ok
+test track_params_tests::place_on_an_audio_track_places_the_sound_there_and_nothing_else ... ok
+test track_params_tests::a_track_carries_a_colour_label ... ok
+test timeline_move_tests::unique_new_track_moves_keep_linked_partner_behavior ... ok
+test timeline_move_tests::repeated_new_track_copy_destinations_get_distinct_ids ... ok
+test stored_paths_tests::stored_media_paths_open_only_on_this_computer_or_beside_the_project ... ok
+test transcript_tests::set_delete_and_models ... ok
+test transcript_tests::generate_inspect_search_and_rename ... ok
+test trim_tests::another_command_commits_first_and_cancel_restores ... ok
+test trim_tests::dynamic_ripple_backward_shortens_and_stops_at_a_limit ... ok
+test transcript_tests::remove_fillers_pauses_and_create_captions ... ok
+test trim_tests::extend_to_playhead_moves_each_unequal_out_point_to_the_playhead ... ok
+test trim_tests::dynamic_roll_forward_is_one_undo_step ... ok
+test trim_tests::linked_trim_roll_uses_the_shortest_handle ... ok
+test transcript_tests::select_extract_and_lift_by_words ... ok
+test trim_tests::multipoint_trim_by_frames_is_one_undo_step ... ok
+test trim_tests::linked_trim_respects_locked_tracks ... ok
+test trim_tests::nearest_linked_roll_and_dynamic_trim ... ok
+test trim_tests::play_around_loops_preroll_to_postroll ... ok
+test trim_tests::pressing_l_again_doubles_speed_and_j_reverses ... ok
+test trim_tests::linked_edit_point_selection_and_shift_toggle ... ok
+test trim_tests::split_or_disabled_linked_roll_leaves_audio_alone ... ok
+test trim_tests::trim_delta_stops_at_the_end_of_the_media ... ok
+test vfx_tests::effects_apply_reports_where_each_instance_landed ... ok
+test trim_tests::selected_linked_regular_and_ripple_edges_move_once ... ok
+test trim_tests::trim_monitor_sides_and_shift_counters ... ok
+test trim_tests::trim_mode_roll_moves_linked_audio_once ... ok
+test vfx_tests::effects_list_reports_folders_and_badges ... ok
+test vfx_tests::set_param_refuses_values_outside_the_range ... ok
+test vfx_tests::ultra_key_setting_writes_aggressive_parameters ... ok
+test vfx_tests::new_effect_params_are_settable_and_keyframable ... ok
+test voiceover_tests::commands_are_registered_and_disabled_without_a_recording ... ok
+test voiceover_tests::cue_times_count_down_whole_seconds ... ok
+test voiceover_tests::hostile_record_points_and_preroll_are_bounded ... ok
+test voiceover_tests::a_failed_recording_save_keeps_the_take_for_retry ... ok
+test voiceover_tests::record_track_choice_sync_and_discard ... ok
+test voiceover_tests::punch_in_records_between_in_and_out_only ... ok
+test voiceover_tests::settings_persist_in_preferences ... ok
+test wasm_clock_tests::no_std_instant_in_code_the_web_build_runs ... ok
+test wasm_clock_tests::web_time_instant_measures_elapsed_time ... ok
+test work_area_tests::alt_brackets_set_the_work_area_in_the_timeline ... ok
+test work_area_tests::set_work_area_in_and_out_points_follow_the_playhead ... ok
+test voiceover_tests::recording_lands_sample_accurately_after_the_preroll ... ok
+test vfx_tests::transition_preview_is_read_only_and_matches_apply_and_undo ... ok
+test work_area_tests::the_work_area_bar_spans_the_sequence_when_shown_and_undoes ... ok
+test work_area_tests::set_work_area_takes_both_ends_and_refuses_bad_ones ... ok
+test transcript_tests::generate_without_a_transcriber ... ok
+test vfx_tests::every_video_effect_applies_by_id_and_name_and_renders ... ok
+
+test result: ok. 720 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 20.52s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_export-780255792ec0ee3f)
+
+running 127 tests
+test aac_out::tests::adts_header_fields_follow_the_asc ... ok
+test aac_out::tests::only_a_dot_aac_path_is_adts ... ok
+test deflate::tests::adler_matches_rfc_example ... ok
+test aac_out::tests::adts_refuses_what_it_cannot_signal ... ok
+test audio_out::bounds_tests::ragged_audio_planes_keep_channel_positions_without_panicking ... ok
+test deflate::tests::length_limits_hold ... ok
+test determinism_tests::cancelling_drops_the_batch_rendered_ahead ... ok
+test determinism_tests::a_panic_while_rendering_ahead_is_an_error ... ok
+test determinism_tests::a_batch_rendered_ahead_with_missing_media_is_never_encoded ... ok
+test determinism_tests::an_export_adds_up_the_wall_time_of_its_stages ... ok
+test deflate::tests::round_trips ... ok
+test determinism_tests::max_threads_is_a_setting_of_the_json_interface ... ok
+test determinism_tests::h264_slices_follow_the_frame_size_not_the_cores ... ok
+test determinism_tests::max_threads_never_adds_threads ... ok
+test determinism_tests::max_threads_caps_the_threads_an_export_runs_on ... ok
+test determinism_tests::max_threads_does_not_change_the_file ... ok
+test hdr_tests::a_ramp_has_every_code_a_10_bit_picture_can_have ... ok
+test hdr_tests::black_white_and_grey_have_the_limited_range_codes ... ok
+test hdr_tests::bt2020_primaries_have_exact_codes ... ok
+test hdr_tests::hostile_input_is_an_error_not_a_panic ... ok
+test hdr_tests::odd_sizes_average_the_pixels_they_have ... ok
+test hdr_tests::only_pq_has_static_metadata_and_it_is_what_h264_writes ... ok
+test hdr_tests::out_of_range_and_non_finite_values_clamp_instead_of_wrapping ... ok
+test hdr_tests::sdr_gets_a_colr_box_and_no_hdr_metadata ... ok
+test hdr_tests::the_hdr_probe_registry_follows_its_probes ... ok
+test hdr_tests::the_software_h264_sei_is_the_static_metadata_laid_out_as_messages ... ok
+test hdr_tests::which_exports_are_hdr ... ok
+test job::tests::frame_bytes_by_format ... ok
+test job::tests::the_overlap_batch_fits_the_memory_budget ... ok
+test determinism_tests::rendering_ahead_in_a_two_pass_export ... ok
+test mxf_tests::mxf_formats_and_presets ... ok
+test determinism_tests::hdr_with_audio_is_the_same_file_when_the_memory_budget_caps_the_batch ... ok
+test mxf_tests::op_atom_writes_one_file_per_essence ... ok
+test pace::tests::a_count_that_goes_back_starts_over ... ok
+test pace::tests::a_job_reports_its_time_left_until_it_is_done ... ok
+test pace::tests::a_stall_makes_the_estimate_grow ... ok
+test pace::tests::a_steady_job_gives_the_time_it_has_left ... ok
+test pace::tests::an_idle_start_does_not_hold_the_estimate_back ... ok
+test pace::tests::extreme_numbers_give_a_capped_estimate_or_none_and_never_panic ... ok
+test pace::tests::nothing_is_promised_before_there_is_progress_to_measure ... ok
+test pace::tests::readings_that_arrive_together_count_once_and_the_history_stays_small ... ok
+test pace::tests::the_estimate_follows_a_change_of_speed_within_the_window ... ok
+test pcm::tests::aiff_32_bit_float_is_aifc ... ok
+test pcm::tests::aiff_past_4_gib_is_refused_not_wrapped ... ok
+test pcm::tests::extended_sample_rates ... ok
+test pcm::tests::ffprobe_reads_32_bit_formats ... ok
+test pcm::tests::ffprobe_reads_rf64_duration ... ok
+test pcm::tests::hostile_sizes_are_errors ... ok
+test pcm::tests::integer_samples_clip_at_full_scale ... ok
+test pcm::tests::odd_data_chunks_are_padded ... ok
+test pcm::tests::sequence_names ... ok
+test pcm::tests::wav_32_bit_float ... ok
+test pcm::tests::wav_and_aiff_32_bit_integer ... ok
+test pcm::tests::wav_and_aiff_layout ... ok
+test pcm::tests::wav_past_4_gib_is_rf64 ... ok
+test pcm::tests::wav_up_to_4_gib_stays_riff ... ok
+test pipeline::overlay_budget_tests::overlay_pixel_budget_is_checked_without_overflow ... ok
+test raster::tests::compressed_exr_holds_the_same_pixels ... ok
+test raster::tests::dpx_header_and_packing ... ok
+test determinism_tests::rendering_ahead_does_not_change_the_file ... ok
+test raster::tests::exr_layout ... ok
+test raster::tests::half_floats_round_to_nearest_even ... ok
+test raster::tests::hostile_sizes_are_errors ... ok
+test raster::tests::rle_codes_runs_and_literals ... ok
+test raster::tests::tga_rows_are_bottom_up_bgr ... ok
+test settings_tests::a_time_left_reads_like_a_clock ... ok
+test settings_tests::aac_audio_settings_and_names ... ok
+test raster::tests::exr_decodes_in_ffmpeg ... ok
+test settings_tests::aac_bitrate_is_capped_for_low_sample_rates ... ok
+test settings_tests::aac_export_rejects_unsupported_explicit_sample_rates ... ok
+test settings_tests::av1_is_an_mp4_format_that_needs_a_registered_encoder ... ok
+test settings_tests::builtin_presets_are_valid_and_unique ... ok
+test settings_tests::aac_audio_writes_m4a_and_adts ... ok
+test settings_tests::extreme_bitrates_do_not_overflow_encoder_setup ... ok
+test settings_tests::extreme_bitrates_do_not_overflow_resolution ... ok
+test mxf_tests::op1a_reads_back_with_our_demuxer_and_decoders ... ok
+test determinism_tests::same_file_whatever_the_core_count ... ok
+test settings_tests::flac_settings_round_trip_and_summary ... ok
+test settings_tests::float_export_keeps_peaks_above_full_scale ... ok
+test settings_tests::crf_h264 ... ok
+test settings_tests::gpu_rendering_is_off_by_default ... ok
+test settings_tests::flac_is_lossless_against_wav ... ok
+test settings_tests::h265_is_a_format_that_needs_a_registered_encoder ... ok
+test settings_tests::hostile_export_ranges_are_rejected_before_time_arithmetic ... ok
+test settings_tests::image_sequences_are_numbered_like_premiere ... ok
+test settings_tests::image_sequences_keep_alpha_when_asked ... ok
+test settings_tests::interlaced_output_is_rejected_honestly ... ok
+test settings_tests::invalid_export_allocations_are_rejected_before_rendering ... ok
+test settings_tests::h264_profile_level_and_keyframes ... ok
+test settings_tests::loudness_normalization_corrects_limiter_loss_and_bounds_impossible_targets ... ok
+test settings_tests::frame_size_rate_and_scaling ... ok
+test settings_tests::jpeg_targa_and_dpx_sequences ... ok
+test settings_tests::metadata_and_quicktime_multiplexer ... ok
+test settings_tests::openexr_sequences ... ok
+test settings_tests::overlays_draw_where_placed ... ok
+test settings_tests::own_importer_reads_32_bit_flac_at_full_scale ... ok
+test settings_tests::png_stills_keep_their_alpha_channel ... ok
+test settings_tests::sample_format_settings_round_trip_summary_and_estimate ... ok
+test settings_tests::sample_formats_each_codec_and_container_stores ... ok
+test settings_tests::settings_serde_and_estimates ... ok
+test settings_tests::flac_audio_in_mp4_and_mov ... ok
+test settings_tests::tiff_size_estimate_tracks_alpha_and_real_output ... ok
+test settings_tests::loudness_normalization_hits_target_and_true_peak ... ok
+test settings_tests::unsupported_sample_formats_are_refused ... ok
+test settings_tests::video_limiter_clamps_luma ... ok
+test settings_tests::openexr_sequences_compress ... ok
+test settings_tests::wav_and_aiff_audio_only ... ok
+test still::tests::jpeg_and_bmp_are_eight_bit_and_invalid_buffers_are_errors ... ok
+test still::tests::sixteen_bit_stills_preserve_sub_eight_bit_precision_and_alpha ... ok
+test mxf_tests::ffmpeg_oracle_op1a_and_op_atom ... ok
+test settings_tests::two_pass_and_cbr_h264 ... ok
+test surround_tests::stereo_export_of_a_51_mix_is_the_bs775_downmix ... ok
+test surround_tests::aac_51_in_mp4_keeps_every_channel_in_place ... ok
+test tests::caption_burn_in_h264_ffmpeg_oracle ... ok
+test surround_tests::wav_51_is_extensible_and_sample_exact ... ok
+test surround_tests::prores_mov_carries_six_pcm_channels ... ok
+test tests::gif_frame_delays_add_up_to_the_duration ... ok
+test settings_tests::wav_export_honours_explicit_sample_rates ... ok
+test settings_tests::thirty_two_bit_audio_in_every_container ... ok
+test tests::gpu_hook_scenarios ... ok
+test tests::mjpeg_mov_roundtrip ... ok
+test tests::prores_export_roundtrip ... ok
+test tests::wav_png_gif ... ok
+test tests::dnxhr_export_roundtrip ... ok
+test tests::sdr_exports_carry_a_colr_box ... ok
+test tests::prores_4444_export_roundtrip ... ok
+test tests::hdr_exports_signal_pq_and_hlg ... ok
+
+test result: ok. 127 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.62s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_flac-a289a0f31e20d12a)
+
+running 7 tests
+test md5::tests::rfc_1321_test_suite ... ok
+test crc::tests::check_values ... ok
+test predict::tests::folding ... ok
+test frame::tests::coded_numbers ... ok
+test predict::tests::lpc_residual_inverts ... ok
+test predict::tests::predictable_signals_beat_verbatim ... ok
+test predict::tests::noise_and_extremes_do_not_panic ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_format-73ddb71d8689ed71)
+
+running 24 tests
+test atomic::tests::failed_staging_leaves_no_partial_destination ... ok
+test atomic::tests::missing_directory_is_an_error ... ok
+test atomic::tests::new_file_can_publish_in_a_directory_without_read_permission ... ok
+test autosave::tests::civil_dates ... ok
+test autosave::tests::names_and_stems ... ok
+test autosave::tests::out_of_range_years_are_preserved_not_collapsed_to_the_epoch ... ok
+test atomic::tests::replacement_preserves_existing_file_permissions ... ok
+test atomic::tests::failed_write_keeps_old_file ... ok
+test atomic::tests::new_file_is_published_complete_without_clobbering_or_temp_leaks ... ok
+test atomic::tests::replaces_and_leaves_no_temp_files ... ok
+test tests::chain_runs_each_step_in_order ... ok
+test tests::damaged_sequence_settings_are_rejected_before_rendering ... ok
+test autosave::tests::repeated_wall_clock_hour_does_not_overwrite_earlier_saves ... ok
+test tests::auto_points_written_as_null_open_again ... ok
+test tests::envelope_has_explicit_schema_version ... ok
+test tests::refuses_newer ... ok
+test tests::rejects_foreign_and_damaged ... ok
+test tests::roundtrip_current ... ok
+test tests::schema_version_matches_table ... ok
+test tests::structural_rule_breaks_still_open ... ok
+test tests::the_view_is_kept_beside_the_project_and_never_stops_a_file_from_opening ... ok
+test autosave::tests::rotation_survives_the_clock_going_back_at_the_end_of_dst ... ok
+test autosave::tests::rotation_keeps_newest_and_ignores_other_files ... ok
+test tests::oversized_embedded_luts_are_dropped_on_load ... ok
+
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_frame-1124c74c3b917df0)
+
+running 13 tests
+test pool::tests::shelf_hands_back_a_fitting_buffer_and_stays_within_its_budget ... ok
+test pool::tests::recycled_frames_feed_the_next_take_unless_still_shared ... ok
+test tests::audio_mix ... ok
+test tests::box_decimation_averages_blocks_per_plane ... ok
+test tests::cropping_cuts_every_plane_at_the_same_place ... ok
+test tests::decimation_caps_hostile_factors_to_the_frame_size ... ok
+test tests::rgba8_roundtrip_through_linear ... ok
+test pool::tests::float_images_come_back_whole_and_unchanged_within_their_budget ... ok
+test tests::yuv_grey_is_grey ... ok
+test tests::rotation_turns_every_plane_clockwise ... ok
+test tests::alpha_region_is_the_box_around_what_is_not_transparent ... ok
+test tests::a_region_is_exactly_the_crop_of_the_full_conversion ... ok
+test tests::a_recycled_buffer_never_leaks_its_old_contents ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_geom-f2cf4108f663815b)
+
+running 3 tests
+test tests::fit_rect ... ok
+test tests::motion_anchor_lands_on_position ... ok
+test tests::inverse_roundtrip ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_golden-6c8316790dab1113)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_gpu-21f6876d01b67093)
+
+running 42 tests
+test adapter::tests::a_newer_version_never_overtakes_another_gpu_or_backend ... ok
+test adapter::tests::adapters_that_cannot_draw_to_the_window_are_left_out ... ok
+test adapter::tests::a_gpu_listed_through_two_versions_of_its_driver_draws_with_the_newer_one ... ok
+test adapter::tests::candidates_describe_themselves_for_the_log ... ok
+test adapter::tests::two_entries_are_one_gpu_only_with_the_same_ids_type_driver_and_bus ... ok
+test adapter::tests::without_two_versions_of_one_driver_the_choice_is_wgpus ... ok
+test adapter::tests::on_this_host_the_choice_is_wgpus_unless_its_driver_is_listed_twice ... ok
+test blend_tests::quad_bounds_clamps_and_handles_non_finite ... ok
+test export_renderer::tests::f16_roundtrip ... ok
+test export_renderer::tests::gpu_render_impls_frame_renderer ... ok
+test export_renderer::tests::solid_frame_matches_cpu ... ok
+test blend_tests::normal_fast_path_and_blend_layers_off_output ... ok
+test blend_tests::gpu_dissolve_pattern_is_exact ... ok
+test export_renderer::tests::transformed_frame_matches_cpu ... ok
+test fx_tests::alpha_invert_does_not_amplify_invented_opacity_at_odd_source_pixels ... ok
+test fx_tests::effect_source_identity_preserves_odd_sized_half_float_texels ... ok
+test fx_tests::effect_source_integer_decimation_preserves_cpu_box_oracle ... ok
+test fx_tests::gpu_effect_chains_match_cpu ... ok
+test fx_tests::gpu_extract_zero_softness_has_no_fractional_edge ... ok
+test fx_tests::hostile_parameters_are_bounded ... ok
+test fx_tests::keyframed_effects_follow_time ... ok
+test fx_tests::gpu_effect_layers_match_cpu_plan ... ok
+test fx_tests::lumetri_unsupported_sections_fall_back ... ok
+test fx_tests::plain_layers_skip_the_effect_stage ... ok
+test tests::fast_half_float_conversion_matches_the_reference_for_every_value ... ok
+test fx_tests::layers_with_effects_fall_back_to_the_cpu_without_a_stage ... ok
+test blend_tests::gpu_blend_edge_cases_match_cpu ... ok
+test tests::gpu_lut_matches_cpu_tetrahedral ... ok
+test tests::gpu_draws_yuv_alpha_plane_like_the_cpu ... ok
+test tests::gpu_mask_coverage_matches_cpu ... ok
+test tests::gpu_masked_mix_matches_cpu ... ok
+test tests::half_float_conversion ... ok
+test tests::gpu_matches_cpu_plan ... ok
+test tests::hdr_input_gpu_matches_cpu ... ok
+test tests::qualification_adapter ... ok
+test tests::upload_cache_keeps_buffers_alive ... ok
+test tests::prepared_upload_matches_inline_conversion ... ok
+test tests::yuv_code_range_uniforms ... ok
+test fx_tests::gpu_effects_match_cpu_exactly ... ok
+test tests::yuv_code_range_gpu_matches_cpu ... ok
+test blend_tests::gpu_blend_modes_match_cpu ... ok
+test tests::gpu_push_matches_cpu_with_alpha_and_surrounding_blends ... ok
+
+test result: ok. 42 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.24s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_h264-916e71c04cde01b4)
+
+running 41 tests
+test cabac::tests::context_init_formula ... ok
+test cavlc::tests::total_zeros_and_run_before_are_complete_prefix_codes ... ok
+test cavlc::tests::coeff_token_tables_are_prefix_codes ... ok
+test cavlc::tests::decodes_spec_style_example ... ok
+test cabac::tests::round_trip_random_bins ... ok
+test deblock::speed::edge_filter_speed ... ignored
+test dpb::tests::short_frame_num_gap_keeps_sliding_window_semantics ... ok
+test inter::tests::full_sample_copy_and_clamp ... ok
+test inter::tests::half_sample_constant_is_constant ... ok
+test dpb::tests::frame_num_gap_materialises_at_most_max_num_ref_frames ... ok
+test inter::tests::half_sample_horizontal_ramp ... ok
+test inter::tests::weighting ... ok
+test intra::tests::chroma_dc_rules ... ok
+test intra::tests::i16_plane_flat_is_flat ... ok
+test intra::tests::i4_diag_down_left_hand_computed ... ok
+test intra::tests::i4_diag_down_right_hand_computed ... ok
+test intra::tests::i4_top_right_substitution ... ok
+test intra::tests::i4_vertical_horizontal_dc ... ok
+test mbtypes::tests::b_types ... ok
+test mbtypes::tests::cbp_table_is_permutation ... ok
+test mbtypes::tests::i16_types ... ok
+test params::tests::parse_minimal_baseline_sps ... ok
+test params::tests::scaling_list_default_signal ... ok
+test params::tests::scaling_list_repeat_last ... ok
+test inter::tests::fast_luma_matches_reference ... ok
+test synth_tests::poc_type1_reordering ... ok
+test tables::tests::blk4_maps_consistent ... ok
+test tables::tests::qpc ... ok
+test tables::tests::zigzag8_known_prefix ... ok
+test transform::tests::chroma_dc ... ok
+test transform::tests::huge_levels_dequantise_without_overflow_panics ... ok
+test transform::tests::idct4_dc_only_matches_shortcut ... ok
+test transform::tests::idct4_hand_example ... ok
+test transform::tests::idct8_dc ... ok
+test transform::tests::luma_dc_flat ... ok
+test transform::tests::scale_functions ... ok
+test transform::tests::vectorised_transforms_match_reference ... ok
+test deblock::tests::lane_filter_matches_per_line_reference ... ok
+test synth_tests::pcm_long_term_mmco_gaps_cabac ... ok
+test synth_tests::pcm_long_term_mmco_gaps_cavlc ... ok
+test synth_tests::explicit_weighted_prediction_p_and_b_skip ... ok
+
+test result: ok. 40 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_h264enc-acdff799688092f3)
+
+running 14 tests
+test intra::tests::dc_and_vertical ... ok
+test cavlc::tests::simple_block_matches_spec_example ... ok
+test dsp::tests::satd_matches_reference ... ok
+test dsp::tests::satd_of_dc_difference ... ok
+test ratecontrol::tests::two_pass_plan_caches_total_and_inclusive_suffixes ... ok
+test tables::tests::cbp_tables_are_permutations ... ok
+test tables::tests::scans_are_permutations ... ok
+test transform::tests::fdct8_matches_matrix ... ok
+test transform::tests::luma_dc_roundtrip ... ok
+test transform::tests::chroma_dc_roundtrip ... ok
+test tables::tests::vlc_tables_prefix_free ... ok
+test transform::tests::roundtrip_4x4_low_qp ... ok
+test transform::tests::roundtrip_8x8_low_qp ... ok
+test cabac::tests::roundtrip_random_bins ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_hevc-4c8b4ab92ebf4e4d)
+
+running 34 tests
+test cabac::tests::context_init_formula ... ok
+test decoder::tests::block_counts_match_the_classification_chain ... ok
+test cabac::tests::round_trip_random_bins ... ok
+test decoder::tests::missing_reference_cache_tracks_format_and_keeps_old_rows_alive ... ok
+test decoder::tests::missing_reference_cache_is_lazy_and_released_on_flush ... ok
+test decoder::tests::missing_reference_rows_are_shared_with_distinct_identities ... ok
+test inter::tests::default_weighted_prediction_matches_the_32_bit_formulas ... ok
+test decoder::tests::missing_reference_rows_are_shared_across_pictures ... ok
+test inter::tests::full_sample_copy_matches_interpolation ... ok
+test inter::tests::narrow_first_pass_matches_the_32_bit_filter ... ok
+test inter::tests::explicit_weighted_prediction_matches_the_formulas ... ok
+test intra::tests::dc_and_planar_flat ... ok
+test intra::tests::pure_vertical_and_horizontal ... ok
+test intra::tests::substitution ... ok
+test mvpred::tests::mv_scaling ... ok
+test params::tests::picture_size_has_an_aggregate_pixel_budget ... ok
+test picture::tests::storage_type_follows_the_bit_depth_and_crops_exactly ... ok
+test picture::tests::wrong_sample_type_is_harmless ... ok
+test picture::tests::edge_replicated_lines_match_the_clamped_reads ... ok
+test filter::luma_filter_tests::gathered_luma_filter_matches_the_per_sample_filter ... ok
+test inter::tests::in_place_window_matches_the_copied_window ... ok
+test synth_tests::pcm_deblocked_single_tile ... ok
+test synth_tests::slices_without_tiles ... ok
+test synth_tests::pcm_long_term_refs_list_modification ... ok
+test tables::tests::dct_matrix_properties ... ok
+test tables::tests::diagonal_scan_4x4 ... ok
+test tables::tests::qpc_table ... ok
+test transform::tests::bounded_region_matches_full ... ok
+test transform::tests::dc_only_matches_full_transform ... ok
+test synth_tests::tiles_explicit_filter_across ... ok
+test synth_tests::tiles_explicit_no_filter_across ... ok
+test synth_tests::tiles_slices_and_dependent_segments ... ok
+test synth_tests::tiles_uniform_exact ... ok
+test transform::tests::matches_the_direct_matrix_product ... ok
+
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_interchange-9e653f66d9609109)
+
+running 29 tests
+test aaf::hostile_tests::zero_size_weak_collection_keys_are_an_error ... ok
+test aaf::hostile_tests::weak_collections_within_the_index_are_read ... ok
+test aaf::hostile_tests::weak_collection_count_beyond_the_index_is_an_error ... ok
+test ale::tests::fps_and_formats ... ok
+test aaf::tests::store_round_trips_every_stored_form ... ok
+test common::tests::file_url_localhost_prefix_host_is_kept ... ok
+test ale::tests::writes_the_three_sections_and_round_trips ... ok
+test common::tests::imported_tracks_are_bounded ... ok
+test common::tests::paths ... ok
+test common::tests::rates ... ok
+test common::tests::urls ... ok
+test comp::path_tests::generated_embedded_audio_folder_is_one_safe_component ... ok
+test edl::tests::channels ... ok
+test edl::tests::event_lines ... ok
+test omf::bento::tests::repeated_segments_cannot_expand_a_value_past_its_budget ... ok
+test fcpxml::tests::rational_times_are_exact ... ok
+test omf::tests::bento_values_round_trip ... ok
+test omf::tests::written_files_have_the_required_structure ... ok
+test aaf::tests::written_files_have_the_required_structure ... ok
+test otio::tests::rational_time ... ok
+test wav::tests::huge_wav_header_saturates ... ok
+test wav::tests::wav_and_aiff_round_trip ... ok
+test xml::tests::attr_whitespace_roundtrip ... ok
+test xml::tests::rejects_internal_dtd_entity_expansion ... ok
+test xml::tests::writer_roundtrip ... ok
+test aaf::tests::premiere_style_layers_and_nested_compositions_are_read ... ok
+test aaf::tests::the_meta_dictionary_has_its_class_and_type_definition_sets ... ok
+test otio::tests::ordinary_nesting_is_not_capped ... ok
+test otio::tests::nested_copies_stop_at_the_limit ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_isobmff-1196d0c12c5081ae)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_matroska-f43ea4001afd7dc6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_media-3cb0f071e0d0ec68)
+
+running 82 tests
+test animated::tests::animated_webp_rejects_an_oversized_canvas_before_decoding_frames ... ok
+test animated::tests::animated_webp_plays_every_frame_with_timing_and_transparency ... ok
+test animated::tests::animated_gif_plays_every_frame_with_transparency ... ok
+test animated::tests::clip_rate_follows_the_common_frame_length ... ok
+test animated::tests::a_damaged_later_frame_keeps_the_frames_before_it ... ok
+test animated::tests::apng_plays_every_frame_with_its_timing_and_keeps_transparency ... ok
+test animated::tests::frame_delays_have_browser_minimums_and_never_overflow ... ok
+test animated::tests::identical_frames_merge_into_one_longer_frame ... ok
+test animated::tests::identical_webp_frames_remain_a_clip_when_merged ... ok
+test cache::tests::evicts_lru ... ok
+test cancel::tests::background_is_off_by_default_and_scoped ... ok
+test animated::tests::single_frame_files_stay_stills ... ok
+test cancel::tests::catch_up_is_scoped_to_the_closure ... ok
+test cancel::tests::draft_is_off_by_default_and_scoped ... ok
+test cancel::tests::a_panic_inside_background_work_does_not_leave_the_thread_marked ... ok
+test cancel::tests::flag_is_scoped_to_the_closure ... ok
+test cancel::tests::context_carries_the_hints_to_another_thread_and_restores_its_own ... ok
+test dpx::tests::eight_bit_lines_pad_to_words_and_orientation_flips ... ok
+test dpx::tests::hostile_headers_fail_cleanly ... ok
+test dpx::tests::packed_ten_and_twelve_bit_components_cross_words ... ok
+test dpx::tests::rgba_components_roll_across_ten_bit_words ... ok
+test dpx::tests::ycbcr_descriptors_convert_to_rgb ... ok
+test dpx::tests::ten_bit_method_a_and_b ... ok
+test generators::tests::counting_leader_custom_rate_stops_at_exact_sample_boundary ... ok
+test generators::tests::counting_leader_gate_handles_zero_and_hostile_rates ... ok
+test generators::tests::counting_leader_gate_is_independent_of_request_boundaries ... ok
+test generators::tests::counting_leader_malformed_rates_use_default_frame_gate ... ok
+test generators::tests::counting_leader_beeps_last_exactly_one_source_frame ... ok
+test importable_tests::camera_extensions_match_regardless_of_case ... ok
+test pending::tests::take_clears_the_flag ... ok
+test reader::tests::falls_back_to_byte_openers ... ok
+test reader::tests::file_reader_reads_ranges_in_place ... ok
+test reader::tests::mem_reader_reads_ranges_and_reports_eof ... ok
+test generators::tests::bars_values ... ok
+test reader::tests::open_within_reads_only_the_head_of_large_unstreamable_files ... ok
+test generators::tests::all_scenes_render ... ok
+test sequence::tests::frames_with_gaps ... ok
+test sequence::tests::numbered_names ... ok
+test reader::tests::more_file_readers_than_the_pool_holds_stay_readable ... ok
+test sequence::tests::numbered_unicode_prefix ... ok
+test sequence::tests::plays_frames_holds_missing_and_caches ... ok
+test sequence::tests::webp_frames_lossless ... ok
+test still::dng::tests::broken_dngs_are_errors ... ok
+test still::dng::tests::dng_still_opens_as_linear_float ... ok
+test still::dng::tests::timing_without_cinemadng_tags_is_the_callers ... ok
+test still::exr::inflate::tests::dynamic_block ... ok
+test still::exr::inflate::tests::fixed_block ... ok
+test still::dng::tests::cinemadng_sequence_takes_rate_and_time_code_from_the_frames ... ok
+test still::exr::inflate::tests::hostile_streams_are_errors ... ok
+test still::exr::inflate::tests::stored_block ... ok
+test animated::tests::damaged_files_never_panic ... ok
+test still::exr::tests::data_window_is_placed_in_the_display_window ... ok
+test still::exr::tests::half_floats ... ok
+test still::exr::tests::damaged_pxr24_is_an_error ... ok
+test still::exr::tests::huge_scan_lines_are_refused_before_allocating ... ok
+test generators::tests::deterministic_and_scaled ... ok
+test still::exr::tests::luminance_only_is_grey_and_opaque ... ok
+test still::exr::tests::rgb_without_alpha_and_extra_channels ... ok
+test still::exr::tests::pxr24_keeps_half_and_uint_exactly_and_floats_to_24_bits ... ok
+test still::exr::tests::still_source_reports_exr ... ok
+test still::exr::tests::unsupported_files_say_why ... ok
+test still::exr::inflate::tests::garbage_never_panics ... ok
+test still::hdr::tests::flat_top_to_bottom ... ok
+test still::hdr::tests::hostile_input_is_an_error_not_a_panic ... ok
+test still::hdr::tests::old_style_runs ... ok
+test still::exr::tests::rgba_half_every_compression ... ok
+test still::hdr::tests::opens_as_a_float_still ... ok
+test still::hdr::tests::rgbe_values ... ok
+test still::hdr::tests::orientations ... ok
+test still::ycbcr_tiff::tests::packbits_runs_literals_and_noops ... ok
+test still::hdr::tests::run_length_lines ... ok
+test tga::tests::bottom_up_bgr_is_flipped ... ok
+test tga::tests::colour_map_and_16_bit_alpha ... ok
+test tga::tests::rle_runs_and_raw_packets_cross_lines ... ok
+test tga::tests::hostile_headers_fail_without_allocating ... ok
+test tga::tests::sniffs_by_footer_or_name ... ok
+test tga::tests::zero_alpha_32_bit_without_attribute_bits_is_opaque ... ok
+test wav::tests::bwf_time_reference_from_bext ... ok
+test wav::tests::bwf_time_reference_from_ixml_and_large_values ... ok
+test wav::tests::roundtrip ... ok
+test reader::tests::wav_opens_in_place_and_reads_only_requested_samples ... ok
+test still::exr::tests::hostile_files_are_errors_not_panics ... ok
+
+test result: ok. 82 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.65s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_mpa-cdcd195c016eabde)
+
+running 7 tests
+test tests::layer2_allocation_tables ... ok
+test tests::headers ... ok
+test tests::bad_headers_are_errors ... ok
+test tests::requantization_is_symmetric ... ok
+test tests::synthesis_window_is_the_smooth_prototype ... ok
+test tests::silent_frames_decode_to_silence ... ok
+test tests::random_frames_never_panic ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_mpeg2v-f88292a44ddc799b)
+
+running 19 tests
+test headers::tests::start_codes_found_at_every_alignment ... ok
+test headers::tests::scans_are_permutations_and_inverse_of_the_figures ... ok
+test bits::tests::reads_across_bytes_and_past_the_end ... ok
+test headers::tests::frame_rates ... ok
+test mc::tests::fields_and_clamped_edges ... ok
+test mc::tests::half_sample_interpolation_rounds_up ... ok
+test idct::tests::dc_only_matches_the_full_transform ... ok
+test idct::tests::ieee_1180_accuracy ... ok
+test tests::access_unit_scan ... ok
+test tests::decodes_a_hand_built_intra_picture ... ok
+test synth_tests::dual_prime_in_field_pictures ... ok
+test vlc::tests::decodes_codes ... ok
+test vlc::tests::every_value_appears_once ... ok
+test vlc::tests::kraft_sums_match_the_reserved_codes ... ok
+test vlc::tests::tables_build_without_prefix_clashes ... ok
+test synth_tests::field_pictures_with_b_and_16x8 ... ok
+test synth_tests::frame_pictures_field_mc_and_dual_prime ... ok
+test tests::truncation_and_mutation_never_panic ... ok
+test synth_tests::seed_sweep ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.60s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_mpegts-899a37f648ffaeac)
+
+running 25 tests
+test es::tests::ac3_header_prefix_of_six_bytes_is_not_indexed_out_of_bounds ... ok
+test es::tests::audio_frame_sizes ... ok
+test es::tests::eac3_reserved_sample_rate_is_refused ... ok
+test es::tests::eac3_dependent_substreams_join_the_access_unit ... ok
+test es::tests::unit_table_is_capped ... ok
+test es::tests::four_byte_eac3_frames_make_no_units ... ok
+test pes::tests::mpeg2_and_mpeg1_headers ... ok
+test es::tests::pes_delimited_modes_do_not_retain_chunks ... ok
+test tests::adaptation_field_only_unit_start_keeps_the_pes_in_progress ... ok
+test tests::bad_adaptation_fields_do_not_amplify_reads ... ok
+test tests::oversized_unit_is_refused_without_reserving_it ... ok
+test tests::program_stream_cut_inside_a_pack_header_never_panics ... ok
+test tests::non_pes_payload_is_dropped_until_the_next_unit_start ... ok
+test tests::program_stream_units_round_trip ... ok
+test tests::sniffing ... ok
+test tests::timestamps_unwrap_across_the_33_bit_wrap ... ok
+test tests::garbage_without_sync_does_not_amplify_reads ... ok
+test tests::transport_stream_units_round_trip ... ok
+test tests::program_stream_truncation_at_every_length_never_panics ... ok
+test ps::tests::misses_near_the_end_zero_at_most_the_bytes_that_are_left ... ok
+test work_tests::table_crc_equals_the_bitwise_crc ... ok
+test tests::truncation_and_mutation_never_panic ... ok
+test ps::tests::capped_window_returns_what_the_uncapped_window_returned ... ok
+test tests::transport_stream_resyncs_after_garbage ... ok
+test work_tests::program_stream_with_large_pes_packets_gives_back_every_frame ... ok
+
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.02s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_mxf-974ea37aaf8cd958)
+
+running 30 tests
+test essence::tests::identifies_picture_codings ... ok
+test essence::tests::interlaced_picture_height_does_not_overflow ... ok
+test essence::tests::decodes_pcm_and_aes3 ... ok
+test essence::tests::sniffs_essence ... ok
+test file::index_bounds_tests::negative_preroll_positions_do_not_drop_later_valid_entries ... ok
+test file::index_bounds_tests::nonzero_segment_positions_and_sparse_gaps_preserve_entries ... ok
+test index::tests::parses_vbr_segment ... ok
+test klv::tests::ber_lengths ... ok
+test klv::tests::integers_and_strings ... ok
+test tests::drop_frame_timecode_format ... ok
+test tests::hostile_pcm_requests_fail_before_allocation ... ok
+test tests::a_corrupt_index_position_cannot_allocate_a_giant_sparse_table ... ok
+test tests::not_mxf_and_empty ... ok
+test tests::key_frames_from_index_flags_for_long_gop ... ok
+test tests::missing_temporal_offsets_with_b_pictures_ask_for_reordering ... ok
+test tests::opens_synthetic_op1a ... ok
+test write::tests::long_gop_index_gives_presentation_order_and_key_frames ... ok
+test write::tests::ntsc_sound_follows_the_edit_unit_pattern ... ok
+test write::tests::op1a_reads_back ... ok
+test write::tests::op1a_rejects_an_unbounded_pcm_edit_unit_before_padding ... ok
+test write::tests::op_atom_pcm_helper ... ok
+test write::tests::op_atom_picture_is_clip_wrapped ... ok
+test write::tests::package_ids_are_written ... ok
+test write::tests::rejects_bad_configs ... ok
+test write::tests::timestamps ... ok
+test write::tests::long_files_split_the_index_into_segments ... ok
+test tests::mutation_never_panics ... ok
+test tests::truncation_never_panics_and_keeps_whole_frames ... ok
+test write::tests::long_pcm_reads_backed_by_the_file_are_not_capped ... ok
+test write::tests::truncated_and_mutated_files_never_panic ... ok
+
+test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_ogg-610e43bc4b467562)
+
+running 6 tests
+test tests::crc_matches_known_value ... ok
+test tests::opus_toc_durations ... ok
+test tests::opus_pages_packets_and_timing ... ok
+test tests::packets_spanning_pages ... ok
+test tests::recovery_scan_stops_when_its_shared_budget_is_spent ... ok
+test tests::corrupt_pages_are_skipped_and_truncation_is_safe ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_opus-28e175bbc9376746)
+
+running 26 tests
+test celt::bands::tests::bitexact_trig_endpoints ... ok
+test celt::bands::tests::haar_is_involution ... ok
+test celt::bands::tests::isqrt_exact ... ok
+test celt::energy::tests::laplace_roundtrip ... ok
+test celt::rate::tests::log2_frac_values ... ok
+test celt::mdct::tests::fft_matches_dft ... ok
+test celt::rate::tests::pvq_counts ... ok
+test header::tests::directly_constructed_headers_are_checked_before_decoder_allocation ... ok
+test header::tests::dops ... ok
+test celt::mdct::tests::imdct_matches_direct_formula ... ok
+test header::tests::parse_family0_and_roundtrip ... ok
+test header::tests::parse_family1_51 ... ok
+test header::tests::rejects_garbage ... ok
+test packet::tests::frame_codes ... ok
+test packet::tests::self_delimited ... ok
+test celt::bands::tests::pvq_roundtrip_all_codewords_small ... ok
+test packet::tests::toc_configs ... ok
+test packet::tests::two_byte_sizes ... ok
+test range::tests::empty_and_garbage_never_panic ... ok
+test range::tests::tell_starts_at_one_bit ... ok
+test silk::lpc::tests::flat_nlsf_gives_small_lpc ... ok
+test silk::lpc::tests::inverse_approximations ... ok
+test silk::lpc::tests::stabilize_enforces_spacing ... ok
+test celt::rate::tests::caps_match_reference_shape ... ok
+test range::tests::roundtrip_mixed_symbols ... ok
+test silk::resampler::tests::upsample_sine_and_delay ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_platform-cc0cc098416af8be)
+
+running 14 tests
+test annexb::tests::malformed_samples_are_errors ... ok
+test biplanar::tests::p010_shifts_down_from_the_high_bits ... ok
+test vaapi::abi_tests::bit_fields_match_the_header ... ok
+test vaapi::abi_tests::constants_match_the_header ... ok
+test biplanar::tests::surfaces_smaller_than_the_picture_are_errors ... ok
+test biplanar::tests::nv12_is_deinterleaved_and_cropped ... ok
+test vaapi::abi_tests::layouts_match_the_header ... ok
+test annexb::tests::converts_lengths_to_start_codes ... ok
+test hybrid::tests::replay_output_has_a_hard_limit ... ok
+test videotoolbox::tests::reorder_depth_matches_supported_stream_limits ... ok
+test vaapi::tests::damaged_samples_are_errors ... ok
+test vaapi::tests::hevc_damaged_samples_are_errors ... ok
+test vaapi::tests::output_order_and_buffers_match_the_software_decoder ... ok
+test vaapi::tests::hevc_output_order_and_buffers_match_the_software_decoder ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.39s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_project-6466423dc1077e8f)
+
+running 66 tests
+test caption::tests::plain ... ok
+test caption::tests::corrupt_caption_times_do_not_overflow_the_overlap_check ... ok
+test caption::tests::caption_at ... ok
+test caption::tests::malformed_caption_markup_is_preserved_without_repeated_suffix_scans ... ok
+test effect::audio::tests::parametric_eq_keeps_the_three_band_ids ... ok
+test effect::audio::tests::premiere_audio_set_is_complete_and_foldered ... ok
+test effect::vfx::tests::auto_points_resolve_to_frame_fractions ... ok
+test essential::tests::gain_volume_and_pan_are_deltas ... ok
+test essential::tests::apply_inserts_updates_and_removes_effects_in_order ... ok
+test effect::tests::unique_ids_and_defaults ... ok
+test effect::vfx::tests::premiere_26_video_effects_catalogue ... ok
+test essential::tests::presets_are_valid_and_unique ... ok
+test essential::tests::set_get_and_validation ... ok
+test graphic::tests::defaults_centre_and_shadow_direction ... ok
+test find::tests::operators_columns_and_match_modes ... ok
+test graphic::tests::source_text_keyframes_hold ... ok
+test graphic_design::tests::char_styles_merge_split_and_follow_edits ... ok
+test graphic_design::tests::pins_follow_targets_and_resize_shapes ... ok
+test graphic_design::tests::responsive_time_protects_intro_and_outro ... ok
+test graphic::tests::layers_round_trip_and_evaluate ... ok
+test graphic_design::tests::roll_and_crawl_offsets ... ok
+test graphic_design::tests::roll_progress_is_exact ... ok
+test gtemplate::tests::base64_round_trip ... ok
+test keyframe::tests::bezier_eases ... ok
+test keyframe::tests::linear_and_hold ... ok
+test keyframe::tests::toggle_off_keeps_value ... ok
+test gtemplate::tests::instantiates_on_other_frame_sizes ... ok
+test mask::tests::ellipse_flattens_onto_the_ellipse ... ok
+test mask::tests::modes_combine ... ok
+test mask::tests::path_keyframes_interpolate_vertexwise ... ok
+test mask::tests::mask_serde_round_trip ... ok
+test mask::tests::polygon_flattens_to_its_corners ... ok
+test mask::tests::rounded_rect_corners_are_quarter_circles ... ok
+test mask::tests::rounding_clamps_to_half_an_edge_and_ignores_curves_and_hostile_input ... ok
+test mixer::tests::lanes_read_static_and_keyframes ... ok
+test mixer::tests::mode_names_roundtrip ... ok
+test mixer::tests::send_removal_shifts_lanes ... ok
+test mixer::tests::pan51_lanes_have_defaults_and_store_statics_in_lanes ... ok
+test mixer::tests::serde_defaults ... ok
+test mixer::tests::thinning_keeps_shape_within_tolerance ... ok
+test mixer::tests::write_lane_preserves_outside ... ok
+test gtemplate::tests::refuses_foreign_and_newer_files ... ok
+test narration::tests::check_rejects_hostile_values ... ok
+test narration::tests::round_trips_through_json ... ok
+test narration::tests::pitch_ids_round_trip ... ok
+test tests::a_bin_moves_into_another_bin_with_its_contents ... ok
+test tests::bins ... ok
+test tests::corrupt_timeline_times_are_rejected_before_end_arithmetic ... ok
+test tests::hostile_frame_rates_are_rejected_before_frame_arithmetic ... ok
+test tests::item_at_and_source_time ... ok
+test tests::media_resolution_bounds_depth_and_preserves_the_outer_range ... ok
+test tests::json_roundtrip ... ok
+test tests::caption_tracks_roundtrip ... ok
+test tests::nest_cycle_finds_sequences_that_contain_themselves ... ok
+test tests::nest_overhang_is_the_part_past_the_contents ... ok
+test tests::pixel_aspect_ratios_are_reduced_and_hostile_ones_are_square ... ok
+test tests::point_params_keep_auto_through_json_and_no_other_point_reads_null ... ok
+test tests::project_clone_shares_sequences_until_mutated ... ok
+test tests::source_par_follows_interpret_footage_subclips_and_sequences ... ok
+test tests::projects_without_caption_tracks_load ... ok
+test transcript::tests::normalize_sorts_clamps_and_labels ... ok
+test gtemplate::tests::builtins_are_valid_and_round_trip ... ok
+test transcript::tests::words_in_range_and_normalized ... ok
+test tests::placed_auto_points_resolve_once_the_source_size_is_final ... ok
+test vtransition::tests::transition_lookup_by_kind ... ok
+test vtransition::tests::premiere_26_transition_tree ... ok
+
+test result: ok. 66 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_prores-79d26d6e7ef3f712)
+
+running 11 tests
+test dct::tests::fdct_inverts_idct ... ok
+test bits::tests::exp_golomb5_equivalence ... ok
+test encode::alpha_tests::alpha_final_singleton_has_a_run_code ... ok
+test bits::tests::codeword_roundtrip_all_codebooks ... ok
+test header::tests::slice_widths ... ok
+test tables::tests::basis_matches_cosines ... ok
+test tables::tests::qscale_mapping ... ok
+test tables::tests::scans_are_permutations ... ok
+test encode::alpha_conformance_tests::alpha_runs_cover_boundaries_and_final_values ... ok
+test dct::tests::idct_matches_double_reference ... ok
+test encode::alpha_conformance_tests::encoded_alpha_slices_have_complete_final_runs ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_render-96e420b1bc11f138)
+
+running 206 tests
+test adjustment_tests::a_transition_with_an_adjustment_layer_is_not_planned_as_layers ... ok
+test adjustment_tests::applies_to_everything_below_but_not_above ... ok
+test adjustment_tests::a_transform_replaces_the_picture_below ... ok
+test adjustment_tests::basic_3d_keeps_its_perspective_at_every_render_scale ... ok
+test adjustment_tests::a_dissolve_on_an_adjustment_layer_keeps_its_opacity_and_blend_mode ... ok
+test adjustment_tests::nested_adjustment_layers_stay_in_their_sequence ... ok
+test audio_fx::tests::direct_mappings_match_dsp_parameters ... ok
+test audio_fx::tests::editor_curves_follow_project_parameters ... ok
+test adjustment_tests::opacity_and_blend_mode_mix_over_the_original ... ok
+test audio_fx::tests::parametric_eq_applies_every_control ... ok
+test blend::tests::all_modes_stay_in_range ... ok
+test blend::tests::multiply_white_is_identity ... ok
+test blend::tests::normal_over ... ok
+test adjustment_tests::a_dissolve_fades_the_adjustment_layers_effects_in_and_out ... ok
+test color_match::tests::oklab_reference_values ... ok
+test adjustment_tests::motion_and_masks_restrict_the_region ... ok
+test adjustment_tests::transform_shutter_on_an_adjustment_layer_spans_one_sequence_frame ... ok
+test audio_fx::tests::every_audio_effect_has_dsp ... ok
+test colorman::tests::plain_media_keeps_the_fast_path ... ok
+test colorman::tests::mastering_metadata_sets_the_tone_mapping_peak ... ok
+test effects::curve_tests::identity_and_monotone ... ok
+test colorman::tests::pq_frame_is_tone_mapped_into_rec709 ... ok
+test color_match::tests::matching_a_frame_to_itself_changes_nothing ... ok
+test effects::lumetri_cpu_parity_tests::lumetri_gpu_op_matches_original_fn_lumetri_cpu ... ok
+test effects::tests::flip_and_crop ... ok
+test effects::lumetri_cpu_parity_tests::lumetri_vignette_roundness_shapes_the_vignette ... ok
+test effects::tests::gaussian_preserves_mean_and_blurs ... ok
+test effects::tests::identity_lumetri_is_identity ... ok
+test effects::tests::median_radius_stays_in_the_parameter_range ... ok
+test color_match::tests::recovers_a_known_grade ... ok
+test effects::tests::every_effect_runs_and_stays_finite ... ok
+test flow::tests::a_moving_square_appears_once_at_its_interpolated_place ... ok
+test flow::tests::hostile_inputs_do_not_panic ... ok
+test flow::tests::flicker_on_static_content_is_not_dragged_around ... ok
+test flow::tests::identical_frames_are_returned_unchanged ... ok
+test gpufx::tests::extract_zero_softness_has_no_fractional_edge ... ok
+test graphic_clip::tests::inner_and_centre_strokes ... ok
+test graphic_clip::tests::linear_gradient_blends_in_linear_light_and_turns_with_the_layer ... ok
+test graphic_clip::tests::linear_gradient_keeps_a_per_character_fill_solid ... ok
+test graphic_clip::tests::linear_gradient_runs_left_to_right_on_a_shape_and_on_text ... ok
+test graphic_clip::tests::outer_stroke_without_fill_leaves_the_inside_empty ... ok
+test graphic_clip::tests::per_character_fill_and_size ... ok
+test graphic_clip::tests::pinned_box_follows_text_growth ... ok
+test graphic_clip::tests::roll_moves_the_whole_graphic ... ok
+test graphic_clip::tests::rotation_scale_and_opacity ... ok
+test graphic_clip::tests::shape_appearance_layers ... ok
+test graphic_clip::tests::text_layer_renders_white_text_at_position ... ok
+test graphic_clip::tests::tight_image_matches_full_render ... ok
+test graphics::tests::burn_in_raster_budget_rejects_huge_and_non_finite_bounds ... ok
+test lumetri_hdr_tests::curves_span_the_hdr_range ... ok
+test lumetri_hdr_tests::exposure_is_stops_of_light_in_hdr ... ok
+test lumetri_hdr_tests::hdr_specular_sets_highlights_above_hdr_white ... ok
+test lumetri_hdr_tests::hsl_refine_blur_softens_the_key ... ok
+test lumetri_hdr_tests::hsl_refine_denoise_removes_speckles ... ok
+test lumetri_hdr_tests::identity_keeps_hdr_highlights_in_pq_and_hlg ... ok
+test lumetri_hdr_tests::whites_and_contrast_scale_with_hdr_white ... ok
+test flow::tests::large_frames_estimate_flow_at_the_working_size ... ok
+test lumetri_presets::tests::preview_picture_has_ramp_chips_and_sky ... ok
+test lumetri_presets::tests::presets_are_valid_and_change_the_picture ... ok
+test luts::tests::library_cache_uses_retained_text_identity_without_rehashing_source ... ok
+test luts::tests::library_luts_resolve_by_content ... ok
+test luts::tests::oversized_embedded_lut_is_not_parsed ... ok
+test mask::tests::ellipse_area_matches_analytic ... ok
+test mask::tests::expansion_inverted_opacity_modes ... ok
+test mask::tests::feather_is_a_symmetric_distance_falloff ... ok
+test mask::tests::hard_rect_is_exact_box_coverage ... ok
+test mask::tests::row_algorithm_matches_brute_force ... ok
+test mixer_tests::a_51_source_on_a_stereo_track_folds_down_instead_of_dropping_centre_and_surrounds ... ok
+test mixer_tests::a_51_track_passes_through_a_51_mix_and_folds_into_stereo ... ok
+test mixer_tests::a_nest_at_another_sample_rate_keeps_its_pitch_and_timing ... ok
+test mixer_tests::a_nest_plays_its_sequence_as_it_sounds_there ... ok
+test mixer_tests::a_nest_trimmed_in_starts_later_in_its_sequence ... ok
+test luts::tests::builtins_generate_and_resolve ... ok
+test mixer_tests::audio_clips_from_one_container_mix_distinct_streams ... ok
+test mixer_tests::audio_transition_curves ... ok
+test mixer_tests::audio_transition_on_a_cut_crossfades_through_the_handles ... ok
+test flow::tests::quarter_way_follows_the_time ... ok
+test mixer_tests::clip_volume_and_track_automation_both_apply ... ok
+test mixer_tests::effect_and_pan_automation_on_the_block_grid ... ok
+test mixer_tests::fader_gain_is_sample_exact ... ok
+test color_match::tests::skin_protection_limits_the_skin_hue_shift ... ok
+test mixer_tests::a_sequence_nested_in_itself_mixes_to_an_end ... ok
+test mixer_tests::live_override_holds_and_ramps_back ... ok
+test mixer_tests::pan_laws ... ok
+test mixer_tests::pan51_automation_is_block_invariant ... ok
+test mixer_tests::sends_route_to_submixes ... ok
+test mixer_tests::solo_and_mute_logic ... ok
+test mixer_tests::speed_and_reverse_on_a_nest_change_its_sound_like_a_clips ... ok
+test mixer_tests::stereo_and_mono_tracks_into_a_51_mix_use_the_51_panner ... ok
+test mixer_tests::stereo_track_through_a_51_submix_into_a_stereo_mix ... ok
+test mixer_tests::volume_automation_is_sample_accurate_and_block_invariant ... ok
+test multicam::tests::auto_adjust_lowers_playback_cell_scale ... ok
+test multicam::tests::paging_beyond_sixteen_angles ... ok
+test mixer_tests::latency_compensation_aligns_paths ... ok
+test flow::tests::uniform_motion_lands_half_way ... ok
+test nest_tests::a_larger_nest_is_cropped_by_the_frame ... ok
+test nest_tests::a_nest_at_another_frame_rate_shows_its_sequence_at_the_same_moment ... ok
+test mixer_tests::render_and_playback_paths_are_identical ... ok
+test nest_tests::a_smaller_nest_is_shown_at_its_own_size_in_the_middle ... ok
+test mixer_tests::constant_insert_refresh_matches_grid_refresh_and_live_edits ... ok
+test nest_tests::opacity_and_effects_on_a_nest_apply_to_its_whole_picture ... ok
+test par_tests::a_sequence_with_the_clips_pixel_aspect_shows_it_pixel_for_pixel ... ok
+test par_tests::an_anamorphic_clip_fills_a_square_pixel_frame_at_100_percent ... ok
+test nest_tests::captions_inside_a_nest_are_part_of_its_picture ... ok
+test par_tests::interpret_footage_overrides_the_files_pixel_aspect ... ok
+test par_tests::rotation_happens_at_the_display_aspect ... ok
+test par_tests::scale_to_frame_size_fits_the_display_size ... ok
+test par_tests::square_pixel_clips_are_narrowed_in_a_non_square_sequence ... ok
+test par_tests::the_gpu_plan_places_an_anamorphic_clip_like_the_cpu ... ok
+test plan::tests::flattening_an_operation_preserves_its_picture ... ok
+test plan::tests::layer_plan_has_a_global_budget ... ok
+test preview_tests::a_nests_audio_previews_follow_the_sound_of_its_sequence ... ok
+test preview_tests::editing_one_clip_invalidates_only_its_segments ... ok
+test preview_tests::effect_costs ... ignored
+test preview_tests::effect_tiers_are_ordered ... ok
+test preview_tests::hashes_are_stable_across_save_and_load ... ok
+test preview_tests::need_classification_none_yellow_red ... ok
+test preview_tests::renaming_relabelling_and_moving_keep_hashes ... ok
+test preview_tests::segments_split_at_every_edit_point_and_skip_gaps ... ok
+test preview_tests::transitions_are_their_own_segments ... ok
+test nest_tests::speed_reverse_and_frame_hold_on_a_nest_pick_the_frame_of_its_sequence ... ok
+test region_tests::a_region_layer_expands_to_the_whole_layer ... ok
+test par_tests::hostile_pixel_aspect_ratios_render_square_without_panicking ... ok
+test region_tests::hdr_media_is_planned_for_the_gpu_with_its_colour_management ... ok
+test region_tests::which_layers_take_a_shortcut ... ok
+test remix::tests::not_remixed_reads_nothing ... ok
+test region_tests::a_rectangle_mixes_like_the_padded_layer_in_every_blend_mode ... ok
+test remix::tests::state_roundtrips_through_the_hidden_effect ... ok
+test scene::tests::degenerate_inputs ... ok
+test remix::tests::plays_the_pieces_and_ignores_request_cuts ... ok
+test scene::tests::min_shot_length_merges_flashes ... ok
+test scene::tests::sensitivity_controls_subtle_cuts ... ok
+test tests::a_multicam_clip_showing_itself_plans_and_renders_to_an_end ... ok
+test scene::tests::finds_hard_cuts_and_ignores_motion ... ok
+test tests::audio_fx_chain_is_continuous_and_random_access_matches ... ok
+test tests::audio_fx_limiter_holds_ceiling ... ok
+test tests::audio_mix_bars_tone ... ok
+test nest_tests::a_plain_nest_is_planned_as_its_own_layers_and_looks_the_same ... ok
+test tests::cross_dissolve_midpoint ... ok
+test tests::composites_tracks_and_opacity ... ok
+test tests::half_resolution_matches_full_downsampled ... ok
+test tests::a_reversed_clip_shows_exactly_its_source_range ... ok
+test tests::draft_reduced_resolution_plans_carry_decimated_yuv ... ok
+test tests::motion_scale_and_position ... ok
+test tests::over_black_with_alpha_keeps_the_color_and_the_alpha ... ok
+test tests::offline_slate_is_deterministic_and_marked ... ok
+test tests::plan_matches_reference_renderer ... ok
+test track::tests::ransac_rejects_outliers ... ok
+test track::tests::tracks_rotation ... ok
+test nest_tests::a_nest_that_is_not_plain_is_still_drawn_right ... ok
+test track::tests::tracks_similarity ... ok
+test transitions::motion::unit::easings_hit_their_ends ... ok
+test transitions::motion::unit::flat_card_maps_pixels_to_themselves ... ok
+test transitions::tests::contact_sheets ... ignored
+test tests::morph_cut_frames_render_on_the_cpu_with_the_morph ... ok
+test track::tests::tracks_translation ... ok
+test transitions::tests::directions_differ ... ok
+test transitions::tests::disc_blur_with_shared_offsets_is_bit_identical ... ok
+test transitions::tests::endpoints_are_exact_outgoing_and_incoming ... ok
+test tests::push_plan_preserves_reference_track_order_and_reverse ... ok
+test transitions::tests::continuous_near_both_ends ... ok
+test transitions::tests::lens_blur_frame_time ... ignored
+test transitions::tests::linear_wipe_reveals_from_the_trailing_side ... ok
+test transitions::tests::deterministic ... ok
+test transitions::tests::modern_and_legacy_ids_are_distinct_renders ... ok
+test transitions::tests::every_parameter_changes_the_picture ... ok
+test transitions::tests::morph_cut_moves_the_subject_instead_of_double_exposing ... ok
+test transitions::tests::morph_cut_tracks_textured_subjects_and_follows_the_progress ... ok
+test transitions::tests::push_moves_frames_by_the_eased_distance ... ok
+test transitions::tests::typewriter_cursor_stays_on_the_text_block ... ok
+test transitions::tests::wipe_border_and_centre ... ok
+test vfx::tests::asc_cdl_known_values ... ok
+test vfx::tests::auto_reframe_follows_the_subject ... ok
+test vfx::tests::bokeh_and_focus_blur ... ok
+test vfx::tests::channel_mix_swaps_channels ... ok
+test vfx::tests::clone_auto_align_and_rounded_crop ... ok
+test vfx::tests::colour_replace_and_cineon ... ok
+test vfx::tests::corner_pin_maps_corners ... ok
+test vfx::tests::echo_combines_operators ... ok
+test transitions::tests::golden_fingerprints ... ok
+test vfx::tests::every_choice_value_runs ... ok
+test vfx::tests::every_new_effect_is_defined_as_video ... ok
+test vfx::tests::generators_known_values ... ok
+test vfx::tests::keyers_known_values ... ok
+test vfx::tests::lights_add_light_around_highlights ... ok
+test vfx::tests::long_shadow_and_stroke_geometry ... ok
+test vfx::tests::magnify_and_spherize_enlarge_the_centre ... ok
+test vfx::tests::neutral_parameters_are_identity ... ok
+test vfx::tests::paint_bucket_fills_the_connected_region ... ok
+test vfx::tests::pipeline::temporal_and_track_effects_render_through_the_sequence ... ok
+test vfx::tests::posterize_time_and_echo_read_other_frames ... ok
+test vfx::tests::rotate_3d_z_matches_a_2d_rotation ... ok
+test vfx::tests::track_matte_uses_the_other_tracks_alpha_and_luma ... ok
+test vfx::tests::transform_presets_animate_over_the_clip ... ok
+test vfx::tests::transform_shutter_override_blurs_moving_position ... ok
+test vfx::tests::transform_shutter_uses_the_sequence_frame_rate_without_env ... ok
+test vfx::tests::turbulent_displace_moves_pixels_and_pins_edges ... ok
+test vfx::tests::video_limiter_clips_super_whites ... ok
+test vfx::tests::vignette_darkens_corners_only ... ok
+test vfx::tests::vr_rotate_sphere_pans_exactly ... ok
+test vfx::tests::warp_stabilizer_removes_camera_jitter ... ok
+test vfx::tests::write_on_follows_the_animated_brush ... ok
+test vfx::tests::every_effect_is_finite_in_range_and_deterministic ... ok
+test region_tests::shortcuts_give_the_general_paths_bits ... ok
+test transitions::tests::midpoint_is_a_real_transition_and_sane ... ok
+test transitions::tests::no_nan_on_degenerate_inputs ... ok
+
+test result: ok. 203 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.62s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_scopes-99b74247f7ea17d7)
+
+running 15 tests
+test tests::clamp_signal_controls_out_of_range_values ... ok
+test tests::hdr_axis_helpers ... ok
+test tests::names_round_trip ... ok
+test tests::nan_and_empty_signals_do_not_panic ... ok
+test tests::perf_scopes_at_1080p ... ignored
+test tests::hls_vectorscope_puts_hue_on_the_angle_and_saturation_on_the_radius ... ok
+test tests::paint_adds_traces_and_leaves_empty_cells_transparent ... ok
+test tests::single_colour_lands_in_exact_histogram_bins ... ok
+test tests::summaries_report_levels_in_percent ... ok
+test tests::colour_bars_parade_levels_and_vectorscope_targets ... ok
+test tests::yc_waveform_draws_chroma_around_luma ... ok
+test tests::yuv_parade_offsets_chroma_to_mid_scale ... ok
+test tests::vectorscope_positions_of_primaries_are_known ... ok
+test tests::ramp_fills_every_bin_and_waveform_row_equals_code_value ... ok
+test tests::decimation_keeps_whole_samples ... ok
+
+test result: ok. 14 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_speech-73232a39402341ee)
+
+running 15 tests
+test diarize::tests::chunks_split_at_pauses_and_join_short_ones ... ok
+test diarize::tests::excessive_turns_fall_back_without_clustering ... ok
+test models::tests::artifact_names_stay_inside_the_model_directory ... ok
+test mel::tests::filterbank_shape_and_coverage ... ok
+test models::tests::catalogue_is_pinned_and_checksummed ... ok
+test models::tests::installed_checks_sizes ... ok
+test tests::downmix_averages ... ok
+test tests::fixed_transcriber_trims_and_cancels ... ok
+test tests::sample_ticks_are_exact ... ok
+test tests::wer_counts_edits ... ok
+test vad::tests::silence_is_trimmed_from_words ... ok
+test models::tests::same_length_corruption_is_not_installed ... ok
+test mel::tests::a_tone_lands_in_its_band ... ok
+test diarize::tests::one_voice_is_one_speaker ... ok
+test diarize::tests::two_synthetic_voices_are_told_apart ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_testkit-82e2967a42d5abbd)
+
+running 19 tests
+test fixtures::tests::root_is_the_workspace ... ok
+test deadline::tests::a_panic_in_the_body_is_re_raised - should panic ... ok
+test fixtures::tests::temp_paths_are_unique_and_keep_the_extension ... ok
+test golden::tests::date_and_sidecar_fields ... ok
+test golden::tests::diff_metrics ... ok
+test fixtures::tests::generate_is_cached_and_atomic ... ok
+test golden::tests::utc_parts_preserves_out_of_range_years ... ok
+test oracle::tests::encoder_lookup_matches_the_name_column_only ... ok
+test golden::tests::png_round_trip_rgb_and_rgba ... ok
+test oracle::tests::explicit_path_wins_and_bad_path_errors ... ok
+test oracle::tests::formats_listing_detects_a_supported_format ... ok
+test oracle::tests::known_dirs_are_the_fallback ... ok
+test golden::tests::check_golden_accepts_within_tolerance_and_reports_failures ... ok
+test oracle::tests::version_string_parses_ffmpeg_banner ... ok
+test wav::tests::header_sizes ... ok
+test oracle::tests::path_search_finds_plain_and_exe_names ... ok
+test oracle::tests::live_ffmpeg_reports_its_own_apv_support ... ok
+test deadline::tests::a_slow_body_passes ... ok
+test deadline::tests::a_hang_fails_and_names_the_input - should panic ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.06s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_text-71d2e8cee69bed3b)
+
+running 44 tests
+test fonts::tests::bundled_families_and_resolution ... ok
+test fonts::tests::japanese_falls_back_to_craft_fonts ... ok
+test fonts::directory_tests::directory_source_does_not_follow_symlinked_font_trees ... ok
+test fonts::tests::metrics_and_coverage ... ok
+test fonts::tests::covers_text_does_not_keep_file_bytes ... ok
+test layout::tests::bidi_reorders_rtl_runs ... ok
+test layout::tests::caps_and_small_caps ... ok
+test layout::tests::carets_and_hit_testing ... ok
+test layout::tests::empty_text_has_a_caret ... ok
+test layout::tests::a_box_height_leaves_out_the_lines_that_do_not_fit ... ok
+test layout::tests::fallback_font_for_missing_glyphs ... ok
+test layout::tests::kerning_and_ligatures_change_advances ... ok
+test layout::tests::ligature_caret_interpolates ... ok
+test layout::tests::newlines_make_paragraphs_and_leading_adds ... ok
+test layout::tests::point_text_alignment ... ok
+test layout::tests::style_runs_shift_underline_and_track ... ok
+test layout::tests::style_runs_split_items_and_grow_lines ... ok
+test layout::tests::vertical_cells_keep_combining_marks_with_their_base ... ok
+test fonts::tests::missing_family_falls_back_to_inter ... ok
+test layout::tests::vertical_text_stacks_characters_in_columns ... ok
+test layout::tests::vertical_underline_runs_down_the_column ... ok
+test layout::tests::wraps_area_text_and_justifies ... ok
+test mask::tests::blur_keeps_mass ... ok
+test mask::tests::distance_transform_is_euclidean ... ok
+test mask::tests::strokes_sit_outside_centre_and_inside ... ok
+test perf::three_line_title_is_fast ... ok
+test raster::tests::circle_area ... ok
+test raster::tests::embolden_grows_outline_and_shrinks_holes ... ok
+test raster::tests::hole_with_opposite_winding ... ok
+test raster::tests::rectangle_coverage ... ok
+test raster::tests::round_rect_area ... ok
+test raster::tests::transforms_compose ... ok
+test render::tests::cached_and_outline_paths_agree ... ok
+test render::tests::h_has_two_stems ... ok
+test render::tests::oversized_glyph_mask_is_rejected_before_allocation ... ok
+test render::tests::rotated_text_draws ... ok
+test render::tests::synthetic_styles ... ok
+test sfnt::tests::faces_without_outline_tables_are_left_out ... ok
+test sfnt::tests::later_non_improving_name_records_are_not_decoded ... ok
+test sfnt::tests::reads_bundled_names ... ok
+test fonts::tests::system_scan_finds_fonts ... ok
+test layout::tests::japanese_vertical_punctuation_uses_alternates_at_the_top_right ... ok
+test layout::tests::japanese_vertical_titles_with_an_installed_font ... ok
+test layout::tests::vertical_kana_keep_decomposed_dakuten_in_the_same_cell ... ok
+
+test result: ok. 44 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_time-b4412d417750181d)
+
+running 23 tests
+test tests::boundary_rates_saturate_without_wrapping_and_keep_representable_values_exact ... ok
+test tests::audio_samples_negative_time_has_leading_minus ... ok
+test tests::drop_frame_fields_keep_cancelling_terms_wide_at_storage_limits ... ok
+test tests::display_modes ... ok
+test tests::empty_time_ranges_never_overlap ... ok
+test tests::drop_frame_known_values ... ok
+test tests::every_common_rate_is_exact ... ok
+test tests::exotic_frame_rate_durations ... ok
+test tests::drop_frame_bijection ... ok
+test tests::exotic_frame_tick_roundtrip ... ok
+test tests::hostile_rates_and_timecodes_never_panic ... ok
+test tests::extreme_frame_math_stays_monotonic ... ok
+test tests::frame_tick_roundtrip ... ok
+test tests::parse_forms ... ok
+test tests::rational_conversions ... ok
+test tests::scalar_time_conversions_saturate_at_storage_limits ... ok
+test tests::seconds_display_has_no_negative_zero ... ok
+test tests::signed_field_rejected ... ok
+test tests::tick_arithmetic_saturates_only_outside_storage_limits ... ok
+test tests::ndf_parse_roundtrip ... ok
+test tests::time_range_overlap_respects_half_open_boundaries ... ok
+test tests::numeric_limits_are_total_across_frame_conversion_and_display ... ok
+test tests::exotic_frame_rate_roundtrip ... ok
+
+test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_tts-f9b6a3c83dbc2a2a)
+
+running 13 tests
+test catalog::tests::files_are_pinned_and_voices_resolve ... ok
+test formant::tests::pause_markers_are_exact_silence ... ok
+test formant::tests::refuses_what_it_cannot_say ... ok
+test script::tests::hostile_inputs_never_panic_and_pauses_are_capped ... ok
+test script::tests::malformed_markers_are_text ... ok
+test script::tests::splits_speech_and_pauses ... ok
+test tests::catalogue_ids_are_unique_and_resolvable ... ok
+test tests::empty_scripts_are_refused ... ok
+test tests::params_are_checked ... ok
+test formant::tests::speaks_deterministically_with_valid_samples ... ok
+test formant::tests::hostile_scripts_never_panic ... ok
+test formant::tests::pace_scales_duration ... ok
+test formant::tests::pitch_follows_voice_and_setting ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_tts_text-71b751c1c3c5796e)
+
+running 48 tests
+test normalize::tests::bad_grouping_falls_back ... ok
+test normalize::tests::abbreviations ... ok
+test normalize::tests::cardinals ... ok
+test normalize::tests::british_vs_american ... ok
+test normalize::tests::acronyms ... ok
+test normalize::tests::dates ... ok
+test normalize::tests::deterministic ... ok
+test normalize::tests::digit_groups ... ok
+test normalize::tests::fraction_operands_may_have_three_digits ... ok
+test normalize::tests::first_digit_group_keeps_leading_zeros ... ok
+test normalize::tests::fractions ... ok
+test normalize::tests::magnitude_is_kept_before_exact_tens_ordinals ... ok
+test normalize::tests::money ... ok
+test normalize::tests::money_fraction_beyond_two_digits_is_not_hundreds_of_cents ... ok
+test normalize::tests::negatives_and_decimals ... ok
+test normalize::tests::negative_money_keeps_its_sign ... ok
+test normalize::tests::ordinals ... ok
+test normalize::tests::oversized_and_leading_zero_numbers_go_digit_by_digit ... ok
+test normalize::tests::pause_markers ... ok
+test normalize::tests::percent ... ok
+test normalize::tests::plain_words_pass_through ... ok
+test normalize::tests::percent_and_decimal_suffixes_keep_leading_zeroes ... ok
+test normalize::tests::punctuation_is_kept ... ok
+test normalize::tests::sentence_ends ... ok
+test normalize::tests::sentence_final_numbers_end_the_sentence ... ok
+test normalize::tests::short_hyphenated_groups_keep_every_number ... ok
+test normalize::tests::symbols ... ok
+test normalize::tests::times ... ok
+test normalize::tests::the_briefs_example_sentence ... ok
+test normalize::tests::years ... ok
+test normalize::tests::year_rule_survives_punctuation ... ok
+test phonemize::tests::am_reads_the_letter_name_not_the_article ... ok
+test normalize::tests::hostile_inputs_do_not_panic ... ok
+test phonemize::tests::chunks_are_bounded_and_split_at_punctuation ... ok
+test phonemize::tests::letter_to_sound_cases ... ok
+test phonemize::tests::letter_to_sound_refuses_an_absurdly_long_unknown_word ... ok
+test phonemize::tests::measured_accuracy_against_cmudict ... ok
+test phonemize::tests::every_output_char_is_in_symbols ... ok
+test normalize::tests::malformed_marker_and_apostrophe_runs_make_linear_progress ... ok
+test phonemize::tests::parses_cmudict ... ok
+test phonemize::tests::overrides_both_forms_and_caps ... ok
+test phonemize::tests::skips_an_unreasonably_long_dictionary_pronunciation ... ok
+test phonemize::tests::hostile_inputs_do_not_panic ... ok
+test phonemize::tests::skips_malformed_lines_and_counts_them ... ok
+test phonemize::tests::overrides_are_capped_not_errors ... ok
+test phonemize::tests::table_cases ... ok
+test phonemize::tests::chunk_splitting_is_iterative_for_many_chunks ... ok
+test phonemize::tests::refuses_oversized_dictionaries ... ok
+
+test result: ok. 48 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_ui_egui-f48eb3df3b77bbf4)
+
+running 201 tests
+test audio_recovery_tests::a_restarted_stream_keeps_the_device_clock_and_the_sound ... ok
+test audio_recovery_tests::a_failed_device_clock_resumes_from_the_displayed_frame ... ok
+test audio_recovery_tests::changing_hardware_recovers_wall_clock_playback_without_rewinding ... ok
+test audio_recovery_tests::a_lost_output_is_reopened_and_the_sound_returns ... ok
+test calc::tests::a_leading_times_or_divide_applies_to_the_current_value ... ok
+test calc::tests::bad_input_gives_nothing ... ok
+test calc::tests::calculations ... ok
+test calc::tests::numbers_separated_by_spaces_or_a_unit_are_not_merged ... ok
+test calc::tests::units_are_ignored ... ok
+test clipboard_key_tests::ctrl_c_x_v_become_key_presses ... ok
+test clipboard_key_tests::extra_modifiers_are_kept ... ok
+test clipboard_key_tests::other_events_are_left_alone ... ok
+test clipboard_key_tests::windows_insert_and_delete_variants ... ok
+test control::base64_tests::rfc4648_vectors ... ok
+test control::base64_tests::synthetic_event_repetition_is_bounded ... ok
+test audio_recovery_tests::a_device_that_appears_mid_playback_starts_sounding ... ok
+test control::input_bounds_tests::click_count_above_limit_is_rejected ... ok
+test control::input_bounds_tests::drag_steps_above_limit_are_rejected ... ok
+test control::input_bounds_tests::hostile_counts_and_steps_leave_pending_input_unchanged ... ok
+test control::input_bounds_tests::valid_click_counts_preserve_button_pairs_and_modifiers ... ok
+test control::input_bounds_tests::valid_drag_steps_preserve_defaults_endpoints_and_release ... ok
+test credits::tests::alphabetical_ignores_at_and_case ... ok
+test credits::tests::delta_and_dates ... ok
+test credits::tests::formatting ... ok
+test credits::tests::names_fall_back_to_the_username ... ok
+test dock::tests::close_and_open ... ok
+test dock::tests::open_near_falls_back_to_the_first_group ... ok
+test dock::tests::split_first_never_panics_on_tiny_areas ... ok
+test dock::tests::workspaces_contain_core_panels ... ok
+test frames::tests::a_frame_goes_up_opaque_or_with_its_alpha ... ok
+test frames::tests::a_job_started_after_the_drop_is_cancelled ... ok
+test audio_recovery_tests::forward_shuttle_playback_keeps_audio_enabled ... ok
+test frames::tests::draft_decoding_only_for_reduced_resolution_playback ... ok
+test frames::tests::meter_counts_frames_not_refreshes ... ok
+test frames::tests::meter_counts_skipped_frames_but_not_speed_steps_or_loops ... ok
+test frames::tests::meter_resync_does_not_count_hidden_time ... ok
+test frames::tests::only_item_thumbnails_are_background_work ... ok
+test frames::tests::playback_plan_skips_frames_only_when_workers_cannot_keep_up ... ok
+test frames::tests::the_straight_color_table_matches_the_formula ... ok
+test gpu_fallback_tests::plan_side_covers_output_and_every_layer ... ok
+test gpu_fallback_tests::software_rasterizers_are_detected ... ok
+test audio_recovery_tests::changing_pitch_preference_restarts_audio_at_the_current_playhead ... ok
+test crash::tests::hook_records_and_logs_worker_panics ... ok
+test frames::tests::dropping_the_server_ends_its_workers ... ok
+test audio_recovery_tests::maintain_pitch_shuttling_controls_the_samples_sent_to_the_device ... ok
+test i18n::tests::catalogs_are_well_formed ... ok
+test i18n::tests::chinese_switches_and_persists_or_is_refused_without_a_font ... ok
+test i18n::tests::german_renders_with_bundled_fonts ... ok
+test i18n::tests::indonesian_renders_with_bundled_fonts ... ok
+test i18n::tests::french_renders_with_bundled_fonts ... ok
+test i18n::tests::italian_renders_with_bundled_fonts ... ok
+test i18n::tests::portuguese_renders_with_bundled_fonts ... ok
+test i18n::tests::japanese_needs_an_installed_font ... ok
+test i18n::tests::searches_match_translated_labels_and_english_names ... ok
+test i18n::tests::template_values_are_not_interpreted_as_placeholders ... ok
+test i18n::tests::the_current_language_is_per_thread ... ok
+test i18n::tests::tl_literals_are_found_and_unescaped ... ok
+test i18n::tests::system_language_follows_the_preferred_locales ... ok
+test i18n::tests::tl_literals_are_plain_strings ... ok
+test i18n::tests::unknown_strings_pass_through_and_languages_round_trip ... ok
+test i18n::tests::system_language_preference_uses_the_host_languages ... ok
+test icons::tests::menu_mark_lines_are_evenly_spaced ... ok
+test i18n::tests::ukrainian_renders_with_bundled_fonts ... ok
+test links::tests::failed_link_dialog_keeps_the_address_until_closed ... ok
+test links::tests::help_menu_items_say_where_they_go ... ok
+test links::tests::urls_target_the_shotclutch_repository ... ok
+test mac_ctrl_click_tests::ctrl_click_is_a_secondary_click ... ok
+test mac_ctrl_click_tests::new_plain_press_clears_a_stale_pairing ... ok
+test mac_ctrl_click_tests::plain_click_is_untouched ... ok
+test mac_ctrl_click_tests::release_is_paired_to_the_ctrl_press ... ok
+test mac_ctrl_click_tests::synthesized_click_fires_secondary_clicked ... ok
+test links::tests::links_open_through_the_host_hook ... ok
+test menus::parse_shortcut_tests::ctrl_and_cmd_are_one_key_off_macos ... ok
+test menus::parse_shortcut_tests::edit_label_menu_swatch_uses_current_custom_palette ... ok
+test menus::tests::default_menu_items_are_the_shipped_menu_bar ... ok
+test native_menu_tests::native_menu_follows_undo_and_redo_availability ... ok
+test panels::effect_controls::drag_undo_tests::a_scale_drag_with_idle_frames_is_one_undo_step ... ok
+test i18n::tests::language_commands_switch_and_persist_without_a_document ... ok
+test menus::tests::hovering_another_title_switches_the_open_menu ... ok
+test panels::effect_controls::drag_undo_tests::each_press_begins_its_own_undo_step ... ok
+test panels::effect_controls::graph_drag_tests::position_graph_drags_one_coordinate_of_a_point_keyframe ... ok
+test panels::effect_controls::graph_drag_tests::a_dropped_graph_keyframe_stays_where_it_was_dropped ... ok
+test panels::effect_controls::lane_tests::ruler_labels_sequence_timecode ... ok
+test panels::effect_controls::lane_tests::a_clip_without_a_duration_still_draws ... ok
+test panels::effect_controls::param_text_tests::readable_values_for_text_lut_and_curve_params ... ok
+test panels::effect_controls::selection::tests::clip_clamping_does_not_extend_the_screen_space_snap_threshold ... ok
+test panels::effect_controls::selection::tests::keyframe_timeline_coordinates_follow_trim_speed_and_reverse ... ok
+test panels::export_mode::location_tests::location_tail_is_bounded_and_keeps_utf8_intact ... ok
+test panels::keyboard::transcript_selection_tests::prev_word_after_the_transcript_shrank_under_the_selection_does_not_panic ... ok
+test panels::masks::tests::constrain_45_snaps_to_the_nearest_eighth_turn ... ok
+test panels::masks::tests::shift_drag_constrains_total_movement_to_45_degree_steps ... ok
+test panels::media_browser::tests::dragging_several_files_carries_all_of_them ... ok
+test panels::meters::tests::a_roomy_panel_shows_every_part ... ok
+test panels::meters::tests::narrowing_drops_readout_units_then_readout_then_scale ... ok
+test panels::effect_controls::graph_drag_tests::scalar_graph_press_starts_at_the_pointer_origin_and_release_is_one_undo_step ... ok
+test panels::meters::tests::shortening_thins_the_scale_then_hides_it ... ok
+test panels::mixer::tests::meter_well_and_inactive_clip_light_follow_theme ... ok
+test panels::mixer::tests::taper_roundtrips_and_is_monotonic ... ok
+test panels::monitor::tests::button_editor_updates_visibility_without_affecting_other_monitor ... ok
+test panels::monitor::tests::eyedropper_averages_the_pixels_around_the_point ... ok
+test panels::monitor::tests::eyedropper_clamps_to_the_picture_edges ... ok
+test panels::monitor::tests::eyedropper_rejects_empty_and_truncated_frames ... ok
+test panels::monitor_view::tests::channel_view_greyscales ... ok
+test panels::monitor_view::tests::effective_resolution_follows_paused_and_high_quality ... ok
+test panels::monitor_view::tests::grid_cells_alternate_from_a_light_corner_and_stay_in_view ... ok
+test panels::monitor_view::tests::picture_rect_fits_or_magnifies_with_clamped_pan ... ok
+test panels::monitor_view::tests::snap_axis_picks_the_closest_target_within_reach ... ok
+test panels::monitor_view::tests::zooming_in_resolves_the_waveform_in_finer_columns ... ok
+test panels::project_views::clear_tests::clear_falls_back_to_the_selected_bin ... ok
+test panels::project_views::clear_tests::command_click_toggles_and_plain_click_replaces ... ok
+test panels::project_views::clear_tests::shift_click_selects_the_range_from_the_anchor ... ok
+test panels::sequence_settings::tests::aspect_labels ... ok
+test panels::sequence_settings::tests::display_formats_follow_the_timebase ... ok
+test panels::sequence_settings::tests::new_sequence_sends_its_settings_to_the_command ... ok
+test panels::sequence_settings::tests::only_changed_settings_are_sent ... ok
+test panels::settings::tests::appearance_button_cycles_modes_without_losing_theme_choices ... ok
+test panels::settings::tests::auto_follows_a_stubbed_system_theme ... ok
+test panels::settings::tests::diff_lists_changed_leaves ... ok
+test i18n::tests::missing_translations_report ... ok
+test panels::settings::tests::selection_tool_trim_kinds ... ok
+test panels::settings::tests::favorite_theme_star_and_shortcut_select_explicit_family ... ok
+test panels::shortcuts_dialog::localization_tests::command_search_accepts_translated_labels_ids_and_keys ... ok
+test panels::settings::tests::ui_scale_overrides_the_system_scale_and_auto_restores_it ... ok
+test panels::timeline::new_track_tests::a_full_video_area_scrolls_to_space_for_a_new_track ... ok
+test panels::timeline::new_track_tests::empty_space_past_the_tracks_adds_a_track ... ok
+test panels::timeline::reveal_tests::a_visible_or_hostile_playhead_leaves_the_view ... ok
+test panels::timeline::reveal_tests::end_scrolls_forward_to_the_playhead ... ok
+test panels::timeline::reveal_tests::home_scrolls_back_to_the_start ... ok
+test panels::timeline::ruler_tests::a_24_fps_view_at_100_pt_a_second_labels_every_two_seconds ... ok
+test panels::timeline::ruler_tests::damaged_rates_give_usable_strides ... ok
+test panels::timeline::ruler_tests::labels_sit_on_evenly_spaced_ticks ... ok
+test panels::timeline::thumbnail_tiles_tests::continuous_thumbnails_tile_the_visible_part_of_the_clip ... ok
+test panels::timeline::thumbnail_tiles_tests::head_and_tail_thumbnails_need_room_for_two_frames ... ok
+test panels::timeline::thumbnail_tiles_tests::zooming_keeps_the_frames_shown_before_the_zoom ... ok
+test panels::timeline::trim_preview_tests::each_audio_stream_gets_its_own_waveform_peaks ... ok
+test panels::text::tests::tab_widths_follow_the_drawn_label ... ok
+test panels::timeline::trim_preview_tests::rolling_an_edit_keeps_both_sides_in_place_but_a_stretch_still_squeezes ... ok
+test panels::timeline::trim_preview_tests::trimming_the_music_keeps_its_waveform_in_place ... ok
+test panels::timeline::waveform_tests::normalisation_is_capped_for_near_silent_sources ... ok
+test panels::timeline_hit::tests::a_grab_reports_what_is_under_it ... ok
+test panels::timeline_hit::tests::a_narrow_clip_keeps_its_middle_third ... ok
+test panels::timeline_hit::tests::a_narrow_gap_splits_at_its_middle ... ok
+test panels::timeline_hit::tests::a_press_on_a_marker_lands_on_its_start ... ok
+test panels::timeline_hit::tests::edge_kind_names_for_the_control_channel ... ok
+test panels::timeline_hit::tests::edges_do_not_depend_on_the_order_of_the_items ... ok
+test panels::timeline_hit::tests::free_edges_reach_into_the_gap_beside_them ... ok
+test panels::timeline_hit::tests::hostile_points_and_zooms_never_panic_or_grab_an_edge ... ok
+test panels::timeline_hit::tests::range_bands_hit_the_last_drawn_marker_and_stay_on_the_ruler ... ok
+test panels::timeline_hit::tests::the_side_of_a_cut_picks_the_clip ... ok
+test panels::timeline_hit::tests::selection_tool_trims_by_modifier_and_setting ... ok
+test panels::timeline_hit::tests::the_work_area_bar_has_two_ends_and_a_middle ... ok
+test panels::timeline_hit::tests::which_tools_trim_at_an_edge ... ok
+test panels::timeline_volume::tests::damaged_keyframe_times_do_not_panic ... ok
+test panels::timeline_volume::tests::keyframes_sit_where_their_media_time_plays ... ok
+test panels::timeline_volume::tests::the_waveform_gain_is_the_volume_that_plays ... ok
+test panels::timeline_volume::tests::the_line_follows_the_level ... ok
+test panels::tools::tests::a_right_click_on_a_grouped_tool_still_opens_its_flyout ... ok
+test panels::tools::tests::dragging_off_a_grouped_tool_opens_its_flyout_and_letting_go_on_a_row_picks_it ... ok
+test panels::tools::tests::letting_go_of_a_dragged_open_flyout_elsewhere_leaves_it_open ... ok
+test icons::tests::straight_lines_land_on_whole_pixels ... ok
+test panels::tools::tests::long_press_type_selects_vertical_without_selecting_on_release ... ok
+test panels::transform_handles::tests::handles_past_the_monitor_stop_at_its_edge ... ok
+test panels::transition_controls::tests::durations_read_as_timecode ... ok
+test rtl::tests::each_line_is_reordered_on_its_own ... ok
+test rtl::tests::hostile_ranges_give_nothing ... ok
+test rtl::tests::latin_and_numbers_inside_rtl_keep_their_order ... ok
+test rtl::tests::line_ranges_follow_the_rows ... ok
+test rtl::tests::lines_draw_arabic_in_reading_order ... ok
+test rtl::tests::ltr_paragraph_with_an_rtl_phrase ... ok
+test rtl::tests::marks_and_joiners_stay_in_their_word ... ok
+test rtl::tests::rtl_punctuation_and_brackets ... ok
+test rtl::tests::rtl_words_are_listed_last_word_first ... ok
+test screen_px_tests::a_hostile_scale_does_not_divide_by_zero ... ok
+test screen_px_tests::maps_screen_pixels_into_the_window ... ok
+test scrub::tests::a_grain_plays_once_from_its_cursor_then_silence ... ok
+test panels::transcript_cache::tests::changing_sequence_invalidates_content_without_a_project_edit ... ok
+test panels::transcript_cache::tests::cached_sequence_refreshes_after_edit_undo_and_project_replacement ... ok
+test scrub::tests::source_playback_owns_the_device ... ok
+test scrub::tests::nothing_plays_with_the_setting_off_or_while_playing ... ok
+test scrub::tests::scrubbing_plays_a_grain_and_stops_after_release ... ok
+test shuttle::tests::hostile_coordinates_and_channel_counts_produce_silence ... ok
+test panels::meters::tests::no_text_overlaps_at_any_size ... ok
+test text_focus_shortcut_tests::a_modified_chord_still_fires_while_text_is_focused ... ok
+test text_focus_shortcut_tests::an_unmodified_key_reaches_a_focused_text_field ... ok
+test text_focus_shortcut_tests::an_unmodified_key_still_fires_without_a_text_field ... ok
+test text_focus_shortcut_tests::the_telex_trigger_keys_are_left_to_the_field ... ok
+test theme::tests::a_highlight_of_ones_own_colours_the_playhead_timecodes_focus_and_targeting ... ok
+test theme::tests::chinese_names_render_in_every_theme_and_font_family ... ok
+test theme::tests::dark_and_medium_keep_existing_audio_and_effect_palettes ... ok
+test theme::tests::japanese_renders_with_craft_fonts ... ok
+test theme::tests::korean_text_renders_with_an_installed_korean_font ... ok
+test theme::tests::light_theme_has_light_chrome_and_plot_surfaces ... ok
+test theme::tests::the_default_highlight_leaves_the_theme_blues_as_designed ... ok
+test theme::tests::works_without_craft_fonts ... ok
+test voiceover_playback_tests::a_voice_over_take_records_into_the_empty_timeline_past_the_end ... ok
+test widgets::tests::clicking_a_hot_number_selects_its_whole_value ... ok
+test widgets::tests::dialogs_open_centered_and_drag ... ok
+test shuttle::tests::block_boundaries_and_seeks_do_not_change_the_output ... ok
+test shuttle::tests::pitch_latency_is_compensated_against_the_timeline ... ok
+test panels::effect_controls::lane_tests::ruler_survives_damaged_numbers ... ok
+test shuttle::tests::original_tones_survive_shuttling_including_high_frequencies ... ok
+
+test result: ok. 201 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.13s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_vp8-3ee000ec51b8fab4)
+
+running 3 tests
+test transform::tests::dc_only_blocks_are_flat ... ok
+test boolcoder::tests::reads_zeros_past_the_end ... ok
+test boolcoder::tests::round_trips_bools_at_every_probability ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_vp9-0c29b5ebf18f2388)
+
+running 14 tests
+test header::tests::superframe_index ... ok
+test probs::tests::defaults_load ... ok
+test probs::tests::merge_prob_identity_without_counts ... ok
+test tables::tests::default_coef_probs_unused_are_zero ... ok
+test inter::tests::scaled_path_with_unit_step_matches_unscaled ... ok
+test tables::tests::pareto_rows ... ok
+test tables::tests::trees_are_consistent ... ok
+test boolcoder::tests::matches_spec_model ... ok
+test transform::tests::adst_is_sine_basis ... ok
+test transform::tests::dc_only_shortcut_matches_full_transform ... ok
+test transform::tests::wht_round_trip_identity ... ok
+test transform::tests::idct_matches_float_reference ... ok
+test header::tests::inv_remap_is_bijective_per_prob ... ok
+test transform::tests::column_pass_matches_per_column_transform ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_web-15d71bb70eff1876)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

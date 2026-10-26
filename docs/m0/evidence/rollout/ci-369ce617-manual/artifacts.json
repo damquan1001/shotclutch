@@ -1,0 +1,165 @@
+{
+  "total_count": 8,
+  "artifacts": [
+    {
+      "id": 12693697511,
+      "node_id": "MDg6QXJ0aWZhY3QxMjY5MzY5NzUxMQ==",
+      "name": "checks-windows-2025-369ce617891c42fcf9c9307795339283e3d68dc4-1",
+      "size_in_bytes": 63655,
+      "url": "https://api.github.com/repos/damquan1001/shotclutch/actions/artifacts/12693697511",
+      "archive_download_url": "https://api.github.com/repos/damquan1001/shotclutch/actions/artifacts/12693697511/zip",
+      "expired": false,
+      "digest": "sha256:bb269fa54f2c0b42c9cf7476f70f496b8b0e9059af56b89b0e83951eb8d12f74",
+      "created_at": "2026-10-26T22:28:48Z",
+      "updated_at": "2026-10-26T22:28:48Z",
+      "expires_at": "2026-11-09T22:28:47Z",
+      "workflow_run": {
+        "id": 40403015233,
+        "repository_id": 1433518465,
+        "head_repository_id": 1433518465,
+        "head_branch": "codex/m0-foundation",
+        "head_sha": "369ce617891c42fcf9c9307795339283e3d68dc4"
+      }
+    },
+    {
+      "id": 12691504421,
+      "node_id": "MDg6QXJ0aWZhY3QxMjY5MTUwNDQyMQ==",
+      "name": "package-evidence-369ce617891c42fcf9c9307795339283e3d68dc4-1",
+      "size_in_bytes": 7482,
+      "url": "https://api.github.com/repos/damquan1001/shotclutch/actions/artifacts/12691504421",
+      "archive_download_url": "https://api.github.com/repos/damquan1001/shotclutch/actions/artifacts/12691504421/zip",
+      "expired": false,
+      "digest": "sha256:f34b07538d01b2da3f8ce5770ec3d2663f9002fdcbddef4e73c283545bed4234",
+      "created_at": "2026-10-26T21:54:40Z",
+      "updated_at": "2026-10-26T21:54:40Z",
+      "expires_at": "2026-11-09T21:54:39Z",
+      "workflow_run": {
+        "id": 40403015233,
+        "repository_id": 1433518465,
+        "head_repository_id": 1433518465,
+        "head_branch": "codex/m0-foundation",
+        "head_sha": "369ce617891c42fcf9c9307795339283e3d68dc4"
+      }
+    },
+    {
+      "id": 12691465203,
+      "node_id": "MDg6QXJ0aWZhY3QxMjY5MTQ2NTIwMw==",
+      "name": "release-build-macos-15-369ce617891c42fcf9c9307795339283e3d68dc4-1",
+      "size_in_bytes": 5304,
+      "url": "https://api.github.com/repos/damquan1001/shotclutch/actions/artifacts/12691465203",
+      "archive_download_url": "https://api.github.com/repos/damquan1001/shotclutch/actions/artifacts/12691465203/zip",
+      "expired": false,
+      "digest": "sha256:1ca98553d522ee7cbc7c451aea1decfd0efab7fb8aeab02f6086af53da88aa67",
+      "created_at": "2026-10-26T21:26:29Z",
+      "updated_at": "2026-10-26T21:26:29Z",
+      "expires_at": "2026-11-09T21:26:28Z",
+      "workflow_run": {
+        "id": 40403015233,
+        "repository_id": 1433518465,
+        "head_repository_id": 1433518465,
+        "head_branch": "codex/m0-foundation",
+        "head_sha": "369ce617891c42fcf9c9307795339283e3d68dc4"
+      }
+    },
+    {
+      "id": 12691384415,
+      "node_id": "MDg6QXJ0aWZhY3QxMjY5MTM4NDQxNQ==",
+      "name": "qualification-fixtures-369ce617891c42fcf9c9307795339283e3d68dc4-1",
+      "size_in_bytes": 92817,
+      "url": "https://api.github.com/repos/damquan1001/shotclutch/actions/artifacts/12691384415",
+      "archive_download_url": "https://api.github.com/repos/damquan1001/shotclutch/actions/artifacts/12691384415/zip",
+      "expired": false,
+      "digest": "sha256:163a12f9f02642a94f52bf92f0611d8e82f759f57c4a5781ca0de64ff8035d87",
+      "created_at": "2026-10-26T21:54:39Z",
+      "updated_at": "2026-10-26T21:54:39Z",
+      "expires_at": "2026-11-25T21:54:38Z",
+      "workflow_run": {
+        "id": 40403015233,
+        "repository_id": 1433518465,
+        "head_repository_id": 1433518465,
+        "head_branch": "codex/m0-foundation",
+        "head_sha": "369ce617891c42fcf9c9307795339283e3d68dc4"
+      }
+    },
+    {
+      "id": 12691019670,
+      "node_id": "MDg6QXJ0aWZhY3QxMjY5MTAxOTY3MA==",
+      "name": "shotclutch-windows-x64-369ce617891c42fcf9c9307795339283e3d68dc4-1",
+      "size_in_bytes": 74059283,
+      "url": "https://api.github.com/repos/damquan1001/shotclutch/actions/artifacts/12691019670",
+      "archive_download_url": "https://api.github.com/repos/damquan1001/shotclutch/actions/artifacts/12691019670/zip",
+      "expired": false,
+      "digest": "sha256:848898accf41fe49dcbc44d2654867837e95f761f3a769966d1a5fd9948f40e8",
+      "created_at": "2026-10-26T21:54:38Z",
+      "updated_at": "2026-10-26T21:54:38Z",
+      "expires_at": "2026-11-25T21:54:34Z",
+      "workflow_run": {
+        "id": 40403015233,
+        "repository_id": 1433518465,
+        "head_repository_id": 1433518465,
+        "head_branch": "codex/m0-foundation",
+        "head_sha": "369ce617891c42fcf9c9307795339283e3d68dc4"
+      }
+    },
+    {
+      "id": 12690489048,
+      "node_id": "MDg6QXJ0aWZhY3QxMjY5MDQ4OTA0OA==",
+      "name": "checks-ubuntu-24.04-369ce617891c42fcf9c9307795339283e3d68dc4-1",
+      "size_in_bytes": 64745,
+      "url": "https://api.github.com/repos/damquan1001/shotclutch/actions/artifacts/12690489048",
+      "archive_download_url": "https://api.github.com/repos/damquan1001/shotclutch/actions/artifacts/12690489048/zip",
+      "expired": false,
+      "digest": "sha256:0b3473e67724c9ee7bc6f03eed6fb5a97f71ca83bd2f08cc2def26e2de30ab31",
+      "created_at": "2026-10-26T21:57:54Z",
+      "updated_at": "2026-10-26T21:57:54Z",
+      "expires_at": "2026-11-09T21:57:53Z",
+      "workflow_run": {
+        "id": 40403015233,
+        "repository_id": 1433518465,
+        "head_repository_id": 1433518465,
+        "head_branch": "codex/m0-foundation",
+        "head_sha": "369ce617891c42fcf9c9307795339283e3d68dc4"
+      }
+    },
+    {
+      "id": 12690249376,
+      "node_id": "MDg6QXJ0aWZhY3QxMjY5MDI0OTM3Ng==",
+      "name": "checks-macos-15-369ce617891c42fcf9c9307795339283e3d68dc4-1",
+      "size_in_bytes": 62681,
+      "url": "https://api.github.com/repos/damquan1001/shotclutch/actions/artifacts/12690249376",
+      "archive_download_url": "https://api.github.com/repos/damquan1001/shotclutch/actions/artifacts/12690249376/zip",
+      "expired": false,
+      "digest": "sha256:03429d15fd4dfa91510ee171f11e3004dd73ca84a9510d21219d36b3ec02737f",
+      "created_at": "2026-10-26T21:47:25Z",
+      "updated_at": "2026-10-26T21:47:25Z",
+      "expires_at": "2026-11-09T21:47:24Z",
+      "workflow_run": {
+        "id": 40403015233,
+        "repository_id": 1433518465,
+        "head_repository_id": 1433518465,
+        "head_branch": "codex/m0-foundation",
+        "head_sha": "369ce617891c42fcf9c9307795339283e3d68dc4"
+      }
+    },
+    {
+      "id": 12689754723,
+      "node_id": "MDg6QXJ0aWZhY3QxMjY4OTc1NDcyMw==",
+      "name": "release-build-ubuntu-24.04-369ce617891c42fcf9c9307795339283e3d68dc4-1",
+      "size_in_bytes": 9232,
+      "url": "https://api.github.com/repos/damquan1001/shotclutch/actions/artifacts/12689754723",
+      "archive_download_url": "https://api.github.com/repos/damquan1001/shotclutch/actions/artifacts/12689754723/zip",
+      "expired": false,
+      "digest": "sha256:39460f697627d14c2a8dfdae0c756e165a31caa412c6f41f6ba438934daeaead",
+      "created_at": "2026-10-26T21:40:15Z",
+      "updated_at": "2026-10-26T21:40:15Z",
+      "expires_at": "2026-11-09T21:40:14Z",
+      "workflow_run": {
+        "id": 40403015233,
+        "repository_id": 1433518465,
+        "head_repository_id": 1433518465,
+        "head_branch": "codex/m0-foundation",
+        "head_sha": "369ce617891c42fcf9c9307795339283e3d68dc4"
+      }
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+
+running 4 tests
+test determinism_tests::max_threads_caps_the_threads_an_export_runs_on ... ok
+test determinism_tests::max_threads_does_not_change_the_file ... ok
+test determinism_tests::max_threads_is_a_setting_of_the_json_interface ... ok
+test determinism_tests::max_threads_never_adds_threads ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 123 filtered out; finished in 1.12s
+

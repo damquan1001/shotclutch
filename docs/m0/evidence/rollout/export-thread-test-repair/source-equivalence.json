@@ -1,0 +1,10 @@
+{
+  "from_revision": "369ce617891c42fcf9c9307795339283e3d68dc4",
+  "to_revision": "7d32d7aebabf0c71fae59210ab1e041d029db063",
+  "non_documentation_paths_changed": [
+    "crates/export/src/determinism_tests.rs"
+  ],
+  "test_module_gate": "crates/export/src/lib.rs:2058 #[cfg(test)] mod determinism_tests",
+  "source_sha256": "e13a82513d5a2164d1304eaa0e0f5e0e9b6fecc7ac4c61645caadff496636959",
+  "limitation": "Test-only source repair; existing artifact reports retain their own revision. Full hosted acceptance of repair remains pending."
+}

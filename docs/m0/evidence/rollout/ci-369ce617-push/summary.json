@@ -1,0 +1,75 @@
+{
+  "run_id": 40403013899,
+  "revision": "369ce617891c42fcf9c9307795339283e3d68dc4",
+  "event": "push",
+  "conclusion": "failure",
+  "lanes": {
+    "checks-linux": {
+      "result": "passed",
+      "passing_executions": 2646,
+      "explicitly_ignored": 12,
+      "ignored_tests": [
+        "test effects::essential::tests::dialogue_chain_realtime ... ignored",
+        "test sync::tests::long_recordings_timing ... ignored",
+        "test ffmpeg_probe::probe_reconstruction ... ignored",
+        "test ffmpeg_probe::probe_weights ... ignored",
+        "test essential_sound_tests::perf_full_dialogue_chain_realtime_factor ... ignored",
+        "test multicam_tests::perf_grid_of_four_1080p_angles ... ignored",
+        "test proxies_tests::proxy_playback_perf_4k ... ignored, benchmark: 4K fixture via ffmpeg",
+        "test deblock::speed::edge_filter_speed ... ignored",
+        "test preview_tests::effect_costs ... ignored",
+        "test transitions::tests::contact_sheets ... ignored",
+        "test transitions::tests::lens_blur_frame_time ... ignored",
+        "test tests::perf_scopes_at_1080p ... ignored"
+      ],
+      "dependency_cache_hit": "true",
+      "compiled_target_cache": "disabled",
+      "min_free_disk_bytes": 8198832128,
+      "commands": 11,
+      "failed_executions": 0
+    },
+    "checks-windows": {
+      "result": "failed",
+      "passing_executions": 1374,
+      "explicitly_ignored": 7,
+      "ignored_tests": [
+        "test effects::essential::tests::dialogue_chain_realtime ... ignored",
+        "test sync::tests::long_recordings_timing ... ignored",
+        "test ffmpeg_probe::probe_reconstruction ... ignored",
+        "test ffmpeg_probe::probe_weights ... ignored",
+        "test essential_sound_tests::perf_full_dialogue_chain_realtime_factor ... ignored",
+        "test multicam_tests::perf_grid_of_four_1080p_angles ... ignored",
+        "test proxies_tests::proxy_playback_perf_4k ... ignored, benchmark: 4K fixture via ffmpeg"
+      ],
+      "dependency_cache_hit": "true",
+      "compiled_target_cache": "disabled",
+      "min_free_disk_bytes": 74544132096,
+      "commands": 5,
+      "failed_executions": 1
+    },
+    "checks-macos": {
+      "result": "passed",
+      "passing_executions": 2600,
+      "explicitly_ignored": 12,
+      "ignored_tests": [
+        "test effects::essential::tests::dialogue_chain_realtime ... ignored",
+        "test sync::tests::long_recordings_timing ... ignored",
+        "test ffmpeg_probe::probe_reconstruction ... ignored",
+        "test ffmpeg_probe::probe_weights ... ignored",
+        "test essential_sound_tests::perf_full_dialogue_chain_realtime_factor ... ignored",
+        "test multicam_tests::perf_grid_of_four_1080p_angles ... ignored",
+        "test proxies_tests::proxy_playback_perf_4k ... ignored, benchmark: 4K fixture via ffmpeg",
+        "test deblock::speed::edge_filter_speed ... ignored",
+        "test preview_tests::effect_costs ... ignored",
+        "test transitions::tests::contact_sheets ... ignored",
+        "test transitions::tests::lens_blur_frame_time ... ignored",
+        "test tests::perf_scopes_at_1080p ... ignored"
+      ],
+      "dependency_cache_hit": "true",
+      "compiled_target_cache": "disabled",
+      "min_free_disk_bytes": 40564248576,
+      "commands": 11,
+      "failed_executions": 0
+    }
+  }
+}

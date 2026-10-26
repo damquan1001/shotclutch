@@ -1,0 +1,453 @@
+{
+  "parent_revision": "6fdcf8179000fb2d37a4c5b6bb096a297831b155",
+  "source_file": "crates/export/src/determinism_tests.rs",
+  "source_sha256": "e13a82513d5a2164d1304eaa0e0f5e0e9b6fecc7ac4c61645caadff496636959",
+  "os": "Windows-11-10.0.26200-SP0",
+  "logical_cpus": 16,
+  "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "commands": [
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "log": "fmt.log",
+      "exit_code": 0,
+      "wall_seconds": 9.797000000005937,
+      "test_results": []
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "-p",
+        "filmcraft-export",
+        "--lib",
+        "--no-run",
+        "--message-format=json"
+      ],
+      "log": "build.log",
+      "exit_code": 0,
+      "wall_seconds": 1.7960000000020955,
+      "test_results": []
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "determinism.log",
+      "exit_code": 0,
+      "wall_seconds": 5.187999999994645,
+      "test_results": [
+        [
+          "13",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-01.log",
+      "exit_code": 0,
+      "wall_seconds": 1.125,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-02.log",
+      "exit_code": 0,
+      "wall_seconds": 1.2030000000086147,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-03.log",
+      "exit_code": 0,
+      "wall_seconds": 1.25,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-04.log",
+      "exit_code": 0,
+      "wall_seconds": 1.1719999999913853,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-05.log",
+      "exit_code": 0,
+      "wall_seconds": 1.1720000000059372,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-06.log",
+      "exit_code": 0,
+      "wall_seconds": 1.264999999999418,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-07.log",
+      "exit_code": 0,
+      "wall_seconds": 1.2660000000032596,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-08.log",
+      "exit_code": 0,
+      "wall_seconds": 1.437999999994645,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-09.log",
+      "exit_code": 0,
+      "wall_seconds": 1.4839999999967404,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-10.log",
+      "exit_code": 0,
+      "wall_seconds": 1.2339999999967404,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-11.log",
+      "exit_code": 0,
+      "wall_seconds": 1.1410000000032596,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-12.log",
+      "exit_code": 0,
+      "wall_seconds": 1.2339999999967404,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-13.log",
+      "exit_code": 0,
+      "wall_seconds": 1.2190000000118744,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-14.log",
+      "exit_code": 0,
+      "wall_seconds": 1.4220000000059372,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-15.log",
+      "exit_code": 0,
+      "wall_seconds": 1.25,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-16.log",
+      "exit_code": 0,
+      "wall_seconds": 1.1560000000026776,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-17.log",
+      "exit_code": 0,
+      "wall_seconds": 1.139999999999418,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-18.log",
+      "exit_code": 0,
+      "wall_seconds": 1.1719999999913853,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-19.log",
+      "exit_code": 0,
+      "wall_seconds": 1.187000000005355,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "E:\\Development\\Projects\\shotclutch\\target\\release\\deps\\filmcraft_export-67684131736d8273.exe",
+        "determinism_tests::max_threads",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "log": "stress-20.log",
+      "exit_code": 0,
+      "wall_seconds": 1.2039999999979045,
+      "test_results": [
+        [
+          "4",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--release",
+        "-p",
+        "filmcraft-export",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "log": "clippy.log",
+      "exit_code": 0,
+      "wall_seconds": 30.031000000002678,
+      "test_results": []
+    }
+  ],
+  "result": "passed",
+  "qualification_limit": "Local test validation only; full hosted repeats remain pending account unblock.",
+  "stress_affinity": {
+    "original_mask": "0xffff",
+    "test_mask": "0x3",
+    "repetitions": 20,
+    "scope": "Validator and its test children only; restored before Clippy"
+  },
+  "working_tree_dirty_at_validation": true,
+  "summary": {
+    "determinism_tests_passed": 13,
+    "two_cpu_repetitions": 20,
+    "thread_cap_tests_per_repetition": 4,
+    "format": "passed",
+    "clippy": "passed"
+  },
+  "repair_revision": "7d32d7aebabf0c71fae59210ab1e041d029db063"
+}

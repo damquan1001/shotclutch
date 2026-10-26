@@ -1,0 +1,31 @@
+
+running 13 tests
+test determinism_tests::a_batch_rendered_ahead_with_missing_media_is_never_encoded ... ok
+test determinism_tests::a_panic_while_rendering_ahead_is_an_error ... 
+thread '<unnamed>' (45728) panicked at crates\export\src\determinism_tests.rs:234:13:
+a source blew up (test)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread '<unnamed>' (19060) panicked at crates\export\src\determinism_tests.rs:234:13:
+a source blew up (test)
+
+thread '<unnamed>' (19060) panicked at crates\export\src\determinism_tests.rs:234:13:
+a source blew up (test)
+
+thread '<unnamed>' (45728) panicked at crates\export\src\determinism_tests.rs:234:13:
+a source blew up (test)
+ok
+test determinism_tests::an_export_adds_up_the_wall_time_of_its_stages ... ok
+test determinism_tests::cancelling_drops_the_batch_rendered_ahead ... ok
+test determinism_tests::h264_slices_follow_the_frame_size_not_the_cores ... ok
+test determinism_tests::hdr_with_audio_is_the_same_file_when_the_memory_budget_caps_the_batch ... ok
+test determinism_tests::max_threads_caps_the_threads_an_export_runs_on ... ok
+test determinism_tests::max_threads_does_not_change_the_file ... ok
+test determinism_tests::max_threads_is_a_setting_of_the_json_interface ... ok
+test determinism_tests::max_threads_never_adds_threads ... ok
+test determinism_tests::rendering_ahead_does_not_change_the_file ... ok
+test determinism_tests::rendering_ahead_in_a_two_pass_export ... ok
+test determinism_tests::same_file_whatever_the_core_count ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 5.16s
+
