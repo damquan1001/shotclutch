@@ -38,6 +38,8 @@ try {
     $quoted = $args | ForEach-Object { '"' + $_.Replace('"','\"') + '"' }
     $watch = [Diagnostics.Stopwatch]::StartNew()
     $process = Start-Process -FilePath $exe -ArgumentList $quoted -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $out "$section.stdout.log") -RedirectStandardError (Join-Path $out "$section.stderr.log")
+    # Retain the native process handle across Refresh/polling and process exit.
+    $ownedProcessHandle = $process.Handle
     $peakBytes = 0L
     while (-not $process.WaitForExit(100)) {
       $process.Refresh()
@@ -46,8 +48,9 @@ try {
     $process.WaitForExit()
     $watch.Stop()
     $result = @{section=$section; exit_code=$process.ExitCode; wall_ms=$watch.Elapsed.TotalMilliseconds; peak_working_set_bytes=$(if ($peakBytes -gt 0) {$peakBytes} else {$null}); report="$section.json"}
+    $result | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $out "$section.process.json")
     $results += $result
-    if ($process.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $json)) { throw "Benchmark section failed: $section" }
+    if ($process.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $json)) { throw "Benchmark section failed: $section (exit $($process.ExitCode)); see $section.process.json" }
   }
   $hardware = @{cpu=$env:PROCESSOR_IDENTIFIER; logical_cores=[Environment]::ProcessorCount; os=[Environment]::OSVersion.VersionString; gpu=$null; memory_bytes=$null}
   try {
