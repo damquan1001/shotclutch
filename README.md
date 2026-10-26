@@ -11,6 +11,7 @@ cargo build --locked --release -p filmcraft -p filmcraft-cli
 ./target/release/shotclutch.exe --empty
 ./target/release/shotclutch-cli.exe --version
 cargo test --locked -p filmcraft-cli
+dotnet tool install wix --tool-path target/m0/tools --version 5.0.2
 ./packaging/windows/package.ps1 -Arch x64
 ./scripts/m0/validate-package.ps1 -Dist dist/release
 ```

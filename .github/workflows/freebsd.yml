@@ -1,12 +1,29 @@
-name: FreeBSD core compile (unqualified)
+name: FreeBSD build and package (unqualified until run)
 on:
   workflow_dispatch:
+  pull_request:
+    paths: ['packaging/freebsd/**', 'packaging/env.sh', '.github/workflows/freebsd.yml']
 permissions:
   contents: read
 jobs:
-  check:
+  freebsd:
     runs-on: ubuntu-24.04
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - run: rustup target add x86_64-unknown-freebsd
-      - run: cargo check --locked -p filmcraft-engine --target x86_64-unknown-freebsd
+      - uses: vmactions/freebsd-vm@c46abacb49f09938ca4e1702d15d836285d694cc
+        with:
+          release: '15.1'
+          usesh: true
+          cpu: 4
+          mem: 12288
+          prepare: |
+            pkg install -y bash git curl pkgconf cmake python3 libxkbcommon wayland libX11 libXcursor libXrandr libXi libxcb mesa-libs vulkan-loader gtk3 fontconfig freetype2 alsa-lib dejavu
+            curl -fsSL https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain 1.95.0
+          run: |
+            set -eu
+            export PATH="$HOME/.cargo/bin:$PATH"
+            export CARGO_BUILD_JOBS=4
+            cargo build --locked --release -p filmcraft -p filmcraft-cli
+            bash packaging/freebsd/package.sh --skip-build
+            tar -tzf dist/release/shotclutch-*-freebsd-*.tar.gz

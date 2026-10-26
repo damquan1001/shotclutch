@@ -10,7 +10,7 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - run: dotnet tool install --global wix --version 5.0.2
+      - run: dotnet tool install wix --tool-path target/m0/tools --version 5.0.2
       - name: Build unsigned qualification packages
         shell: pwsh
         run: ./packaging/windows/package.ps1 -Arch x64
@@ -22,3 +22,15 @@ jobs:
           name: shotclutch-windows-x64
           path: dist/release/*
           if-no-files-found: error
+  install:
+    needs: package
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: shotclutch-windows-x64
+          path: dist/release
+      - name: Install, inspect, and uninstall in disposable runner
+        shell: pwsh
+        run: ./scripts/m0/install-check.ps1 -Dist dist/release -Arch x64

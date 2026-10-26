@@ -55,7 +55,7 @@ try {
   } catch { $hardware.unavailable = $_.Exception.Message }
   $fixtureRoot = Join-Path $root 'target/fixtures'
   $fixtures = @(Get-ChildItem -LiteralPath $fixtureRoot -File -Recurse | ForEach-Object { @{path=$_.FullName.Substring($fixtureRoot.Length+1); bytes=$_.Length; sha256=(Get-FileHash -LiteralPath $_.FullName).Hash} })
-  @{label=$Label; revision=$Revision; checkout=$checkoutPath; collected_utc=[DateTime]::UtcNow.ToString('o'); rustc=(& rustc --version); cargo=(& cargo --version); hardware=$hardware; settings=@{repeat=$Repeat; quick=[bool]$Quick; decoder='software'; compositor='CPU'; cache='unmeasured quick preparation per section; measured fresh child; OS cache uncontrolled; case-specific caches in raw report'; ceilings='host defaults'; inherited_load_caveat='upstream Windows raw load=0 is an unavailable sentinel, not a measurement'}; fixtures=$fixtures; sections=$results} | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $out 'manifest.json')
+  @{label=$Label; revision=$Revision; checkout=$checkoutPath; collected_utc=[DateTime]::UtcNow.ToString('o'); rustc=(& rustc --version); cargo=(& cargo --version); hardware=$hardware; settings=@{repeat=$Repeat; quick=[bool]$Quick; decoder='software'; compositor='CPU'; cache='unmeasured quick preparation per section; measured fresh child; OS cache uncontrolled; case-specific caches in raw report'; ceilings='host defaults'; inherited_load_caveat='upstream Windows empty load is unavailable, not an idle-machine measurement'}; fixtures=$fixtures; sections=$results} | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $out 'manifest.json')
 } finally {
   Pop-Location
   foreach ($key in $previous.Keys) { [Environment]::SetEnvironmentVariable($key, $previous[$key]) }

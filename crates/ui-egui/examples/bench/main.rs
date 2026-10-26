@@ -239,27 +239,6 @@ fn windows_machine_info() -> Value {
         .and_then(|s| serde_json::from_str(&s).ok()).unwrap_or(Value::Null)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn native_section_command_does_not_require_unix_env() {
-        let exe = Path::new("section runner.exe");
-        let cmd = section_command(exe);
-        if cfg!(windows) {
-            assert_eq!(cmd.get_program(), exe.as_os_str());
-        } else {
-            assert!(cmd.get_program() == exe.as_os_str() || cmd.get_args().any(|a| a == exe.as_os_str()));
-        }
-    }
-    #[test]
-    fn resource_units_are_explicit() {
-        assert_eq!(peak_rss_bytes("Maximum resident set size (kbytes): 123"), Some(123 * 1024));
-        assert_eq!(peak_rss_bytes(" 123 maximum resident set size"), Some(123));
-        assert_eq!(peak_rss_bytes("unavailable"), None);
-    }
-}
-
 // ------------------------------------------------------------------------------------ markdown
 
 fn f(v: &Value, k: &str, prec: usize) -> String {
@@ -417,4 +396,25 @@ fn markdown(doc: &Value) -> String {
         s += "\n";
     }
     s
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn native_section_command_does_not_require_unix_env() {
+        let exe = Path::new("section runner.exe");
+        let cmd = section_command(exe);
+        if cfg!(windows) {
+            assert_eq!(cmd.get_program(), exe.as_os_str());
+        } else {
+            assert!(cmd.get_program() == exe.as_os_str() || cmd.get_args().any(|a| a == exe.as_os_str()));
+        }
+    }
+    #[test]
+    fn resource_units_are_explicit() {
+        assert_eq!(peak_rss_bytes("Maximum resident set size (kbytes): 123"), Some(123 * 1024));
+        assert_eq!(peak_rss_bytes(" 123 maximum resident set size"), Some(123));
+        assert_eq!(peak_rss_bytes("unavailable"), None);
+    }
 }

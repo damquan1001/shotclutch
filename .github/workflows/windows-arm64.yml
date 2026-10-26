@@ -1,12 +1,35 @@
-name: Windows ARM64 compile (unqualified)
+name: Windows ARM64 package and installation (unqualified until run)
 on:
   workflow_dispatch:
+  pull_request:
+    paths: ['packaging/windows/**', '.github/workflows/windows-arm64.yml']
 permissions:
   contents: read
 jobs:
-  check:
+  package:
     runs-on: windows-2025
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - run: rustup target add aarch64-pc-windows-msvc
-      - run: cargo check --locked -p filmcraft -p filmcraft-cli --target aarch64-pc-windows-msvc
+      - run: dotnet tool install wix --tool-path target/m0/tools --version 5.0.2
+      - shell: pwsh
+        env:
+          DIST: dist/arm64
+        run: ./packaging/windows/package.ps1 -Arch arm64
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: shotclutch-windows-arm64
+          path: dist/arm64/*
+          if-no-files-found: error
+  install:
+    needs: package
+    runs-on: windows-11-arm
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: shotclutch-windows-arm64
+          path: dist/arm64
+      - shell: pwsh
+        run: ./scripts/m0/install-check.ps1 -Dist dist/arm64 -Arch arm64

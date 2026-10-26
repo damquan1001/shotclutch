@@ -525,28 +525,6 @@ fn data_dir_from(env: impl Fn(&str) -> Option<PathBuf>, portable: Option<PathBuf
     env("XDG_DATA_HOME").map(|d| d.join("shotclutch")).or_else(|| env("HOME").map(|h| h.join(".local/share/shotclutch")))
 }
 
-#[cfg(test)]
-mod identity_tests {
-    use super::*;
-    #[test]
-    fn data_override_precedence_and_legacy_fallback() {
-        let env = |key: &str| match key {
-            "SHOTCLUTCH_DATA_DIR" => Some(PathBuf::from("new")),
-            "FILMCRAFT_DATA_DIR" => Some(PathBuf::from("old")),
-            _ => None,
-        };
-        assert_eq!(data_dir_from(env, Some(PathBuf::from("portable"))), Some(PathBuf::from("new")));
-        assert_eq!(data_dir_from(|k| if k == "SHOTCLUTCH_DATA_DIR" { None } else { env(k) }, None), Some(PathBuf::from("old")));
-        assert_eq!(data_dir_from(|_| None, Some(PathBuf::from("portable"))), Some(PathBuf::from("portable")));
-    }
-    #[test]
-    fn default_data_directory_is_separate_from_upstream() {
-        let dir = data_dir_from(|k| matches!(k, "APPDATA" | "HOME" | "XDG_DATA_HOME").then(|| PathBuf::from("account")), None).unwrap();
-        assert!(dir.to_string_lossy().to_ascii_lowercase().ends_with("shotclutch"));
-        assert!(!dir.to_string_lossy().contains("FilmCraft"));
-    }
-}
-
 pub fn unix_now() -> i64 {
     SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs() as i64).unwrap_or(0)
 }
@@ -1081,5 +1059,27 @@ impl Worker {
                 Err(m)
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod identity_tests {
+    use super::*;
+    #[test]
+    fn data_override_precedence_and_legacy_fallback() {
+        let env = |key: &str| match key {
+            "SHOTCLUTCH_DATA_DIR" => Some(PathBuf::from("new")),
+            "FILMCRAFT_DATA_DIR" => Some(PathBuf::from("old")),
+            _ => None,
+        };
+        assert_eq!(data_dir_from(env, Some(PathBuf::from("portable"))), Some(PathBuf::from("new")));
+        assert_eq!(data_dir_from(|k| if k == "SHOTCLUTCH_DATA_DIR" { None } else { env(k) }, None), Some(PathBuf::from("old")));
+        assert_eq!(data_dir_from(|_| None, Some(PathBuf::from("portable"))), Some(PathBuf::from("portable")));
+    }
+    #[test]
+    fn default_data_directory_is_separate_from_upstream() {
+        let dir = data_dir_from(|k| matches!(k, "APPDATA" | "HOME" | "XDG_DATA_HOME").then(|| PathBuf::from("account")), None).unwrap();
+        assert!(dir.to_string_lossy().to_ascii_lowercase().ends_with("shotclutch"));
+        assert!(!dir.to_string_lossy().contains("FilmCraft"));
     }
 }

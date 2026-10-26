@@ -25,3 +25,20 @@ jobs:
           [xml]$wix = Get-Content packaging/windows/shotclutch.wxs
           if ($wix.Wix.Package.Name -ne 'ShotClutch') { throw 'Wrong product identity' }
           if ($wix.Wix.Package.UpgradeCode -eq '31E6FB14-9DBC-41DD-B24B-26B71FB31B62') { throw 'Upstream installer identity reused' }
+  unix-and-workflows:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Install pinned workflow linter and packaging validators
+        run: |
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+          sudo apt-get update
+          sudo apt-get install -y shellcheck desktop-file-utils appstream
+      - name: Workflow and shell checks
+        run: |
+          "$(go env GOPATH)/bin/actionlint"
+          find packaging -name '*.sh' -print0 | xargs -0 shellcheck -x -P SCRIPTDIR
+          find packaging -name '*.sh' -print0 | xargs -0 -n1 bash -n
+          desktop-file-validate packaging/linux/com.shotclutch.editor.desktop
+          sed -e 's/@VERSION@/0.13.0/g' -e 's/@DATE@/2026-10-26/g' packaging/linux/com.shotclutch.editor.metainfo.xml.in > /tmp/shotclutch.metainfo.xml
+          appstreamcli validate --no-net /tmp/shotclutch.metainfo.xml

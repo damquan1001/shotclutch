@@ -41,7 +41,7 @@ pub const MAX_FILE_BYTES: u64 = 16 * 1024 * 1024;
 /// Records kept in memory until the log file is attached.
 pub const MAX_PENDING: usize = 512;
 /// The built-in filter when `RUST_LOG` is unset or empty.
-pub const DEFAULT_FILTER: &str = "warn,filmcraft*=info";
+pub const DEFAULT_FILTER: &str = "warn,filmcraft*=info,shotclutch*=info";
 
 /// Per-target level filter parsed from env_logger-style directives.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -320,6 +320,7 @@ mod tests {
     fn the_default_filter_shows_filmcraft_info_and_other_crates_warnings() {
         let f = Filter::parse(DEFAULT_FILTER);
         assert_eq!(f.level_for("filmcraft"), LevelFilter::Info);
+        assert_eq!(f.level_for("shotclutch::graphics"), LevelFilter::Info);
         assert_eq!(f.level_for("filmcraft::audio"), LevelFilter::Info);
         assert_eq!(f.level_for("filmcraft_ui_egui::play_ahead"), LevelFilter::Info);
         assert_eq!(f.level_for("filmcraft_codecs::mxf"), LevelFilter::Info);
@@ -420,8 +421,8 @@ mod tests {
         }
         assert_eq!(read(&dir.join(LOG_FILE)), "run 4");
         assert_eq!(read(&dir.join("shotclutch.1.log")), "run 3");
-        assert_eq!(read(&dir.join("filmcraft.2.log")), "run 2");
-        assert!(!dir.join("filmcraft.3.log").exists(), "only {KEEP} old logs are kept");
+        assert_eq!(read(&dir.join("shotclutch.2.log")), "run 2");
+        assert!(!dir.join("shotclutch.3.log").exists(), "only {KEEP} old logs are kept");
         let _ = std::fs::remove_dir_all(&dir);
     }
 

@@ -9,7 +9,7 @@ Expand-Archive -LiteralPath $zip[0].FullName -DestinationPath $scratch
 $cli = Get-ChildItem -LiteralPath $scratch -Filter shotclutch-cli.exe -Recurse | Select-Object -First 1
 if (-not $cli) { throw 'Packaged CLI missing' }
 $bin = $cli.Directory.FullName
-foreach ($name in 'shotclutch.exe','portable.txt','legal/NOTICE','legal/ATTRIBUTION.md','legal/LICENSE-MIT','legal/LICENSE-APACHE','legal/OFL-Inter.txt','legal/OFL-NotoSerif.txt','legal/OFL-JetBrainsMono.txt') {
+foreach ($name in 'shotclutch.exe','portable.txt','legal/NOTICE','legal/build-info.json','legal/ATTRIBUTION.md','legal/LICENSE-MIT','legal/LICENSE-APACHE','legal/OFL-Inter.txt','legal/OFL-NotoSerif.txt','legal/OFL-JetBrainsMono.txt') {
   if (-not (Test-Path -LiteralPath (Join-Path $bin $name))) { throw "Package missing $name" }
 }
 $version = & $cli.FullName --version

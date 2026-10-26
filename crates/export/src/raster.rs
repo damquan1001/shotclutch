@@ -97,7 +97,8 @@ pub(crate) fn dpx(rgba: &[u8], w: u32, h: u32) -> Result<Vec<u8>> {
     put32(&mut hd, 24, 1664); // generic header length
     put32(&mut hd, 28, 384); // industry header length
     put32(&mut hd, 32, 0); // user data length
-    hd[160..169].copy_from_slice(b"ShotClutch");
+    let creator = b"ShotClutch";
+    hd[160..160 + creator.len()].copy_from_slice(creator);
     // image information header
     put16(&mut hd, 768, 0); // orientation: left to right, top to bottom
     put16(&mut hd, 770, 1); // one image element
@@ -324,6 +325,8 @@ mod tests {
         let px = [255, 0, 0, 255, 1, 128, 255, 7];
         let f = dpx(&px, 2, 1).unwrap();
         assert_eq!(&f[0..4], b"SDPX");
+        assert_eq!(&f[160..170], b"ShotClutch");
+        assert_eq!(f[170], 0, "creator text remains terminated inside its DPX field");
         assert_eq!(f.len(), 2048 + 8);
         assert_eq!(be32(&f, 4), 2048);
         assert_eq!(be32(&f, 16), f.len() as u32);

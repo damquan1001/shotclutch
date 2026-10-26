@@ -26,6 +26,11 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $Root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+$Wix = Join-Path $Root 'target\m0\tools\wix.exe'
+if (-not (Test-Path -LiteralPath $Wix)) { $Wix = (Get-Command wix -ErrorAction Stop).Source }
+$WixVersion = & $Wix --version
+if ($LASTEXITCODE -ne 0 -or $WixVersion -notlike '5.0.2*') { throw 'WiX 5.0.2 required. Run: dotnet tool install wix --tool-path target/m0/tools --version 5.0.2' }
+
 
 function Invoke-Native([string] $What, [scriptblock] $Block) {
   Write-Output "==> $What"
@@ -98,6 +103,15 @@ $Legal = Join-Path $Stage 'legal'
 New-Item -ItemType Directory -Force -Path $Legal | Out-Null
 foreach ($file in 'LICENSE-MIT', 'LICENSE-APACHE', 'NOTICE', 'ATTRIBUTION.md') { Copy-Item -LiteralPath (Join-Path $Root $file) -Destination $Legal }
 Copy-Item (Join-Path $Root 'assets\fonts\OFL-*.txt') $Legal
+@{
+  product = 'ShotClutch'; version = $Version; target = $Target
+  commit = $env:SHOTCLUTCH_BUILD_SHA; build_date_utc = $env:SHOTCLUTCH_BUILD_DATE
+  observed_commit = (git -C $Root rev-parse HEAD)
+  dirty = [bool](git -C $Root status --porcelain)
+  rustc = (& rustc --version); cargo_lock_sha256 = (Get-FileHash -LiteralPath (Join-Path $Root 'Cargo.lock')).Hash
+  signing_requested = [bool]$Sign; wix = $WixVersion
+} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Legal 'build-info.json') -Encoding utf8
+
 if ($env:CRAFT_FONTS_DIR) {
   foreach ($lic in Get-ChildItem -Path (Join-Path $env:CRAFT_FONTS_DIR 'fonts\*\OFL.txt')) { Copy-Item $lic.FullName (Join-Path $Legal "OFL-$($lic.Directory.Name).txt") }
 }
@@ -119,7 +133,7 @@ if ($Sign) { & (Join-Path $PSScriptRoot 'sign.ps1') (Join-Path $Stage 'shotclutc
 # ---- MSI ---------------------------------------------------------------------------------------
 $Msi = Join-Path $Dist "shotclutch-$Version-windows-$Arch.msi"
 Invoke-Native 'wix build' {
-  wix build (Join-Path $PSScriptRoot 'shotclutch.wxs') $LegalWxs -arch $Arch `
+  & $Wix build (Join-Path $PSScriptRoot 'shotclutch.wxs') $LegalWxs -arch $Arch `
     -d "Version=$MsiVersion" -d "BinDir=$Stage" -d "IconPath=$(Join-Path $Root 'assets\app-icon\shotclutch.ico')" `
     -o $Msi
 }
