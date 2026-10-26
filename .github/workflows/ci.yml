@@ -2,6 +2,7 @@ name: CI
 on:
   push:
     branches: [main, codex/m0-foundation]
+    paths-ignore: ['docs/**', '**/*.md']
   pull_request:
   workflow_dispatch:
 permissions:
@@ -10,6 +11,8 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 env:
+  PYTHONUTF8: 1
+  PYTHONIOENCODING: utf-8
   CARGO_TERM_COLOR: never
   CARGO_BUILD_JOBS: 2
   CARGO_INCREMENTAL: 0
@@ -42,8 +45,21 @@ jobs:
           key: cargo-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', 'Cargo.lock') }}
       - name: Install and verify locked media oracles
         run: python scripts/ci/setup-oracles.py
+      - name: Install checksum-locked DXC for hosted Windows GPU tests
+        if: runner.os == 'Windows'
+        run: python scripts/ci/setup-windows-gpu.py
+      - name: Require and identify the hosted Windows GPU adapter
+        if: runner.os == 'Windows'
+        env:
+          SHOTCLUTCH_REQUIRE_GPU: 1
+          WGPU_BACKEND: dx12
+          WGPU_DX12_COMPILER: dxc
+        run: python scripts/ci/run-checks.py gpu-probe
       - name: Complete checks with durable command logs
         env:
+          SHOTCLUTCH_REQUIRE_GPU: ${{ runner.os == 'Windows' && '1' || '' }}
+          WGPU_BACKEND: ${{ runner.os == 'Windows' && 'dx12' || '' }}
+          WGPU_DX12_COMPILER: ${{ runner.os == 'Windows' && 'dxc' || '' }}
           CARGO_CACHE_HIT: ${{ steps.cargo-cache.outputs.cache-hit }}
         run: python scripts/ci/run-checks.py checks
       - name: Retain diagnostics on success or failure
@@ -54,10 +70,10 @@ jobs:
           path: |
             target/ci/evidence
             target/ci/oracles/manifest.json
+            target/ci/dxc/manifest.json
           retention-days: 14
           if-no-files-found: warn
   release-builds:
-    needs: checks
     strategy:
       fail-fast: false
       matrix:
@@ -83,6 +99,7 @@ jobs:
   windows-package:
     uses: ./.github/workflows/release.yml
   required:
+    name: CI required
     if: always()
     needs: [checks, release-builds, windows-package]
     runs-on: ubuntu-24.04

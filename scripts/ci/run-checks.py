@@ -12,12 +12,13 @@ import time
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('lane', choices=['checks', 'build', 'package'])
+    parser.add_argument('lane', choices=['checks', 'build', 'package', 'gpu-probe'])
     options = parser.parse_args()
     root = Path(__file__).resolve().parents[2]
     output = root / 'target/ci/evidence' / options.lane
     output.mkdir(parents=True, exist_ok=True)
     commands = {
+        'gpu-probe': [['cargo', 'test', '--locked', '-p', 'filmcraft-gpu', '--lib', 'qualification_adapter', '--', '--nocapture']],
         'checks': [
             ['cargo', 'fmt', '--all', '--', '--check'], ['cargo', 'xtask', 'layers'], ['cargo', 'xtask', 'assets'],
             ['cargo', 'clippy', '--locked', '--workspace', '--all-targets', '--', '-D', 'warnings'],
@@ -46,6 +47,7 @@ def main():
         'cargo_lock_sha256': __import__('hashlib').sha256((root / 'Cargo.lock').read_bytes()).hexdigest(),
         'min_free_disk_bytes': shutil.disk_usage(root).free,
         'profile_overrides': {k: v for k, v in os.environ.items() if k.startswith('CARGO_PROFILE_') or k in ['CARGO_INCREMENTAL', 'CARGO_BUILD_JOBS']},
+        'gpu_required': os.environ.get('SHOTCLUTCH_REQUIRE_GPU') == '1',
         'commands': [], 'result': 'failed',
     }
     stop = threading.Event()

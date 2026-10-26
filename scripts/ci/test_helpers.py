@@ -56,6 +56,17 @@ class FailureGuards(unittest.TestCase):
             self.assertEqual(summary['commands'][0]['exit_code'], 7)
             self.assertEqual((report / '01.log').read_text(), 'observable child failure\n')
 
+    @unittest.skipUnless(__import__('os').name == 'nt', 'Windows compiler setup')
+    def test_corrupt_dxc_is_never_executed(self):
+        setup = load('setup-windows-gpu')
+        with tempfile.TemporaryDirectory(dir=self.scratch) as temporary:
+            with patch.object(setup.urllib.request, 'urlopen', return_value=io.BytesIO(b'corrupt compiler')):
+                with patch.object(setup.subprocess, 'check_output') as execute:
+                    with self.assertRaisesRegex(RuntimeError, 'checksum mismatch'):
+                        setup.install(Path(temporary))
+                    execute.assert_not_called()
+                    self.assertFalse(list(Path(temporary).rglob('*.dll')))
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -2,6 +2,7 @@ name: Packaging lint
 on:
   push:
     branches: [main, codex/m0-foundation]
+    paths-ignore: ['docs/**', '**/*.md']
   pull_request:
   workflow_dispatch:
 permissions:
@@ -53,6 +54,7 @@ jobs:
           sed -e 's/@VERSION@/0.13.0/g' -e 's/@DATE@/2026-10-26/g' packaging/linux/com.shotclutch.editor.metainfo.xml.in > /tmp/shotclutch.metainfo.xml
           appstreamcli validate --no-net /tmp/shotclutch.metainfo.xml
   required:
+    name: Packaging required
     if: always()
     needs: [scripts, unix-and-workflows]
     runs-on: ubuntu-24.04

@@ -3,10 +3,10 @@
 //! The Linux shell (Wayland *and* X11) resolves the window to a `.desktop` file by app id (set in
 //! `main.rs` via `eframe`'s `with_app_id`) and takes the taskbar / window-list icon from its
 //! `Icon=` entry in the hicolor theme. Packaging installs both
-//! (`packaging/linux/ai.storyteller.filmcraft.desktop` and the hicolor PNGs) — but a source-tree
+//! (`packaging/linux/com.shotclutch.editor.desktop` and the hicolor icon) — but a source-tree
 //! run has neither, so KDE/GNOME fall back to the generic Wayland icon. The fix is to ensure a
 //! user-level entry for those runs: when no entry for the app id exists in any XDG data dir,
-//! install one (plus the hicolor icon PNGs, read from this checkout's `assets/app-icon`, so
+//! install one (plus the scalable ShotClutch SVG, read from this checkout's `assets/app-icon`, so
 //! nothing is embedded in the binary) into `$XDG_DATA_HOME`/`~/.local/share`. An existing
 //! packaged entry is never overridden; the user-owned dev copy is rewritten when it points at
 //! another binary (a dev build moves between checkouts). The shell picks the icon up at the *next* app start;
@@ -72,20 +72,20 @@ fn ensure() -> Result<(), DevIconError> {
         }
         break; // a dev entry from another checkout: fall through and rewrite it
     }
-    for size in ICON_SIZES {
-        let rel = std::path::Path::new("hicolor").join(format!("{size}x{size}")).join("apps").join(format!("{}.png", crate::APP_ID));
+    {
+        let rel = std::path::Path::new("hicolor").join("scalable").join("apps").join(format!("{}.svg", crate::APP_ID));
         let dest = user_dir.join("icons").join(&rel);
         if !dest.is_file()
             && let Some(parent) = dest.parent()
         {
             // The checkout this binary was built from; a missing icon only costs the icon.
-            let src = std::path::Path::new(ICON_DIR).join(&rel);
+            let src = std::path::Path::new(ICON_DIR).join("shotclutch.svg");
             if !src.is_file() {
                 log::warn!("dev desktop entry: icon {} not found; skipping it", src.display());
-                continue;
+            } else {
+                std::fs::create_dir_all(parent).map_err(DevIconError::Io)?;
+                std::fs::copy(&src, &dest).map_err(DevIconError::Io)?;
             }
-            std::fs::create_dir_all(parent).map_err(DevIconError::Io)?;
-            std::fs::copy(&src, &dest).map_err(DevIconError::Io)?;
         }
     }
     let applications = user_dir.join("applications");
@@ -94,10 +94,6 @@ fn ensure() -> Result<(), DevIconError> {
     std::fs::write(applications.join(&file_name), body).map_err(DevIconError::Io)?;
     Ok(())
 }
-
-/// The hicolor icon sizes installed for the taskbar (a subset large enough for panel and topbar;
-/// the shell picks the nearest size, so 256 and 512 cover both).
-const ICON_SIZES: [u16; 2] = [256, 512];
 
 /// The app icons in the source tree this binary was built from (a path, not embedded bytes:
 /// the entry is a dev-checkout convenience and release binaries must not carry the PNGs).
@@ -199,7 +195,7 @@ fn unescape_string_value(value: &str) -> String {
     out
 }
 
-/// The `.desktop` body: same fields as `packaging/linux/ai.storyteller.filmcraft.desktop`, with
+/// The `.desktop` body: same fields as `packaging/linux/com.shotclutch.editor.desktop`, with
 /// `Exec` pointing at this exact binary (a dev build isn't on `$PATH`, so `TryExec` is left out)
 /// and the icon by theme name.
 fn desktop_file_content(app_id: &str, name: &str, exe: &str) -> String {
@@ -264,23 +260,21 @@ mod tests {
     /// The icons the entry installs exist in the checkout.
     #[test]
     fn icon_sources_exist_in_the_checkout() {
-        for size in ICON_SIZES {
-            let p = std::path::Path::new(ICON_DIR).join(format!("hicolor/{size}x{size}/apps/ai.storyteller.filmcraft.png"));
-            assert!(p.is_file(), "{}", p.display());
-        }
+        let p = std::path::Path::new(ICON_DIR).join("shotclutch.svg");
+        assert!(p.is_file(), "{}", p.display());
     }
 
     #[test]
     fn desktop_file_matches_the_packaged_fields() {
-        let packaged = include_str!("../../../packaging/linux/ai.storyteller.filmcraft.desktop");
+        let packaged = include_str!("../../../packaging/linux/com.shotclutch.editor.desktop");
         let expected = packaged
             .lines()
             .filter(|l| !l.starts_with("TryExec="))
-            .map(|l| if l.starts_with("Exec=") { "Exec=\"/target/debug/filmcraft\" %F" } else { l })
+            .map(|l| if l.starts_with("Exec=") { "Exec=\"/target/debug/shotclutch\" %F" } else { l })
             .collect::<Vec<_>>()
             .join("\n")
             + "\n";
-        let body = desktop_file_content("ai.storyteller.filmcraft", "ShotClutch", "/target/debug/filmcraft");
+        let body = desktop_file_content(crate::APP_ID, "ShotClutch", "/target/debug/shotclutch");
         assert_eq!(body, expected);
     }
 

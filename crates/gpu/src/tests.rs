@@ -4,9 +4,24 @@ use filmcraft_render::Blend;
 use filmcraft_render::plan::execute_cpu;
 
 fn device() -> Option<(wgpu::Device, wgpu::Queue)> {
-    let instance = wgpu::Instance::default();
-    let adapter = pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions::default())).ok()?;
-    pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor::default())).ok()
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle_from_env());
+    let result = (|| {
+        let adapter =
+            pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions::default())).map_err(|error| format!("request adapter: {error}"))?;
+        eprintln!("qualification GPU adapter: {:?}", adapter.get_info());
+        pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor::default())).map_err(|error| format!("request device: {error}"))
+    })();
+    if std::env::var("SHOTCLUTCH_REQUIRE_GPU").is_ok_and(|value| value == "1") {
+        Some(result.expect("qualification requires a usable GPU adapter/device"))
+    } else {
+        result.ok()
+    }
+}
+
+#[test]
+fn qualification_adapter() {
+    let available = device().is_some();
+    eprintln!("GPU device available: {available}; required: {}", std::env::var("SHOTCLUTCH_REQUIRE_GPU").is_ok_and(|value| value == "1"));
 }
 
 #[test]
