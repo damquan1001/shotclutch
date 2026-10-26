@@ -10,6 +10,7 @@ These files record execution on the Windows development machine. They do not est
 - `baseline-integrity.json`: SHA-256 verification of every archived upstream source file after builds; no upstream source repair was applied.
 - `benchmark-executables.json`: hashes of the two benchmark executables used for the captures.
 - `msi-wizard/`: the subsequent installer UX diagnosis, corrected MSI/ZIP hashes, artifact validation, build provenance and binary bindings. Earlier `packages/` records describe the initial package build; the parent evidence report identifies the current artifacts.
+- `clean-install-user-confirmation.md`: subsequent direct manual acceptance of clean MSI 0.13.0 installation and launch/import/edit/save/reopen/video export. Earlier machine-run reports retain their historical `not performed` fields; they are not rewritten as though an automated clean-install run occurred.
 
 ## Executed checks
 

@@ -2,7 +2,7 @@
 
 Implementation branch: `codex/m0-foundation`. Production application qualification revision: `3aeef47218c74067fb4998b0d14e4aacee7dad10`. Subsequent commits refine tests, the measurement harness and documentation; application binaries are bound to that production revision by package provenance and executable hashes. Retained reports and reproduction commands are in [evidence/README.md](evidence/README.md).
 
-M0 is **not closed** until the clean-machine installation gate is satisfied. Local package inspection, a development-machine launch, and defined CI jobs do not substitute for that evidence.
+The user has now confirmed clean 0.13.0 MSI installation and the launch/import/edit/save/reopen/video-export workflow. [Direct manual acceptance](evidence/clean-install-user-confirmation.md) resolves the prior clean-install/core-workflow gap. Remote CI and extended runtime qualification remain planned in [the rollout](CI_RUNTIME_ROLLOUT.md); this report does not claim their execution.
 
 ## Recorded source and platform
 
@@ -27,6 +27,7 @@ M0 is **not closed** until the clean-machine installation gate is satisfied. Loc
 | Python tools and comparison guards | Passed | Python syntax compilation; `target/m0/comparison-guard-test/result.txt` uses explicitly synthetic inputs |
 | Final Clippy/format refresh | Passed | [Full-target release Clippy](evidence/checks/clippy-final.log), [format](evidence/checks/fmt-final.log); no lint suppression |
 | CLI unit/integration and benchmark tests | Passed: 16 CLI unit, 16 integration, 2 benchmark tests | `target/m0/tests-cli-final.log` (unit phase), `target/m0/tests-cli-integration-final.log`, `target/m0/tests-benchmark-final.log` |
+| Clean MSI installation and core workflow | Passed by user confirmation, version 0.13.0 | [Manual acceptance](evidence/clean-install-user-confirmation.md): launch, import/edit, save/reopen and video export; OS/hash details and extra lifecycle/offline paths not separately supplied |
 | Unsigned MSI and ZIP | Passed initial qualification and subsequent wizard correction | Initial clean-manifest reports under `evidence/packages`; [current wizard package checks](evidence/msi-wizard/validation.json) also verify interactive dialogs and launch gating |
 | Comparable performance captures | Passed as baseline capture, not release performance qualification | [Checked comparison](BENCHMARKS.md); seven sections, three repeats, 19 identical fixture hashes and 94 raw rows per build; every section exit code 0 |
 
@@ -53,7 +54,7 @@ The user reported that the portable executable worked but opening the MSI did no
 
 Correction source: `b5102d3c46e39bfd8b6cdc11462d95dae37961c8`. The package now includes the version-pinned [WiXUI InstallDir dialog set](https://docs.firegiant.com/wix/tools/wixext/wixui/), actual MIT/Apache license text, destination selection, progress, completion and a Launch ShotClutch checkbox on Finish. Launch is tied to that UI event and is absent from the silent execution sequences. Re-running an already installed package has a maintenance flow. Application version, upgrade identity and tested binaries are retained.
 
-Artifact validation passes checks for the welcome/license/destination/progress/completion/maintenance dialogs, installed executable launch target, checkbox condition, silent-install sequences, product identity and legal payload. A live preview exposes a `ShotClutch Setup` window and the installer log reaches `WelcomeDlg`. The computer-use tool blocks controlling `msiexec.exe`, so no automated Finish click or launch was performed. The preview window was left available to the user; complete click-through, clean-machine install and uninstall remain unverified for this correction.
+Artifact validation passes checks for the welcome/license/destination/progress/completion/maintenance dialogs, installed executable launch target, checkbox condition, silent-install sequences, product identity and legal payload. A live preview exposes a `ShotClutch Setup` window and the installer log reaches `WelcomeDlg`. The computer-use tool blocks controlling `msiexec.exe`, so no automated Finish click or launch was performed. The user subsequently confirmed clean installation and a successful launched editing/export workflow. Finish-checkbox behavior and uninstall remain separate lifecycle coverage.
 
 [Diagnosis and binary bindings](evidence/msi-wizard/diagnosis.json), [package build log](evidence/msi-wizard/build.log) and [validation](evidence/msi-wizard/validation.json) are retained. Installed, newly packaged and previously tested static executables have identical hashes. The replacement package was built before the fix commit: its manifest truthfully records `dirty: true`, observed parent `9e70433b` and application source `3aeef472`; the corresponding installer-source changes are now committed at `b5102d3c`.
 
@@ -83,7 +84,7 @@ Validation found two M0 branding regressions and corrected them: a fixed nine-by
 
 Windows PowerShell benchmark preparation initially treated native stderr as an error, and the first measured attempt rejected an unavailable process exit code. Preparation now uses redirected child processes, and measurement retains the native handle and a per-section exit-status report. Those rejected/preparation attempts are excluded; both retained captures completed all seven sections. No benchmark workload or upstream source was changed to obtain a passing capture.
 
-Clean Windows installation, remote CI execution, other-platform runtime qualification, GPU performance qualification, and a second hardware tier remain unverified. Run the procedure in `QUALIFICATION.md` in a fresh VM/Sandbox or equivalent environment and attach its results. The original application-suite dependency is not required by the native pipeline; strict offline/clean-environment acceptance remains an explicit gate rather than an inference from source.
+Clean Windows installation and the core editing/export workflow passed by user confirmation. Remote CI execution, strict offline/lifecycle coverage, other-platform runtime qualification, GPU performance qualification and a second hardware tier remain unverified. Follow [the rollout plan](CI_RUNTIME_ROLLOUT.md) for these additional checks. Exact OS/package-hash metadata was not supplied with the manual acceptance; preserve that distinction from the prior automated reports.
 
 M1–M5 features and the performance release budgets in document 14 are not completed by these M0 checks.
 

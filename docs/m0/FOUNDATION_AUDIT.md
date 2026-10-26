@@ -42,7 +42,8 @@ The broad capabilities above stay Partial even when a bounded path passes. The f
 | Native desktop import, linked trim, undo/redo, save/reopen and ProRes output | Verified | [Live desktop responses](evidence/desktop/evidence.json): 50 video frames and 80,000 stereo sample frames verified independently. This is a short development-machine workflow. |
 | Windows CLI VFR-phone and long-GOP/two-audio-stream workflows | Verified | Both real-media workflow tests pass in the [16-test CLI integration run](evidence/checks/tests-cli-integration-final.log). Broader codec/profile coverage stays Partial. |
 | Retained source asset attribution and Windows legal payload | Verified | 55-asset gate and ZIP/MSI payload inspection pass; [asset log](evidence/checks/assets-final.log), [package result](evidence/packages/validation.json). Optional models are not bundled. |
-| Clean-machine offline installation and launch | Unknown | No disposable clean Windows environment was supplied; procedure retained in `QUALIFICATION.md`. Host launch and package inspection do not resolve this gate. |
+| Clean-machine installation and core editing/export | Verified by user confirmation | User reports clean MSI 0.13.0 install, launch/import/edit/save/reopen/video export passed; [acceptance](evidence/clean-install-user-confirmation.md). Exact OS/hash metadata was not supplied. |
+| Strict offline behavior and full install/repair/uninstall lifecycle | Unknown | Additional coverage in [the runtime rollout](CI_RUNTIME_ROLLOUT.md); no assertion that every lifecycle/offline path was exercised in the user-confirmed workflow. |
 | GPU throughput, other OS runtime behavior and destination-application imports | Unknown | No qualifying performance/target-application runs; source paths and CI definitions alone are insufficient. |
 
 ## Dependencies, notices, and distribution

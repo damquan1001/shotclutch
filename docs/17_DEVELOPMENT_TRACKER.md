@@ -6,9 +6,9 @@ Baseline 0.1 · Last updated: 2026-10-26 · Authoritative living work record.
 
 The documentation baseline is committed at `b739515e04b3467ed8b681e6296f7dc5867f43dd`. M0 implementation is delivered on `codex/m0-foundation`, based on inherited source `3a5f217b348bf0c9dc1678f305c34b6c88617f37`. The initial working tree was clean. Production application revision: `3aeef47218c74067fb4998b0d14e4aacee7dad10`; subsequent commits add test, measurement and evidence refinements. See [the foundation audit](m0/FOUNDATION_AUDIT.md), [executed evidence](m0/EVIDENCE.md), [qualification procedure](m0/QUALIFICATION.md), and [upstream policy](m0/UPSTREAM_POLICY.md).
 
-Current milestone: **M0 — Foundation audit and reproducible baseline, In Review; exit gate outstanding.** Initial qualification platform: Windows x64. Owner: Codex implementation session. Local builds, 1,383 targeted tests, desktop workflow, packages and paired CPU benchmark captures have evidence. No clean-machine installation or remote CI run is claimed; M0 is not complete.
+Current milestone: **M0 — Foundation audit and reproducible baseline, In Review; remote CI rollout planned.** Initial qualification platform: Windows x64. Owner: Codex implementation session. Local builds, 1,383 targeted tests, desktop workflow, packages and paired CPU benchmark captures have evidence. The user confirms that the 0.13.0 MSI installs cleanly, launches, imports/edits, saves/reopens and exports video successfully. [Manual acceptance](m0/evidence/clean-install-user-confirmation.md) is recorded; remote CI and broader runtime qualification have not run. See the [deployment plan](m0/CI_RUNTIME_ROLLOUT.md).
 
-There are **48 implementation requirements: 44 in v0.1 (M0–M4) and 4 in M5**. CORE-001, CORE-005 and PERF-001 are active. No requirement is marked Done until all its acceptance evidence exists. M1–M5 remain Planned. Staffing, budget and release dates are unassigned.
+There are **48 implementation requirements: 44 in v0.1 (M0–M4) and 4 in M5**. CORE-001 and PERF-001 have their bounded M0 acceptance evidence; CORE-005 remains In Review pending automated-check rollout/review. No broader feature or performance-release qualification is implied. M1–M5 remain Planned. Staffing, budget and release dates are unassigned.
 
 ## How to maintain this document
 
@@ -31,7 +31,7 @@ Each active item must have an owner, implementation/change reference, linked tes
 
 | Milestone | Scope | Status | Exit evidence |
 |---|---|---|---|
-| M0 | Audit, standalone build, baseline measurements | In Review | [Local evidence](m0/EVIDENCE.md) ready; clean-machine gate outstanding |
+| M0 | Audit, standalone build, baseline measurements | In Review | Local evidence and user-confirmed clean/core workflow passed; [remote CI rollout](m0/CI_RUNTIME_ROLLOUT.md) planned |
 | M1 | Durable project, exact commands, native media, local editing | Not started | None |
 | M2 | Smart Rough Cut and workspace | Not started | None |
 | M3 | Semantic indexing, verified agent, MCP/CLI | Not started | None |
@@ -46,7 +46,7 @@ Dependencies below are completion gates, not a requirement to postpone design or
 
 | ID | Work item | Priority | Milestone | Status | Depends on |
 |---|---|---|---|---|---|
-| CORE-001 | Build a standalone ShotClutch fork | P0 | M0 | In Review | — |
+| CORE-001 | Build a standalone ShotClutch fork | P0 | M0 | Done | — |
 | CORE-002 | Use one canonical project with stable IDs and versioned extensions | P0 | M1 | Planned | CORE-001 |
 | CORE-003 | Use integer ticks and rational rates for edit math | P0 | M1 | Planned | CORE-002 |
 | CORE-004 | Persist changes crash-safely | P0 | M1 | Planned | CORE-002 |
@@ -90,24 +90,26 @@ Dependencies below are completion gates, not a requirement to postpone design or
 | SEC-002 | Enforce least-privilege grants at service boundaries | P0 | M1 | Planned | CORE-002 |
 | SEC-003 | Isolate untrusted scene code and extension execution | P0 | M4 | Planned | SEC-002 |
 | SEC-004 | Keep provider credentials outside projects/logs and support retention/deletion controls | P0 | M3 | Planned | SEC-001, SEC-002 |
-| PERF-001 | Establish reproducible performance fixtures and baseline captures with hardware, software, media, and cache conditions | P0 | M0 | In Review | CORE-001 |
+| PERF-001 | Establish reproducible performance fixtures and baseline captures with hardware, software, media, and cache conditions | P0 | M0 | Done | CORE-001 |
 | PERF-002 | Meet or explicitly renegotiate the release budgets in document 14 on declared hardware | P1 | M4 | Planned | PERF-001, MEDIA-005, MOTION-004 |
 | TEST-001 | Run invariant, command, persistence, and regression checks in CI | P0 | M1 | Planned | CORE-005, CORE-004, AGENT-002 |
 | TEST-002 | Pass the v0.1 release workflow, security, recovery, and qualification gates | P0 | M4 | Planned | TEST-001, PERF-002; all v0.1 requirements |
 
 ## Active work and evidence register
 
-M0 implementation and local evidence are ready on `codex/m0-foundation`. In Review preserves the dependency and review gates; no requirement is marked Done from local implementation alone.
+M0 implementation and local evidence are ready on `codex/m0-foundation`. CORE-001 now combines executable local evidence with user-confirmed clean/core workflow acceptance; PERF-001 covers baseline captures only. CORE-005 retains its review gate while the remote CI rollout is planned.
 
 | Record | State | Owner | Evidence / next action |
 |---|---|---|---|
 | DOC-001 | Done | Documentation author | All 17 numbered Markdown documents authored; structural validation and archive packaging accompany this baseline |
 | REVIEW-001 | Planned | Unassigned | Review baseline API/schema choices against the selected source revision; record accepted amendments |
 | SETUP-001 | Done | Codex | Recorded inherited revision and clean documentation baseline; selected Windows x64 and pinned Rust 1.95.0 |
-| CORE-001 | In Review | Codex | Production `3aeef472`; standalone desktop/CLI, ShotClutch identity, compatibility aliases, capability/legal audit and short edit/export verified. [Evidence](m0/EVIDENCE.md). Expected clean-machine launch/edit remains untested. Next: run CLEAN-001 before closure. |
-| CORE-005 | In Review | Codex | Production `3aeef472`; locked upstream/fork builds, Rust 1.95, pinned repository-owned CI, unsigned MSI/ZIP and upstream policy verified locally. [Check logs](m0/evidence/README.md), [package provenance](m0/evidence/packages/build-info.json). Next: review results and execute CI when authorized to push; CORE-001 dependency remains open. |
-| PERF-001 | In Review | Codex | Harness `f35fac68`; seven matching software/CPU sections, generated media hashes and machine profile retained. [Comparison](m0/BENCHMARKS.md), [raw upstream](m0/evidence/upstream/manifest.json), [raw ShotClutch](m0/evidence/shotclutch/manifest.json). Next: review baseline limitations; release budgets remain PERF-002. CORE-001 dependency remains open. |
-| MSI-UX-001 | In Review | Codex | User reported the MSI appeared to do nothing. Host events confirm successful installation; missing interactive setup/completion was diagnosed. Fix `b5102d3c` adds a visible wizard and Finish launch checkbox; rebuilt artifact validation passes. [Diagnosis](m0/evidence/msi-wizard/diagnosis.json). Live setup welcome window detected; UI tool blocks Windows Installer click-through. Next: user/manual completion and clean-environment acceptance. |
+| CORE-001 | Done | Codex / user acceptance | Production `3aeef472`, installer correction `b5102d3c`; standalone builds, identity/compatibility and capability/legal inventory recorded. Native edit/export has independent frame/sample checks. User confirms clean MSI install and launch/import/edit/save/reopen/export: [acceptance](m0/evidence/clean-install-user-confirmation.md). Next: broaden runtime coverage without changing this bounded M0 conclusion. |
+| CORE-005 | In Review | Codex | Locked builds, Rust 1.95, pinned repository-owned CI, unsigned MSI/ZIP and upstream policy verified locally. [Check logs](m0/evidence/README.md). Workflow review found bootstrap, strict-oracle/test-selection and diagnostic-retention gaps to address before first remote execution. Next: CI-001 in the [rollout plan](m0/CI_RUNTIME_ROLLOUT.md); remote access/settings are unverified. |
+| PERF-001 | Done | Codex | Harness `f35fac68`; seven matching software/CPU sections, identical generated fixture hashes, available hardware/software/cache metadata and raw samples retained. [Comparison](m0/BENCHMARKS.md), [upstream](m0/evidence/upstream/manifest.json), [ShotClutch](m0/evidence/shotclutch/manifest.json). Acceptance is baseline capture, with slow cases and unavailable telemetry disclosed; GPU/second-profile work and release budgets remain separate. |
+| MSI-UX-001 | Done | Codex / user acceptance | Fix `b5102d3c` adds a wizard and Finish launch checkbox; artifact validation passes. The user confirms successful clean installation and launched core workflow. [Diagnosis](m0/evidence/msi-wizard/diagnosis.json), [manual acceptance](m0/evidence/clean-install-user-confirmation.md). Finish-checkbox and uninstall paths get separate lifecycle coverage in RT-001. |
+| CI-001 / CI-002 / CI-003 | Planned | Codex implementation / repository owner access | Preflight and local CI hardening, authorized bootstrap, then required checks/scheduled coverage. [Plan and exit evidence](m0/CI_RUNTIME_ROLLOUT.md). No remote mutation or run occurred during planning. |
+| RT-001 / RT-002 / RT-003 | Planned | Codex and manual Windows tester | CI artifact lifecycle, primary desktop/GPU/audio/soak, then a second hardware profile. [Qualification lanes](m0/CI_RUNTIME_ROLLOUT.md). User-confirmed Q0 acceptance remains passed. |
 
 For each new active requirement, add owner, change/branch or commit, test/benchmark report, expected versus actual result, review outcome, next action and any blocker ID. Do not substitute prose status updates for reproducible evidence.
 
@@ -132,13 +134,14 @@ Decision records should include context, options, selected choice, rationale, co
 
 ## Blockers and prerequisites
 
-Local implementation and validation are complete. A clean disposable Windows environment is unavailable in this session; the required installation gate remains outstanding. Remote CI is defined but has not run because the branch has not been pushed.
+The user-confirmed clean installation/core workflow resolves the original clean-install prerequisite. Additional lifecycle, offline/backend/audio/soak and second-profile coverage is planned separately. Remote CI is defined but has not run; repository access through the GitHub connection returned 404, and local GitHub CLI is unavailable. This is a deployment preflight item, not a diagnosed product failure.
 
 | ID | Prerequisite | Unblock condition | Affected work |
 |---|---|---|---|
 | READY-001 | Resolved: source inspected at inherited revision `3a5f217b` | Recorded in M0 foundation audit | M0 |
 | READY-002 | Resolved: Windows x64 and actual machine profile captured | Hardware, driver, toolchain and corpus hashes retained in benchmark manifests | M0 baseline |
-| CLEAN-001 | Clean Windows x64 installation/launch/edit not exercised | Run the offline MSI and portable procedures in [qualification](m0/QUALIFICATION.md), retain logs/output checks and uninstall results | CORE-001; M0 exit |
+| CLEAN-001 | Resolved: user confirms clean 0.13.0 MSI installation and launch/import/edit/save/reopen/export | [Direct manual acceptance](m0/evidence/clean-install-user-confirmation.md); exact environment/hash metadata and lifecycle extensions tracked in RT-001 | CORE-001 |
+| CI-ACCESS-001 | Origin visibility/default branch, Actions settings and connector access unverified | Restore/verify repository access, then record permission, runner and budget preflight before authorized push | Remote CI activation |
 | READY-003 | External destination versions/test environments not selected | Resolve DEC-008 and obtain reproducible import environments | M5 adapter qualification |
 
 A future blocker entry must identify observed failure, reproduction/evidence, impact, owner, next action, and explicit unblock condition. Close it with evidence rather than deleting its history.
@@ -161,6 +164,7 @@ A future blocker entry must identify observed failure, reproduction/evidence, im
 - 2026-10-26 — Authored the full 01–17 documentation baseline, including shared requirements, proposed contracts, milestone gates, and this tracker. No code implementation or measured performance is claimed.
 - 2026-10-26 — Delivered M0 implementation and local evidence on `codex/m0-foundation`: 1,383 passing targeted tests, 3 explicitly ignored performance tests, successful native desktop workflow and unsigned Windows packages, and paired quick CPU baselines. CLEAN-001 remains open; M1–M5 remain Planned.
 - 2026-10-26 — Corrected the MSI's missing visible setup/completion flow after the user report. Original installation was successful on the development PC; updated wizard package and launch gating pass artifact checks. Full click-through remains manual because the UI tool blocks `msiexec.exe`.
+- 2026-10-26 — User confirmed clean MSI 0.13.0 installation, launch, import/edit/save/reopen and video export. Recorded CORE-001 and baseline-only PERF-001 acceptance; prepared remote CI/runtime rollout with concrete workflow gaps and deployment gates. No push, CI dispatch or settings change performed.
 
 ## Change log
 
