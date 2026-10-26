@@ -1,0 +1,21 @@
+ShotClutch 0.13.0 for Windows x64 (x86_64-pc-windows-msvc)
+
+ok shotclutch.exe: x64, PE subsystem 2
+
+ok shotclutch-cli.exe: x64, PE subsystem 3
+
+==> wix build
+
+==> shotclutch-cli --version
+
+shotclutch-cli 0.13.0
+
+
+
+Name                                         Length
+
+----                                         ------
+
+shotclutch-0.13.0-windows-x64.msi          31887360
+
+shotclutch-0.13.0-windows-x64-portable.zip 40713106

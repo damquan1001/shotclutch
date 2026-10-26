@@ -1,0 +1,285 @@
+   Compiling filmcraft-color v0.13.0 (E:\Development\Projects\shotclutch\crates\color)
+
+   Compiling filmcraft-time v0.13.0 (E:\Development\Projects\shotclutch\crates\time)
+
+   Compiling image v0.25.10
+
+   Compiling skrifa v0.44.0
+
+   Compiling harfrust v0.12.0
+
+   Compiling filmcraft-geom v0.13.0 (E:\Development\Projects\shotclutch\crates\geom)
+
+   Compiling chrono v0.4.45
+
+   Compiling naga v30.0.1
+
+   Compiling gpu-allocator v0.28.0
+
+   Compiling symphonia-format-riff v0.5.5
+
+   Compiling ahash v0.8.12
+
+   Compiling vello_cpu v0.1.0
+
+   Compiling ecolor v0.36.2
+
+   Compiling symphonia-codec-vorbis v0.5.5
+
+   Compiling symphonia-format-isomp4 v0.5.5
+
+   Compiling symphonia-codec-pcm v0.5.5
+
+   Compiling symphonia-codec-aac v0.5.5
+
+   Compiling filmcraft-frame v0.13.0 (E:\Development\Projects\shotclutch\crates\frame)
+
+   Compiling symphonia-codec-alac v0.5.5
+
+   Compiling filmcraft-isobmff v0.13.0 (E:\Development\Projects\shotclutch\crates\isobmff)
+
+   Compiling wgpu v30.0.1
+
+   Compiling epaint_default_fonts v0.36.2
+
+   Compiling futures-sink v0.3.34
+
+   Compiling futures-core v0.3.34
+
+   Compiling filmcraft-mxf v0.13.0 (E:\Development\Projects\shotclutch\crates\mxf)
+
+   Compiling toml_writer v1.1.2+spec-1.1.0
+
+   Compiling self_cell v1.3.0
+
+   Compiling nohash-hasher v0.2.0
+
+   Compiling toml v1.1.6+spec-1.1.0
+
+   Compiling symphonia v0.5.5
+
+   Compiling winit v0.30.13
+
+   Compiling digest v0.10.7
+
+   Compiling windows_x86_64_msvc v0.53.1
+
+   Compiling windows-sys v0.52.0
+
+   Compiling filmcraft-h264 v0.13.0 (E:\Development\Projects\shotclutch\crates\h264)
+
+   Compiling filmcraft-av1 v0.13.0 (E:\Development\Projects\shotclutch\crates\av1)
+
+   Compiling filmcraft-text v0.13.0 (E:\Development\Projects\shotclutch\crates\text)
+
+   Compiling epaint v0.36.2
+
+   Compiling filmcraft-h264enc v0.13.0 (E:\Development\Projects\shotclutch\crates\h264enc)
+
+   Compiling filmcraft-flac v0.13.0 (E:\Development\Projects\shotclutch\crates\flac)
+
+   Compiling filmcraft-mpa v0.13.0 (E:\Development\Projects\shotclutch\crates\mpa)
+
+   Compiling filmcraft-vp9 v0.13.0 (E:\Development\Projects\shotclutch\crates\vp9)
+
+   Compiling filmcraft-hevc v0.13.0 (E:\Development\Projects\shotclutch\crates\hevc)
+
+   Compiling filmcraft-matroska v0.13.0 (E:\Development\Projects\shotclutch\crates\matroska)
+
+   Compiling filmcraft-media v0.13.0 (E:\Development\Projects\shotclutch\crates\media)
+
+   Compiling filmcraft-mpeg2v v0.13.0 (E:\Development\Projects\shotclutch\crates\mpeg2v)
+
+   Compiling itertools v0.15.0
+
+   Compiling filmcraft-vp8 v0.13.0 (E:\Development\Projects\shotclutch\crates\vp8)
+
+   Compiling filmcraft-project v0.13.0 (E:\Development\Projects\shotclutch\crates\project)
+
+   Compiling filmcraft-ac3 v0.13.0 (E:\Development\Projects\shotclutch\crates\ac3)
+
+   Compiling wgpu-naga-bridge v30.0.1
+
+   Compiling wgpu-hal v30.0.1
+
+   Compiling filmcraft-mpegts v0.13.0 (E:\Development\Projects\shotclutch\crates\mpegts)
+
+   Compiling dpi v0.1.2
+
+   Compiling ident_case v1.0.1
+
+   Compiling filmcraft-opus v0.13.0 (E:\Development\Projects\shotclutch\crates\opus)
+
+   Compiling strsim v0.11.1
+
+   Compiling filmcraft-avi v0.13.0 (E:\Development\Projects\shotclutch\crates\avi)
+
+   Compiling smol_str v0.2.2
+
+   Compiling cpufeatures v0.2.17
+
+   Compiling fastrand v2.5.0
+
+   Compiling cursor-icon v1.2.0
+
+   Compiling filmcraft-ogg v0.13.0 (E:\Development\Projects\shotclutch\crates\ogg)
+
+   Compiling sha2 v0.10.9
+
+   Compiling darling_core v0.24.1
+
+   Compiling egui v0.36.2
+
+   Compiling filmcraft-codecs v0.13.0 (E:\Development\Projects\shotclutch\crates\codecs)
+
+   Compiling tempfile v3.27.0
+
+   Compiling windows-targets v0.53.5
+
+   Compiling futures-channel v0.3.34
+
+   Compiling accesskit_consumer v0.35.0
+
+   Compiling futures-macro v0.3.34
+
+   Compiling filmcraft-cfb v0.13.0 (E:\Development\Projects\shotclutch\crates\cfb)
+
+   Compiling futures-io v0.3.34
+
+   Compiling futures-task v0.3.34
+
+   Compiling error-code v3.4.0
+
+   Compiling slab v0.4.12
+
+   Compiling filmcraft-captions v0.13.0 (E:\Development\Projects\shotclutch\crates\captions)
+
+   Compiling ref-cast v1.0.27
+
+   Compiling filmcraft-edit v0.13.0 (E:\Development\Projects\shotclutch\crates\edit)
+
+   Compiling filmcraft-interchange v0.13.0 (E:\Development\Projects\shotclutch\crates\interchange)
+
+   Compiling futures-util v0.3.34
+
+   Compiling filmcraft-render v0.13.0 (E:\Development\Projects\shotclutch\crates\render)
+
+   Compiling darling_macro v0.24.1
+
+   Compiling wgpu-core-deps-windows-linux-android v30.0.1
+
+   Compiling wgpu-core v30.0.1
+
+   Compiling filmcraft-speech v0.13.0 (E:\Development\Projects\shotclutch\crates\speech)
+
+   Compiling filmcraft-format v0.13.0 (E:\Development\Projects\shotclutch\crates\format)
+
+   Compiling filmcraft-export v0.13.0 (E:\Development\Projects\shotclutch\crates\export)
+
+   Compiling clipboard-win v5.4.1
+
+   Compiling accesskit_windows v0.32.1
+
+   Compiling windows-sys v0.60.2
+
+   Compiling filmcraft-scopes v0.13.0 (E:\Development\Projects\shotclutch\crates\scopes)
+
+   Compiling socket2 v0.6.5
+
+   Compiling mio v1.2.3
+
+   Compiling filmcraft-tts v0.13.0 (E:\Development\Projects\shotclutch\crates\tts)
+
+   Compiling tokio-macros v2.7.2
+
+   Compiling ref-cast-impl v1.0.27
+
+   Compiling serde_derive_internals v0.30.0
+
+   Compiling rustc-hash v2.1.3
+
+   Compiling winapi v0.3.9
+
+   Compiling bytes v1.12.1
+
+   Compiling craft-docpath v0.1.0 (https://github.com/storytold/craft-libs?rev=82a24b006eefa036b43c09a67fb9a3fbd17ffe63#82a24b00)
+
+   Compiling tokio v1.53.1
+
+   Compiling filmcraft-engine v0.13.0 (E:\Development\Projects\shotclutch\crates\engine)
+
+   Compiling type-map v0.5.1
+
+   Compiling schemars_derive v1.2.2
+
+   Compiling arboard v3.6.1
+
+   Compiling accesskit_winit v0.32.2
+
+   Compiling futures-executor v0.3.34
+
+   Compiling darling v0.24.1
+
+   Compiling windows-result v0.1.2
+
+   Compiling rmcp v3.5.0
+
+   Compiling pollster v0.4.0
+
+   Compiling dyn-clone v1.0.20
+
+   Compiling filmcraft-gpu v0.13.0 (E:\Development\Projects\shotclutch\crates\gpu)
+
+   Compiling schemars v1.2.2
+
+   Compiling windows-core v0.54.0
+
+   Compiling tokio-util v0.7.19
+
+   Compiling rmcp-macros v3.5.0
+
+   Compiling futures v0.3.34
+
+   Compiling egui-winit v0.36.2
+
+   Compiling egui-wgpu v0.36.2
+
+   Compiling filmcraft-ui-egui v0.13.0 (E:\Development\Projects\shotclutch\crates\ui-egui)
+
+   Compiling winresource v0.1.31
+
+   Compiling pastey v0.2.3
+
+   Compiling pollster v1.0.1
+
+   Compiling rfd v0.17.2
+
+   Compiling cpal v0.16.0
+
+   Compiling cpu-time v1.0.0
+
+   Compiling filmcraft v0.13.0 (E:\Development\Projects\shotclutch\apps\filmcraft)
+
+   Compiling eframe v0.36.2
+
+   Compiling windows v0.54.0
+
+   Compiling filmcraft-platform v0.13.0 (E:\Development\Projects\shotclutch\crates\platform)
+
+   Compiling craft-ui v0.1.0 (https://github.com/storytold/craft-libs?rev=5c874d51eeb3de70e735c8ce87a59a7dedd47675#5c874d51)
+
+   Compiling dasp_sample v0.11.0
+
+   Compiling base64 v0.22.1
+
+   Compiling open v5.4.4
+
+   Compiling sys-locale v0.3.2
+
+   Compiling subtle v2.6.1
+
+   Compiling filmcraft-automation v0.13.0 (E:\Development\Projects\shotclutch\crates\automation)
+
+   Compiling filmcraft-cli v0.13.0 (E:\Development\Projects\shotclutch\apps\filmcraft-cli)
+
+    Finished `release` profile [optimized] target(s) in 16m 36s

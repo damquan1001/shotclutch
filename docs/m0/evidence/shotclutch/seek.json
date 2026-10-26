@@ -1,0 +1,107 @@
+{
+  "load_after": null,
+  "load_before": null,
+  "rows": [
+    {
+      "cpu_ms_mean": 4128.90625,
+      "decoded_per_seek": 53.75,
+      "fixture": "a1080.mp4",
+      "load": null,
+      "mode": "full",
+      "p50_ms": 428.29200000000003,
+      "p95_ms": 548.6134000000001,
+      "seeks": 4,
+      "skipped_per_seek": 0.0
+    },
+    {
+      "cpu_ms_mean": 4027.34375,
+      "decoded_per_seek": 50.25,
+      "fixture": "a1080.mp4",
+      "load": null,
+      "mode": "keep 2 s",
+      "p50_ms": 428.0673,
+      "p95_ms": 530.8267,
+      "seeks": 4,
+      "skipped_per_seek": 3.75
+    },
+    {
+      "cpu_ms_mean": 3042.96875,
+      "decoded_per_seek": 38.25,
+      "fixture": "a1080.mp4",
+      "load": null,
+      "mode": "late",
+      "p50_ms": 316.0458,
+      "p95_ms": 380.5996,
+      "seeks": 4,
+      "skipped_per_seek": 15.75
+    },
+    {
+      "cpu_ms_mean": 58363.28125,
+      "decoded_per_seek": 173.5,
+      "fixture": "a2160.mp4",
+      "load": null,
+      "mode": "full",
+      "p50_ms": 5454.5691,
+      "p95_ms": 6422.0109,
+      "seeks": 4,
+      "skipped_per_seek": 0.0
+    },
+    {
+      "cpu_ms_mean": 54796.875,
+      "decoded_per_seek": 158.5,
+      "fixture": "a2160.mp4",
+      "load": null,
+      "mode": "keep 2 s",
+      "p50_ms": 5180.1201,
+      "p95_ms": 5348.317599999999,
+      "seeks": 4,
+      "skipped_per_seek": 15.0
+    },
+    {
+      "cpu_ms_mean": 53421.875,
+      "decoded_per_seek": 153.5,
+      "fixture": "a2160.mp4",
+      "load": null,
+      "mode": "late",
+      "p50_ms": 5216.266,
+      "p95_ms": 5924.0486,
+      "seeks": 4,
+      "skipped_per_seek": 20.0
+    },
+    {
+      "cpu_ms_mean": 39156.25,
+      "decoded_per_seek": 173.25,
+      "fixture": "hevc2160.mp4",
+      "load": null,
+      "mode": "full",
+      "p50_ms": 4772.1,
+      "p95_ms": 5567.3049,
+      "seeks": 4,
+      "skipped_per_seek": 0.0
+    },
+    {
+      "cpu_ms_mean": 21703.125,
+      "decoded_per_seek": 108.75,
+      "fixture": "hevc2160.mp4",
+      "load": null,
+      "mode": "keep 2 s",
+      "p50_ms": 3508.5699,
+      "p95_ms": 3876.747,
+      "seeks": 4,
+      "skipped_per_seek": 64.75
+    },
+    {
+      "cpu_ms_mean": 14785.15625,
+      "decoded_per_seek": 80.75,
+      "fixture": "hevc2160.mp4",
+      "load": null,
+      "mode": "late",
+      "p50_ms": 3176.9638000000004,
+      "p95_ms": 3449.1805,
+      "seeks": 4,
+      "skipped_per_seek": 92.75
+    }
+  ],
+  "section": "seek",
+  "wall_s": 89.6429762
+}

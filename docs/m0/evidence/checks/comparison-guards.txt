@@ -1,0 +1,1 @@
+PASS: matched comparison; rejected changed settings, hardware, corpus hashes and case counts before rewriting output. Synthetic inputs only.

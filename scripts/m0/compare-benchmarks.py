@@ -54,6 +54,7 @@ def main():
         "Fixture preparation is excluded from measurement. OS filesystem caches are uncontrolled. "
         "These are descriptive baselines, not qualification against the release budgets in document 14.", "",
         "Repeated rows are summarized by the median of the harness-reported values; this is not a pooled percentile. "
+        "Decode/export FPS retain the inherited best-of-repeats scalar; individual FPS/time runs remain in the raw JSON. "
         "Quick seek percentiles have small sample counts. FPS is higher-is-better; latency, timeouts, and drop percentage are lower-is-better. "
         "A zero-frame playback case or high drop rate remains a failed real-time workload even when the benchmark process completes.", "",
         "| Section / case | Metric | Upstream | ShotClutch | Change |",

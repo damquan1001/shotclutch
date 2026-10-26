@@ -1,0 +1,109 @@
+    Blocking waiting for file lock on artifact directory
+
+   Compiling serde_core v1.0.229
+
+   Compiling serde v1.0.229
+
+   Compiling num-traits v0.2.19
+
+   Compiling either v1.18.0
+
+   Compiling syn v3.0.6
+
+   Compiling syn v2.0.119
+
+   Compiling bytemuck v1.25.2
+
+   Compiling memchr v2.8.3
+
+   Compiling serde_json v1.0.151
+
+   Compiling windows-sys v0.61.2
+
+   Compiling once_cell v1.21.4
+
+   Compiling log v0.4.34
+
+   Compiling rayon v1.12.0
+
+   Compiling tempfile v3.27.0
+
+   Compiling moxcms v0.8.1
+
+   Compiling chrono v0.4.45
+
+   Compiling serde_derive v1.0.229
+
+   Compiling thiserror-impl v2.0.21
+
+   Compiling zerocopy-derive v0.8.59
+
+   Compiling thiserror v2.0.21
+
+   Compiling filmcraft-dng v0.13.0 (E:\Development\Projects\shotclutch\crates\dng)
+
+   Compiling zerocopy v0.8.59
+
+   Compiling filmcraft-time v0.13.0 (E:\Development\Projects\shotclutch\crates\time)
+
+   Compiling filmcraft-color v0.13.0 (E:\Development\Projects\shotclutch\crates\color)
+
+   Compiling filmcraft-geom v0.13.0 (E:\Development\Projects\shotclutch\crates\geom)
+
+   Compiling filmcraft-frame v0.13.0 (E:\Development\Projects\shotclutch\crates\frame)
+
+   Compiling half v2.7.1
+
+   Compiling tiff v0.11.3
+
+   Compiling image v0.25.10
+
+   Compiling filmcraft-media v0.13.0 (E:\Development\Projects\shotclutch\crates\media)
+
+   Compiling filmcraft-project v0.13.0 (E:\Development\Projects\shotclutch\crates\project)
+
+   Compiling filmcraft-format v0.13.0 (E:\Development\Projects\shotclutch\crates\format)
+
+    Finished `release` profile [optimized] target(s) in 26m 40s
+
+     Running tests\fixtures.rs (target\release\deps\fixtures-71c217367193252e.exe)
+
+
+
+running 16 tests
+
+test bare_version_2_loads_as_schema_v1 ... ok
+
+test future_schema_is_refused_with_a_clear_error ... ok
+
+test v10_minimal_loads_with_m3_11_defaults ... ok
+
+test a_new_item_never_replaces_one_from_a_file_with_a_stale_next_id ... ok
+
+test an_exhausted_id_space_is_refused_on_load ... ok
+
+test hostile_audio_stream_counts_and_indices_are_repaired_not_rejected ... ok
+
+test v11_minimal_loads_without_graphics_design_data ... ok
+
+test upgraded_file_resaves_in_current_schema_losslessly ... ok
+
+test next_id_is_raised_past_every_id_in_the_file ... ok
+
+test legacy_audio_field_becomes_primary_stream_and_clip_defaults_to_zero ... ok
+
+test v8_loads_without_transcripts_and_v9_roundtrips_them ... ok
+
+test hostile_media_video_dimensions_are_rejected ... ok
+
+test v1_edit_loads_with_defaults_for_later_fields ... ok
+
+test v1_minimal_loads ... ok
+
+test v8_subclip_loads_with_m3_10_defaults ... ok
+
+test large_project_roundtrip_and_timing ... ok
+
+
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s

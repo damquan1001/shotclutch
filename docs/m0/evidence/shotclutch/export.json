@@ -1,0 +1,65 @@
+{
+  "load_after": null,
+  "load_before": null,
+  "rows": [
+    {
+      "cpu_ms_per_frame": 696.5228873239437,
+      "format": "H.264 + AAC (MP4)",
+      "fps": 15.954458873517229,
+      "frames": 71,
+      "gpu_fallbacks": 0,
+      "gpu_frames": 0,
+      "hw_frames": 0,
+      "load": null,
+      "mbytes": 7.462087,
+      "realtime": 0.6654338888496144,
+      "runs_s": [
+        4.7818781999999995,
+        4.601542,
+        4.4501666
+      ],
+      "scene": "h264",
+      "seconds": 4.4501666
+    },
+    {
+      "cpu_ms_per_frame": 2070.6426056338028,
+      "format": "H.264 + AAC, 3 layers + effects",
+      "fps": 6.478450583829755,
+      "frames": 71,
+      "gpu_fallbacks": 0,
+      "gpu_frames": 0,
+      "hw_frames": 0,
+      "load": null,
+      "mbytes": 7.510568,
+      "realtime": 0.27020537643389936,
+      "runs_s": [
+        11.9612505,
+        10.9594106,
+        11.2684976
+      ],
+      "scene": "h264_fx",
+      "seconds": 10.9594106
+    },
+    {
+      "cpu_ms_per_frame": 740.9771126760563,
+      "format": "ProRes 422 (MOV)",
+      "fps": 16.986077493165016,
+      "frames": 71,
+      "gpu_fallbacks": 0,
+      "gpu_frames": 0,
+      "hw_frames": 0,
+      "load": null,
+      "mbytes": 65.747126,
+      "realtime": 0.7084609821107575,
+      "runs_s": [
+        4.1798938,
+        4.2652877,
+        4.2405733
+      ],
+      "scene": "prores",
+      "seconds": 4.1798938
+    }
+  ],
+  "section": "export",
+  "wall_s": 61.162502
+}

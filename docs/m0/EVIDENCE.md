@@ -1,6 +1,6 @@
 # M0 qualification evidence
 
-Implementation branch: `codex/m0-foundation`. Code qualification revision: `3aeef47218c74067fb4998b0d14e4aacee7dad10`. Documentation-only evidence updates may follow that revision.
+Implementation branch: `codex/m0-foundation`. Production application qualification revision: `3aeef47218c74067fb4998b0d14e4aacee7dad10`. Subsequent commits refine tests, the measurement harness and documentation; application binaries are bound to that production revision by package provenance and executable hashes. Retained reports and reproduction commands are in [evidence/README.md](evidence/README.md).
 
 M0 is **not closed** until the clean-machine installation gate is satisfied. Local package inspection, a development-machine launch, and defined CI jobs do not substitute for that evidence.
 
@@ -21,26 +21,57 @@ M0 is **not closed** until the clean-machine installation gate is satisfied. Loc
 | Targeted libraries | Passed: 1,258 tests; 3 ignored performance tests | `target/m0/tests-libraries-final.log` |
 | Legacy project fixtures | Passed: 16 tests | `target/m0/tests-project-fixtures.log` |
 | Desktop arguments/control/audio/logging tests | Passed: 75 tests | `target/m0/tests-desktop-final.log` |
-| Dependency layering | Passed | `target/m0/layers.log` |
-| Retained asset attribution | Passed: 55 assets | `target/m0/assets.log` |
+| Dependency layering | Passed | [Final log](evidence/checks/layers-final.log) |
+| Retained asset attribution | Passed: 55 assets | [Final log](evidence/checks/assets-final.log) |
 | Workflow syntax | Passed with checksum-verified actionlint 1.7.12 | `target/m0/actionlint.log`; local shellcheck integration unavailable; CI defines Unix shell/metadata checks |
 | Python tools and comparison guards | Passed | Python syntax compilation; `target/m0/comparison-guard-test/result.txt` uses explicitly synthetic inputs |
-| Final Clippy/format refresh | Pending final evidence collection | Full-target Clippy passed after the bounded Rust 1.95 repairs; refresh logs after final metadata changes |
+| Final Clippy/format refresh | Passed | [Full-target release Clippy](evidence/checks/clippy-final.log), [format](evidence/checks/fmt-final.log); no lint suppression |
 | CLI unit/integration and benchmark tests | Passed: 16 CLI unit, 16 integration, 2 benchmark tests | `target/m0/tests-cli-final.log` (unit phase), `target/m0/tests-cli-integration-final.log`, `target/m0/tests-benchmark-final.log` |
 | Final unsigned MSI and ZIP | Passed, clean manifest | `target/m0/package-clean.log`, `target/m0/package-validation-clean.log`; WiX 5.0.2, static CRT, legal files, source/lockfile provenance; ZIP executables match the tested static binaries |
-| Comparable performance captures | Pending measurement | Prepared media are not measured baseline evidence |
+| Comparable performance captures | Passed as baseline capture, not release performance qualification | [Checked comparison](BENCHMARKS.md); seven sections, three repeats, 19 identical fixture hashes and 94 raw rows per build; every section exit code 0 |
 
 Library coverage comprises automation, edit algebra, engine, export, format, project, time, and UI library tests. The ignored tests are `essential_sound_tests::perf_full_dialogue_chain_realtime_factor`, `multicam_tests::perf_grid_of_four_1080p_angles`, and `proxies_tests::proxy_playback_perf_4k`. They remain separate performance obligations; no ignored test is counted as passed.
+
+The reports referenced by local `target/m0/` paths above are also retained under [evidence/checks](evidence/checks), with reproduction commands in the [evidence index](evidence/README.md). The dependency inventory contains 54 workspace packages and 335 packages in the Windows-filtered workspace/default-feature graph, including development dependencies. Every package declares a license expression; this does not prove which packages are linked into either executable or certify fulfillment of every dependency's redistribution obligations. See the [locked package/license graph](evidence/inventory/dependencies.json).
 
 ## Desktop workflow
 
 The live desktop smoke passed both initially and against the final static-CRT binary. It generated a two-second H.264/AAC input, imported it through the authenticated desktop command service, made a sequence, ripple-trimmed ten frames, undid/redid, saved/reopened, and exported ProRes. Independent ffprobe/ffmpeg validation found **50 video frames and 80,000 stereo sample frames at 48 kHz**. New port/token environment variables overrode deliberately invalid legacy values. The credential was neither logged nor saved.
 
-Final evidence: `target/m0/desktop-smoke-final/evidence.json`. ZIP executable hashes match the tested static binaries; installer metadata and notice payloads passed inspection. The package manifest was refreshed from a clean documentation tree using unchanged tested binaries; it records production source `3aeef472` and observed documentation revision `0bd65fe4`, with `dirty: false`. This development-machine workflow does not establish clean-machine installation or long-form playback performance.
+Final evidence: [desktop responses and verification](evidence/desktop/evidence.json). ZIP executable hashes match the tested static binaries; installer metadata and notice payloads passed inspection. The package manifest was refreshed from a clean documentation tree using unchanged tested binaries; it records production source `3aeef472` and observed documentation revision `0bd65fe4`, with `dirty: false`. This development-machine workflow does not establish clean-machine installation or long-form playback performance.
+
+Unsigned local artifacts (not published):
+
+- `dist/release/shotclutch-0.13.0-windows-x64.msi`, SHA-256 `9745ECA5C4185777691022A675647E378BEC3AC74E6608AB66079D944AD85DD2`.
+- `dist/release/shotclutch-0.13.0-windows-x64-portable.zip`, SHA-256 `0DC1468FEC9004590FA6C576E5D6A3CCE3171C7D9FBF88A002EC42A1A0F3281B`.
+
+See [package inspection](evidence/packages/validation.json) and [build provenance](evidence/packages/build-info.json). These artifacts retain workspace version 0.13.0; no v0.1 package-version migration was made.
+
+## Measured baseline
+
+The untouched upstream capture uses `3a5f217b348bf0c9dc1678f305c34b6c88617f37`; ShotClutch uses `f35fac68e9ebca6e8d8503210d2f7f750c9058bb`. The same committed orchestration harness ran both existing benchmark binaries directly. No source patch was applied to upstream: [1,415 archived files verified unchanged](evidence/baseline-integrity.json). Both builds use the same Cargo.lock hash. Fixtures were generated and warmed outside measurement; each measured section ran in a fresh child with software decode and CPU composition. Quick mode does not cover the full release corpus. Mixed-rate/VFR media are additionally exercised by the required-oracle CLI workflows, rather than claimed as part of the playback benchmark corpus.
+
+| Measured section | Process wall seconds, upstream / ShotClutch | Peak working set GiB, upstream / ShotClutch |
+|---|---:|---:|
+| decode | 39.189 / 40.874 | 1.834 / 1.853 |
+| seek | 88.565 / 90.999 | 1.320 / 1.321 |
+| playback | 247.465 / 247.743 | 2.491 / 2.429 |
+| scrub | 133.695 / 134.103 | 2.515 / 2.514 |
+| timeline | 8.242 / 8.608 | 0.338 / 0.338 |
+| export | 61.320 / 61.918 | 1.800 / 1.818 |
+| project | 0.749 / 0.713 | 0.064 / 0.064 |
+
+These are whole-section process resources, including startup and report writing. Per-case timings and available CPU measurements remain in the raw reports. The observer samples peak working set every 100 ms. GPU utilization, temperature, power consumption, cold-cache behavior and upstream Windows load averages are unavailable; empty inherited load strings do not mean an idle machine. The manifest records the active power scheme and installed GPU drivers, without implying GPU workload qualification.
+
+[The full comparison](BENCHMARKS.md) reports all case metrics. Several decode values are slower in the ShotClutch pass (H.264 1080p -8.1%, HEVC 1080p -20.1% best-of-repeat FPS); export values are 1.1–2.3% lower, while 5,000-clip save/open medians are 5.6%/6.8% lower. These sequential quick runs do not isolate code effects from thermal, scheduling or cache variation. Investigate with repeated/interleaved controlled runs before asserting either a regression cause or a speedup. Both builds drop many frames on complex/4K software playback, including zero-frame repeats; successful capture does not qualify those scenarios as real-time.
+
+Raw [upstream manifest](evidence/upstream/manifest.json) and [ShotClutch manifest](evidence/shotclutch/manifest.json) contain complete available hardware/toolchain/settings/corpus data. The comparator accepted matching profiles, cases and sample counts. Explicit synthetic guard checks reject mismatched inputs and preserve the previous report on failure.
 
 ## Findings and remaining gates
 
 Validation found two M0 branding regressions and corrected them: a fixed nine-byte DPX creator slice could not hold the ten-byte name, and two log-rotation assertions still named old files. The DPX preset workflow and targeted library run now pass; the desktop logging run also passes. Rust 1.95 Clippy repairs are equivalent boolean/match simplifications, recorded in the audit; no lint was suppressed.
+
+Windows PowerShell benchmark preparation initially treated native stderr as an error, and the first measured attempt rejected an unavailable process exit code. Preparation now uses redirected child processes, and measurement retains the native handle and a per-section exit-status report. Those rejected/preparation attempts are excluded; both retained captures completed all seven sections. No benchmark workload or upstream source was changed to obtain a passing capture.
 
 Clean Windows installation, remote CI execution, other-platform runtime qualification, GPU performance qualification, and a second hardware tier remain unverified. Run the procedure in `QUALIFICATION.md` in a fresh VM/Sandbox or equivalent environment and attach its results. The original application-suite dependency is not required by the native pipeline; strict offline/clean-environment acceptance remains an explicit gate rather than an inference from source.
 

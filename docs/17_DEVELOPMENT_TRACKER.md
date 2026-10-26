@@ -4,9 +4,9 @@ Baseline 0.1 · Last updated: 2026-10-26 · Authoritative living work record.
 
 ## Current state
 
-The documentation baseline is committed at `b739515e04b3467ed8b681e6296f7dc5867f43dd`. M0 implementation is underway on `codex/m0-foundation`, based on inherited source `3a5f217b348bf0c9dc1678f305c34b6c88617f37`. The initial working tree was clean. See [the foundation audit](m0/FOUNDATION_AUDIT.md), [qualification procedure](m0/QUALIFICATION.md), and [upstream policy](m0/UPSTREAM_POLICY.md).
+The documentation baseline is committed at `b739515e04b3467ed8b681e6296f7dc5867f43dd`. M0 implementation is delivered on `codex/m0-foundation`, based on inherited source `3a5f217b348bf0c9dc1678f305c34b6c88617f37`. The initial working tree was clean. Production application revision: `3aeef47218c74067fb4998b0d14e4aacee7dad10`; subsequent commits add test, measurement and evidence refinements. See [the foundation audit](m0/FOUNDATION_AUDIT.md), [executed evidence](m0/EVIDENCE.md), [qualification procedure](m0/QUALIFICATION.md), and [upstream policy](m0/UPSTREAM_POLICY.md).
 
-Current milestone: **M0 — Foundation audit and reproducible baseline, In Progress.** Initial qualification platform: Windows x64. Owner: Codex implementation session. Build/test/package/benchmark evidence is being collected; no clean-machine installation or remote CI run is claimed.
+Current milestone: **M0 — Foundation audit and reproducible baseline, In Review; exit gate outstanding.** Initial qualification platform: Windows x64. Owner: Codex implementation session. Local builds, 1,383 targeted tests, desktop workflow, packages and paired CPU benchmark captures have evidence. No clean-machine installation or remote CI run is claimed; M0 is not complete.
 
 There are **48 implementation requirements: 44 in v0.1 (M0–M4) and 4 in M5**. CORE-001, CORE-005 and PERF-001 are active. No requirement is marked Done until all its acceptance evidence exists. M1–M5 remain Planned. Staffing, budget and release dates are unassigned.
 
@@ -25,13 +25,13 @@ Update after each completed work session, merged change, milestone gate, new blo
 
 Never mark a requirement Done based only on a plan, inherited feature list, tool acceptance, or a flat-render fallback for an editable export. Reopen a Done row when evidence no longer passes. Preserve the ID and history when splitting work; subtasks use suffixes such as `PRE-004.a` and roll up to the parent only when all acceptance criteria are met.
 
-Each active item must have an owner, implementation/change reference, linked tests/results, next action, and any blocker. All rows currently share **Owner: unassigned; implementation/evidence: none**. Replace that common state with per-item entries when work begins. Requirement acceptance lives in [02](02_PRODUCT_REQUIREMENTS.md); test families in [15](15_TESTING_STRATEGY.md).
+Each active item must have an owner, implementation/change reference, linked tests/results, next action, and any blocker. Planned M1–M5 rows share **Owner: unassigned; implementation/evidence: none**. M0 has per-item records below. Requirement acceptance lives in [02](02_PRODUCT_REQUIREMENTS.md); test families in [15](15_TESTING_STRATEGY.md).
 
 ## Milestone dashboard
 
 | Milestone | Scope | Status | Exit evidence |
 |---|---|---|---|
-| M0 | Audit, standalone build, baseline measurements | In Progress | Local evidence collection; clean-machine gate outstanding |
+| M0 | Audit, standalone build, baseline measurements | In Review | [Local evidence](m0/EVIDENCE.md) ready; clean-machine gate outstanding |
 | M1 | Durable project, exact commands, native media, local editing | Not started | None |
 | M2 | Smart Rough Cut and workspace | Not started | None |
 | M3 | Semantic indexing, verified agent, MCP/CLI | Not started | None |
@@ -46,11 +46,11 @@ Dependencies below are completion gates, not a requirement to postpone design or
 
 | ID | Work item | Priority | Milestone | Status | Depends on |
 |---|---|---|---|---|---|
-| CORE-001 | Build a standalone ShotClutch fork | P0 | M0 | In Progress | — |
+| CORE-001 | Build a standalone ShotClutch fork | P0 | M0 | In Review | — |
 | CORE-002 | Use one canonical project with stable IDs and versioned extensions | P0 | M1 | Planned | CORE-001 |
 | CORE-003 | Use integer ticks and rational rates for edit math | P0 | M1 | Planned | CORE-002 |
 | CORE-004 | Persist changes crash-safely | P0 | M1 | Planned | CORE-002 |
-| CORE-005 | Establish reproducible build, automated checks, release packaging plan, and upstream-change policy | P0 | M0 | In Progress | CORE-001 |
+| CORE-005 | Establish reproducible build, automated checks, release packaging plan, and upstream-change policy | P0 | M0 | In Review | CORE-001 |
 | UI-001 | Provide usable multitrack editing, exact trim/split/move, linked A/V, nesting, monitor seeking, audio levels, save, relink, and undo | P0 | M1 | Planned | CORE-003, AGENT-001, MEDIA-003, MEDIA-004 |
 | UI-002 | Provide a dedicated Smart Rough Cut workspace with transcript, waveform, source and result preview, take comparison, reasons, and apply/restore controls | P0 | M2 | Planned | PRE-002, PRE-003 |
 | MEDIA-001 | Select a usable hardware, native, or fallback decoder through one source interface | P0 | M1 | Planned | CORE-001, CORE-003 |
@@ -90,23 +90,25 @@ Dependencies below are completion gates, not a requirement to postpone design or
 | SEC-002 | Enforce least-privilege grants at service boundaries | P0 | M1 | Planned | CORE-002 |
 | SEC-003 | Isolate untrusted scene code and extension execution | P0 | M4 | Planned | SEC-002 |
 | SEC-004 | Keep provider credentials outside projects/logs and support retention/deletion controls | P0 | M3 | Planned | SEC-001, SEC-002 |
-| PERF-001 | Establish reproducible performance fixtures and baseline captures with hardware, software, media, and cache conditions | P0 | M0 | In Progress | CORE-001 |
+| PERF-001 | Establish reproducible performance fixtures and baseline captures with hardware, software, media, and cache conditions | P0 | M0 | In Review | CORE-001 |
 | PERF-002 | Meet or explicitly renegotiate the release budgets in document 14 on declared hardware | P1 | M4 | Planned | PERF-001, MEDIA-005, MOTION-004 |
 | TEST-001 | Run invariant, command, persistence, and regression checks in CI | P0 | M1 | Planned | CORE-005, CORE-004, AGENT-002 |
 | TEST-002 | Pass the v0.1 release workflow, security, recovery, and qualification gates | P0 | M4 | Planned | TEST-001, PERF-002; all v0.1 requirements |
 
 ## Active work and evidence register
 
-M0 work is active on `codex/m0-foundation`; documentation completion remains separate from feature acceptance.
+M0 implementation and local evidence are ready on `codex/m0-foundation`. In Review preserves the dependency and review gates; no requirement is marked Done from local implementation alone.
 
 | Record | State | Owner | Evidence / next action |
 |---|---|---|---|
 | DOC-001 | Done | Documentation author | All 17 numbered Markdown documents authored; structural validation and archive packaging accompany this baseline |
 | REVIEW-001 | Planned | Unassigned | Review baseline API/schema choices against the selected source revision; record accepted amendments |
 | SETUP-001 | Done | Codex | Recorded inherited revision and clean documentation baseline; selected Windows x64 and pinned Rust 1.95.0 |
-| CORE-001 / CORE-005 / PERF-001 | In Progress | Codex | Product identity, packaging, fork-owned CI, audit and baseline tooling; qualification evidence pending |
+| CORE-001 | In Review | Codex | Production `3aeef472`; standalone desktop/CLI, ShotClutch identity, compatibility aliases, capability/legal audit and short edit/export verified. [Evidence](m0/EVIDENCE.md). Expected clean-machine launch/edit remains untested. Next: run CLEAN-001 before closure. |
+| CORE-005 | In Review | Codex | Production `3aeef472`; locked upstream/fork builds, Rust 1.95, pinned repository-owned CI, unsigned MSI/ZIP and upstream policy verified locally. [Check logs](m0/evidence/README.md), [package provenance](m0/evidence/packages/build-info.json). Next: review results and execute CI when authorized to push; CORE-001 dependency remains open. |
+| PERF-001 | In Review | Codex | Harness `f35fac68`; seven matching software/CPU sections, generated media hashes and machine profile retained. [Comparison](m0/BENCHMARKS.md), [raw upstream](m0/evidence/upstream/manifest.json), [raw ShotClutch](m0/evidence/shotclutch/manifest.json). Next: review baseline limitations; release budgets remain PERF-002. CORE-001 dependency remains open. |
 
-When implementation begins, add one row per active requirement with: owner; change/branch or commit; test/benchmark report; expected versus actual result; review outcome; next action; and blocker ID if any. Do not substitute prose status updates for reproducible evidence.
+For each new active requirement, add owner, change/branch or commit, test/benchmark report, expected versus actual result, review outcome, next action and any blocker ID. Do not substitute prose status updates for reproducible evidence.
 
 ## Architecture decisions pending
 
@@ -114,7 +116,7 @@ These are implementation details or proposed baseline choices. They do not reope
 
 | ID | Decision | Baseline / alternatives to evaluate | Needed by | Owner / state |
 |---|---|---|---|---|
-| DEC-001 | Initial OS and qualification hardware | Windows x64 first; local Ryzen 7 4800H / RTX 3060 Laptop candidate profile; benchmark manifest records actual environment | M0 | Codex / Platform selected; qualification pending |
+| DEC-001 | Initial OS and qualification hardware | Windows x64 first; Windows 11 10.0.26200, Ryzen 7 4800H, 16 logical cores, approximately 32 GiB RAM; all adapters/drivers and actual memory in benchmark manifests | M0 | Codex / Profile captured; clean-machine and GPU qualification pending |
 | DEC-002 | Canonical schema, tick frequency, storage/migration layout | Extend inherited model; audit integer/rational representation and transaction durability before selecting physical layout | M1 | Unassigned / Open |
 | DEC-003 | MotionScene JS runtime and TS/JSX compiler | Compare deterministic evaluation, embedding, sandboxing, startup, memory, licensing, and debugging | M4 | Unassigned / Open |
 | DEC-004 | Web runtime embedding/distribution | Chromium worker strategy, headless rendering, GPU sharing, isolation, readiness, platform packaging | M5 | Unassigned / Open |
@@ -129,12 +131,13 @@ Decision records should include context, options, selected choice, rationale, co
 
 ## Blockers and prerequisites
 
-No active implementation blocker has been diagnosed because implementation has not begun. Known prerequisites are tracked separately to avoid inventing a failure state.
+Local implementation and validation are complete. A clean disposable Windows environment is unavailable in this session; the required installation gate remains outstanding. Remote CI is defined but has not run because the branch has not been pushed.
 
 | ID | Prerequisite | Unblock condition | Affected work |
 |---|---|---|---|
 | READY-001 | Resolved: source inspected at inherited revision `3a5f217b` | Recorded in M0 foundation audit | M0 |
-| READY-002 | Windows x64 selected; candidate local hardware identified | Capture complete benchmark profile and clean-machine evidence | Performance and release support claims |
+| READY-002 | Resolved: Windows x64 and actual machine profile captured | Hardware, driver, toolchain and corpus hashes retained in benchmark manifests | M0 baseline |
+| CLEAN-001 | Clean Windows x64 installation/launch/edit not exercised | Run the offline MSI and portable procedures in [qualification](m0/QUALIFICATION.md), retain logs/output checks and uninstall results | CORE-001; M0 exit |
 | READY-003 | External destination versions/test environments not selected | Resolve DEC-008 and obtain reproducible import environments | M5 adapter qualification |
 
 A future blocker entry must identify observed failure, reproduction/evidence, impact, owner, next action, and explicit unblock condition. Close it with evidence rather than deleting its history.
@@ -155,6 +158,7 @@ A future blocker entry must identify observed failure, reproduction/evidence, im
 ## Recently completed
 
 - 2026-10-26 — Authored the full 01–17 documentation baseline, including shared requirements, proposed contracts, milestone gates, and this tracker. No code implementation or measured performance is claimed.
+- 2026-10-26 — Delivered M0 implementation and local evidence on `codex/m0-foundation`: 1,383 passing targeted tests, 3 explicitly ignored performance tests, successful native desktop workflow and unsigned Windows packages, and paired quick CPU baselines. CLEAN-001 remains open; M1–M5 remain Planned.
 
 ## Change log
 
@@ -164,6 +168,7 @@ A future blocker entry must identify observed failure, reproduction/evidence, im
 | 2026-10-26 | Distinguished accepted direction from proposed technical contracts and unresolved choices | 01, 03–13, 17 | Avoid treating prior assistant suggestions as approved implementation |
 | 2026-10-26 | Defined requirements, acceptance journeys, tests, and M0–M5 boundaries | 02, 14–17 | Implementable and traceable baseline |
 | 2026-10-26 | Initialized all implementation requirements as Planned with no evidence | 17 | No repository/build/test evidence available |
+| 2026-10-26 | Recorded M0 implementation, passing checks, raw paired baseline captures and outstanding clean-install gate | 17, m0/* | Executed source/build/test/package/workflow evidence; no remote CI or clean-install claim |
 
 ## Session handoff procedure
 

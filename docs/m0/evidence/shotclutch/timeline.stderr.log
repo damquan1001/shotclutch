@@ -1,0 +1,6 @@
+timeline fit: all 1000 clips: update p50 3.47 ms, p95 4.11 ms
+timeline zoomed, scrolling: update p50 2.15 ms, p95 2.66 ms
+timeline fit: all 1000 clips: update p50 3.30 ms, p95 3.85 ms
+timeline zoomed, scrolling: update p50 2.19 ms, p95 2.81 ms
+timeline fit: all 1000 clips: update p50 3.18 ms, p95 3.65 ms
+timeline zoomed, scrolling: update p50 2.18 ms, p95 2.72 ms

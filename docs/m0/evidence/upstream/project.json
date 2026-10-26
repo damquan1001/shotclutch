@@ -1,0 +1,34 @@
+{
+  "load_after": "",
+  "load_before": "",
+  "rows": [
+    {
+      "clips": 5000,
+      "load": "",
+      "mbytes": 3.7091,
+      "min_ms": 16.1812,
+      "p50_ms": 16.8991,
+      "runs_ms": [
+        16.1812,
+        16.9679,
+        16.8991
+      ],
+      "what": "save (file.saveAs)"
+    },
+    {
+      "clips": 5000,
+      "load": "",
+      "mbytes": 3.7091,
+      "min_ms": 39.144,
+      "p50_ms": 40.1543,
+      "runs_ms": [
+        39.144,
+        40.1543,
+        41.0732
+      ],
+      "what": "open (file.open)"
+    }
+  ],
+  "section": "project",
+  "wall_s": 0.3002437
+}

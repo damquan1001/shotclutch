@@ -34,9 +34,22 @@ The captured Cargo metadata contains **54 workspace packages**. The compiled eng
 | MotionScene / ACP / Skills | Numbered specifications 07 and 11 | Absent under the new contracts; M4/M5. Existing native graphics are not MotionScene qualification. |
 | Tests and CI | crate tests, golden tests, xtask | Partial: substantial inherited tests; M0 adds fork-owned checks and Windows package validation. Remote CI results require an actual run. |
 
+The broad capabilities above stay Partial even when a bounded path passes. The following narrower conclusions have executable evidence:
+
+| Capability | Classification | Evidence and limit |
+|---|---|---|
+| Historical project fixture reading and migrations | Verified | 16 format fixture tests pass, including old schema cases; [test log](evidence/checks/tests-project-fixtures.log). This does not prove arbitrary future-extension preservation. |
+| Native desktop import, linked trim, undo/redo, save/reopen and ProRes output | Verified | [Live desktop responses](evidence/desktop/evidence.json): 50 video frames and 80,000 stereo sample frames verified independently. This is a short development-machine workflow. |
+| Windows CLI VFR-phone and long-GOP/two-audio-stream workflows | Verified | Both real-media workflow tests pass in the [16-test CLI integration run](evidence/checks/tests-cli-integration-final.log). Broader codec/profile coverage stays Partial. |
+| Retained source asset attribution and Windows legal payload | Verified | 55-asset gate and ZIP/MSI payload inspection pass; [asset log](evidence/checks/assets-final.log), [package result](evidence/packages/validation.json). Optional models are not bundled. |
+| Clean-machine offline installation and launch | Unknown | No disposable clean Windows environment was supplied; procedure retained in `QUALIFICATION.md`. Host launch and package inspection do not resolve this gate. |
+| GPU throughput, other OS runtime behavior and destination-application imports | Unknown | No qualifying performance/target-application runs; source paths and CI definitions alone are insufficient. |
+
 ## Dependencies, notices, and distribution
 
 Cargo.lock pins registry versions and the three craft-libs Git revisions used by craft-media, craft-docpath, and craft-ui. They are library dependencies, not an external application suite. Record the resolved dependency graph with `cargo metadata --locked --format-version 1` and checksums with qualification evidence. Do not rewrite pinned revisions solely to make a build pass.
+
+The captured [Windows-filtered dependency graph](evidence/inventory/dependencies.json) has 335 packages (54 workspace), including development dependencies. Every package supplies a declared license expression; the inventory preserves those expressions rather than collapsing alternatives or compound obligations into a single label. It includes MPL-2.0 media packages, permissive alternatives, and compound font/Unicode expressions. This graph is broader than a shipped-binary inventory. Source/license declarations are verified as inventory data; linked-payload license selection and a comprehensive redistribution-obligation review remain Partial. M0 packages retain the upstream notices and bundled font/asset license texts; no license-certification claim is made.
 
 The workspace uses MIT OR Apache-2.0. Preserve upstream copyright, both licenses, per-asset sidecars, and the retained-asset attribution inventory. Bundled Inter, Noto Serif and JetBrains Mono fonts carry OFL texts. Additional craft-fonts bundles require their notices in both package types. Optional speech models have separate manifests/licenses and are not bundled by M0. This inventory is a dependency/legal engineering audit, not a claim of legal certification.
 
@@ -56,3 +69,5 @@ The inherited source builds unchanged. Rust 1.95 Clippy required equivalent bool
 Qualification caught and corrected two branding regressions: the DPX creator field must use the new name's actual byte length, and log rotation must consistently use ShotClutch filenames. A DPX header assertion protects the creator field; log-filter coverage includes the renamed executable target. Shipped project migrations and serialized interchange keys retain their historical identity.
 
 The MCP display name and launch configuration use ShotClutch. Existing `filmcraft://document` and `filmcraft://commands` resource URIs remain compatibility identifiers. Platform workflow behavior was checked against upstream craft-common-actions revision `6182ccebfdcec1b76f308ebe187f78d286b3cf39`; the fork owns its job definitions and pins third-party actions. ARM64 MSI installation and FreeBSD build/package jobs are retained; no remote run is claimed.
+
+Windows x64 is the delivered package path. Inherited Linux/macOS/web packaging and icon-generation templates remain unqualified and contain legacy product assumptions; they require adaptation and platform execution before distribution. They are not covered by the Windows artifact acceptance. The retained Unix build checks and updated FreeBSD package job do not establish runtime support. The new Unix metadata references `shotclutch` and omits the removed upstream screenshot; optional Windows signing metadata uses ShotClutch, but no signature was requested or produced.

@@ -1,0 +1,226 @@
+{
+    "collected_utc":  "2026-10-26T06:09:16.8128436Z",
+    "checkout":  "E:\\Development\\Projects\\shotclutch\\target\\m0\\upstream",
+    "sections":  [
+                     {
+                         "section":  "decode",
+                         "wall_ms":  39188.5893,
+                         "report":  "decode.json",
+                         "peak_working_set_bytes":  1968988160,
+                         "exit_code":  0
+                     },
+                     {
+                         "section":  "seek",
+                         "wall_ms":  88564.8444,
+                         "report":  "seek.json",
+                         "peak_working_set_bytes":  1416941568,
+                         "exit_code":  0
+                     },
+                     {
+                         "section":  "playback",
+                         "wall_ms":  247465.1801,
+                         "report":  "playback.json",
+                         "peak_working_set_bytes":  2674536448,
+                         "exit_code":  0
+                     },
+                     {
+                         "section":  "scrub",
+                         "wall_ms":  133694.516,
+                         "report":  "scrub.json",
+                         "peak_working_set_bytes":  2700210176,
+                         "exit_code":  0
+                     },
+                     {
+                         "section":  "timeline",
+                         "wall_ms":  8242.4195,
+                         "report":  "timeline.json",
+                         "peak_working_set_bytes":  363184128,
+                         "exit_code":  0
+                     },
+                     {
+                         "section":  "export",
+                         "wall_ms":  61320.1604,
+                         "report":  "export.json",
+                         "peak_working_set_bytes":  1932398592,
+                         "exit_code":  0
+                     },
+                     {
+                         "section":  "project",
+                         "wall_ms":  748.5365,
+                         "report":  "project.json",
+                         "peak_working_set_bytes":  68734976,
+                         "exit_code":  0
+                     }
+                 ],
+    "revision":  "3a5f217b348bf0c9dc1678f305c34b6c88617f37",
+    "cargo":  "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
+    "fixtures":  [
+                     {
+                         "path":  "a1080.mp4",
+                         "sha256":  "FE3ACDA9C327E90CFCAB9EB87A327F2F8F32B316124324F6ECC072772F24A64B",
+                         "bytes":  112299851
+                     },
+                     {
+                         "path":  "a2160.mp4",
+                         "sha256":  "3AAC292A9B06EF0FB7F042CDCC6381D29B9A4CD9E3C4184E4084DAFDB37721E0",
+                         "bytes":  218186880
+                     },
+                     {
+                         "path":  "av12160.mp4",
+                         "sha256":  "E5C025906A3F1DC3E7144BB5F94E15F7DF27719BE2E73BA52991776979588486",
+                         "bytes":  25743429
+                     },
+                     {
+                         "path":  "b1080.mp4",
+                         "sha256":  "12114C7CE3F06A8E65D08B1EC7300F22AD0524FF2BC192AA0C72950C8EBE0A16",
+                         "bytes":  36171634
+                     },
+                     {
+                         "path":  "c1080.mp4",
+                         "sha256":  "36458FB08A80929E894A1B7A45B97EBAA1131D18D8E86EBBC7FC89CD1961C2C0",
+                         "bytes":  86617103
+                     },
+                     {
+                         "path":  "clip360.mp4",
+                         "sha256":  "A88B113A991D89AEE0D95C64E5152639D8012C0605C0D6ECA589F2C9D5D86664",
+                         "bytes":  2551539
+                     },
+                     {
+                         "path":  "dec_av1_1080.mp4",
+                         "sha256":  "FB8E8540D53D02877164D7EAAE2434D192FDFA35391AE124D2343F2646E6A556",
+                         "bytes":  3774729
+                     },
+                     {
+                         "path":  "dec_av1_2160.mp4",
+                         "sha256":  "80D62C641B7ECB09C9E734A70145A4BEC88A29D86A23E740E641DB4B48A73421",
+                         "bytes":  7673669
+                     },
+                     {
+                         "path":  "dec_h264_1080.mp4",
+                         "sha256":  "9C44BF4555B0F4997EE2578D2CAFB0F00607AA045758E7BBA9DCBC7A007C85B6",
+                         "bytes":  27726974
+                     },
+                     {
+                         "path":  "dec_h264_2160.mp4",
+                         "sha256":  "93A5B0AF0EC0928DC545F2336F8A47D9E38D4622513E276BF5E5476D661FEA1D",
+                         "bytes":  64365774
+                     },
+                     {
+                         "path":  "dec_hevc10_2160.mp4",
+                         "sha256":  "00F68003758878E24DD208C8DB4E21CD583FEC27E96CF11C062A745FD88D3CD6",
+                         "bytes":  13367259
+                     },
+                     {
+                         "path":  "dec_hevc_1080.mp4",
+                         "sha256":  "ED5870D38114BCBBC8CDD49B3D6E26E02BF0AA11144E91655C4D487DF8FE3934",
+                         "bytes":  6216850
+                     },
+                     {
+                         "path":  "dec_hevc_2160.mp4",
+                         "sha256":  "2248CC3415886E1B0E2E2C7265838C04407D09CD53A33237BC0319276A7C4154",
+                         "bytes":  13682336
+                     },
+                     {
+                         "path":  "dec_prores_1080.mov",
+                         "sha256":  "6749961B13758C9982557B9C7A71433FDBEC9C547041B153C4FE865FCE954B0A",
+                         "bytes":  46485310
+                     },
+                     {
+                         "path":  "dec_prores_2160.mov",
+                         "sha256":  "A7493E1BECA6D856127C1D76B871591E1ED3E9C5C756BDD125CC359802BB7EE2",
+                         "bytes":  92545491
+                     },
+                     {
+                         "path":  "dec_vp9_1080.webm",
+                         "sha256":  "AEE9AC041A14B5DD47DC5AA87CA4C1EA6E32C4533D2967EDC2099652967D368D",
+                         "bytes":  7111364
+                     },
+                     {
+                         "path":  "dec_vp9_2160.webm",
+                         "sha256":  "58CB55C6D72856EA41349126791CE3EBEF2E832BCC4209F4BD3B9B87250675DE",
+                         "bytes":  17233188
+                     },
+                     {
+                         "path":  "hevc2160.mp4",
+                         "sha256":  "D9C081DA401135BE63CD5FA7E61D6058DDF78139B1380A4B3A9065E52A99B686",
+                         "bytes":  44564361
+                     },
+                     {
+                         "path":  "vp92160.webm",
+                         "sha256":  "EBBE46B980FE3835C415E71B2E8F680364BF8196E729F7F45CD9AC4CE5710892",
+                         "bytes":  55931267
+                     }
+                 ],
+    "label":  "upstream",
+    "rustc":  "rustc 1.95.0 (59807616e 2026-04-14)",
+    "hardware":  {
+                     "power_scheme":  "Power Scheme GUID: 6fecc5ae-f350-48a5-b669-b472cb895ccf  (Turbo)",
+                     "cpu_details":  [
+                                         {
+                                             "Name":  "AMD Ryzen 7 4800H with Radeon Graphics         ",
+                                             "NumberOfCores":  8,
+                                             "NumberOfLogicalProcessors":  16,
+                                             "MaxClockSpeed":  2901
+                                         }
+                                     ],
+                     "cpu":  "AMD64 Family 23 Model 96 Stepping 1, AuthenticAMD",
+                     "logical_cores":  16,
+                     "os":  "Microsoft Windows NT 10.0.26200.0",
+                     "storage":  [
+                                     {
+                                         "Model":  "Generic STORAGE DEVICE USB Device",
+                                         "InterfaceType":  "USB",
+                                         "Size":  63861073920
+                                     },
+                                     {
+                                         "Model":  "Lexar SSD NM620 1TB",
+                                         "InterfaceType":  "SCSI",
+                                         "Size":  1024203640320
+                                     },
+                                     {
+                                         "Model":  "KIOXIA-EXCERIA PLUS G3 SSD",
+                                         "InterfaceType":  "SCSI",
+                                         "Size":  1000202273280
+                                     }
+                                 ],
+                     "memory_bytes":  33737945088,
+                     "gpu":  [
+                                 {
+                                     "Name":  "Meta Virtual Monitor",
+                                     "DriverVersion":  "15.52.32.370",
+                                     "AdapterRAM":  null,
+                                     "CurrentHorizontalResolution":  1920,
+                                     "CurrentVerticalResolution":  1080,
+                                     "CurrentRefreshRate":  144
+                                 },
+                                 {
+                                     "Name":  "AMD Radeon(TM) Graphics",
+                                     "DriverVersion":  "31.0.21923.1000",
+                                     "AdapterRAM":  536870912,
+                                     "CurrentHorizontalResolution":  1920,
+                                     "CurrentVerticalResolution":  1080,
+                                     "CurrentRefreshRate":  144
+                                 },
+                                 {
+                                     "Name":  "NVIDIA GeForce RTX 3060 Laptop GPU",
+                                     "DriverVersion":  "32.0.15.5597",
+                                     "AdapterRAM":  4293918720,
+                                     "CurrentHorizontalResolution":  null,
+                                     "CurrentVerticalResolution":  null,
+                                     "CurrentRefreshRate":  null
+                                 }
+                             ]
+                 },
+    "cargo_lock_sha256":  "3A05488C275F867F2F9845258428E7EF6EB25F297A67C104D6AD09322C733013",
+    "settings":  {
+                     "compositor":  "CPU",
+                     "cache":  "unmeasured quick preparation per section; measured fresh child; OS cache uncontrolled; case-specific caches in raw report",
+                     "quick":  true,
+                     "decoder":  "software",
+                     "inherited_load_caveat":  "upstream Windows empty load is unavailable, not an idle-machine measurement",
+                     "repeat":  3,
+                     "ceilings":  "host defaults"
+                 },
+    "ffprobe":  "ffprobe version 8.1.1-full_build-www.gyan.dev Copyright (c) 2007-2026 the FFmpeg developers",
+    "ffmpeg":  "ffmpeg version 8.1.1-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers"
+}

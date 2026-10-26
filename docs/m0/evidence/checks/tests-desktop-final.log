@@ -1,0 +1,177 @@
+    Blocking waiting for file lock on artifact directory
+
+   Compiling filmcraft-prores v0.13.0 (E:\Development\Projects\shotclutch\crates\prores)
+
+   Compiling filmcraft-export v0.13.0 (E:\Development\Projects\shotclutch\crates\export)
+
+   Compiling filmcraft-codecs v0.13.0 (E:\Development\Projects\shotclutch\crates\codecs)
+
+   Compiling filmcraft-engine v0.13.0 (E:\Development\Projects\shotclutch\crates\engine)
+
+   Compiling filmcraft-platform v0.13.0 (E:\Development\Projects\shotclutch\crates\platform)
+
+   Compiling filmcraft-ui-egui v0.13.0 (E:\Development\Projects\shotclutch\crates\ui-egui)
+
+   Compiling filmcraft v0.13.0 (E:\Development\Projects\shotclutch\apps\filmcraft)
+
+    Finished `release` profile [optimized] target(s) in 13m 45s
+
+     Running unittests src\main.rs (target\release\deps\shotclutch-06ead09610a3368e.exe)
+
+
+
+running 75 tests
+
+test app_nap::tests::app_nap_is_disabled_on_macos ... ok
+
+test args::tests::a_bad_port_in_the_environment_is_an_error_like_a_bad_control_flag ... ok
+
+test args::tests::help_and_version_do_not_start_the_app ... ok
+
+test args::tests::a_project_is_recognised_whatever_the_case_of_its_extension ... ok
+
+test args::tests::graphics_picks_one_of_this_platforms_modes ... ok
+
+test args::tests::known_options_and_files_parse_as_before ... ok
+
+test args::tests::isolated_input_is_explicit_and_requires_a_control_server ... ok
+
+test args::tests::unknown_options_are_errors ... ok
+
+test args::tests::launch_files_are_made_absolute_and_split_case_insensitively ... ok
+
+test audio::tests::a_lost_device_restarts_at_once_and_repeated_failures_give_up ... ok
+
+test audio::tests::an_error_while_samples_keep_flowing_is_only_a_hiccup ... ok
+
+test audio::tests::fallback_prefers_sound_servers_over_raw_hardware ... ok
+
+test audio::tests::a_stream_that_errors_and_stops_consuming_is_restarted ... ok
+
+test audio::tests::integer_conversion_clips_and_preserves_interleaved_channels ... ok
+
+test audio::tests::a_panicking_mixer_plays_silence_and_fails_the_stream ... ok
+
+test audio::tests::full_scale_24_bit_samples_remain_representable ... ok
+
+test audio::tests::notes_name_the_fallback_device ... ok
+
+test audio::tests::the_device_callback_never_panics_and_counts_played_frames ... ok
+
+test audio_in::tests::invalid_input_is_reported_without_panicking_or_appending ... ok
+
+test audio_in::tests::signed_and_unsigned_input_is_deinterleaved_to_float ... ok
+
+test control_server::tests::a_request_before_junk_still_runs ... ok
+
+test control_server::tests::authentication_is_required_on_every_request ... ok
+
+test control_server::tests::http_request_closes_before_the_body_runs ... ok
+
+test control_server::tests::line_at_the_limit_is_accepted ... ok
+
+test control_server::tests::non_request_json_closes_the_connection ... ok
+
+test control_server::tests::requests_are_answered_in_order_with_ids ... ok
+
+test control_server::tests::unauthenticated_save_as_closes_before_any_command_runs ... ok
+
+test file_filters::tests::native_filters_receive_only_literal_extensions ... ok
+
+test file_filters::tests::save_filters_keep_the_literal_default_extension ... ok
+
+test control_server::tests::overlong_line_is_refused ... ok
+
+test graphics::tests::explicit_backend_override_is_preserved ... ok
+
+test control_server::tests::authenticated_tcp_request_reaches_the_ui_queue ... ok
+
+test control_server::tests::tcp_connection_is_closed_after_junk ... ok
+
+test control_server::tests::tcp_authentication_happens_before_enqueueing ... ok
+
+test control_server::tests::active_connection_can_be_reused ... ok
+
+test graphics::tests::fallback_modes_leave_out_the_crashing_backends ... ok
+
+test graphics::tests::only_the_windows_default_and_software_modes_choose_the_adapter ... ok
+
+test control_server::tests::missing_or_invalid_token_leaves_the_listener_closed ... ok
+
+test graphics::tests::an_explicit_backend_leaves_the_data_folder_alone ... ok
+
+test graphics::tests::only_starts_that_died_soon_after_launch_in_the_current_mode_count ... ok
+
+test graphics::tests::no_mode_validates_indirect_calls ... ok
+
+test graphics::tests::the_files_round_trip_and_reject_anything_else ... ok
+
+test graphics::tests::two_failed_starts_in_a_row_move_on_to_the_next_mode_and_keep_it ... ok
+
+test control_server::tests::extra_connections_are_refused ... ok
+
+test graphics::tests::windows_default_leaves_out_gl ... ok
+
+test logging::tests::a_line_carries_time_level_thread_target_and_message ... ok
+
+test graphics::tests::a_start_that_paints_keeps_its_mode_and_clears_its_attempt ... ok
+
+test logging::tests::directives_follow_env_logger_and_the_most_specific_one_wins ... ok
+
+test audio::tests::stream_errors_ask_for_a_restart_instead_of_failing_playback ... ok
+
+test logging::tests::hostile_specs_never_panic_and_fall_back_sensibly ... ok
+
+test logging::tests::attaching_to_an_unusable_directory_reports_an_error_and_keeps_logging ... ok
+
+test logging::tests::exactly_max_pending_lines_drop_nothing ... ok
+
+test graphics::tests::reset_to_default_wins_over_a_later_confirm ... ok
+
+test logging::tests::a_poisoned_lock_does_not_stop_logging ... ok
+
+test logging::tests::the_default_filter_shows_filmcraft_info_and_other_crates_warnings ... ok
+
+test graphics::tests::step_down_walks_the_ladder_and_saves_each_mode_at_once ... ok
+
+test logging::tests::lines_logged_before_the_file_exists_are_written_when_it_is_attached ... ok
+
+test graphics::tests::concurrent_launches_neither_count_nor_disturb_each_other ... ok
+
+test logging::tests::timestamps_are_utc_with_milliseconds ... ok
+
+test tests::startup_registers_the_hardware_decoders_without_a_logger ... ok
+
+test logging::tests::rotation_into_an_unusable_directory_is_an_error_not_a_panic ... ok
+
+test logging::tests::records_from_many_threads_are_whole_lines ... ok
+
+test logging::tests::the_pending_buffer_is_bounded_and_says_how_much_it_dropped ... ok
+
+test logging::tests::the_file_stops_at_its_size_cap_with_one_note ... ok
+
+test graphics::tests::graphics_flag_picks_the_mode_and_default_undoes_a_fallback ... ok
+
+test graphics::tests::corrupt_huge_or_foreign_files_start_with_the_default ... ok
+
+test logging::tests::the_logger_filters_records_and_writes_them_to_the_attached_file ... ok
+
+test control_server::tests::idle_connection_releases_its_slot ... ok
+
+test control_server::tests::valid_unterminated_request_is_not_dispatched ... ok
+
+test control_server::tests::unterminated_request_releases_its_slot ... ok
+
+test logging::tests::rotation_keeps_the_previous_logs_and_starts_an_empty_file ... ok
+
+test graphics::tests::two_dead_starts_move_on_and_a_painted_one_resets_the_count ... ok
+
+test graphics::tests::many_attempt_files_are_bounded_per_launch ... ok
+
+test control_server::tests::idle_timeout_does_not_cancel_a_pending_ui_reply ... ok
+
+test graphics::tests::the_software_selector_only_picks_a_software_adapter ... ok
+
+
+
+test result: ok. 75 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.89s

@@ -1,0 +1,9 @@
+seek a1080.mp4 full: p50 510 ms, CPU 4262 ms
+seek a1080.mp4 keep 2 s: p50 451 ms, CPU 3996 ms
+seek a1080.mp4 late: p50 306 ms, CPU 2957 ms
+seek a2160.mp4 full: p50 5557 ms, CPU 57406 ms
+seek a2160.mp4 keep 2 s: p50 5316 ms, CPU 54168 ms
+seek a2160.mp4 late: p50 4955 ms, CPU 52449 ms
+seek hevc2160.mp4 full: p50 4405 ms, CPU 36664 ms
+seek hevc2160.mp4 keep 2 s: p50 3506 ms, CPU 21535 ms
+seek hevc2160.mp4 late: p50 3358 ms, CPU 15230 ms

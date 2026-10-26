@@ -1,0 +1,12 @@
+[
+  {
+    "label": "upstream",
+    "sha256": "DB0B1BCEC766B3D23F2EF49526A60D16E484BF0881E77E0B70DD6736BE446756",
+    "revision": "3a5f217b348bf0c9dc1678f305c34b6c88617f37"
+  },
+  {
+    "label": "shotclutch",
+    "sha256": "B543D5C4C19E38962684B5EDB60962B85BAC614F8672172620DA37B93C07A4EA",
+    "revision": "f35fac68e9ebca6e8d8503210d2f7f750c9058bb"
+  }
+]
