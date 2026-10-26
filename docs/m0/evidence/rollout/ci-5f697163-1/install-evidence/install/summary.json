@@ -1,0 +1,11 @@
+{
+  "version": "shotclutch-cli 0.13.0",
+  "installed_cli_sha256": "1087AB25C8EF91C09FE0AEB091260501CFBBFB0521FCD0B277B8A14520D5C4E4",
+  "result": "passed",
+  "uninstall_exit": 0,
+  "arch": "x64",
+  "msi_sha256": "51769179D8DA5E9E9CEC932C3E542446B44C197CC6FF6DB0EB50714517196967",
+  "install_exit": 0,
+  "clean_consumer_environment": false,
+  "user_file_preserved": true
+}

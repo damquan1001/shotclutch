@@ -1,0 +1,108 @@
+{
+  "load_after": "",
+  "load_before": "",
+  "rows": [
+    {
+      "codec": "H.264",
+      "cpu_ms_per_frame": 105.46875,
+      "decode_threads": 16,
+      "first_frame_ms": 93.5584,
+      "fixture": "dec_h264_1080.mp4",
+      "fps": 84.3218163200308,
+      "fps_min": 84.3218163200308,
+      "fps_runs": [
+        84.3218163200308
+      ],
+      "frames": 48,
+      "hw_declined": 0,
+      "hw_fallbacks": 0,
+      "hw_frames": 0,
+      "hw_sessions": 0,
+      "load": "",
+      "realtime": 3.5169224223479514,
+      "size": "1080p"
+    },
+    {
+      "codec": "HEVC",
+      "cpu_ms_per_frame": 80.40364583333333,
+      "decode_threads": 16,
+      "first_frame_ms": 138.8848,
+      "fixture": "dec_hevc_1080.mp4",
+      "fps": 54.21367302717291,
+      "fps_min": 54.21367302717291,
+      "fps_runs": [
+        54.21367302717291
+      ],
+      "frames": 48,
+      "hw_declined": 0,
+      "hw_fallbacks": 0,
+      "hw_frames": 0,
+      "hw_sessions": 0,
+      "load": "",
+      "realtime": 2.26116194584167,
+      "size": "1080p"
+    },
+    {
+      "codec": "VP9",
+      "cpu_ms_per_frame": 63.4765625,
+      "decode_threads": 16,
+      "first_frame_ms": 69.8614,
+      "fixture": "dec_vp9_1080.webm",
+      "fps": 65.95930805387887,
+      "fps_min": 65.95930805387887,
+      "fps_runs": [
+        65.95930805387887
+      ],
+      "frames": 48,
+      "hw_declined": 0,
+      "hw_fallbacks": 0,
+      "hw_frames": 0,
+      "hw_sessions": 0,
+      "load": "",
+      "realtime": 2.7510528067471975,
+      "size": "1080p"
+    },
+    {
+      "codec": "AV1",
+      "cpu_ms_per_frame": 72.265625,
+      "decode_threads": 16,
+      "first_frame_ms": 186.66060000000002,
+      "fixture": "dec_av1_1080.mp4",
+      "fps": 43.64206487702076,
+      "fps_min": 43.64206487702076,
+      "fps_runs": [
+        43.64206487702076
+      ],
+      "frames": 48,
+      "hw_declined": 0,
+      "hw_fallbacks": 0,
+      "hw_frames": 0,
+      "hw_sessions": 0,
+      "load": "",
+      "realtime": 1.8202377892457406,
+      "size": "1080p"
+    },
+    {
+      "codec": "ProRes 422 HQ",
+      "cpu_ms_per_frame": 79.75260416666667,
+      "decode_threads": 16,
+      "first_frame_ms": 10.1295,
+      "fixture": "dec_prores_1080.mov",
+      "fps": 95.80555304953067,
+      "fps_min": 95.80555304953067,
+      "fps_runs": [
+        95.80555304953067
+      ],
+      "frames": 48,
+      "hw_declined": 0,
+      "hw_fallbacks": 0,
+      "hw_frames": 0,
+      "hw_sessions": 0,
+      "load": "",
+      "realtime": 3.9958899417741747,
+      "size": "1080p"
+    }
+  ],
+  "section": "decode",
+  "wall_s": 4.5574603
+}

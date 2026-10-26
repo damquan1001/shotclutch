@@ -1,0 +1,422 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.26
+   Compiling thiserror v2.0.21
+   Compiling libm v0.2.16
+   Compiling windows-link v0.2.1
+   Compiling crossbeam-utils v0.8.23
+   Compiling zerocopy v0.8.59
+   Compiling crossbeam-epoch v0.9.21
+   Compiling crossbeam-deque v0.8.8
+   Compiling rayon-core v1.13.0
+   Compiling cfg_aliases v0.2.2
+   Compiling serde_core v1.0.229
+   Compiling num-traits v0.2.19
+   Compiling once_cell v1.21.4
+   Compiling log v0.4.34
+   Compiling either v1.18.0
+   Compiling foldhash v0.2.0
+   Compiling serde v1.0.229
+   Compiling equivalent v1.0.2
+   Compiling smallvec v1.16.2
+   Compiling windows-strings v0.5.1
+   Compiling windows-result v0.4.1
+   Compiling khronos_api v3.1.0
+   Compiling hashbrown v0.17.1
+   Compiling xml-rs v0.8.29
+   Compiling quick-error v2.0.1
+   Compiling rustc-hash v1.1.0
+   Compiling zune-core v0.5.3
+   Compiling weezl v0.1.12
+   Compiling naga v30.0.1
+   Compiling libloading v0.8.9
+   Compiling windows-threading v0.2.1
+   Compiling bit-vec v0.9.1
+   Compiling ash v0.38.0+1.3.281
+   Compiling zune-jpeg v0.5.15
+   Compiling parking_lot_core v0.9.12
+   Compiling pxfm v0.1.30
+   Compiling fax v0.2.7
+   Compiling unicode-width v0.2.2
+   Compiling libc v0.2.189
+   Compiling indexmap v2.14.2
+   Compiling byteorder-lite v0.1.0
+   Compiling color_quant v1.1.0
+   Compiling codespan-reporting v0.13.1
+   Compiling gl_generator v0.14.0
+   Compiling image-webp v0.2.4
+   Compiling gif v0.14.2
+   Compiling syn v3.0.6
+   Compiling syn v2.0.119
+   Compiling bit-set v0.10.0
+   Compiling spirv v0.4.0+sdk-1.4.341.0
+   Compiling raw-window-handle v0.6.2
+   Compiling scopeguard v1.2.0
+   Compiling allocator-api2 v0.2.21
+   Compiling static_assertions v1.1.0
+   Compiling rayon v1.12.0
+   Compiling khronos-egl v6.0.0
+   Compiling arrayvec v0.7.8
+   Compiling hashbrown v0.16.1
+   Compiling lock_api v0.4.14
+   Compiling wgpu-hal v30.0.1
+   Compiling filmcraft-text v0.13.0 (E:\Development\Projects\shotclutch\crates\text)
+   Compiling presser v0.3.1
+   Compiling serde_json v1.0.151
+   Compiling parking_lot v0.12.5
+   Compiling renderdoc-sys v1.1.0
+   Compiling glutin_wgl_sys v0.6.1
+   Compiling ordered-float v5.5.0
+   Compiling unicode-bidi v0.3.18
+   Compiling unicode-linebreak v0.1.5
+   Compiling range-alloc v0.1.5
+   Compiling glow v0.17.0
+   Compiling unicode-segmentation v1.13.3
+   Compiling profiling v1.0.18
+   Compiling roxmltree v0.21.1
+   Compiling wgpu-core v30.0.1
+   Compiling litrs v1.0.0
+   Compiling chrono v0.4.45
+   Compiling wgpu v30.0.1
+   Compiling filmcraft-audio-dsp v0.13.0 (E:\Development\Projects\shotclutch\crates\audio-dsp)
+   Compiling web-time v1.1.0
+   Compiling pollster v0.4.0
+   Compiling filmcraft-mxf v0.13.0 (E:\Development\Projects\shotclutch\crates\mxf)
+   Compiling document-features v0.2.12
+   Compiling moxcms v0.8.1
+   Compiling thiserror-impl v2.0.21
+   Compiling bytemuck_derive v1.12.1
+   Compiling serde_derive v1.0.229
+   Compiling zerocopy-derive v0.8.59
+   Compiling windows-interface v0.59.3
+   Compiling windows-implement v0.60.2
+   Compiling bytemuck v1.25.2
+   Compiling craft-media v0.1.0 (https://github.com/storytold/craft-libs?rev=f0ad6c1e1d297908915f4be315b0fcfc9be7b5d4#f0ad6c1e)
+   Compiling font-types v0.12.5
+   Compiling naga-types v30.0.1
+   Compiling wgpu-types v30.0.1
+   Compiling filmcraft-dng v0.13.0 (E:\Development\Projects\shotclutch\crates\dng)
+   Compiling read-fonts v0.41.0
+   Compiling filmcraft-bitstream v0.13.0 (E:\Development\Projects\shotclutch\crates\bitstream)
+   Compiling filmcraft-aac v0.13.0 (E:\Development\Projects\shotclutch\crates\aac)
+   Compiling windows-core v0.62.2
+   Compiling filmcraft-flac v0.13.0 (E:\Development\Projects\shotclutch\crates\flac)
+   Compiling windows-numerics v0.3.1
+   Compiling windows-future v0.3.2
+   Compiling windows-collections v0.3.2
+   Compiling filmcraft-h264enc v0.13.0 (E:\Development\Projects\shotclutch\crates\h264enc)
+   Compiling filmcraft-apv v0.13.0 (E:\Development\Projects\shotclutch\crates\apv)
+   Compiling filmcraft-dnx v0.13.0 (E:\Development\Projects\shotclutch\crates\dnx)
+   Compiling windows v0.62.2
+   Compiling filmcraft-prores v0.13.0 (E:\Development\Projects\shotclutch\crates\prores)
+   Compiling filmcraft-isobmff v0.13.0 (E:\Development\Projects\shotclutch\crates\isobmff)
+   Compiling filmcraft-color v0.13.0 (E:\Development\Projects\shotclutch\crates\color)
+   Compiling filmcraft-time v0.13.0 (E:\Development\Projects\shotclutch\crates\time)
+   Compiling filmcraft-geom v0.13.0 (E:\Development\Projects\shotclutch\crates\geom)
+   Compiling filmcraft-frame v0.13.0 (E:\Development\Projects\shotclutch\crates\frame)
+   Compiling half v2.7.1
+   Compiling tiff v0.11.3
+   Compiling image v0.25.10
+   Compiling skrifa v0.44.0
+   Compiling harfrust v0.12.0
+   Compiling filmcraft-media v0.13.0 (E:\Development\Projects\shotclutch\crates\media)
+   Compiling gpu-allocator v0.28.0
+   Compiling filmcraft-project v0.13.0 (E:\Development\Projects\shotclutch\crates\project)
+   Compiling wgpu-naga-bridge v30.0.1
+   Compiling filmcraft-captions v0.13.0 (E:\Development\Projects\shotclutch\crates\captions)
+   Compiling filmcraft-render v0.13.0 (E:\Development\Projects\shotclutch\crates\render)
+   Compiling wgpu-core-deps-windows-linux-android v30.0.1
+   Compiling filmcraft-export v0.13.0 (E:\Development\Projects\shotclutch\crates\export)
+   Compiling filmcraft-gpu v0.13.0 (E:\Development\Projects\shotclutch\crates\gpu)
+    Finished `test` profile [optimized + debuginfo] target(s) in 3m 42s
+     Running unittests src\lib.rs (target\debug\deps\filmcraft_gpu-9cbdaf35b187e50e.exe)
+
+running 42 tests
+test adapter::tests::a_gpu_listed_through_two_versions_of_its_driver_draws_with_the_newer_one ... ok
+test adapter::tests::candidates_describe_themselves_for_the_log ... ok
+test export_renderer::tests::f16_roundtrip ... ok
+test adapter::tests::without_two_versions_of_one_driver_the_choice_is_wgpus ... ok
+test adapter::tests::adapters_that_cannot_draw_to_the_window_are_left_out ... ok
+test blend_tests::quad_bounds_clamps_and_handles_non_finite ... ok
+test adapter::tests::two_entries_are_one_gpu_only_with_the_same_ids_type_driver_and_bus ... ok
+test adapter::tests::a_newer_version_never_overtakes_another_gpu_or_backend ... ok
+test adapter::tests::on_this_host_the_choice_is_wgpus_unless_its_driver_is_listed_twice ... ok
+["brightness_contrast", "gaussian_blur", "tint"]: max rel diff 4.37e-7, 0.000% flipped
+["gaussian_blur", "unsharp_mask", "gaussian_blur", "sharpen"]: max rel diff 7.43e-7, 0.000% flipped
+["crop", "transform", "horizontal_flip", "levels", "offset", "invert", "directional_blur"]: max rel diff 1.93e-6, 0.000% flipped
+test fx_tests::effect_source_integer_decimation_preserves_cpu_box_oracle ... ok
+test fx_tests::hostile_parameters_are_bounded ... ok
+test fx_tests::lumetri_unsupported_sections_fall_back ... ok
+test fx_tests::gpu_effect_chains_match_cpu ... ok
+test tests::fast_half_float_conversion_matches_the_reference_for_every_value ... ok
+qualification GPU adapter: AdapterInfo { name: "AMD Radeon(TM) Graphics", vendor: 4098, device: 5686, device_type: IntegratedGpu, device_pci_bus_id: "0000:06:00.0", driver: "31.0.21923.1000", driver_info: "", backend: Dx12, subgroup_min_size: 64, subgroup_max_size: 64, transient_saves_memory: Some(false), limit_bucket: None }
+test fx_tests::gpu_extract_zero_softness_has_no_fractional_edge ... ok
+Normal: interior 8-bit p99 1 mean 0.318 max 18; linear p99 2.71e-3 max 5.71e-2; with edges p99 10 mean 0.661
+brightness_contrast [("brightness", Float(30.0)), ("contrast", Float(40.0))]: max rel diff 1.93e-7, 0.000% flipped
+solid: max |GPU-CPU| linear 0.000000
+solid: GPU vs CPU over-black p99 0, mean 0.000
+transformed: GPU vs CPU over-black p99 0, mean 0.000
+test export_renderer::tests::solid_frame_matches_cpu ... ok
+brightness_contrast [("brightness", Float(-100.0)), ("contrast", Float(-100.0))]: max rel diff 2.77e-9, 0.000% flipped
+test export_renderer::tests::transformed_frame_matches_cpu ... ok
+test export_renderer::tests::gpu_render_impls_frame_renderer ... ok
+brightness_contrast [("brightness", Float(100.0)), ("contrast", Float(100.0))]: max rel diff 2.56e-7, 0.000% flipped
+frame renderer: GPU vs CPU over-black p99 0, mean 0.000
+brightness_contrast [("brightness", Float(-20.0)), ("contrast", Float(900.0))]: max rel diff 6.40e-7, 0.000% flipped
+proc_amp [("brightness", Float(10.0)), ("contrast", Float(130.0)), ("hue", Float(200.0)), ("saturation", Float(150.0))]: max rel diff 1.06e-6, 0.000% flipped
+proc_amp [("hue", Float(-400.0)), ("saturation", Float(0.0))]: max rel diff 1.39e-7, 0.000% flipped
+tint []: max rel diff 1.44e-7, 0.000% flipped
+tint [("black", Color([0.2, 0.1, 0.5, 1.0])), ("white", Color([1.0, 0.9, 0.3, 1.0])), ("amount", Float(60.0))]: max rel diff 1.48e-7, 0.000% flipped
+black_white []: max rel diff 6.20e-8, 0.000% flipped
+color_balance [("shadow_r", Float(50.0)), ("mid_g", Float(-40.0)), ("hi_b", Float(80.0)), ("shadow_b", Float(-100.0)), ("hi_r", Float(100.0))]: max rel diff 2.08e-7, 0.000% flipped
+color_balance [("mid_r", Float(70.0)), ("hi_g", Float(-60.0)), ("preserve", Bool(true))]: max rel diff 2.07e-7, 0.000% flipped
+Dissolve: interior 8-bit p99 1 mean 0.315 max 29; linear p99 2.70e-3 max 8.91e-2; with edges p99 1 mean 0.650
+leave_color [("amount", Float(80.0)), ("tolerance", Float(20.0)), ("softness", Float(30.0))]: max rel diff 2.71e-7, 0.000% flipped
+leave_color [("amount", Float(100.0)), ("color", Color([0.1, 0.8, 0.2, 1.0])), ("tolerance", Float(0.0)), ("softness", Float(0.0))]: max rel diff 6.20e-8, 0.000% flipped
+change_to_color []: max rel diff 3.71e-6, 0.000% flipped
+change_to_color [("hue_tol", Float(30.0)), ("softness", Float(10.0)), ("to", Color([0.9, 0.9, 0.1, 1.0]))]: max rel diff 6.27e-7, 0.000% flipped
+color_pass [("similarity", Float(30.0))]: max rel diff 6.20e-8, 0.000% flipped
+color_pass [("similarity", Float(45.0)), ("reverse", Bool(true)), ("color", Color([0.2, 0.4, 0.9, 1.0]))]: max rel diff 6.71e-8, 0.000% flipped
+gamma_correction [("gamma", Float(5.0))]: max rel diff 1.62e-7, 0.000% flipped
+gamma_correction [("gamma", Float(28.0))]: max rel diff 3.14e-7, 0.000% flipped
+gamma_correction [("gamma", Float(0.0))]: max rel diff 0.00e0, 0.000% flipped
+gamma_correction [("gamma", Float(-3.0))]: max rel diff 1.37e-7, 0.000% flipped
+levels [("in_black", Float(20.0)), ("in_white", Float(230.0)), ("out_black", Float(10.0)), ("out_white", Float(240.0)), ("gamma", Float(150.0))]: max rel diff 1.69e-7, 0.000% flipped
+levels [("in_black", Float(200.0)), ("in_white", Float(0.0)), ("gamma", Float(5.0)), ("out_white", Float(-50.0))]: max rel diff 0.00e0, 0.000% flipped
+extract []: max rel diff 0.00e0, 0.000% flipped
+extract [("invert", Bool(true))]: max rel diff 0.00e0, 0.000% flipped
+extract [("black", Float(40.0)), ("white", Float(200.0)), ("softness", Float(30.0))]: max rel diff 1.36e-6, 0.000% flipped
+extract [("black", Float(90.0)), ("white", Float(160.0)), ("invert", Bool(true))]: max rel diff 0.00e0, 0.000% flipped
+extract [("black", Float(90.0)), ("white", Float(160.0)), ("softness", Float(1.0))]: max rel diff 2.58e-5, 0.000% flipped
+extract [("black", Float(40.0)), ("white", Float(200.0)), ("softness", Float(100.0))]: max rel diff 4.49e-7, 0.000% flipped
+extract [("black", Float(160.0)), ("white", Float(90.0))]: max rel diff 0.00e0, 0.000% flipped
+extract [("black", Float(90.0)), ("white", Float(90.0))]: max rel diff 0.00e0, 0.000% flipped
+invert [("blend", Float(30.0))]: max rel diff 1.13e-7, 0.000% flipped
+invert [("channel", Choice(1))]: max rel diff 1.49e-7, 0.000% flipped
+invert [("channel", Choice(2)), ("blend", Float(70.0))]: max rel diff 1.49e-7, 0.000% flipped
+invert [("channel", Choice(3))]: max rel diff 1.45e-7, 0.000% flipped
+invert [("channel", Choice(4)), ("blend", Float(20.0))]: max rel diff 4.27e-8, 0.000% flipped
+invert [("channel", Choice(9))]: max rel diff 1.49e-7, 0.000% flipped
+posterize [("levels", Float(2.0))]: max rel diff 0.00e0, 0.000% flipped
+posterize [("levels", Float(7.0))]: max rel diff 7.78e-8, 0.000% flipped
+posterize [("levels", Float(255.0))]: max rel diff 1.10e-7, 0.000% flipped
+gaussian_blur [("blurriness", Float(0.0))]: max rel diff 0.00e0, 0.000% flipped
+gaussian_blur [("blurriness", Float(5.0))]: max rel diff 4.24e-7, 0.000% flipped
+gaussian_blur [("blurriness", Float(5.0)), ("repeat_edge", Bool(true))]: max rel diff 3.72e-7, 0.000% flipped
+gaussian_blur [("blurriness", Float(80.0))]: max rel diff 0.00e0, 0.000% flipped
+gaussian_blur [("blurriness", Float(80.0)), ("repeat_edge", Bool(true))]: max rel diff 0.00e0, 0.000% flipped
+gaussian_blur [("blurriness", Float(12.0)), ("dimensions", Choice(1))]: max rel diff 4.68e-7, 0.000% flipped
+Darken: interior 8-bit p99 1 mean 0.344 max 12; linear p99 2.71e-3 max 4.72e-2; with edges p99 6 mean 0.636
+gaussian_blur [("blurriness", Float(12.0)), ("dimensions", Choice(2)), ("repeat_edge", Bool(true))]: max rel diff 2.85e-7, 0.000% flipped
+gaussian_blur [("blurriness", Float(3000.0)), ("repeat_edge", Bool(true))]: max rel diff 0.00e0, 0.000% flipped
+gaussian_blur [("blurriness", Float(1000000000.0))]: max rel diff 0.00e0, 0.000% flipped
+gaussian_blur [("blurriness", Float(-50.0))]: max rel diff 0.00e0, 0.000% flipped
+camera_blur [("percent", Float(20.0))]: max rel diff 4.15e-7, 0.000% flipped
+directional_blur [("length", Float(10.0)), ("direction", Float(30.0))]: max rel diff 3.97e-8, 0.000% flipped
+directional_blur [("length", Float(0.2))]: max rel diff 0.00e0, 0.000% flipped
+directional_blur [("length", Float(1000.0)), ("direction", Float(-100.0))]: max rel diff 3.03e-6, 0.000% flipped
+sharpen [("amount", Float(80.0))]: max rel diff 2.06e-7, 0.000% flipped
+sharpen [("amount", Float(4000.0))]: max rel diff 8.15e-6, 0.000% flipped
+unsharp_mask [("amount", Float(150.0)), ("radius", Float(3.0)), ("threshold", Float(10.0))]: max rel diff 4.36e-7, 0.000% flipped
+unsharp_mask [("radius", Float(0.1))]: max rel diff 0.00e0, 0.000% flipped
+unsharp_mask [("amount", Float(300.0)), ("radius", Float(250.0))]: max rel diff 0.00e0, 0.000% flipped
+crop [("left", Float(10.0)), ("top", Float(5.0)), ("right", Float(20.0)), ("bottom", Float(15.0))]: max rel diff 0.00e0, 0.000% flipped
+crop [("left", Float(10.0)), ("top", Float(5.0)), ("right", Float(20.0)), ("bottom", Float(15.0)), ("feather", Float(12.0))]: max rel diff 4.37e-8, 0.000% flipped
+crop [("left", Float(12.0)), ("top", Float(5.0)), ("right", Float(20.0)), ("zoom", Bool(true))]: max rel diff 3.80e-6, 0.000% flipped
+crop [("left", Float(70.0)), ("right", Float(70.0)), ("feather", Float(5000.0))]: max rel diff 0.00e0, 0.000% flipped
+edge_feather [("amount", Float(30.0))]: max rel diff 4.30e-8, 0.000% flipped
+transform [("scale_height", Float(150.0)), ("rotation", Float(30.0)), ("position", Vec2(Vec2 { x: 30.0, y: 20.0 })), ("opacity", Float(60.0))]: max rel diff 2.27e-6, 0.000% flipped
+transform [("uniform_scale", Bool(false)), ("scale_width", Float(80.0)), ("scale_height", Float(120.0)), ("skew", Float(20.0)), ("skew_axis", Float(45.0)), ("anchor", Vec2(Vec2 { x: 10.0, y: 30.0 }))]: max rel diff 5.95e-6, 0.000% flipped
+horizontal_flip []: max rel diff 0.00e0, 0.000% flipped
+vertical_flip []: max rel diff 0.00e0, 0.000% flipped
+mirror [("center", Vec2(Vec2 { x: 20.0, y: 10.0 })), ("angle", Float(30.0))]: max rel diff 2.52e-6, 0.000% flipped
+mirror [("angle", Float(200.0))]: max rel diff 5.71e-6, 0.000% flipped
+offset [("shift", Vec2(Vec2 { x: 10.0, y: 30.0 })), ("blend", Float(25.0))]: max rel diff 0.00e0, 0.000% flipped
+offset [("shift", Vec2(Vec2 { x: -100000.0, y: 7.25 }))]: max rel diff 0.00e0, 0.000% flipped
+asc_cdl [("r_slope", Float(1.4)), ("g_offset", Float(-0.1)), ("b_power", Float(2.2)), ("saturation", Float(1.6))]: max rel diff 3.55e-7, 0.000% flipped
+asc_cdl [("r_power", Float(0.0)), ("g_slope", Float(0.0)), ("saturation", Float(0.0))]: max rel diff 3.21e-8, 0.000% flipped
+channel_mix [("rr", Float(50.0)), ("rg", Float(60.0)), ("gb", Float(-80.0)), ("bc", Float(30.0))]: max rel diff 1.83e-7, 0.000% flipped
+channel_mix [("rb", Float(120.0)), ("monochrome", Bool(true))]: max rel diff 2.71e-7, 0.000% flipped
+color_replace [("similarity", Float(40.0))]: max rel diff 1.02e-6, 0.000% flipped
+color_replace [("similarity", Float(25.0)), ("solid", Bool(true)), ("target", Color([0.3, 0.6, 0.2, 1.0]))]: max rel diff 1.51e-6, 0.000% flipped
+color_replace [("similarity", Float(0.0))]: max rel diff 6.71e-8, 0.000% flipped
+alpha_adjust [("opacity", Float(60.0))]: max rel diff 4.12e-8, 0.000% flipped
+alpha_adjust [("ignore", Bool(true)), ("invert", Bool(true))]: max rel diff 0.00e0, 0.000% flipped
+alpha_adjust [("invert", Bool(true)), ("mask_only", Bool(true)), ("opacity", Float(150.0))]: max rel diff 8.05e-8, 0.000% flipped
+vignette []: max rel diff 2.85e-7, 0.000% flipped
+vignette [("amount", Float(-100.0)), ("midpoint", Float(50.0)), ("roundness", Float(0.0)), ("feather", Float(50.0))]: max rel diff 4.71e-7, 0.000% flipped
+vignette [("amount", Float(-30.0)), ("midpoint", Float(20.0)), ("roundness", Float(-100.0)), ("feather", Float(0.0)), ("color", Color([0.1, 0.4, 0.7, 1.0]))]: max rel diff 5.86e-7, 0.000% flipped
+vignette [("amount", Float(40.0)), ("midpoint", Float(90.0)), ("roundness", Float(100.0)), ("feather", Float(100.0))]: max rel diff 2.12e-7, 0.000% flipped
+video_limiter []: max rel diff 2.46e-7, 0.000% flipped
+video_limiter [("axis", Choice(0)), ("clip_level", Choice(0)), ("compression", Choice(0))]: max rel diff 2.46e-7, 0.000% flipped
+video_limiter [("axis", Choice(1)), ("clip_level", Choice(9)), ("compression", Choice(4))]: max rel diff 3.15e-7, 0.000% flipped
+video_limiter [("axis", Choice(2)), ("clip_level", Choice(5)), ("compression", Choice(2))]: max rel diff 3.03e-7, 0.000% flipped
+video_limiter [("axis", Choice(3)), ("clip_level", Choice(0)), ("compression", Choice(1))]: max rel diff 2.46e-7, 0.000% flipped
+video_limiter [("axis", Choice(2)), ("clip_level", Choice(0)), ("compression", Choice(0)), ("gamut_warning", Bool(true)), ("warning_color", Color([0.0, 1.0, 0.0, 1.0]))]: max rel diff 2.46e-7, 0.000% flipped
+lumetri [("temperature", Float(20.0)), ("tint", Float(-10.0)), ("exposure", Float(0.5)), ("contrast", Float(15.0)), ("highlights", Float(-20.0)), ("shadows", Float(25.0)), ("whites", Float(10.0)), ("blacks", Float(-15.0)), ("saturation", Float(110.0)), ("creative_on", Bool(false)), ("vignette_on", Bool(false))]: max rel diff 4.28e-7, 0.000% flipped
+lumetri [("basic_on", Bool(false)), ("creative_sat", Float(120.0)), ("vibrance", Float(30.0)), ("faded_film", Float(25.0)), ("shadow_tint", Color([0.4, 0.45, 0.6, 1.0])), ("highlight_tint", Color([0.6, 0.55, 0.4, 1.0])), ("vignette_on", Bool(false))]: max rel diff 2.71e-7, 0.000% flipped
+lumetri [("basic_on", Bool(false)), ("creative_on", Bool(false)), ("vignette_amount", Float(-3.0)), ("vignette_midpoint", Float(45.0)), ("vignette_roundness", Float(-30.0)), ("vignette_feather", Float(60.0))]: max rel diff 4.23e-7, 0.000% flipped
+lumetri [("temperature", Float(-15.0)), ("tint", Float(10.0)), ("exposure", Float(0.3)), ("contrast", Float(20.0)), ("highlights", Float(-10.0)), ("shadows", Float(15.0)), ("whites", Float(-5.0)), ("blacks", Float(5.0)), ("saturation", Float(105.0)), ("creative_sat", Float(110.0)), ("vibrance", Float(20.0)), ("faded_film", Float(15.0)), ("shadow_tint", Color([0.48, 0.5, 0.55, 1.0])), ("highlight_tint", Color([0.52, 0.5, 0.45, 1.0])), ("vignette_amount", Float(2.0)), ("vignette_midpoint", Float(50.0)), ("vignette_roundness", Float(20.0)), ("vignette_feather", Float(50.0))]: max rel diff 3.11e-7, 0.000% flipped
+lumetri [("exposure", Float(4.0)), ("contrast", Float(100.0)), ("temperature", Float(100.0)), ("tint", Float(100.0)), ("whites", Float(100.0)), ("blacks", Float(100.0))]: max rel diff 3.60e-7, 0.000% flipped
+lumetri [("exposure", Float(-4.0)), ("contrast", Float(-100.0)), ("temperature", Float(-100.0)), ("tint", Float(-100.0)), ("whites", Float(-100.0)), ("blacks", Float(-100.0))]: max rel diff 1.32e-8, 0.000% flipped
+Multiply: interior 8-bit p99 1 mean 0.334 max 6; linear p99 2.60e-3 max 3.68e-2; with edges p99 6 mean 0.633
+ColorBurn: interior 8-bit p99 1 mean 0.354 max 16; linear p99 3.13e-3 max 1.00e-1; with edges p99 6 mean 0.632
+test blend_tests::normal_fast_path_and_blend_layers_off_output ... ok
+test fx_tests::effect_source_identity_preserves_odd_sized_half_float_texels ... ok
+test tests::half_float_conversion ... ok
+LinearBurn: interior 8-bit p99 1 mean 0.341 max 6; linear p99 2.61e-3 max 3.68e-2; with edges p99 7 mean 0.652
+test fx_tests::gpu_effects_match_cpu_exactly ... ok
+test fx_tests::keyframed_effects_follow_time ... ok
+DarkerColor: interior 8-bit p99 1 mean 0.356 max 83; linear p99 2.67e-3 max 4.51e-1; with edges p99 6 mean 0.653
+Lighten: interior 8-bit p99 1 mean 0.326 max 18; linear p99 2.31e-3 max 5.71e-2; with edges p99 4 mean 0.589
+Dissolve @ 0.1: 0 differing pixels, 0.101 kept
+Dissolve @ 0.5: 0 differing pixels, 0.501 kept
+Dissolve @ 0.9: 0 differing pixels, 0.901 kept
+Screen: interior 8-bit p99 1 mean 0.314 max 12; linear p99 2.23e-3 max 5.42e-2; with edges p99 6 mean 0.608
+ColorDodge: interior 8-bit p99 1 mean 0.308 max 21; linear p99 2.13e-3 max 8.92e-2; with edges p99 6 mean 0.605
+test blend_tests::gpu_dissolve_pattern_is_exact ... ok
+LinearDodge: interior 8-bit p99 1 mean 0.299 max 20; linear p99 2.05e-3 max 1.15e-1; with edges p99 6 mean 0.616
+qualification GPU adapter: AdapterInfo { name: "AMD Radeon(TM) Graphics", vendor: 4098, device: 5686, device_type: IntegratedGpu, device_pci_bus_id: "0000:06:00.0", driver: "31.0.21923.1000", driver_info: "", backend: Dx12, subgroup_min_size: 64, subgroup_max_size: 64, transient_saves_memory: Some(false), limit_bucket: None }
+qualification GPU adapter: AdapterInfo { name: "AMD Radeon(TM) Graphics", vendor: 4098, device: 5686, device_type: IntegratedGpu, device_pci_bus_id: "0000:06:00.0", driver: "31.0.21923.1000", driver_info: "", backend: Dx12, subgroup_min_size: 64, subgroup_max_size: 64, transient_saves_memory: Some(false), limit_bucket: None }
+qualification GPU adapter: AdapterInfo { name: "AMD Radeon(TM) Graphics", vendor: 4098, device: 5686, device_type: IntegratedGpu, device_pci_bus_id: "0000:06:00.0", driver: "31.0.21923.1000", driver_info: "", backend: Dx12, subgroup_min_size: 64, subgroup_max_size: 64, transient_saves_memory: Some(false), limit_bucket: None }
+LighterColor: interior 8-bit p99 1 mean 0.347 max 66; linear p99 2.54e-3 max 3.73e-1; with edges p99 2 mean 0.569
+qualification GPU adapter: AdapterInfo { name: "AMD Radeon(TM) Graphics", vendor: 4098, device: 5686, device_type: IntegratedGpu, device_pci_bus_id: "0000:06:00.0", driver: "31.0.21923.1000", driver_info: "", backend: Dx12, subgroup_min_size: 64, subgroup_max_size: 64, transient_saves_memory: Some(false), limit_bucket: None }
+qualification GPU adapter: AdapterInfo { name: "AMD Radeon(TM) Graphics", vendor: 4098, device: 5686, device_type: IntegratedGpu, device_pci_bus_id: "0000:06:00.0", driver: "31.0.21923.1000", driver_info: "", backend: Dx12, subgroup_min_size: 64, subgroup_max_size: 64, transient_saves_memory: Some(false), limit_bucket: None }
+qualification GPU adapter: AdapterInfo { name: "AMD Radeon(TM) Graphics", vendor: 4098, device: 5686, device_type: IntegratedGpu, device_pci_bus_id: "0000:06:00.0", driver: "31.0.21923.1000", driver_info: "", backend: Dx12, subgroup_min_size: 64, subgroup_max_size: 64, transient_saves_memory: Some(false), limit_bucket: None }
+qualification GPU adapter: AdapterInfo { name: "AMD Radeon(TM) Graphics", vendor: 4098, device: 5686, device_type: IntegratedGpu, device_pci_bus_id: "0000:06:00.0", driver: "31.0.21923.1000", driver_info: "", backend: Dx12, subgroup_min_size: 64, subgroup_max_size: 64, transient_saves_memory: Some(false), limit_bucket: None }
+qualification GPU adapter: AdapterInfo { name: "AMD Radeon(TM) Graphics", vendor: 4098, device: 5686, device_type: IntegratedGpu, device_pci_bus_id: "0000:06:00.0", driver: "31.0.21923.1000", driver_info: "", backend: Dx12, subgroup_min_size: 64, subgroup_max_size: 64, transient_saves_memory: Some(false), limit_bucket: None }
+Overlay: interior 8-bit p99 1 mean 0.336 max 9; linear p99 2.67e-3 max 4.69e-2; with edges p99 6 mean 0.609
+qualification GPU adapter: AdapterInfo { name: "AMD Radeon(TM) Graphics", vendor: 4098, device: 5686, device_type: IntegratedGpu, device_pci_bus_id: "0000:06:00.0", driver: "31.0.21923.1000", driver_info: "", backend: Dx12, subgroup_min_size: 64, subgroup_max_size: 64, transient_saves_memory: Some(false), limit_bucket: None }
+SoftLight: interior 8-bit p99 1 mean 0.338 max 7; linear p99 2.68e-3 max 3.47e-2; with edges p99 4 mean 0.549
+HardLight: interior 8-bit p99 1 mean 0.352 max 25; linear p99 2.60e-3 max 1.60e-1; with edges p99 10 mean 0.692
+VividLight: interior 8-bit p99 1 mean 0.337 max 25; linear p99 2.44e-3 max 1.50e-1; with edges p99 9 mean 0.674
+LinearLight: interior 8-bit p99 1 mean 0.357 max 28; linear p99 2.40e-3 max 1.64e-1; with edges p99 11 mean 0.711
+effect stage true: interior p99 2, mean 0.673
+PinLight: interior 8-bit p99 1 mean 0.367 max 30; linear p99 2.72e-3 max 1.82e-1; with edges p99 8 mean 0.690
+HardMix: interior 8-bit p99 1 mean 0.347 max 192; linear p99 1.84e-3 max 8.00e-1; with edges p99 7 mean 0.727
+Difference: interior 8-bit p99 1 mean 0.309 max 15; linear p99 2.23e-3 max 7.34e-2; with edges p99 7 mean 0.626
+Exclusion: interior 8-bit p99 1 mean 0.304 max 10; linear p99 2.07e-3 max 5.46e-2; with edges p99 5 mean 0.575
+Subtract: interior 8-bit p99 1 mean 0.315 max 7; linear p99 1.99e-3 max 5.07e-2; with edges p99 7 mean 0.618
+test fx_tests::plain_layers_skip_the_effect_stage ... ok
+Divide: interior 8-bit p99 1 mean 0.340 max 52; linear p99 2.96e-3 max 2.94e-1; with edges p99 5 mean 0.600
+Hue: interior 8-bit p99 1 mean 0.325 max 4; linear p99 2.18e-3 max 8.00e-3; with edges p99 6 mean 0.599
+effect stage false: interior p99 2, mean 0.673
+Saturation: interior 8-bit p99 1 mean 0.340 max 15; linear p99 2.72e-3 max 8.96e-2; with edges p99 3 mean 0.530
+Color: interior 8-bit p99 1 mean 0.324 max 7; linear p99 2.12e-3 max 4.87e-2; with edges p99 6 mean 0.611
+Luminosity: interior 8-bit p99 1 mean 0.342 max 13; linear p99 3.08e-3 max 6.02e-2; with edges p99 6 mean 0.619
+Normal: interior 8-bit p99 1 mean 0.306 max 4; with edges p99 2 mean 0.426
+Normal @ 1: max |cpu − gpu| = 0.00e0 (value 0 of 4096), 0 step flips
+Screen: interior 8-bit p99 1 mean 0.287 max 3; with edges p99 1 mean 0.418
+Normal @ 0.5: max |cpu − gpu| = 0.00e0 (value 0 of 4096), 0 step flips
+Dissolve @ 1: max |cpu − gpu| = 0.00e0 (value 0 of 4096), 0 step flips
+Dissolve @ 0.5: max |cpu − gpu| = 0.00e0 (value 0 of 4096), 0 step flips
+Darken @ 1: max |cpu − gpu| = 4.88e-4 (value 41 of 4096), 0 step flips
+Darken @ 0.5: max |cpu − gpu| = 4.88e-4 (value 6 of 4096), 0 step flips
+Multiply @ 1: max |cpu − gpu| = 4.88e-4 (value 113 of 4096), 0 step flips
+Multiply @ 0.5: max |cpu − gpu| = 4.88e-4 (value 176 of 4096), 0 step flips
+Multiply: interior 8-bit p99 1 mean 0.293 max 3; with edges p99 1 mean 0.321
+ColorBurn @ 1: max |cpu − gpu| = 4.88e-4 (value 41 of 4096), 0 step flips
+ColorBurn @ 0.5: max |cpu − gpu| = 4.88e-4 (value 161 of 4096), 0 step flips
+LinearBurn @ 1: max |cpu − gpu| = 4.88e-4 (value 113 of 4096), 0 step flips
+LinearBurn @ 0.5: max |cpu − gpu| = 4.88e-4 (value 176 of 4096), 0 step flips
+DarkerColor @ 1: max |cpu − gpu| = 4.88e-4 (value 165 of 4096), 0 step flips
+DarkerColor @ 0.5: max |cpu − gpu| = 4.88e-4 (value 6 of 4096), 0 step flips
+Lighten @ 1: max |cpu − gpu| = 2.44e-4 (value 8 of 4096), 0 step flips
+Lighten @ 0.5: max |cpu − gpu| = 2.44e-4 (value 8 of 4096), 0 step flips
+Screen @ 1: max |cpu − gpu| = 4.86e-4 (value 796 of 4096), 0 step flips
+Screen @ 0.5: max |cpu − gpu| = 4.28e-4 (value 3218 of 4096), 0 step flips
+ColorDodge @ 1: max |cpu − gpu| = 4.65e-4 (value 404 of 4096), 0 step flips
+ColorDodge @ 0.5: max |cpu − gpu| = 2.44e-4 (value 8 of 4096), 0 step flips
+LinearDodge @ 1: max |cpu − gpu| = 3.83e-4 (value 405 of 4096), 0 step flips
+LinearDodge @ 0.5: max |cpu − gpu| = 2.44e-4 (value 8 of 4096), 0 step flips
+LighterColor @ 1: max |cpu − gpu| = 4.88e-4 (value 41 of 4096), 0 step flips
+LighterColor @ 0.5: max |cpu − gpu| = 4.88e-4 (value 258 of 4096), 0 step flips
+Overlay @ 1: max |cpu − gpu| = 4.88e-4 (value 236 of 4096), 0 step flips
+Overlay @ 0.5: max |cpu − gpu| = 4.88e-4 (value 166 of 4096), 0 step flips
+SoftLight @ 1: max |cpu − gpu| = 4.88e-4 (value 3076 of 4096), 0 step flips
+SoftLight @ 0.5: max |cpu − gpu| = 4.88e-4 (value 1028 of 4096), 0 step flips
+HardLight @ 1: max |cpu − gpu| = 4.88e-4 (value 125 of 4096), 0 step flips
+HardLight @ 0.5: max |cpu − gpu| = 4.88e-4 (value 53 of 4096), 0 step flips
+VividLight @ 1: max |cpu − gpu| = 4.88e-4 (value 1697 of 4096), 0 step flips
+VividLight @ 0.5: max |cpu − gpu| = 4.88e-4 (value 694 of 4096), 0 step flips
+LinearLight @ 1: max |cpu − gpu| = 4.88e-4 (value 224 of 4096), 0 step flips
+LinearLight @ 0.5: max |cpu − gpu| = 4.66e-4 (value 3210 of 4096), 0 step flips
+PinLight @ 1: max |cpu − gpu| = 4.88e-4 (value 113 of 4096), 0 step flips
+PinLight @ 0.5: max |cpu − gpu| = 4.88e-4 (value 41 of 4096), 0 step flips
+HardMix @ 1: max |cpu − gpu| = 0.00e0 (value 0 of 4096), 0 step flips
+HardMix @ 0.5: max |cpu − gpu| = 0.00e0 (value 0 of 4096), 0 step flips
+Difference @ 1: max |cpu − gpu| = 4.65e-4 (value 118 of 4096), 0 step flips
+Difference @ 0.5: max |cpu − gpu| = 4.77e-4 (value 3210 of 4096), 0 step flips
+Exclusion @ 1: max |cpu − gpu| = 4.75e-4 (value 106 of 4096), 0 step flips
+Exclusion @ 0.5: max |cpu − gpu| = 4.75e-4 (value 1033 of 4096), 0 step flips
+Subtract @ 1: max |cpu − gpu| = 4.65e-4 (value 3210 of 4096), 0 step flips
+Subtract @ 0.5: max |cpu − gpu| = 4.77e-4 (value 3210 of 4096), 0 step flips
+Divide @ 1: max |cpu − gpu| = 4.85e-4 (value 382 of 4096), 0 step flips
+Divide @ 0.5: max |cpu − gpu| = 4.86e-4 (value 3848 of 4096), 0 step flips
+Hue @ 1: max |cpu − gpu| = 4.88e-4 (value 41 of 4096), 0 step flips
+Hue @ 0.5: max |cpu − gpu| = 4.88e-4 (value 24 of 4096), 0 step flips
+Saturation @ 1: max |cpu − gpu| = 4.88e-4 (value 41 of 4096), 0 step flips
+Saturation @ 0.5: max |cpu − gpu| = 4.88e-4 (value 1040 of 4096), 0 step flips
+Color @ 1: max |cpu − gpu| = 4.88e-4 (value 102 of 4096), 0 step flips
+Color @ 0.5: max |cpu − gpu| = 4.88e-4 (value 24 of 4096), 0 step flips
+Luminosity @ 1: max |cpu − gpu| = 4.88e-4 (value 226 of 4096), 0 step flips
+Luminosity @ 0.5: max |cpu − gpu| = 4.88e-4 (value 165 of 4096), 0 step flips
+Overlay: interior 8-bit p99 1 mean 0.309 max 3; with edges p99 1 mean 0.352
+GPU device available: true; required: true
+test tests::qualification_adapter ... ok
+test tests::yuv_code_range_uniforms ... ok
+masked mix: max |cpu − gpu| = 2.4437904e-6
+mask coverage @1: max |cpu − gpu| = 2.9802322e-6
+LUT 2³: max |cpu − gpu| = 0e0
+mask coverage @0.5: max |cpu − gpu| = 3.2782555e-6
+LUT 17³: max |cpu − gpu| = 1.1920929e-7
+test fx_tests::layers_with_effects_fall_back_to_the_cpu_without_a_stage ... ok
+LUT 33³: max |cpu − gpu| = 0e0
+test blend_tests::gpu_blend_modes_match_cpu ... ok
+LUT 65³: max |cpu − gpu| = 0e0
+test tests::gpu_mask_coverage_matches_cpu ... ok
+test tests::gpu_masked_mix_matches_cpu ... ok
+test tests::gpu_lut_matches_cpu_tetrahedral ... ok
+test fx_tests::alpha_invert_does_not_amplify_invented_opacity_at_odd_source_pixels ... ok
+test blend_tests::gpu_blend_edge_cases_match_cpu ... ok
+test fx_tests::gpu_effect_layers_match_cpu_plan ... ok
+qualification GPU adapter: AdapterInfo { name: "AMD Radeon(TM) Graphics", vendor: 4098, device: 5686, device_type: IntegratedGpu, device_pci_bus_id: "0000:06:00.0", driver: "31.0.21923.1000", driver_info: "", backend: Dx12, subgroup_min_size: 64, subgroup_max_size: 64, transient_saves_memory: Some(false), limit_bucket: None }
+HLG: max error 1, unmanaged differs by up to 146
+PQ: max error 1, unmanaged differs by up to 255
+PQ 4000 cd/m²: max error 1, unmanaged differs by up to 255
+BT.2020 SDR: max error 1, unmanaged differs by up to 160
+test tests::upload_cache_keeps_buffers_alive ... ok
+test tests::gpu_matches_cpu_plan ... ok
+test tests::hdr_input_gpu_matches_cpu ... ok
+test tests::gpu_draws_yuv_alpha_plane_like_the_cpu ... ok
+test tests::prepared_upload_matches_inline_conversion ... ok
+range gate: 8-bit Full U=128 V=128, max error=0, prepared=inline
+range gate: 8-bit Full U=64 V=192, max error=0, prepared=inline
+range gate: 8-bit Full U=192 V=64, max error=0, prepared=inline
+range gate: 8-bit Limited U=128 V=128, max error=1, prepared=inline
+range gate: 8-bit Limited U=64 V=192, max error=1, prepared=inline
+range gate: 8-bit Limited U=192 V=64, max error=1, prepared=inline
+range gate: 10-bit Full U=128 V=128, max error=1, prepared=inline
+range gate: 10-bit Full U=64 V=192, max error=1, prepared=inline
+range gate: 10-bit Full U=192 V=64, max error=1, prepared=inline
+range gate: 10-bit Limited U=128 V=128, max error=1, prepared=inline
+range gate: 10-bit Limited U=64 V=192, max error=1, prepared=inline
+range gate: 10-bit Limited U=192 V=64, max error=1, prepared=inline
+range gate: 12-bit Full U=128 V=128, max error=1, prepared=inline
+range gate: 12-bit Full U=64 V=192, max error=1, prepared=inline
+range gate: 12-bit Full U=192 V=64, max error=1, prepared=inline
+range gate: 12-bit Limited U=128 V=128, max error=1, prepared=inline
+range gate: 12-bit Limited U=64 V=192, max error=1, prepared=inline
+range gate: 12-bit Limited U=192 V=64, max error=1, prepared=inline
+range gate: 16-bit Full U=128 V=128, max error=1, prepared=inline
+range gate: 16-bit Full U=64 V=192, max error=1, prepared=inline
+range gate: 16-bit Full U=192 V=64, max error=1, prepared=inline
+range gate: 16-bit Limited U=128 V=128, max error=1, prepared=inline
+range gate: 16-bit Limited U=64 V=192, max error=1, prepared=inline
+range gate: 16-bit Limited U=192 V=64, max error=1, prepared=inline
+test tests::yuv_code_range_gpu_matches_cpu ... ok
+Push 72 cases: worst p99 1, mean 0.6527777777777778
+test tests::gpu_push_matches_cpu_with_alpha_and_surrounding_blends ... ok
+
+test result: ok. 42 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 14.88s
+

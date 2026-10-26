@@ -1,0 +1,99 @@
+{
+  "revision": "5f697163cc5408cc95281c1f1656c881e87fadad",
+  "os": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "architecture": "x86_64",
+  "cpu": "x86_64",
+  "logical_cores": 2,
+  "physical_memory_bytes": null,
+  "image_version": "20261023.334.3",
+  "image_os": "ubuntu24",
+  "run_id": "40292136788",
+  "attempt": "1",
+  "dependency_cache_hit": "",
+  "compiled_target_cache": "disabled",
+  "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "cargo_lock_sha256": "de03a57ae05724d3eb2321db9577ad115939ed99f70dccfcfd43ab23eb9285fa",
+  "min_free_disk_bytes": 9538932736,
+  "profile_overrides": {
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0"
+  },
+  "commands": [
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "log": "01.log",
+      "exit_code": 0,
+      "wall_seconds": 6.005063256
+    },
+    {
+      "command": [
+        "cargo",
+        "xtask",
+        "layers"
+      ],
+      "log": "02.log",
+      "exit_code": 0,
+      "wall_seconds": 18.695233008000002
+    },
+    {
+      "command": [
+        "cargo",
+        "xtask",
+        "assets"
+      ],
+      "log": "03.log",
+      "exit_code": 0,
+      "wall_seconds": 0.22894733100000053
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "log": "04.log",
+      "exit_code": 0,
+      "wall_seconds": 426.69401752299996
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--workspace",
+        "--lib"
+      ],
+      "log": "05.log",
+      "exit_code": 0,
+      "wall_seconds": 1459.802419775
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "filmcraft",
+        "--bin",
+        "shotclutch"
+      ],
+      "log": "06.log",
+      "exit_code": 101,
+      "wall_seconds": 484.3217246500003
+    }
+  ],
+  "result": "failed"
+}

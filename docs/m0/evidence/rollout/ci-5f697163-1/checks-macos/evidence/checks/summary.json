@@ -1,0 +1,167 @@
+{
+  "revision": "5f697163cc5408cc95281c1f1656c881e87fadad",
+  "os": "macOS-15.7.9-arm64-arm-64bit-Mach-O",
+  "architecture": "arm64",
+  "cpu": "arm",
+  "logical_cores": 5,
+  "physical_memory_bytes": null,
+  "image_version": "20260907.0337.1",
+  "image_os": "macos15",
+  "run_id": "40292136788",
+  "attempt": "1",
+  "dependency_cache_hit": "",
+  "compiled_target_cache": "disabled",
+  "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "cargo_lock_sha256": "de03a57ae05724d3eb2321db9577ad115939ed99f70dccfcfd43ab23eb9285fa",
+  "min_free_disk_bytes": 40805003264,
+  "profile_overrides": {
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_INCREMENTAL": "0"
+  },
+  "commands": [
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "log": "01.log",
+      "exit_code": 0,
+      "wall_seconds": 4.072160875000009
+    },
+    {
+      "command": [
+        "cargo",
+        "xtask",
+        "layers"
+      ],
+      "log": "02.log",
+      "exit_code": 0,
+      "wall_seconds": 15.105799958999995
+    },
+    {
+      "command": [
+        "cargo",
+        "xtask",
+        "assets"
+      ],
+      "log": "03.log",
+      "exit_code": 0,
+      "wall_seconds": 0.18167741700000306
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "log": "04.log",
+      "exit_code": 0,
+      "wall_seconds": 175.62177995799996
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--workspace",
+        "--lib"
+      ],
+      "log": "05.log",
+      "exit_code": 0,
+      "wall_seconds": 634.7560982910001
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "filmcraft",
+        "--bin",
+        "shotclutch"
+      ],
+      "log": "06.log",
+      "exit_code": 0,
+      "wall_seconds": 318.3011361250001
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "filmcraft-cli",
+        "--bin",
+        "shotclutch-cli"
+      ],
+      "log": "07.log",
+      "exit_code": 0,
+      "wall_seconds": 208.21922137499996
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "filmcraft-format",
+        "--test",
+        "fixtures"
+      ],
+      "log": "08.log",
+      "exit_code": 0,
+      "wall_seconds": 57.3451916250001
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "filmcraft-cli",
+        "--test",
+        "it"
+      ],
+      "log": "09.log",
+      "exit_code": 0,
+      "wall_seconds": 15.016653791999943
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "filmcraft-ui-egui",
+        "--example",
+        "bench"
+      ],
+      "log": "10.log",
+      "exit_code": 0,
+      "wall_seconds": 232.93862887499995
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--workspace",
+        "--doc"
+      ],
+      "log": "11.log",
+      "exit_code": 0,
+      "wall_seconds": 44.397302999999965
+    }
+  ],
+  "result": "passed"
+}

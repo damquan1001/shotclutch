@@ -1,0 +1,74 @@
+   Compiling serde v1.0.229
+   Compiling dispatch2 v0.3.1
+   Compiling objc2-core-foundation v0.3.2
+   Compiling read-fonts v0.41.0
+   Compiling objc2-foundation v0.3.2
+   Compiling objc2-core-graphics v0.3.2
+   Compiling filmcraft-color v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/color)
+   Compiling harfrust v0.12.0
+   Compiling skrifa v0.44.0
+   Compiling objc2-metal v0.3.2
+   Compiling filmcraft-time v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/time)
+   Compiling filmcraft-frame v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/frame)
+   Compiling filmcraft-media v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/media)
+   Compiling serde_json v1.0.151
+   Compiling filmcraft-geom v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/geom)
+   Compiling filmcraft-project v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/project)
+   Compiling naga v30.0.1
+   Compiling objc2-quartz-core v0.3.2
+   Compiling core-foundation-sys v0.8.7
+   Compiling core-foundation v0.9.4
+   Compiling raw-window-metal v1.1.0
+   Compiling wgpu-naga-bridge v30.0.1
+   Compiling wgpu-hal v30.0.1
+   Compiling ahash v0.8.12
+   Compiling core-graphics-types v0.1.3
+   Compiling epaint v0.36.2
+   Compiling filmcraft-text v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/text)
+   Compiling core-graphics v0.23.2
+   Compiling wgpu-core-deps-apple v30.0.1
+   Compiling chrono v0.4.45
+   Compiling winit v0.30.13
+   Compiling egui v0.36.2
+   Compiling wgpu-core v30.0.1
+   Compiling filmcraft-captions v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/captions)
+   Compiling filmcraft-render v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/render)
+   Compiling wgpu v30.0.1
+   Compiling filmcraft-mxf v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/mxf)
+   Compiling objc2-app-kit v0.3.2
+   Compiling arboard v3.6.1
+   Compiling accesskit_winit v0.32.2
+   Compiling filmcraft-codecs v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/codecs)
+   Compiling tempfile v3.27.0
+   Compiling filmcraft-export v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/export)
+   Compiling egui-winit v0.36.2
+   Compiling egui-wgpu v0.36.2
+   Compiling objc2-core-video v0.3.2
+   Compiling objc2-core-audio v0.3.2
+   Compiling objc2-core-audio-types v0.3.2
+   Compiling eframe v0.36.2
+   Compiling filmcraft-interchange v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/interchange)
+   Compiling objc2-core-media v0.3.2
+   Compiling filmcraft-speech v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/speech)
+   Compiling filmcraft-format v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/format)
+   Compiling accesskit_consumer v0.35.0
+   Compiling filmcraft-edit v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/edit)
+   Compiling filmcraft-scopes v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/scopes)
+   Compiling filmcraft-tts v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/tts)
+   Compiling filmcraft-gpu v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/gpu)
+   Compiling filmcraft-engine v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/engine)
+   Compiling kittest v0.4.0
+   Compiling objc2-video-toolbox v0.3.2
+   Compiling craft-ui v0.1.0 (https://github.com/storytold/craft-libs?rev=5c874d51eeb3de70e735c8ce87a59a7dedd47675#5c874d51)
+   Compiling filmcraft-platform v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/platform)
+   Compiling filmcraft-ui-egui v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/ui-egui)
+   Compiling egui_kittest v0.36.2
+    Finished `test` profile [optimized] target(s) in 3m 52s
+     Running unittests examples/bench/main.rs (target/debug/examples/bench-b74e3c7ae23007d0)
+
+running 2 tests
+test tests::resource_units_are_explicit ... ok
+test tests::native_section_command_does_not_require_unix_env ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

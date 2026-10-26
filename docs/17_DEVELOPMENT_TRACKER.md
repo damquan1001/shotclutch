@@ -6,7 +6,7 @@ Baseline 0.1 · Last updated: 2026-10-26 · Authoritative living work record.
 
 The documentation baseline is committed at `b739515e04b3467ed8b681e6296f7dc5867f43dd`. M0 implementation is delivered on `codex/m0-foundation`, based on inherited source `3a5f217b348bf0c9dc1678f305c34b6c88617f37`. The initial working tree was clean. Production application revision: `3aeef47218c74067fb4998b0d14e4aacee7dad10`; subsequent commits add test, measurement and evidence refinements. See [the foundation audit](m0/FOUNDATION_AUDIT.md), [executed evidence](m0/EVIDENCE.md), [qualification procedure](m0/QUALIFICATION.md), and [upstream policy](m0/UPSTREAM_POLICY.md).
 
-Current milestone: **M0 — Foundation audit and reproducible baseline, In Review; remote CI rollout planned.** Initial qualification platform: Windows x64. Owner: Codex implementation session. Local builds, 1,383 targeted tests, desktop workflow, packages and paired CPU benchmark captures have evidence. The user confirms that the 0.13.0 MSI installs cleanly, launches, imports/edits, saves/reopens and exports video successfully. [Manual acceptance](m0/evidence/clean-install-user-confirmation.md) is recorded; remote CI and broader runtime qualification have not run. See the [deployment plan](m0/CI_RUNTIME_ROLLOUT.md).
+Current milestone: **M0 — Foundation audit and reproducible baseline, In Review; remote CI rollout in progress.** Initial qualification platform: Windows x64. Owner: Codex implementation session. Local builds, 1,383 targeted tests, desktop workflow, packages and paired CPU benchmark captures have evidence. The user confirms that the 0.13.0 MSI installs cleanly, launches, imports/edits, saves/reopens and exports video successfully. [Manual acceptance](m0/evidence/clean-install-user-confirmation.md) is recorded; hosted CI and native runtime observations have now run with partial passing coverage and explicit failures. See [execution results](m0/CI_RUNTIME_EXECUTION.md).
 
 There are **48 implementation requirements: 44 in v0.1 (M0–M4) and 4 in M5**. CORE-001 and PERF-001 have their bounded M0 acceptance evidence; CORE-005 remains In Review pending automated-check rollout/review. No broader feature or performance-release qualification is implied. M1–M5 remain Planned. Staffing, budget and release dates are unassigned.
 
@@ -31,7 +31,7 @@ Each active item must have an owner, implementation/change reference, linked tes
 
 | Milestone | Scope | Status | Exit evidence |
 |---|---|---|---|
-| M0 | Audit, standalone build, baseline measurements | In Review | Local evidence and user-confirmed clean/core workflow passed; [remote CI rollout](m0/CI_RUNTIME_ROLLOUT.md) planned |
+| M0 | Audit, standalone build, baseline measurements | In Review | Local evidence and user-confirmed clean/core workflow passed; [remote CI rollout](m0/CI_RUNTIME_EXECUTION.md) active; two green same-commit runs outstanding |
 | M1 | Durable project, exact commands, native media, local editing | Not started | None |
 | M2 | Smart Rough Cut and workspace | Not started | None |
 | M3 | Semantic indexing, verified agent, MCP/CLI | Not started | None |
@@ -97,7 +97,7 @@ Dependencies below are completion gates, not a requirement to postpone design or
 
 ## Active work and evidence register
 
-M0 implementation and local evidence are ready on `codex/m0-foundation`. CORE-001 now combines executable local evidence with user-confirmed clean/core workflow acceptance; PERF-001 covers baseline captures only. CORE-005 retains its review gate while the remote CI rollout is planned.
+M0 implementation and local evidence are ready on `codex/m0-foundation`. CORE-001 now combines executable local evidence with user-confirmed clean/core workflow acceptance; PERF-001 covers baseline captures only. CORE-005 retains its review gate while the hosted CI rollout is stabilized.
 
 | Record | State | Owner | Evidence / next action |
 |---|---|---|---|
@@ -105,11 +105,15 @@ M0 implementation and local evidence are ready on `codex/m0-foundation`. CORE-00
 | REVIEW-001 | Planned | Unassigned | Review baseline API/schema choices against the selected source revision; record accepted amendments |
 | SETUP-001 | Done | Codex | Recorded inherited revision and clean documentation baseline; selected Windows x64 and pinned Rust 1.95.0 |
 | CORE-001 | Done | Codex / user acceptance | Production `3aeef472`, installer correction `b5102d3c`; standalone builds, identity/compatibility and capability/legal inventory recorded. Native edit/export has independent frame/sample checks. User confirms clean MSI install and launch/import/edit/save/reopen/export: [acceptance](m0/evidence/clean-install-user-confirmation.md). Next: broaden runtime coverage without changing this bounded M0 conclusion. |
-| CORE-005 | In Review | Codex | Locked builds, Rust 1.95, pinned repository-owned CI, unsigned MSI/ZIP and upstream policy verified locally. [Check logs](m0/evidence/README.md). Workflow review found bootstrap, strict-oracle/test-selection and diagnostic-retention gaps to address before first remote execution. Next: CI-001 in the [rollout plan](m0/CI_RUNTIME_ROLLOUT.md); remote access/settings are unverified. |
+| CORE-005 | In Review | Codex | Locked builds, Rust 1.95, pinned repository-owned CI, unsigned MSI/ZIP and upstream policy verified locally. [Check logs](m0/evidence/README.md). Bootstrap, strict-oracle/test-selection and diagnostic gaps were addressed at 5f697163. First hosted run passed macOS checks and Windows package lifecycle; Linux identity and Windows FXC failures are under repair. Next: two green same-commit runs and review. [Execution](m0/CI_RUNTIME_EXECUTION.md). |
 | PERF-001 | Done | Codex | Harness `f35fac68`; seven matching software/CPU sections, identical generated fixture hashes, available hardware/software/cache metadata and raw samples retained. [Comparison](m0/BENCHMARKS.md), [upstream](m0/evidence/upstream/manifest.json), [ShotClutch](m0/evidence/shotclutch/manifest.json). Acceptance is baseline capture, with slow cases and unavailable telemetry disclosed; GPU/second-profile work and release budgets remain separate. |
 | MSI-UX-001 | Done | Codex / user acceptance | Fix `b5102d3c` adds a wizard and Finish launch checkbox; artifact validation passes. The user confirms successful clean installation and launched core workflow. [Diagnosis](m0/evidence/msi-wizard/diagnosis.json), [manual acceptance](m0/evidence/clean-install-user-confirmation.md). Finish-checkbox and uninstall paths get separate lifecycle coverage in RT-001. |
-| CI-001 / CI-002 / CI-003 | Planned | Codex implementation / repository owner access | Preflight and local CI hardening, authorized bootstrap, then required checks/scheduled coverage. [Plan and exit evidence](m0/CI_RUNTIME_ROLLOUT.md). No remote mutation or run occurred during planning. |
-| RT-001 / RT-002 / RT-003 | Planned | Codex and manual Windows tester | CI artifact lifecycle, primary desktop/GPU/audio/soak, then a second hardware profile. [Qualification lanes](m0/CI_RUNTIME_ROLLOUT.md). User-confirmed Q0 acceptance remains passed. |
+| CI-001 | Done | Codex | GitHub CLI/admin access and read-only settings preflight recorded; strict test/oracle/logging helpers deployed at 5f697163. Existing hosted runners only; billing budget not independently verified. [Execution](m0/CI_RUNTIME_EXECUTION.md). |
+| CI-002 | In Progress | Codex | Initial packaging lint passed; aggregate CI failed on Linux metadata and Windows FXC. macOS 2,599 passed / 12 ignored; Windows install/render/uninstall passed. Repairs locally validated. Next: two green same-commit runs with all platform release builds. |
+| CI-003 | Planned | Repository owner / Codex | Unique aggregate names prepared. Main promotion/required checks/schedules follow reviewed green runs and explicit merge/settings authorization; main remains unchanged. |
+| RT-001 | In Progress | Codex / manual tester | CI 5f697163 MSI installed, edited/exported exact 50 frames / 80,000 stereo sample frames, uninstalled and preserved user sentinel on a fresh hosted runner. User Q0 remains accepted. Offline consumer VM and extended interactive lifecycle remain outstanding. |
+| RT-002 | In Progress | Codex | Exact CI candidate completed 30-minute NVIDIA Vulkan/Media Foundation Full playback: 99 drops (0.1834%), no audio underruns/missing frames, peak working set 0.887 GiB; exceeds proposed drop target. Seven-section GPU matrix and three interleaved CPU decode pairs retained. Physical A/V drift unavailable. [Raw evidence and limitations](m0/CI_RUNTIME_EXECUTION.md). |
+| RT-003 | Planned | Manual Windows tester | A separate physical Windows hardware profile remains unavailable; integrated-GPU library tests on the same laptop do not satisfy this lane. |
 
 For each new active requirement, add owner, change/branch or commit, test/benchmark report, expected versus actual result, review outcome, next action and any blocker ID. Do not substitute prose status updates for reproducible evidence.
 
@@ -134,14 +138,14 @@ Decision records should include context, options, selected choice, rationale, co
 
 ## Blockers and prerequisites
 
-The user-confirmed clean installation/core workflow resolves the original clean-install prerequisite. Additional lifecycle, offline/backend/audio/soak and second-profile coverage is planned separately. Remote CI is defined but has not run; repository access through the GitHub connection returned 404, and local GitHub CLI is unavailable. This is a deployment preflight item, not a diagnosed product failure.
+The user-confirmed clean installation/core workflow resolves the original clean-install prerequisite. Additional lifecycle, offline/backend/audio/soak and second-profile coverage is planned separately. GitHub CLI access is working and hosted CI has run. The first aggregate run exposed Linux desktop identity and Windows legacy FXC failures; repairs and repeat runs are active. Physical loopback and a second machine remain unavailable.
 
 | ID | Prerequisite | Unblock condition | Affected work |
 |---|---|---|---|
 | READY-001 | Resolved: source inspected at inherited revision `3a5f217b` | Recorded in M0 foundation audit | M0 |
 | READY-002 | Resolved: Windows x64 and actual machine profile captured | Hardware, driver, toolchain and corpus hashes retained in benchmark manifests | M0 baseline |
 | CLEAN-001 | Resolved: user confirms clean 0.13.0 MSI installation and launch/import/edit/save/reopen/export | [Direct manual acceptance](m0/evidence/clean-install-user-confirmation.md); exact environment/hash metadata and lifecycle extensions tracked in RT-001 | CORE-001 |
-| CI-ACCESS-001 | Origin visibility/default branch, Actions settings and connector access unverified | Restore/verify repository access, then record permission, runner and budget preflight before authorized push | Remote CI activation |
+| CI-ACCESS-001 | Resolved for ordinary hosted bootstrap: GitHub CLI has admin access; Actions enabled; private main preserved | First remote run and read-only settings evidence retained; billing budget remains unverified, with no paid infrastructure or schedules enabled | Remote CI activation |
 | READY-003 | External destination versions/test environments not selected | Resolve DEC-008 and obtain reproducible import environments | M5 adapter qualification |
 
 A future blocker entry must identify observed failure, reproduction/evidence, impact, owner, next action, and explicit unblock condition. Close it with evidence rather than deleting its history.
@@ -181,3 +185,5 @@ A future blocker entry must identify observed failure, reproduction/evidence, im
 At session start, read this file, the relevant requirement, and its owning specification. Verify current checkout/revision before trusting previous results. At session end, record actual changes, checks and outcomes, remaining work, and the next concrete action. Update architecture documents only when their contracts change. Do not estimate progress from lines of code or checklist size; if percentages are later used, define the denominator and evidence weighting explicitly.
 
 - 2026-10-26 — Started M0 on `codex/m0-foundation`; preserved the committed user baseline and recorded source/build/packaging/benchmark decisions. Qualification gates remain explicit.
+
+- 2026-10-26 — Executed authorized CI bootstrap at 5f697163; retained first-run failures and passing package/macOS lanes, exact CI candidate 30-minute Full playback, GPU matrix and interleaved CPU rechecks. Follow-up fixes and repeat green runs are in progress; no release, PR, merge or settings change.

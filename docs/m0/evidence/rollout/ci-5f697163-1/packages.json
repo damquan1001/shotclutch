@@ -1,0 +1,10 @@
+{
+  "shotclutch-0.13.0-windows-x64-portable.zip": {
+    "bytes": 42120037,
+    "sha256": "964a88f287287e4874fd05bc9a064f0af977c54d4febdf864c687808213dc5a3"
+  },
+  "shotclutch-0.13.0-windows-x64.msi": {
+    "bytes": 32251904,
+    "sha256": "51769179d8da5e9e9cec932c3e542446b44c197cc6ff6db0eb50714517196967"
+  }
+}

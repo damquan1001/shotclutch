@@ -2,7 +2,7 @@
 
 Implementation branch: `codex/m0-foundation`. Production application qualification revision: `3aeef47218c74067fb4998b0d14e4aacee7dad10`. Subsequent commits refine tests, the measurement harness and documentation; application binaries are bound to that production revision by package provenance and executable hashes. Retained reports and reproduction commands are in [evidence/README.md](evidence/README.md).
 
-The user has now confirmed clean 0.13.0 MSI installation and the launch/import/edit/save/reopen/video-export workflow. [Direct manual acceptance](evidence/clean-install-user-confirmation.md) resolves the prior clean-install/core-workflow gap. Remote CI and extended runtime qualification remain planned in [the rollout](CI_RUNTIME_ROLLOUT.md); this report does not claim their execution.
+The user has confirmed clean 0.13.0 MSI installation and the launch/import/edit/save/reopen/video-export workflow. [Direct manual acceptance](evidence/clean-install-user-confirmation.md) resolves the prior clean-install/core-workflow gap. Remote CI and extended runtime qualification are now executing: [current rollout results](CI_RUNTIME_EXECUTION.md), including successful lanes, failures, repairs and the 30-minute CI-candidate playback characterization. The historical local evidence below retains its original revision and scope.
 
 ## Recorded source and platform
 
@@ -84,7 +84,7 @@ Validation found two M0 branding regressions and corrected them: a fixed nine-by
 
 Windows PowerShell benchmark preparation initially treated native stderr as an error, and the first measured attempt rejected an unavailable process exit code. Preparation now uses redirected child processes, and measurement retains the native handle and a per-section exit-status report. Those rejected/preparation attempts are excluded; both retained captures completed all seven sections. No benchmark workload or upstream source was changed to obtain a passing capture.
 
-Clean Windows installation and the core editing/export workflow passed by user confirmation. Remote CI execution, strict offline/lifecycle coverage, other-platform runtime qualification, GPU performance qualification and a second hardware tier remain unverified. Follow [the rollout plan](CI_RUNTIME_ROLLOUT.md) for these additional checks. Exact OS/package-hash metadata was not supplied with the manual acceptance; preserve that distinction from the prior automated reports.
+Clean Windows installation and the core editing/export workflow passed by user confirmation. Hosted CI has run, with macOS checks and the Windows package/install/render/uninstall lanes passing on the first candidate; Linux identity and Windows FXC failures require a new aggregate run. A 30-minute NVIDIA Vulkan observation completed but exceeded the proposed Full-resolution frame-drop target. [Current rollout evidence](CI_RUNTIME_EXECUTION.md) records these bounded results; no two-green-run, offline consumer VM, physical A/V loopback, other-platform runtime or second-machine qualification is claimed. Exact OS/package-hash metadata was not supplied with the historical manual acceptance; preserve that distinction from the automated reports.
 
 M1–M5 features and the performance release budgets in document 14 are not completed by these M0 checks.
 

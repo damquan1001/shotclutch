@@ -1,0 +1,85 @@
+{
+  "revision": "5f697163cc5408cc95281c1f1656c881e87fadad",
+  "os": "Windows-2025Server-10.0.26100-SP0",
+  "architecture": "AMD64",
+  "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
+  "logical_cores": 2,
+  "physical_memory_bytes": null,
+  "image_version": "20261021.278.1",
+  "image_os": "win25-vs2026",
+  "run_id": "40292136788",
+  "attempt": "1",
+  "dependency_cache_hit": "",
+  "compiled_target_cache": "disabled",
+  "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "cargo_lock_sha256": "3a05488c275f867f2f9845258428e7ef6eb25f297a67c104d6ad09322c733013",
+  "min_free_disk_bytes": 74978930688,
+  "profile_overrides": {
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0"
+  },
+  "commands": [
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "log": "01.log",
+      "exit_code": 0,
+      "wall_seconds": 11.10899999999998
+    },
+    {
+      "command": [
+        "cargo",
+        "xtask",
+        "layers"
+      ],
+      "log": "02.log",
+      "exit_code": 0,
+      "wall_seconds": 44.672000000000025
+    },
+    {
+      "command": [
+        "cargo",
+        "xtask",
+        "assets"
+      ],
+      "log": "03.log",
+      "exit_code": 0,
+      "wall_seconds": 0.5159999999999627
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "log": "04.log",
+      "exit_code": 0,
+      "wall_seconds": 809.625
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--workspace",
+        "--lib"
+      ],
+      "log": "05.log",
+      "exit_code": 101,
+      "wall_seconds": 2866.015
+    }
+  ],
+  "result": "failed"
+}

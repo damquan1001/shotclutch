@@ -1,0 +1,42 @@
+{
+  "load_after": null,
+  "load_before": null,
+  "rows": [
+    {
+      "clips": 1000,
+      "frames": 40,
+      "gpu": true,
+      "load": null,
+      "render_p50_ms": 840.6783,
+      "render_p95_ms": 991.4993,
+      "shapes": 2942,
+      "tess_p50_ms": 1.2886,
+      "tess_p95_ms": 2.4461,
+      "total_p50_ms": 846.1807,
+      "total_p95_ms": 999.0142,
+      "update_p50_ms": 4.4209000000000005,
+      "update_p95_ms": 8.0704,
+      "vertices": 40842,
+      "view": "fit: all 1000 clips"
+    },
+    {
+      "clips": 1000,
+      "frames": 40,
+      "gpu": true,
+      "load": null,
+      "render_p50_ms": 742.7472,
+      "render_p95_ms": 841.6496999999999,
+      "shapes": 980,
+      "tess_p50_ms": 0.5811,
+      "tess_p95_ms": 0.9024,
+      "total_p50_ms": 745.6911,
+      "total_p95_ms": 846.3644999999999,
+      "update_p50_ms": 2.8289999999999997,
+      "update_p95_ms": 4.339499999999999,
+      "vertices": 31934,
+      "view": "zoomed, scrolling"
+    }
+  ],
+  "section": "timeline",
+  "wall_s": 70.9518375
+}
