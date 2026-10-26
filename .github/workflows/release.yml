@@ -4,33 +4,78 @@ on:
   workflow_call:
 permissions:
   contents: read
+env:
+  CARGO_TERM_COLOR: never
+  CARGO_BUILD_JOBS: 2
+  CARGO_INCREMENTAL: 0
 jobs:
   package:
     runs-on: windows-2025
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
       - run: dotnet tool install wix --tool-path target/m0/tools --version 5.0.2
-      - name: Build unsigned qualification packages
-        shell: pwsh
-        run: ./packaging/windows/package.ps1 -Arch x64
-      - name: Validate portable package
-        shell: pwsh
-        run: ./scripts/m0/validate-package.ps1 -Dist dist/release
+      - name: Install and verify locked fixture/oracle tools
+        run: python scripts/ci/setup-oracles.py
+      - name: Stage generated workflow input separately from application execution
+        run: python scripts/ci/package-smoke.py prepare --fixtures target/ci/fixtures
+      - name: Build and validate unsigned x64 qualification packages
+        run: python scripts/ci/run-checks.py package
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: shotclutch-windows-x64
+          name: shotclutch-windows-x64-${{ github.sha }}-${{ github.run_attempt }}
           path: dist/release/*
+          retention-days: 30
           if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qualification-fixtures-${{ github.sha }}-${{ github.run_attempt }}
+          path: target/ci/fixtures
+          retention-days: 30
+          if-no-files-found: error
+      - name: Retain build and package diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: package-evidence-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            target/ci/evidence
+            target/ci/oracles/manifest.json
+            target/windows-package/x64/legal/build-info.json
+            target/m0/package-check-*/validation.json
+          retention-days: 14
+          if-no-files-found: warn
   install:
     needs: package
     runs-on: windows-2025
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
-          name: shotclutch-windows-x64
+          name: shotclutch-windows-x64-${{ github.sha }}-${{ github.run_attempt }}
           path: dist/release
-      - name: Install, inspect, and uninstall in disposable runner
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: qualification-fixtures-${{ github.sha }}-${{ github.run_attempt }}
+          path: target/ci/fixtures
+      - run: python scripts/ci/setup-oracles.py
+      - name: Install, edit/export without oracle tools on app PATH, and uninstall
         shell: pwsh
-        run: ./scripts/m0/install-check.ps1 -Dist dist/release -Arch x64
+        run: ./scripts/m0/install-check.ps1 -Dist dist/release -Arch x64 -Fixtures target/ci/fixtures -Output target/ci/install
+      - name: Independently verify delivered video frames and audio samples
+        run: python scripts/ci/package-smoke.py verify --fixtures target/ci/fixtures --output target/ci/install/workflow
+      - name: Preserve install/render/uninstall evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: install-evidence-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            target/ci/install
+            target/ci/oracles/manifest.json
+          retention-days: 30
+          if-no-files-found: warn

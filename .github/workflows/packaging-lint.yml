@@ -1,5 +1,7 @@
 name: Packaging lint
 on:
+  push:
+    branches: [main, codex/m0-foundation]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -9,16 +11,22 @@ jobs:
     runs-on: windows-2025
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
       - name: Parse all PowerShell packaging and qualification scripts
         shell: pwsh
         run: |
           $failed = $false
-          Get-ChildItem packaging/windows,scripts/m0 -Filter *.ps1 -Recurse | ForEach-Object {
+          Get-ChildItem packaging/windows,scripts -Filter *.ps1 -Recurse | ForEach-Object {
             $tokens = $null; $errors = $null
             [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$errors) | Out-Null
             if ($errors.Count) { $errors | Write-Error; $failed = $true }
           }
           if ($failed) { exit 1 }
+          python -m compileall -q scripts/ci scripts/m0
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m unittest discover -s scripts/ci -p 'test_*.py'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Validate installer identity and legal references
         shell: pwsh
         run: |
@@ -29,6 +37,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
       - name: Install pinned workflow linter and packaging validators
         run: |
           go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
@@ -42,3 +52,12 @@ jobs:
           desktop-file-validate packaging/linux/com.shotclutch.editor.desktop
           sed -e 's/@VERSION@/0.13.0/g' -e 's/@DATE@/2026-10-26/g' packaging/linux/com.shotclutch.editor.metainfo.xml.in > /tmp/shotclutch.metainfo.xml
           appstreamcli validate --no-net /tmp/shotclutch.metainfo.xml
+  required:
+    if: always()
+    needs: [scripts, unix-and-workflows]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: All packaging prerequisites passed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: python -c 'import json,os; results=json.loads(os.environ["RESULTS"]); assert all(job["result"]=="success" for job in results.values()), results'
