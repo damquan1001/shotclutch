@@ -56,6 +56,28 @@ class FailureGuards(unittest.TestCase):
             self.assertEqual(summary['commands'][0]['exit_code'], 7)
             self.assertEqual((report / '01.log').read_text(), 'observable child failure\n')
 
+    def test_gpu_profile_does_not_leak_into_desktop_defaults(self):
+        runner = load('run-checks')
+        runner.platform.platform()
+        runner.platform.processor()
+        with tempfile.TemporaryDirectory(dir=self.scratch) as temporary:
+            root = Path(temporary)
+            (root / 'Cargo.lock').write_text('test lock')
+            runner.__file__ = str(root / 'scripts/ci/run-checks.py')
+            process = types.SimpleNamespace(stdout=[], wait=lambda: 0)
+            with patch('sys.argv', ['run-checks.py', 'checks']), \
+                 patch.dict(runner.os.environ, {'SHOTCLUTCH_CI_GPU_BACKEND': 'metal', 'SHOTCLUTCH_CI_DX12_COMPILER': 'auto'}, clear=True), \
+                 patch.object(runner.subprocess, 'check_output', return_value='test-version\n'), \
+                 patch.object(runner.subprocess, 'Popen', return_value=process) as execute:
+                runner.main()
+            calls = execute.call_args_list
+            libraries = next(call for call in calls if '--lib' in call.args[0])
+            desktop = next(call for call in calls if 'shotclutch' in call.args[0])
+            self.assertEqual(libraries.kwargs['env']['WGPU_BACKEND'], 'metal')
+            self.assertEqual(libraries.kwargs['env']['WGPU_DX12_COMPILER'], 'auto')
+            self.assertNotIn('WGPU_BACKEND', desktop.kwargs['env'])
+            self.assertNotIn('WGPU_DX12_COMPILER', desktop.kwargs['env'])
+
     @unittest.skipUnless(__import__('os').name == 'nt', 'Windows compiler setup')
     def test_corrupt_dxc_is_never_executed(self):
         setup = load('setup-windows-gpu')

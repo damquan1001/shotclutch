@@ -51,14 +51,14 @@ jobs:
       - name: Require and identify the hosted GPU adapter
         env:
           SHOTCLUTCH_REQUIRE_GPU: 1
-          WGPU_BACKEND: ${{ runner.os == 'Windows' && 'dx12' || runner.os == 'Linux' && 'vulkan' || 'metal' }}
-          WGPU_DX12_COMPILER: ${{ runner.os == 'Windows' && 'dxc' || 'auto' }}
+          SHOTCLUTCH_CI_GPU_BACKEND: ${{ runner.os == 'Windows' && 'dx12' || runner.os == 'Linux' && 'vulkan' || 'metal' }}
+          SHOTCLUTCH_CI_DX12_COMPILER: ${{ runner.os == 'Windows' && 'dxc' || 'auto' }}
         run: python scripts/ci/run-checks.py gpu-probe
       - name: Complete checks with durable command logs
         env:
           SHOTCLUTCH_REQUIRE_GPU: 1
-          WGPU_BACKEND: ${{ runner.os == 'Windows' && 'dx12' || runner.os == 'Linux' && 'vulkan' || 'metal' }}
-          WGPU_DX12_COMPILER: ${{ runner.os == 'Windows' && 'dxc' || 'auto' }}
+          SHOTCLUTCH_CI_GPU_BACKEND: ${{ runner.os == 'Windows' && 'dx12' || runner.os == 'Linux' && 'vulkan' || 'metal' }}
+          SHOTCLUTCH_CI_DX12_COMPILER: ${{ runner.os == 'Windows' && 'dxc' || 'auto' }}
           CARGO_CACHE_HIT: ${{ steps.cargo-cache.outputs.cache-hit }}
         run: python scripts/ci/run-checks.py checks
       - name: Retain diagnostics on success or failure

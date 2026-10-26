@@ -48,6 +48,7 @@ def main():
         'min_free_disk_bytes': shutil.disk_usage(root).free,
         'profile_overrides': {k: v for k, v in os.environ.items() if k.startswith('CARGO_PROFILE_') or k in ['CARGO_INCREMENTAL', 'CARGO_BUILD_JOBS']},
         'gpu_required': os.environ.get('SHOTCLUTCH_REQUIRE_GPU') == '1',
+        'gpu_test_profile': {name: os.environ.get(name) for name in ['SHOTCLUTCH_CI_GPU_BACKEND', 'SHOTCLUTCH_CI_DX12_COMPILER']},
         'commands': [], 'result': 'failed',
     }
     stop = threading.Event()
@@ -61,11 +62,21 @@ def main():
     try:
         for index, command in enumerate(commands, 1):
             record = {'command': command, 'log': f'{index:02}.log', 'exit_code': None}
+            environment = dict(os.environ)
+            # NativeOptions::default also reads WGPU_*; keep the qualification
+            # profile out of desktop/CLI tests that verify application defaults.
+            gpu_command = options.lane == 'gpu-probe' or (command[:2] == ['cargo', 'test'] and '--lib' in command)
+            record['gpu_environment'] = {}
+            if gpu_command:
+                for source, target in [('SHOTCLUTCH_CI_GPU_BACKEND', 'WGPU_BACKEND'), ('SHOTCLUTCH_CI_DX12_COMPILER', 'WGPU_DX12_COMPILER')]:
+                    if value := os.environ.get(source):
+                        environment[target] = value
+                        record['gpu_environment'][target] = value
             summary['commands'].append(record)
             started = time.monotonic()
             print('==> ' + ' '.join(command), flush=True)
             with (output / record['log']).open('w', encoding='utf-8') as log:
-                process = subprocess.Popen(command, cwd=root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', errors='replace')
+                process = subprocess.Popen(command, cwd=root, env=environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', errors='replace')
                 for line in process.stdout:
                     print(line, end='', flush=True)
                     log.write(line)
