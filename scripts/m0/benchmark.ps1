@@ -31,8 +31,9 @@ try {
     if ($Quick) { $args += '--quick' }
     # Generate missing fixtures and warm each workload outside the measured interval.
     $warmArgs = @('--section',$section,'--json',(Join-Path $out "$section.warmup.json"),'--repeat','1','--hw','off','--cpu','--quick')
-    & $exe @warmArgs > (Join-Path $out "$section.warmup.stdout.log") 2> (Join-Path $out "$section.warmup.stderr.log")
-    if ($LASTEXITCODE -ne 0) { throw "Benchmark preparation failed: $section" }
+    $warmQuoted = $warmArgs | ForEach-Object { '"' + $_.Replace('"','\"') + '"' }
+    $warm = Start-Process -FilePath $exe -ArgumentList $warmQuoted -WindowStyle Hidden -Wait -PassThru -RedirectStandardOutput (Join-Path $out "$section.warmup.stdout.log") -RedirectStandardError (Join-Path $out "$section.warmup.stderr.log")
+    if ($warm.ExitCode -ne 0) { throw "Benchmark preparation failed: $section" }
     # Argument values with spaces must remain single Windows arguments.
     $quoted = $args | ForEach-Object { '"' + $_.Replace('"','\"') + '"' }
     $watch = [Diagnostics.Stopwatch]::StartNew()
