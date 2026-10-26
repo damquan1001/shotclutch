@@ -38,6 +38,15 @@ function Invoke-Native([string] $What, [scriptblock] $Block) {
   if ($LASTEXITCODE -ne 0) { throw "$What failed with exit code $LASTEXITCODE" }
 }
 
+# Keep the wizard dependency local to this checkout and version-aligned with WiX.
+$UiExtension = Join-Path $Root '.wix\extensions\WixToolset.UI.wixext\5.0.2\wixext5\WixToolset.UI.wixext.dll'
+if (-not (Test-Path -LiteralPath $UiExtension)) {
+  Push-Location -LiteralPath $Root
+  try { Invoke-Native 'WiX UI extension 5.0.2' { & $Wix extension add WixToolset.UI.wixext/5.0.2 } }
+  finally { Pop-Location }
+}
+if (-not (Test-Path -LiteralPath $UiExtension)) { throw 'WiX UI extension 5.0.2 was not installed in the checkout cache' }
+
 # The version lives in one place: [workspace.package] version in the root Cargo.toml.
 $Version = if ($env:SHOTCLUTCH_VERSION) { $env:SHOTCLUTCH_VERSION } else { $env:FILMCRAFT_VERSION }
 if (-not $Version) {
@@ -127,6 +136,31 @@ foreach ($file in Get-ChildItem -LiteralPath $Legal -File | Sort-Object Name) {
 $xml = '<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"><Fragment><DirectoryRef Id="INSTALLFOLDER"><Directory Id="LEGALFOLDER" Name="legal" /></DirectoryRef><ComponentGroup Id="LegalFiles" Directory="LEGALFOLDER">' + ($entries -join '') + '</ComponentGroup></Fragment></Wix>'
 Set-Content -LiteralPath $LegalWxs -Value $xml -Encoding utf8
 
+# Use the actual dual-license texts, never WiX's placeholder EULA. RTF escaping
+# keeps braces, backslashes and non-ASCII copyright text readable in the dialog.
+$LicenseRtf = Join-Path $Stage 'license.rtf'
+$licenseText = "ShotClutch is licensed under MIT OR Apache-2.0, at your option.`n`n" +
+  ((@('LICENSE-MIT', 'LICENSE-APACHE', 'NOTICE') | ForEach-Object { Get-Content -LiteralPath (Join-Path $Root $_) -Raw }) -join "`n`n")
+$rtf = [Text.StringBuilder]::new('{\rtf1\ansi\deff0{\fonttbl{\f0 Tahoma;}}\f0\fs18 ')
+foreach ($character in $licenseText.ToCharArray()) {
+  switch ([int]$character) {
+    13 { }
+    10 { [void]$rtf.Append('\par ') }
+    92 { [void]$rtf.Append('\\') }
+    123 { [void]$rtf.Append('\{') }
+    125 { [void]$rtf.Append('\}') }
+    default {
+      $code = [int]$character
+      if ($code -gt 127) {
+        if ($code -gt 32767) { $code -= 65536 }
+        [void]$rtf.Append("\u$code`?")
+      } else { [void]$rtf.Append($character) }
+    }
+  }
+}
+[void]$rtf.Append('}')
+[IO.File]::WriteAllText($LicenseRtf, $rtf.ToString(), [Text.Encoding]::ASCII)
+
 
 if ($Sign) { & (Join-Path $PSScriptRoot 'sign.ps1') (Join-Path $Stage 'shotclutch.exe') (Join-Path $Stage 'shotclutch-cli.exe') }
 
@@ -134,7 +168,9 @@ if ($Sign) { & (Join-Path $PSScriptRoot 'sign.ps1') (Join-Path $Stage 'shotclutc
 $Msi = Join-Path $Dist "shotclutch-$Version-windows-$Arch.msi"
 Invoke-Native 'wix build' {
   & $Wix build (Join-Path $PSScriptRoot 'shotclutch.wxs') $LegalWxs -arch $Arch `
+    -ext $UiExtension -culture en-US `
     -d "Version=$MsiVersion" -d "BinDir=$Stage" -d "IconPath=$(Join-Path $Root 'assets\app-icon\shotclutch.ico')" `
+    -d "LicenseRtf=$LicenseRtf" `
     -o $Msi
 }
 # wix writes its debug symbols (.wixpdb) next to the MSI; keep them out of the release assets.

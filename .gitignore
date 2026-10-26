@@ -2,6 +2,7 @@
 plan/
 /target
 /dist
+/.wix
 /log
 .DS_Store
 .claude/worktrees/
