@@ -1,0 +1,59 @@
+   Compiling serde v1.0.229
+   Compiling uuid v1.26.1
+   Compiling filmcraft-color v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/color)
+   Compiling zvariant_utils v4.2.0
+   Compiling filmcraft-time v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/time)
+   Compiling zcheapstr v1.1.0
+   Compiling enumflags2 v0.7.12
+   Compiling zvariant v5.15.0
+   Compiling filmcraft-frame v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/frame)
+   Compiling filmcraft-media v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/media)
+   Compiling zbus_names v4.3.4
+   Compiling accesskit v0.24.1
+   Compiling serde_json v1.0.151
+   Compiling filmcraft-geom v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/geom)
+   Compiling filmcraft-project v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/project)
+   Compiling zbus_xml v5.2.1
+   Compiling zbus_macros v5.19.0
+   Compiling zbus v5.19.0
+   Compiling zbus-lockstep v0.5.2
+   Compiling filmcraft-text v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/text)
+   Compiling atspi-common v0.13.0
+   Compiling atspi-proxies v0.13.0
+   Compiling accesskit_consumer v0.36.0
+   Compiling egui v0.36.2
+   Compiling atspi v0.29.0
+   Compiling accesskit_atspi_common v0.18.1
+   Compiling filmcraft-captions v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/captions)
+   Compiling filmcraft-render v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/render)
+   Compiling accesskit_unix v0.21.1
+   Compiling accesskit_winit v0.32.2
+   Compiling arboard v3.6.1
+   Compiling filmcraft-codecs v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/codecs)
+   Compiling filmcraft-export v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/export)
+   Compiling egui-winit v0.36.2
+   Compiling egui-wgpu v0.36.2
+   Compiling filmcraft-interchange v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/interchange)
+   Compiling eframe v0.36.2
+   Compiling filmcraft-format v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/format)
+   Compiling filmcraft-speech v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/speech)
+   Compiling filmcraft-edit v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/edit)
+   Compiling accesskit_consumer v0.35.0
+   Compiling filmcraft-scopes v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/scopes)
+   Compiling filmcraft-tts v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/tts)
+   Compiling filmcraft-gpu v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/gpu)
+   Compiling filmcraft-engine v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/engine)
+   Compiling kittest v0.4.0
+   Compiling craft-ui v0.1.0 (https://github.com/storytold/craft-libs?rev=5c874d51eeb3de70e735c8ce87a59a7dedd47675#5c874d51)
+   Compiling egui_kittest v0.36.2
+   Compiling filmcraft-platform v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/platform)
+   Compiling filmcraft-ui-egui v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/ui-egui)
+    Finished `test` profile [optimized] target(s) in 5m 07s
+     Running unittests examples/bench/main.rs (target/debug/examples/bench-7ebea4133bb2c8b2)
+
+running 2 tests
+test tests::native_section_command_does_not_require_unix_env ... ok
+test tests::resource_units_are_explicit ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

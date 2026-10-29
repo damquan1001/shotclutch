@@ -1,0 +1,48 @@
+{
+  "revision": "a7fbcf2ffba3156bef1e175d30880670d7ff3bfc",
+  "owner_budget_extension_reported": "2026-10-29",
+  "runs": [
+    40834967572,
+    40860747696
+  ],
+  "result": "running",
+  "no_promotion": true,
+  "updated_utc": "2026-10-29T10:52:46.853152+00:00",
+  "active_run": 40860747696,
+  "jobs": [
+    [
+      "checks (ubuntu-24.04)",
+      "in_progress",
+      null
+    ],
+    [
+      "checks (windows-2025)",
+      "in_progress",
+      null
+    ],
+    [
+      "release-builds (ubuntu-24.04)",
+      "in_progress",
+      null
+    ],
+    [
+      "windows-package / package",
+      "in_progress",
+      null
+    ],
+    [
+      "checks (macos-15)",
+      "in_progress",
+      null
+    ],
+    [
+      "release-builds (macos-15)",
+      "in_progress",
+      null
+    ]
+  ],
+  "recovery_attempt": 4,
+  "passed_runs": [
+    40834967572
+  ]
+}

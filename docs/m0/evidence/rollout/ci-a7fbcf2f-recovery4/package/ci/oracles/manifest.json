@@ -1,0 +1,29 @@
+{
+  "platform": "windows-x86_64",
+  "locked_version": "8.1.1",
+  "publisher": "https://github.com/GyanD/codexffmpeg/releases/tag/8.1.1",
+  "tools": {
+    "ffmpeg": {
+      "url": "https://github.com/GyanD/codexffmpeg/releases/download/8.1.1/ffmpeg-8.1.1-full_build.zip",
+      "sha256": "49b28c5f16addd40239a66949973458769b7056fb7752c30ac0d53389d09a552",
+      "version": "ffmpeg version 8.1.1-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers",
+      "executable_sha256": "09948d4cdd0650da6ff5a87577469f2a218dc2615ae379f8f734d24c49de0f73"
+    },
+    "ffprobe": {
+      "url": "https://github.com/GyanD/codexffmpeg/releases/download/8.1.1/ffmpeg-8.1.1-full_build.zip",
+      "sha256": "49b28c5f16addd40239a66949973458769b7056fb7752c30ac0d53389d09a552",
+      "version": "ffprobe version 8.1.1-full_build-www.gyan.dev Copyright (c) 2007-2026 the FFmpeg developers",
+      "executable_sha256": "a6618e99bb58869ded3c6f37b53aa1a8d701c3591dbb7b5b317d47369c112be2"
+    }
+  },
+  "verified_encoders": [
+    "aac",
+    "libaom-av1",
+    "libvpx-vp9",
+    "libx264",
+    "libx265",
+    "mp2",
+    "mpeg2video",
+    "prores_ks"
+  ]
+}

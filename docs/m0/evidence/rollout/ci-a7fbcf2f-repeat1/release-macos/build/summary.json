@@ -1,0 +1,47 @@
+{
+  "revision": "a7fbcf2ffba3156bef1e175d30880670d7ff3bfc",
+  "os": "macOS-15.7.9-arm64-arm-64bit-Mach-O",
+  "architecture": "arm64",
+  "cpu": "arm",
+  "logical_cores": 5,
+  "physical_memory_bytes": null,
+  "image_version": "20260907.0337.1",
+  "image_os": "macos15",
+  "run_id": "40834967572",
+  "attempt": "1",
+  "dependency_cache_hit": null,
+  "compiled_target_cache": "disabled",
+  "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "cargo_lock_sha256": "de03a57ae05724d3eb2321db9577ad115939ed99f70dccfcfd43ab23eb9285fa",
+  "min_free_disk_bytes": 41201500160,
+  "profile_overrides": {
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_INCREMENTAL": "0"
+  },
+  "gpu_required": false,
+  "gpu_test_profile": {
+    "SHOTCLUTCH_CI_GPU_BACKEND": null,
+    "SHOTCLUTCH_CI_DX12_COMPILER": null
+  },
+  "commands": [
+    {
+      "command": [
+        "cargo",
+        "build",
+        "--locked",
+        "--release",
+        "-p",
+        "filmcraft",
+        "-p",
+        "filmcraft-cli"
+      ],
+      "log": "01.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 561.633591834
+    }
+  ],
+  "result": "passed"
+}

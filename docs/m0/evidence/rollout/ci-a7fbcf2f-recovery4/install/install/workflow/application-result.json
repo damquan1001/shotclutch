@@ -1,0 +1,9 @@
+{
+  "result": "passed",
+  "cli_sha256": "6901d78f125be3285e6ccf572aa79201a0f65bd732ea6008313147069cdfc440",
+  "render_sha256": "3dd772b8fb0b2f07da1ae3761b800183e9bf2b375294204043a711fd05ae2088",
+  "oracle_tools_on_child_path": false,
+  "source_sha256": "47c98fe326e2e6269a9329bf51d8401ef63ce0cd752a502a16065d5982c6c799",
+  "expected_frames": 50,
+  "expected_stereo_sample_frames": 80000
+}

@@ -1,0 +1,38 @@
+   Compiling num-traits v0.2.19
+   Compiling libc v0.2.189
+   Compiling half v2.7.1
+   Compiling moxcms v0.8.1
+   Compiling tiff v0.11.3
+   Compiling bytemuck v1.25.2
+   Compiling image v0.25.10
+   Compiling errno v0.3.14
+   Compiling rustix v1.1.5
+   Compiling filmcraft-media v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/media)
+   Compiling getrandom v0.4.3
+   Compiling tempfile v3.27.0
+   Compiling filmcraft-project v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/project)
+   Compiling chrono v0.4.45
+   Compiling filmcraft-format v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/format)
+    Finished `test` profile [optimized] target(s) in 41.06s
+     Running tests/fixtures.rs (target/debug/deps/fixtures-b79193b02b326bba)
+
+running 16 tests
+test future_schema_is_refused_with_a_clear_error ... ok
+test bare_version_2_loads_as_schema_v1 ... ok
+test hostile_media_video_dimensions_are_rejected ... ok
+test a_new_item_never_replaces_one_from_a_file_with_a_stale_next_id ... ok
+test an_exhausted_id_space_is_refused_on_load ... ok
+test hostile_audio_stream_counts_and_indices_are_repaired_not_rejected ... ok
+test legacy_audio_field_becomes_primary_stream_and_clip_defaults_to_zero ... ok
+test upgraded_file_resaves_in_current_schema_losslessly ... ok
+test v10_minimal_loads_with_m3_11_defaults ... ok
+test v11_minimal_loads_without_graphics_design_data ... ok
+test v1_minimal_loads ... ok
+test v1_edit_loads_with_defaults_for_later_fields ... ok
+test v8_loads_without_transcripts_and_v9_roundtrips_them ... ok
+test v8_subclip_loads_with_m3_10_defaults ... ok
+test next_id_is_raised_past_every_id_in_the_file ... ok
+test large_project_roundtrip_and_timing ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+

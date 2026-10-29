@@ -1,0 +1,128 @@
+   Compiling thiserror-impl v2.0.21
+   Compiling bytemuck_derive v1.12.1
+   Compiling bytemuck v1.25.2
+   Compiling serde_derive v1.0.229
+   Compiling thiserror v2.0.21
+   Compiling craft-media v0.1.0 (https://github.com/storytold/craft-libs?rev=f0ad6c1e1d297908915f4be315b0fcfc9be7b5d4#f0ad6c1e)
+   Compiling symphonia-core v0.5.5
+   Compiling filmcraft-bitstream v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/bitstream)
+   Compiling image v0.25.10
+   Compiling serde v1.0.229
+   Compiling filmcraft-color v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/color)
+   Compiling filmcraft-time v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/time)
+   Compiling filmcraft-frame v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/frame)
+   Compiling filmcraft-dng v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/dng)
+   Compiling filmcraft-media v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/media)
+   Compiling smallvec v1.16.2
+   Compiling symphonia-metadata v0.5.5
+   Compiling filmcraft-geom v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/geom)
+   Compiling filmcraft-project v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/project)
+   Compiling font-types v0.12.5
+   Compiling read-fonts v0.41.0
+   Compiling chrono v0.4.45
+   Compiling symphonia-utils-xiph v0.5.5
+   Compiling naga-types v30.0.1
+   Compiling harfrust v0.12.0
+   Compiling skrifa v0.44.0
+   Compiling naga v30.0.1
+   Compiling filmcraft-text v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/text)
+   Compiling raw-window-handle v0.6.2
+   Compiling wgpu-types v30.0.1
+   Compiling filmcraft-captions v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/captions)
+   Compiling wgpu-hal v30.0.1
+   Compiling rustix v1.1.5
+   Compiling symphonia-format-riff v0.5.5
+   Compiling filmcraft-render v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/render)
+   Compiling darling_core v0.24.1
+   Compiling wgpu-naga-bridge v30.0.1
+   Compiling symphonia-codec-vorbis v0.5.5
+   Compiling symphonia-format-ogg v0.5.5
+   Compiling symphonia-bundle-flac v0.5.5
+   Compiling symphonia-format-isomp4 v0.5.5
+   Compiling filmcraft-mxf v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/mxf)
+   Compiling symphonia-bundle-mp3 v0.5.5
+   Compiling filmcraft-aac v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/aac)
+   Compiling filmcraft-prores v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/prores)
+   Compiling filmcraft-apv v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/apv)
+   Compiling filmcraft-dnx v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/dnx)
+   Compiling symphonia-codec-pcm v0.5.5
+   Compiling symphonia-codec-aac v0.5.5
+   Compiling symphonia-codec-alac v0.5.5
+   Compiling filmcraft-isobmff v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/isobmff)
+   Compiling futures-macro v0.3.34
+   Compiling futures-io v0.3.34
+   Compiling linux-raw-sys v0.12.1
+   Compiling slab v0.4.12
+   Compiling symphonia v0.5.5
+   Compiling darling_macro v0.24.1
+   Compiling futures-util v0.3.34
+   Compiling parking_lot_core v0.9.12
+   Compiling wgpu-core v30.0.1
+   Compiling filmcraft-vp9 v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/vp9)
+   Compiling filmcraft-mpa v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/mpa)
+   Compiling filmcraft-h264 v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/h264)
+   Compiling filmcraft-hevc v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/hevc)
+   Compiling filmcraft-av1 v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/av1)
+   Compiling filmcraft-h264enc v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/h264enc)
+   Compiling filmcraft-flac v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/flac)
+   Compiling filmcraft-matroska v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/matroska)
+   Compiling filmcraft-mpeg2v v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/mpeg2v)
+   Compiling filmcraft-mpegts v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/mpegts)
+   Compiling filmcraft-ac3 v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/ac3)
+   Compiling filmcraft-vp8 v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/vp8)
+   Compiling tokio-macros v2.7.2
+   Compiling serde_derive_internals v0.30.0
+   Compiling ref-cast-impl v1.0.27
+   Compiling tokio v1.53.1
+   Compiling schemars_derive v1.2.2
+   Compiling filmcraft-codecs v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/codecs)
+   Compiling tempfile v3.27.0
+   Compiling ref-cast v1.0.27
+   Compiling parking_lot v0.12.5
+   Compiling filmcraft-export v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/export)
+   Compiling futures-executor v0.3.34
+   Compiling darling v0.24.1
+   Compiling wgpu-core-deps-windows-linux-android v30.0.1
+   Compiling wgpu v30.0.1
+   Compiling schemars v1.2.2
+   Compiling filmcraft-interchange v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/interchange)
+   Compiling tracing v0.1.44
+   Compiling rmcp-macros v3.5.0
+   Compiling futures v0.3.34
+   Compiling filmcraft-format v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/format)
+   Compiling filmcraft-speech v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/speech)
+   Compiling tokio-util v0.7.19
+   Compiling uuid v1.26.1
+   Compiling filmcraft-edit v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/edit)
+   Compiling filmcraft-scopes v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/scopes)
+   Compiling filmcraft-tts v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/tts)
+   Compiling filmcraft-engine v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/engine)
+   Compiling rmcp v3.5.0
+   Compiling filmcraft-gpu v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/gpu)
+   Compiling filmcraft-automation v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/automation)
+   Compiling filmcraft-platform v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/platform)
+   Compiling filmcraft-testkit v0.13.0 (/home/runner/work/shotclutch/shotclutch/crates/testkit)
+   Compiling filmcraft-cli v0.13.0 (/home/runner/work/shotclutch/shotclutch/apps/filmcraft-cli)
+    Finished `test` profile [optimized] target(s) in 6m 38s
+     Running unittests src/main.rs (target/debug/deps/shotclutch_cli-b94224e6dfe95bbe)
+
+running 16 tests
+test args::tests::dotted_key_depth_is_bounded ... ok
+test args::tests::double_dash_ends_options ... ok
+test args::tests::gpu_rendering_takes_a_space_separated_value ... ok
+test args::tests::json_params ... ok
+test args::tests::key_value_params ... ok
+test args::tests::options_anywhere_and_positionals ... ok
+test args::tests::unknown_opt_reports_first_unlisted_option ... ok
+test args::tests::version_after_global_options ... ok
+test format_tests::a_failing_diagnostic_stream_does_not_panic ... ok
+test format_tests::export_format_from_extension ... ok
+test format_tests::export_lone_bound_is_forwarded_as_custom_range ... ok
+test format_tests::export_message_names_the_written_files ... ok
+test format_tests::imported_paths_are_absolute_without_resolving_links ... ok
+test format_tests::offline_media_from_direct_and_queued_results ... ok
+test format_tests::startup_registers_the_hardware_decoders ... ok
+test format_tests::render_reports_the_real_reason ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

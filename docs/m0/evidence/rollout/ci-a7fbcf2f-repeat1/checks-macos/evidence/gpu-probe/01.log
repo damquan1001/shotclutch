@@ -1,0 +1,137 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.26
+   Compiling quote v1.0.47
+   Compiling thiserror v2.0.21
+   Compiling syn v3.0.6
+   Compiling bitflags v2.13.2
+   Compiling autocfg v1.5.1
+   Compiling cfg-if v1.0.5
+   Compiling libm v0.2.16
+   Compiling num-traits v0.2.19
+   Compiling crossbeam-utils v0.8.23
+   Compiling syn v2.0.119
+   Compiling thiserror-impl v2.0.21
+   Compiling bytemuck_derive v1.12.1
+   Compiling crossbeam-epoch v0.9.21
+   Compiling zerocopy v0.8.59
+   Compiling bytemuck v1.25.2
+   Compiling zerocopy-derive v0.8.59
+   Compiling crossbeam-deque v0.8.8
+   Compiling cfg_aliases v0.2.2
+   Compiling serde_core v1.0.229
+   Compiling rayon-core v1.13.0
+   Compiling objc2 v0.6.4
+   Compiling once_cell v1.21.4
+   Compiling either v1.18.0
+   Compiling objc2-encode v4.1.0
+   Compiling simd-adler32 v0.3.10
+   Compiling serde v1.0.229
+   Compiling rayon v1.12.0
+   Compiling serde_derive v1.0.229
+   Compiling half v2.7.1
+   Compiling adler2 v2.0.1
+   Compiling smallvec v1.16.2
+   Compiling crc32fast v1.5.2
+   Compiling foldhash v0.2.0
+   Compiling hashbrown v0.17.1
+   Compiling miniz_oxide v0.9.1
+   Compiling objc2-core-foundation v0.3.2
+   Compiling craft-media v0.1.0 (https://github.com/storytold/craft-libs?rev=f0ad6c1e1d297908915f4be315b0fcfc9be7b5d4#f0ad6c1e)
+   Compiling equivalent v1.0.2
+   Compiling indexmap v2.14.2
+   Compiling flate2 v1.1.10
+   Compiling quick-error v2.0.1
+   Compiling libc v0.2.189
+   Compiling weezl v0.1.12
+   Compiling rustc-hash v1.1.0
+   Compiling zune-core v0.5.3
+   Compiling zune-jpeg v0.5.15
+   Compiling naga-types v30.0.1
+   Compiling filmcraft-color v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/color)
+   Compiling filmcraft-bitstream v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/bitstream)
+   Compiling objc2-foundation v0.3.2
+   Compiling miniz_oxide v0.8.9
+   Compiling block2 v0.6.2
+   Compiling fdeflate v0.3.7
+   Compiling naga v30.0.1
+   Compiling font-types v0.12.5
+   Compiling byteorder-lite v0.1.0
+   Compiling fax v0.2.7
+   Compiling zmij v1.0.23
+   Compiling pxfm v0.1.30
+   Compiling color_quant v1.1.0
+   Compiling log v0.4.34
+   Compiling unicode-width v0.2.2
+   Compiling bit-vec v0.9.1
+   Compiling parking_lot_core v0.9.12
+   Compiling bit-set v0.10.0
+   Compiling codespan-reporting v0.13.1
+   Compiling moxcms v0.8.1
+   Compiling gif v0.14.2
+   Compiling tiff v0.11.3
+   Compiling image-webp v0.2.4
+   Compiling read-fonts v0.41.0
+   Compiling png v0.18.1
+   Compiling objc2-metal v0.3.2
+   Compiling filmcraft-time v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/time)
+   Compiling objc2-core-graphics v0.3.2
+   Compiling serde_json v1.0.151
+   Compiling scopeguard v1.2.0
+   Compiling arrayvec v0.7.8
+   Compiling memchr v2.8.3
+   Compiling static_assertions v1.1.0
+   Compiling raw-window-handle v0.6.2
+   Compiling wgpu-types v30.0.1
+   Compiling lock_api v0.4.14
+   Compiling objc2-quartz-core v0.3.2
+   Compiling filmcraft-frame v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/frame)
+   Compiling image v0.25.10
+   Compiling filmcraft-dng v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/dng)
+   Compiling wgpu-hal v30.0.1
+   Compiling filmcraft-text v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/text)
+   Compiling itoa v1.0.18
+   Compiling filmcraft-media v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/media)
+   Compiling parking_lot v0.12.5
+   Compiling wgpu-naga-bridge v30.0.1
+   Compiling raw-window-metal v1.1.0
+   Compiling skrifa v0.44.0
+   Compiling harfrust v0.12.0
+   Compiling filmcraft-geom v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/geom)
+   Compiling libloading v0.8.9
+   Compiling unicode-bidi v0.3.18
+   Compiling unicode-linebreak v0.1.5
+   Compiling unicode-segmentation v1.13.3
+   Compiling profiling v1.0.18
+   Compiling filmcraft-project v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/project)
+   Compiling roxmltree v0.21.1
+   Compiling wgpu-core v30.0.1
+   Compiling litrs v1.0.0
+   Compiling document-features v0.2.12
+   Compiling filmcraft-captions v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/captions)
+   Compiling wgpu-core-deps-apple v30.0.1
+   Compiling wgpu v30.0.1
+   Compiling chrono v0.4.45
+   Compiling filmcraft-audio-dsp v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/audio-dsp)
+   Compiling filmcraft-render v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/render)
+   Compiling filmcraft-mxf v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/mxf)
+   Compiling filmcraft-apv v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/apv)
+   Compiling filmcraft-h264enc v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/h264enc)
+   Compiling filmcraft-prores v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/prores)
+   Compiling filmcraft-flac v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/flac)
+   Compiling filmcraft-dnx v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/dnx)
+   Compiling filmcraft-aac v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/aac)
+   Compiling filmcraft-isobmff v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/isobmff)
+   Compiling web-time v1.1.0
+   Compiling filmcraft-export v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/export)
+   Compiling pollster v0.4.0
+   Compiling filmcraft-gpu v0.13.0 (/Users/runner/work/shotclutch/shotclutch/crates/gpu)
+    Finished `test` profile [optimized] target(s) in 3m 07s
+     Running unittests src/lib.rs (target/debug/deps/filmcraft_gpu-16774ebfa6dea216)
+
+running 1 test
+qualification GPU adapter: AdapterInfo { name: "Apple Paravirtual device", vendor: 0, device: 0, device_type: IntegratedGpu, device_pci_bus_id: "", driver: "", driver_info: "", backend: Metal, subgroup_min_size: 4, subgroup_max_size: 64, transient_saves_memory: Some(true), limit_bucket: None }
+GPU device available: true; required: true
+test tests::qualification_adapter ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 41 filtered out; finished in 0.29s
+

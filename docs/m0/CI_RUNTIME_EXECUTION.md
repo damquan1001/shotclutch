@@ -160,3 +160,27 @@ After green repeat runs and an authorized review/promotion, the proposed `requir
 ```
 
 The observed `Packaging required` check is supplied by GitHub Actions app 15368. Distinct aggregate names avoid the former ambiguous `required` contexts. PR triggers are unfiltered, so documentation-only PRs still produce required checks. The proposal binds the supplier app and requires an up-to-date branch; it does not select unrelated review/bypass/admin policies. Re-read existing protection before applying changes and preserve any intervening owner configuration. Private-repository protection also depends on the account plan, which the inspected API did not disclose. [GitHub protection API](https://docs.github.com/en/rest/branches/branch-protection). Main remains unchanged and unprotected; no policy, merge, PR, schedule or paid plan has been applied by this rollout.
+
+## Budget extension and repaired-source qualification (2026-10-29)
+
+The owner reported an extended GitHub Actions budget and authorized continuing CI. No account billing setting was changed by Codex. Repaired source `a7fbcf2ffba3156bef1e175d30880670d7ff3bfc` is being qualified through two sequential complete manual runs; the workflow cancels overlapping manual runs on one branch, so the second dispatch waits for the first complete success. Failures stop the sequence for diagnosis. Both executions must retain this same source revision; no branch promotion or release publishing is included.
+
+First full run: [40834967572](https://github.com/damquan1001/shotclutch/actions/runs/40834967572). Packaging lint: [40834971676](https://github.com/damquan1001/shotclutch/actions/runs/40834971676). The six initial CI jobs started successfully; fresh-install startup is checked after package production rather than inferred from initial startup. This is running work, not acceptance evidence of completion.
+
+[Sequence state](evidence/rollout/ci-a7fbcf2f-sequence/state.json) retains dispatched IDs and actual results. The local supervisor retains completed run/job/artifact/timing metadata and lane logs, and dispatches the second run only after a green first run. The complete CI repeat gate and existing runtime limitations remain open until their required evidence exists. No third run or automatic retry is authorized by this two-run sequence.
+
+### Attempt-4 package/install recovery
+
+Run 40834967572 passed all three OS test lanes and release builds, including Windows packaging, in attempt 1. The original install job was blocked at startup by the provider billing annotation. Later install-only retries requested attempt-2/3 artifacts, although only attempt-1 package/fixture artifacts existed. Attempt 3 therefore failed before MSI execution with `Artifact not found`; this was not an installer test failure.
+
+On user authorization, the package producer (job 123357686877) and its dependent jobs were rerun together using `gh run rerun 40834967572 --repo damquan1001/shotclutch --job 123357686877`. Attempt 4 is rebuilding packages, with previously successful test/build lanes preserved. Its reports are retained separately under `ci-a7fbcf2f-recovery4`, preserving attempt-1 evidence. The second full same-source run remains conditional on successful recovery; no install-only retry or unrelated full rebuild was started. Acceptance remains pending actual results, not the dispatch itself.
+
+### Recovery passed; second full run dispatched
+
+Run **40834967572, attempt 4, passed**. Successful cold test/build jobs from attempt 1 remain preserved (Windows 2,630 / Linux 2,646 / macOS 2,600 passing executions; 12 explicitly ignored per OS). Attempt 4 rebuilt the Windows package and passed fresh hosted MSI installation, installed-CLI editing/export, independent verification of 50 video frames / 80,000 stereo sample frames, uninstallation, and preservation of the user sentinel. [Install summary](evidence/rollout/ci-a7fbcf2f-recovery4/install/install/summary.json), [output verification](evidence/rollout/ci-a7fbcf2f-recovery4/install/install/workflow/verification.json), [attempt-4 jobs](evidence/rollout/ci-a7fbcf2f-recovery4/jobs.json). This is a successful combined-attempt run, not four independent green runs or a strict offline consumer environment.
+
+MSI SHA-256: `34cfe7c13c873a94909ff5268d4ab99efafd9e9b762e6e0f94c6bc6d67cadf65`. Packaging lint 40834971676 also passed at the same repaired revision. The original billing block is now resolved for observed job execution; failed prior attempts remain retained as history.
+
+The supervisor dispatched **[second full run 40860747696](https://github.com/damquan1001/shotclutch/actions/runs/40860747696)** on the identical `a7fbcf2ffba3156bef1e175d30880670d7ff3bfc` source. It rebuilds compiled targets and exercises all matrix/build/package/install lanes. The two-run acceptance gate remains open until this independent run completes successfully and its reports are retained. Existing runtime/performance/physical A/V/second-machine limits remain unchanged.
+
+The recovered artifact download for additional local exact-package verification was started but has not completed; no local GUI pass is claimed for this new package. Hosted install/output verification above is complete. Earlier exact-package native reports retain their original hashes and revisions.
