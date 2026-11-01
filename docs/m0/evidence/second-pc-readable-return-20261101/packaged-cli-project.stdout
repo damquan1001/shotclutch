@@ -1,0 +1,35 @@
+{
+  "activeSequence": 18,
+  "dirty": false,
+  "name": "Test",
+  "path": "target\\qualification\\second-pc-return-recheck-20261101\\Test.fcproj",
+  "revision": 2,
+  "root": {
+    "children": [
+      {
+        "duration": 508032000000,
+        "item": 1,
+        "label": "Iris",
+        "name": "fixture-1080p.mp4",
+        "type": "Movie"
+      },
+      {
+        "duration": 423360000000,
+        "item": 8,
+        "label": "Forest",
+        "name": "Sequence 01",
+        "type": "Sequence"
+      },
+      {
+        "duration": 423360000000,
+        "item": 18,
+        "label": "Forest",
+        "name": "Test",
+        "type": "Sequence"
+      }
+    ],
+    "id": 0,
+    "name": "Test"
+  },
+  "sourceItem": null
+}

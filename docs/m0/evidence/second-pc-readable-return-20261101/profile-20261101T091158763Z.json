@@ -1,0 +1,47 @@
+﻿{
+    "captured_utc":  "2026-11-01T09:11:58.5774419Z",
+    "credentials_collected":  false,
+    "cpu":  [
+                {
+                    "Name":  "Intel(R) Core(TM) i5-4690 CPU @ 3.50GHz",
+                    "NumberOfCores":  4,
+                    "NumberOfLogicalProcessors":  4
+                }
+            ],
+    "label":  "second-pc",
+    "serial_numbers_collected":  false,
+    "os":  {
+               "caption":  "Microsoft Windows 10 Enterprise",
+               "architecture":  "64-bit",
+               "build":  "19045",
+               "version":  "10.0.19045"
+           },
+    "packages":  [
+                     {
+                         "sha256":  "EF3611A1CA14E8AC6EAA3DA3C1576BDC38F949F0EA753AE58FBCECE04BCAEEAA",
+                         "name":  "shotclutch-0.13.0-windows-x64-portable.zip"
+                     },
+                     {
+                         "sha256":  "34CFE7C13C873A94909FF5268D4AB99EFAFD9E9B762E6E0F94C6BC6D67CADF65",
+                         "name":  "shotclutch-0.13.0-windows-x64.msi"
+                     }
+                 ],
+    "result":  "profile_only_not_a_workflow_pass",
+    "measurements":  {
+                         "physical_av_drift":  "unavailable",
+                         "dropped_frames":  "not measured",
+                         "peak_working_set":  "not measured"
+                     },
+    "gpu":  [
+                {
+                    "Name":  "Radeon RX 570 Series",
+                    "DriverVersion":  "31.0.21925.1001",
+                    "DriverDate":  "\/Date(1779235200000)\/",
+                    "VideoProcessor":  "AMD Radeon Graphics Processor (0x67DF)",
+                    "CurrentHorizontalResolution":  1920,
+                    "CurrentVerticalResolution":  1080
+                }
+            ],
+    "physical_memory_bytes":  25675120640,
+    "fixture_sha256":  "525BD6C2F9F5F30DE38DFB081FF43E6908C450F92DDF68570BF545B2D5F5E614"
+}

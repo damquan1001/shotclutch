@@ -1,4 +1,4 @@
-# Second-PC results: manual pass, output verification pending
+# Historical second-PC return: zero-filled files
 
 The user supplied the results folder on 2026-11-01. The observation form reports portable launch, import, playback, trim/undo/redo, save/reopen, export, MSI wizard/install/uninstall PASS, with no external application required. Preserve this as direct manual evidence, distinct from independent artifact verification.
 
@@ -17,3 +17,7 @@ The user confirms both the original project and export open correctly on the sec
 ## ZIP recheck
 
 The subsequently supplied `D:/ShotClutch test.zip` is 21,326 bytes and passes its ZIP CRC check, but both entries remain entirely zero-filled with hashes identical to the earlier F: copies. [Archive assessment](zip-recheck.json). Independent project/media verification remains pending. Clarify whether the ZIP was created from working originals on the second PC or the F: copies here; do not infer ZIP corruption or an application defect.
+
+## Superseded by readable replacements
+
+Readable Test.fcproj and Test.mov replacements subsequently passed independent project loading, full decoding and exact frame/sample checks. [Current verified result](../second-pc-readable-return-20261101/README.md). Earlier zero-filled files and ZIP remain historical evidence; no root cause is assigned.

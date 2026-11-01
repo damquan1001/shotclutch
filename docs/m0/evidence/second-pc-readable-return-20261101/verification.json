@@ -1,0 +1,193 @@
+{
+  "result": "bounded_second_pc_core_workflow_pass",
+  "source_revision": "a7fbcf2ffba3156bef1e175d30880670d7ff3bfc",
+  "run_id": 40834967572,
+  "package_attempt": 4,
+  "inputs": {
+    "Test.mov": {
+      "bytes": 21486273,
+      "sha256": "6db8952a38c90f9f1330907d0dc41c0acfe14d472e938c76491e951b2269d3ad"
+    },
+    "Test.fcproj": {
+      "bytes": 9770,
+      "sha256": "3d45c8a341fe1465635ef8038082c8400effc40592bca0be9e77b5b5729dc5ac"
+    },
+    "observations.md": {
+      "bytes": 528,
+      "sha256": "9d40b58b421b0ef859b8e835057f0dd9b59dd45531d7d17ffc66e3a10e59b18d"
+    },
+    "profile-20261101T091158763Z.json": {
+      "bytes": 1980,
+      "sha256": "657adbb5682fd273b28c0e236e608f4c3c5651f0113cabc1f612b23a7ec5284e"
+    }
+  },
+  "verification_cli_sha256": "6901d78f125be3285e6ccf572aa79201a0f65bd732ea6008313147069cdfc440",
+  "package_and_fixture_hashes": "match supplied kit",
+  "project": {
+    "format": "filmcraft.project",
+    "schema_version": 15,
+    "generator": "ShotClutch 0.13.0",
+    "packaged_cli_load": "passed",
+    "sequences": [
+      {
+        "id": 8,
+        "name": "Sequence 01",
+        "frames": 50,
+        "width": 1920,
+        "height": 1080,
+        "fps": "30/1"
+      },
+      {
+        "id": 18,
+        "name": "Test",
+        "frames": 50,
+        "width": 1920,
+        "height": 1080,
+        "fps": "30/1"
+      }
+    ],
+    "linked_media": "Original second-PC drive path preserved; no original edited or relinked by verification"
+  },
+  "video": {
+    "codec": "prores",
+    "width": 1920,
+    "height": 1080,
+    "fps": "30/1",
+    "frames": 50,
+    "full_decode": "passed"
+  },
+  "audio": {
+    "codec": "pcm_s16le",
+    "sample_rate": 48000,
+    "channels": 2,
+    "decoded_stereo_sample_frames": 80000,
+    "decoded_pcm_bytes": 640000,
+    "decoded_pcm_sha256": "d2ec48cfcc8ca43134eecaea4ade8638030c8a36f970da5e850cb3f82b887495"
+  },
+  "manual_workflow": "User reports portable launch, playback, trim/undo/redo, save/reopen, export, MSI lifecycle PASS; no external editing app needed",
+  "network_state": "connected (direct user clarification)",
+  "profile": {
+    "captured_utc": "2026-11-01T09:11:58.5774419Z",
+    "credentials_collected": false,
+    "cpu": [
+      {
+        "Name": "Intel(R) Core(TM) i5-4690 CPU @ 3.50GHz",
+        "NumberOfCores": 4,
+        "NumberOfLogicalProcessors": 4
+      }
+    ],
+    "label": "second-pc",
+    "serial_numbers_collected": false,
+    "os": {
+      "caption": "Microsoft Windows 10 Enterprise",
+      "architecture": "64-bit",
+      "build": "19045",
+      "version": "10.0.19045"
+    },
+    "packages": [
+      {
+        "sha256": "EF3611A1CA14E8AC6EAA3DA3C1576BDC38F949F0EA753AE58FBCECE04BCAEEAA",
+        "name": "shotclutch-0.13.0-windows-x64-portable.zip"
+      },
+      {
+        "sha256": "34CFE7C13C873A94909FF5268D4AB99EFAFD9E9B762E6E0F94C6BC6D67CADF65",
+        "name": "shotclutch-0.13.0-windows-x64.msi"
+      }
+    ],
+    "result": "profile_only_not_a_workflow_pass",
+    "measurements": {
+      "physical_av_drift": "unavailable",
+      "dropped_frames": "not measured",
+      "peak_working_set": "not measured"
+    },
+    "gpu": [
+      {
+        "Name": "Radeon RX 570 Series",
+        "DriverVersion": "31.0.21925.1001",
+        "DriverDate": "/Date(1779235200000)/",
+        "VideoProcessor": "AMD Radeon Graphics Processor (0x67DF)",
+        "CurrentHorizontalResolution": 1920,
+        "CurrentVerticalResolution": 1080
+      }
+    ],
+    "physical_memory_bytes": 25675120640,
+    "fixture_sha256": "525BD6C2F9F5F30DE38DFB081FF43E6908C450F92DDF68570BF545B2D5F5E614"
+  },
+  "commands": [
+    {
+      "command": [
+        "target\\qualification\\ci-a7fbcf2f-recovery4\\candidate\\portable\\shotclutch-0.13.0-windows-x64-portable\\shotclutch-cli.exe",
+        "--data-dir",
+        "target\\qualification\\second-pc-return-recheck-20261101\\cli-data",
+        "--project",
+        "target\\qualification\\second-pc-return-recheck-20261101\\Test.fcproj",
+        "inspect",
+        "project"
+      ],
+      "exit_code": 0,
+      "stdout": "packaged-cli-project.stdout",
+      "stderr": "packaged-cli-project.stderr.log"
+    },
+    {
+      "command": [
+        "ffprobe",
+        "-v",
+        "error",
+        "-count_frames",
+        "-show_streams",
+        "-of",
+        "json",
+        "target\\qualification\\second-pc-return-recheck-20261101\\Test.mov"
+      ],
+      "exit_code": 0,
+      "stdout": "ffprobe.stdout",
+      "stderr": "ffprobe.stderr.log"
+    },
+    {
+      "command": [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-xerror",
+        "-i",
+        "target\\qualification\\second-pc-return-recheck-20261101\\Test.mov",
+        "-map",
+        "0:v:0",
+        "-f",
+        "null",
+        "-"
+      ],
+      "exit_code": 0,
+      "stdout": "video-decode.stdout",
+      "stderr": "video-decode.stderr.log"
+    },
+    {
+      "command": [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-xerror",
+        "-i",
+        "target\\qualification\\second-pc-return-recheck-20261101\\Test.mov",
+        "-map",
+        "0:a:0",
+        "-f",
+        "f32le",
+        "-ac",
+        "2",
+        "-ar",
+        "48000",
+        "-"
+      ],
+      "exit_code": 0,
+      "stdout": "decoded PCM not retained; byte count/hash in report",
+      "stderr": "audio-decode.stderr.log"
+    }
+  ],
+  "limitations": [
+    "Windows 10 Enterprise build 19045 on i5-4690 / RX 570 / approximately 24 GiB; not a second Windows 11 profile",
+    "No sustained-performance, working-set, dropped-frame or physical A/V measurements",
+    "No strict offline consumer-VM qualification",
+    "Earlier zero-filled copies superseded for output verification; their cause remains unknown"
+  ]
+}
