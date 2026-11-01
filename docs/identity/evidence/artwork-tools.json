@@ -1,0 +1,38 @@
+{
+  "generation_python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "tools": {
+    "PySide6": "6.11.1",
+    "Pillow": "12.3.0",
+    "ds_store": "1.3.3",
+    "mac_alias": "2.2.3"
+  },
+  "inter_regular_sha256": "40d692fce188e4471e2b3cba937be967878f631ad3ebbbdcd587687c7ebe0c82",
+  "layout_sha256": "50c679c3cccfca895c51e4f9e49dd8b13e6c05c66e8a8c37d71bdebea328802c",
+  "layout_volume": "ShotClutch",
+  "layout_entries": {
+    "ShotClutch.app": [
+      180,
+      205
+    ],
+    "Applications": [
+      480,
+      205
+    ]
+  },
+  "tiff_pages": [
+    {
+      "size": [
+        660,
+        400
+      ],
+      "dpi": 72
+    },
+    {
+      "size": [
+        1320,
+        800
+      ],
+      "dpi": 144
+    }
+  ]
+}

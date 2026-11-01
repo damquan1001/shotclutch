@@ -57,10 +57,37 @@ their partial results are not acceptance evidence.
 
 ## Remaining gates
 
-The repaired source still needs a complete green three-platform CI run, completed installation
-qualification, and an exact packaged desktop import/trim/undo/redo/save/reopen/export exercise.
-Export acceptance is 50 video frames and 80,000 stereo sample frames. A retained upstream reader
-must reject the new envelope, and final package inspection must confirm native associations, icon
-resources, notices, installer identity and source hashes. IDENTITY-001 remains In Progress until
-these results are recorded here. Hosted checks establish build/test coverage, not consumer
-playback qualification on macOS or Linux.
+Final implementation source is `a6229303ce34fa45fe1245722ea7346ea4d0d49e`. All 14 local check commands
+passed on that clean revision: 2,644 Rust test cases passed, zero failed, and 12 existing cases were
+ignored. [The command report](evidence/local-checks.json) records toolchain, applied GPU environment,
+timings and actual exit codes. The additional CI helper/identity guard suite passed eight tests.
+[Final-source packaging lint](https://github.com/damquan1001/shotclutch/actions/runs/41308407723)
+passed. [Final CI](https://github.com/damquan1001/shotclutch/actions/runs/41308404270) is running;
+Linux and macOS completed all 14 commands with 2,660 and 2,614 passing Rust cases respectively,
+zero failed and 12 ignored on each. Both release builds and the compiled browser alias check passed.
+See [Linux checks](evidence/linux-checks.json), [macOS checks](evidence/macos-checks.json) and
+[browser aliases](evidence/browser-aliases.json).
+
+The unsigned MSI/ZIP built and passed package inspection, including PE identity, original icon,
+native association, wizard, notices and retained installer upgrade identity. The fresh hosted runner
+completed installation/uninstallation with exit codes 0, registered the native extension, preserved
+a user-created sentinel and verified the installed workflow's 50 video frames / 80,000 stereo sample
+frames. See [installation](evidence/windows-install.json) and [installed export](evidence/installed-export.json).
+This is a fresh developer runner, not a bare offline consumer environment.
+
+The exact portable desktop independently passed generated 1920 x 1080 import, trim, undo/redo,
+native save/reopen and rendered export with the same frame/sample counts. The application child
+had no media oracles on PATH and inherited oracle overrides were removed. Export metadata says
+ShotClutch 0.13.0. Its native project was rejected by the retained upstream reader without changing
+the file. See [package/runtime hashes](evidence/package-qualification.json),
+[hardware/oracle inventory](evidence/windows-runtime-profile.json), and
+[upstream reader](evidence/upstream-reader.json). The selected desktop adapter was not captured;
+the GPU inventory is not a claim that every listed GPU was used.
+
+The first private desktop attempt was interrupted by the agent after save when its watcher advanced
+between status checks. No pass was inferred from that attempt. The complete rerun used a fresh
+directory and passed; existing applications/data and earlier artifacts were preserved.
+
+Only hosted Windows checks remain pending. IDENTITY-001 stays In Progress until that lane and the
+final aggregate pass. Hosted checks establish build/test coverage, not consumer playback
+qualification on macOS or Linux. Earlier M0 reports remain unchanged.

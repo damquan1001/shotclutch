@@ -1,0 +1,12 @@
+{
+  "revision": "a6229303ce34fa45fe1245722ea7346ea4d0d49e",
+  "sha256": {
+    "assets/app-icon/shotclutch.svg": "642128622cdecd6b9f1e85d6de6669d2616c0ced8040686d304dc9a1ba6875ab",
+    "assets/app-icon/shotclutch.ico": "56dda599e848e3a86d9c8751c778f132f155a036cdce4b49af4cc507bf2190f8",
+    "assets/app-icon/shotclutch.icns": "cf765354a571daaa960c3e6d02f8d655b16887d2ca4fab8556523068121910d1",
+    "apps/shotclutch-web/web/favicon.png": "2b0af1eca8b37328a51c831a2b8c2529d194d22088376e08b5fe6f0bdd8e9ca9",
+    "packaging/macos/dmg/background.tiff": "386763b491a78ab5d864ec6c2539ec70cc9e739241a7bf193552d311d3939796",
+    "packaging/macos/dmg/dmg-layout.DS_Store": "50c679c3cccfca895c51e4f9e49dd8b13e6c05c66e8a8c37d71bdebea328802c"
+  },
+  "original_m0_svg_unchanged": true
+}

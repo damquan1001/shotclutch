@@ -1,0 +1,34 @@
+{
+  "result": "passed",
+  "source_revision": "a6229303ce34fa45fe1245722ea7346ea4d0d49e",
+  "ci_run": 41308404270,
+  "artifact_id": 13086040158,
+  "portable_sha256": "028ba6f3ebc3e38f69c8ddd5a1c448d0155a1eac07a6ca2d23c6f5bd255d3cbe",
+  "msi_sha256": "efb2250007d4a1f0431620921e636123c2aa8be78eb4060a005f9c96b1183ca7",
+  "desktop": {
+    "verification": "passed",
+    "frames": 50,
+    "stereo_samples": 80000,
+    "fixture_size": "1920x1080",
+    "project_format": "shotclutch.project",
+    "project_sha256": "718845cc1030e9f7e59b845b0d44006a70b362f5672422720679fb49b9f1d164",
+    "fixture_sha256": "525bd6c2f9f5f30de38dfb081ff43e6908c450f92ddf68570bf545b2d5f5e614",
+    "render_sha256": "6db8952a38c90f9f1330907d0dc41c0acfe14d472e938c76491e951b2269d3ad",
+    "export_format_tags": {
+      "major_brand": "qt  ",
+      "minor_version": "512",
+      "compatible_brands": "qt  ",
+      "encoder": "ShotClutch 0.13.0"
+    },
+    "desktop_sha256": "129bf2cb4b7a9714b234c90de687aba0f23eb509d61f39455f3bdf16acb21560",
+    "external_media_tools_on_child_path": false,
+    "environment_alias_precedence": "new port/token override invalid legacy values",
+    "clean_machine_install": "not performed"
+  },
+  "native_output": "E:\\Development\\Projects\\shotclutch\\target\\identity-runtime\\a6229303-native-final-20261101T133812Z",
+  "native_association": ".scproj",
+  "installer_upgrade_code": "BB349D14-E803-4D51-B94A-17D55882EE78",
+  "upstream_reader_rejection": true,
+  "host_installation_performed": false,
+  "interrupted_attempt": "The first private local test was interrupted by the agent after save, before export verification; no acceptance was inferred. A fresh output directory passed the entire workflow."
+}

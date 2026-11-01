@@ -1,0 +1,37 @@
+{
+  "captured_utc": "2026-11-01T13:42:49.8215966Z",
+  "source_revision": "a6229303ce34fa45fe1245722ea7346ea4d0d49e",
+  "os": {
+    "Caption": "Microsoft Windows 11 Home Single Language",
+    "Version": "10.0.26200",
+    "BuildNumber": "26200",
+    "OSArchitecture": "64-bit"
+  },
+  "cpu": {
+    "Name": "AMD Ryzen 7 4800H with Radeon Graphics         ",
+    "NumberOfCores": 8,
+    "NumberOfLogicalProcessors": 16
+  },
+  "memory_bytes": 33737945088,
+  "gpu_inventory": [
+    {
+      "Name": "Meta Virtual Monitor",
+      "DriverVersion": "15.52.32.370",
+      "DriverDate": "2026-04-23T07:00:00+07:00"
+    },
+    {
+      "Name": "AMD Radeon(TM) Graphics",
+      "DriverVersion": "31.0.21923.1000",
+      "DriverDate": "2025-03-06T07:00:00+07:00"
+    },
+    {
+      "Name": "NVIDIA GeForce RTX 3060 Laptop GPU",
+      "DriverVersion": "32.0.15.5597",
+      "DriverDate": "2024-05-29T07:00:00+07:00"
+    }
+  ],
+  "selected_desktop_adapter": "not captured",
+  "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "ffmpeg": "ffmpeg version 8.1.1-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers",
+  "ffprobe": "ffprobe version 8.1.1-full_build-www.gyan.dev Copyright (c) 2007-2026 the FFmpeg developers"
+}

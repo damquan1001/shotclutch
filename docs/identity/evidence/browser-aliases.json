@@ -1,0 +1,66 @@
+{
+  "url": "http://127.0.0.1:36361/?webgl",
+  "steps": {},
+  "load": {
+    "wasmMs": 579.3999999999069,
+    "readyMs": 827.1000000000931,
+    "wallMs": 2583
+  },
+  "resources": [
+    {
+      "name": "shotclutch_web.js?v=034221143a2b904d",
+      "kB": 176,
+      "ms": 9
+    },
+    {
+      "name": "shotclutch_web_bg.wasm?v=034221143a2b904d",
+      "kB": 48546,
+      "ms": 488
+    }
+  ],
+  "aliases": {
+    "sameApiObject": true,
+    "sameDiagnosticObjects": true,
+    "equivalentCommands": true
+  },
+  "info": {
+    "audio": true,
+    "audioWorklet": true,
+    "backend": "Gl",
+    "compositor": "cpu",
+    "crossOriginIsolated": false,
+    "fetchesInFlight": 0,
+    "frameWorkers": "cooperative",
+    "opfs": true,
+    "restoredMedia": 0,
+    "startupMs": 240.4,
+    "threads": false,
+    "webcodecs": [
+      "avc",
+      "vp9",
+      "av1"
+    ],
+    "webcodecsStats": {
+      "fallbacks": 0,
+      "framesDecoded": 0,
+      "sessions": [],
+      "sources": 0,
+      "transfers": {
+        "canvasFrames": 0,
+        "canvasMs": 0,
+        "canvasReasons": {},
+        "closedFrames": 0,
+        "nativeBytes": 0,
+        "nativeFrames": 0,
+        "nativeMs": 0,
+        "staleFrames": 0
+      }
+    }
+  },
+  "ok": true,
+  "console": [
+    "[egui_wgpu] egui-wgpu-0.36.2/src/lib.rs:461: Software rasterizer detected - loss of performance expected. backend: Gl, device_type: Cpu, name: \"ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)\", driver_info: \"WebGL 2.0 (OpenGL ES 3.0 Chromium)\", subgroup_size: 4..=128, transient_saves_memory: None, limit_bucket: None",
+    "[eframe::web::web_runner] eframe-0.36.2/src/web/web_runner.rs:94: event handlers installed.",
+    "[eframe::web::app_runner] eframe-0.36.2/src/web/app_runner.rs:337: Unhandled egui viewport command: SetTheme(Dark) - not implemented in web backend"
+  ]
+}

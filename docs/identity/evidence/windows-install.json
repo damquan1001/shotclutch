@@ -1,0 +1,12 @@
+{
+  "native_project_association": ".scproj",
+  "result": "passed",
+  "uninstall_exit": 0,
+  "msi_sha256": "EFB2250007D4A1F0431620921E636123C2AA8BE78EB4060A005F9C96B1183CA7",
+  "arch": "x64",
+  "version": "shotclutch-cli 0.13.0",
+  "clean_consumer_environment": false,
+  "installed_cli_sha256": "2447FE40EAE7FCC91CA24D41A6A257AA9CD3D0873CABFE5F50D32F6A50583058",
+  "user_file_preserved": true,
+  "install_exit": 0
+}
