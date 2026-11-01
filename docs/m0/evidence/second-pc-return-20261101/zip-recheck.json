@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-01",
+  "source_archive": "D:/ShotClutch test.zip",
+  "archive_bytes": 21326,
+  "archive_sha256": "da28ebc7d808aacd2d1019fb68e09969444079853b5b2a4cbc770d3cf1eebaca",
+  "zip_crc_check": "passed",
+  "entries": [
+    {
+      "name": "ShotClutch Demo.fcproj",
+      "bytes": 33443,
+      "sha256": "49b2a84baf2abeb5c0ac10cadd7b2fd571c80befe5fdd72f95e06e58b6e0c75f",
+      "all_zero": true
+    },
+    {
+      "name": "Test.mov",
+      "bytes": 21486273,
+      "sha256": "e9b1ee0fbbf91c00428612b90c3fe03088473fb404c0c5c23a2c47a98b0dbe4b",
+      "all_zero": true
+    }
+  ],
+  "matches_prior_zero_filled_results": true,
+  "result": "no_readable_project_or_export",
+  "next_action": "Clarify whether archive was created on second PC from working originals, or from previously returned F: copies. Verify hashes/readability on second PC before another transfer.",
+  "cause": "Unknown; valid CRC does not prove original files were usable or establish product/storage/transfer cause."
+}

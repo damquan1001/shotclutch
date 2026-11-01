@@ -13,3 +13,7 @@ Next: confirm the original saved project and export open on the second PC. If va
 ## User clarification
 
 The user confirms both the original project and export open correctly on the second PC, and the test was network-connected. [Direct clarification](user-clarification.json). Original readability is accepted as manual evidence; the returned F: copies remain zero-filled. A copy/transfer problem is suspected, not proven. Independent output counts still need a readable archive copied from the originals. This is not offline qualification.
+
+## ZIP recheck
+
+The subsequently supplied `D:/ShotClutch test.zip` is 21,326 bytes and passes its ZIP CRC check, but both entries remain entirely zero-filled with hashes identical to the earlier F: copies. [Archive assessment](zip-recheck.json). Independent project/media verification remains pending. Clarify whether the ZIP was created from working originals on the second PC or the F: copies here; do not infer ZIP corruption or an application defect.
