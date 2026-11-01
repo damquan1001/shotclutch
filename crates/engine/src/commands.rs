@@ -4711,7 +4711,12 @@ fn open_project(s: &mut Session, path: &str) -> Result<Value> {
     s.loaded_schema = from;
     s.legacy_project_identity = legacy_identity || shotclutch_format::is_legacy_project_path(path);
     if migrated {
-        s.toast(format!("Upgraded project from schema v{from} to v{}; the original is kept as a backup when you save", shotclutch_format::SCHEMA_VERSION));
+        let saving = if s.legacy_project_identity {
+            "use Save As to a new .scproj file; the original stays untouched"
+        } else {
+            "the original is kept as a backup when you save"
+        };
+        s.toast(format!("Upgraded project from schema v{from} to v{}; {saving}", shotclutch_format::SCHEMA_VERSION));
     }
     let missing = crate::relink::on_open(s);
     Ok(json!({"path": path, "schemaVersion": from, "migrated": migrated, "missingMedia": missing}))
@@ -4729,7 +4734,7 @@ fn recover(s: &mut Session, id: Option<&str>) -> Result<Value> {
     let loaded = crate::autosave::load_candidate(&c).map_err(EngineError::Other)?;
     let legacy_identity = loaded.legacy_identity;
     install_project(s, loaded.project, c.meta.project_path.clone(), false);
-    s.legacy_project_identity = legacy_identity || s.path.as_deref().is_some_and(shotclutch_format::is_legacy_project_path);
+    s.legacy_project_identity = legacy_identity || c.meta.legacy_identity || s.path.as_deref().is_some_and(shotclutch_format::is_legacy_project_path);
     if let Some(seq) = s.state.active_sequence {
         s.events.push(crate::Event::OpenSequence(seq));
     }

@@ -21,7 +21,7 @@ workspace_version() {
   ' "$ROOT/Cargo.toml"
 }
 
-VERSION="${SHOTCLUTCH_VERSION:-${FILMCRAFT_VERSION:-$(workspace_version)}}"
+VERSION="${SHOTCLUTCH_VERSION-${FILMCRAFT_VERSION-$(workspace_version)}}"
 if [[ -z "$VERSION" ]]; then
   echo "error: could not read [workspace.package] version from $ROOT/Cargo.toml" >&2
   exit 1
@@ -37,7 +37,7 @@ if [[ -z "${SHOTCLUTCH_BUILD_SHA:-}" ]]; then
   SHOTCLUTCH_BUILD_SHA="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true)"
 fi
 export SHOTCLUTCH_BUILD_SHA
-export SHOTCLUTCH_BUILD_DATE="${SHOTCLUTCH_BUILD_DATE:-${FILMCRAFT_BUILD_DATE:-$(date -u +%Y-%m-%d)}}"
+export SHOTCLUTCH_BUILD_DATE="${SHOTCLUTCH_BUILD_DATE-${FILMCRAFT_BUILD_DATE-$(date -u +%Y-%m-%d)}}"
 export CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-$ROOT/target}"
 
 # Emit a GitHub Actions warning (plain stderr outside Actions).

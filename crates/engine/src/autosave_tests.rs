@@ -453,3 +453,27 @@ fn autosave_current_never_overwrites_a_legacy_original() {
     s.shutdown();
     assert_eq!(std::fs::read(&path).unwrap(), original);
 }
+
+#[test]
+fn recovery_preserves_legacy_envelope_protection_even_with_a_native_extension() {
+    let d = temp_dir("identity-recovered-envelope");
+    let path = d.join("inherited.scproj");
+    let mut doc: serde_json::Value = serde_json::from_slice(&shotclutch_format::encode(&shotclutch_project::Project::default(), false)).unwrap();
+    doc["format"] = shotclutch_format::LEGACY_FORMAT_ID.into();
+    let original = serde_json::to_vec(&doc).unwrap();
+    std::fs::write(&path, &original).unwrap();
+    let mut s = Session::default();
+    s.execute("file.open", json!({"path": path.to_string_lossy()})).unwrap();
+    start(&mut s, &d);
+    s.execute("file.newBin", json!({"name": "edit"})).unwrap();
+    s.shutdown();
+    let mut recovered = Session::default();
+    start(&mut recovered, &d);
+    recovered.execute("file.recover", json!({})).unwrap();
+    assert!(recovered.legacy_project_identity);
+    assert!(recovered.execute("file.save", json!({})).is_err());
+    assert_eq!(std::fs::read(&path).unwrap(), original);
+    recovered.execute("file.saveAs", json!({"path": d.join("converted.scproj").to_string_lossy()})).unwrap();
+    recovered.shutdown();
+    std::fs::remove_dir_all(d).unwrap();
+}

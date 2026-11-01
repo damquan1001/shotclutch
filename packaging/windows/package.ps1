@@ -48,7 +48,12 @@ if (-not (Test-Path -LiteralPath $UiExtension)) {
 if (-not (Test-Path -LiteralPath $UiExtension)) { throw 'WiX UI extension 5.0.2 was not installed in the checkout cache' }
 
 # The version lives in one place: [workspace.package] version in the root Cargo.toml.
-$Version = if ($env:SHOTCLUTCH_VERSION) { $env:SHOTCLUTCH_VERSION } else { $env:FILMCRAFT_VERSION }
+function Get-IdentityOverride([string] $Name) {
+  $canonical = 'SHOTCLUTCH_' + $Name
+  if (Test-Path -LiteralPath "Env:$canonical") { return [Environment]::GetEnvironmentVariable($canonical) }
+  return [Environment]::GetEnvironmentVariable('FILMCRAFT_' + $Name)
+}
+$Version = Get-IdentityOverride 'VERSION'
 if (-not $Version) {
   $inPkg = $false
   foreach ($line in Get-Content (Join-Path $Root 'Cargo.toml')) {
@@ -65,8 +70,10 @@ $Dist = if ($env:DIST) { $env:DIST } else { Join-Path $Root 'dist\release' }
 $TargetDir = if ($env:CARGO_TARGET_DIR) { $env:CARGO_TARGET_DIR } else { Join-Path $Root 'target' }
 New-Item -ItemType Directory -Force -Path $Dist | Out-Null
 
-if (-not $env:SHOTCLUTCH_BUILD_SHA) { $env:SHOTCLUTCH_BUILD_SHA = if ($env:FILMCRAFT_BUILD_SHA) { $env:FILMCRAFT_BUILD_SHA } else { (git -C $Root rev-parse HEAD 2>$null) } }
-if (-not $env:SHOTCLUTCH_BUILD_DATE) { $env:SHOTCLUTCH_BUILD_DATE = if ($env:FILMCRAFT_BUILD_DATE) { $env:FILMCRAFT_BUILD_DATE } else { (Get-Date).ToUniversalTime().ToString('yyyy-MM-dd') } }
+$buildSha = Get-IdentityOverride 'BUILD_SHA'
+$buildDate = Get-IdentityOverride 'BUILD_DATE'
+$env:SHOTCLUTCH_BUILD_SHA = if ($buildSha) { $buildSha } else { (git -C $Root rev-parse HEAD 2>$null) }
+$env:SHOTCLUTCH_BUILD_DATE = if ($buildDate) { $buildDate } else { (Get-Date).ToUniversalTime().ToString('yyyy-MM-dd') }
 
 Write-Output "ShotClutch $Version for Windows $Arch ($Target)"
 

@@ -5,6 +5,7 @@ ROOT=Path(__file__).resolve().parents[1]
 WORDS=re.compile('film'+'craft|art'+'craft|fc'+'proj',re.I)
 HISTORY=('docs/m0/','docs/filmcraft_original_docs/','crates/format/tests/fixtures/')
 COMPAT={
+ 'packaging/linux/package.sh':'Inherited maintainer metadata environment override',
  'scripts/ci/package-smoke.py':'Keep both inherited and canonical media tool overrides out of standalone execution',
  'apps/shotclutch/build.rs':'Inherited Windows resource requirement environment alias',
  'packaging/windows/package.ps1':'Inherited packaging environment aliases',
@@ -43,7 +44,7 @@ COMPAT={
 LEGACY_INPUT=re.compile(r'FILMCRAFT_|filmcraft[.](?:project|effect-presets|export-presets|graphicsTemplate)|fcproj|filmcraft://(?:document|commands)|window[.]filmcraft|["\x27]filmcraft["\x27]|filmcraft-ui-egui|filmcraft_original_docs',re.I)
 def category(path,line):
     if path=='scripts/check-identity.py':return 'residual-check policy definitions'
-    if path.startswith(HISTORY) or path=='scripts/m0/prepare-upstream.ps1':return 'historical provenance'
+    if path.startswith(HISTORY) or path in ['scripts/m0/prepare-upstream.ps1','contributors/contributors.json']:return 'historical provenance'
     if Path(path).name.startswith('LICENSE') or path in ['NOTICE','ATTRIBUTION.md','COPYRIGHT'] or path.endswith('.attribution'):return 'legal / retained-asset provenance'
     if path in ['apps/shotclutch/build.rs','packaging/macos/Info.plist.in'] and 'copyright' in line.lower():return 'required copyright notice'
     if re.search(r'https?://[^\s<>"`)]*(?:filmcraft|artcraft)',line,re.I):return 'genuine external reference'

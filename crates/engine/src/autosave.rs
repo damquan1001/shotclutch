@@ -541,6 +541,8 @@ pub struct JournalMeta {
     pub revision: u64,
     pub project_name: String,
     pub project_path: Option<String>,
+    /// Keep the original read-only even if an inherited envelope has a native filename.
+    pub legacy_identity: bool,
     pub generator: String,
     pub bytes: usize,
     /// True when the app was closed normally while changes were unsaved (no crash).
@@ -996,6 +998,7 @@ impl Worker {
         meta.revision = s.revision;
         meta.project_name = s.project.name.clone();
         meta.project_path = s.path.clone();
+        meta.legacy_identity = s.legacy_identity;
         meta.bytes = bytes.len();
         // Snapshot first, then the meta that makes it a candidate.
         let r = shotclutch_format::atomic_write(&self.session_dir.join(SNAPSHOT), &bytes)
