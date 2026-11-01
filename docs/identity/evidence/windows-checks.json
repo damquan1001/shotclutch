@@ -1,0 +1,224 @@
+{
+  "revision": "a6229303ce34fa45fe1245722ea7346ea4d0d49e",
+  "os": "Windows-2025Server-10.0.26100-SP0",
+  "architecture": "AMD64",
+  "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
+  "logical_cores": 2,
+  "physical_memory_bytes": null,
+  "image_version": "20261030.294.1",
+  "image_os": "win25-vs2026",
+  "run_id": "41308404270",
+  "attempt": "1",
+  "dependency_cache_hit": "",
+  "compiled_target_cache": "disabled",
+  "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "cargo_lock_sha256": "af9b7446bc1388fa545bd9138f8116aa91ffcf8ee8cdedef4f6f377250acdf71",
+  "min_free_disk_bytes": 72682479616,
+  "profile_overrides": {
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0"
+  },
+  "gpu_required": true,
+  "gpu_test_profile": {
+    "SHOTCLUTCH_CI_GPU_BACKEND": "dx12",
+    "SHOTCLUTCH_CI_DX12_COMPILER": "dxc"
+  },
+  "commands": [
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "log": "01.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 9.733999999999924
+    },
+    {
+      "command": [
+        "python",
+        "scripts/check-identity.py",
+        "--report",
+        "target/ci/identity-residuals.json"
+      ],
+      "log": "02.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 1.828000000000202
+    },
+    {
+      "command": [
+        "python",
+        "scripts/ci/test_identity.py"
+      ],
+      "log": "03.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 0.21899999999982356
+    },
+    {
+      "command": [
+        "cargo",
+        "xtask",
+        "layers"
+      ],
+      "log": "04.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 18.84400000000005
+    },
+    {
+      "command": [
+        "cargo",
+        "xtask",
+        "assets"
+      ],
+      "log": "05.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 0.4839999999999236
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "log": "06.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 650.797
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--workspace",
+        "--lib"
+      ],
+      "log": "07.log",
+      "exit_code": 0,
+      "gpu_environment": {
+        "WGPU_BACKEND": "dx12",
+        "WGPU_DX12_COMPILER": "dxc"
+      },
+      "wall_seconds": 2558.859
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "shotclutch",
+        "--bin",
+        "shotclutch"
+      ],
+      "log": "08.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 1213.8600000000006
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "shotclutch-cli",
+        "--bin",
+        "shotclutch-cli"
+      ],
+      "log": "09.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 846.3279999999995
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "shotclutch-format",
+        "--test",
+        "fixtures"
+      ],
+      "log": "10.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 154.6869999999999
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "shotclutch-cli",
+        "--test",
+        "it"
+      ],
+      "log": "11.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 51.36000000000058
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "shotclutch-ui-egui",
+        "--test",
+        "it",
+        "native_dialogs_ui"
+      ],
+      "log": "12.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 767.75
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "shotclutch-ui-egui",
+        "--example",
+        "bench"
+      ],
+      "log": "13.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 3.7969999999995707
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--workspace",
+        "--doc"
+      ],
+      "log": "14.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 168.71799999999985
+    }
+  ],
+  "result": "passed"
+}

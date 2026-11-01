@@ -55,17 +55,18 @@ passed script parsing, helper guards, workflow/shell lint, platform metadata and
 checks. Earlier preliminary CI candidates were stopped when review found harness/recovery repairs;
 their partial results are not acceptance evidence.
 
-## Remaining gates
+## Completed qualification
 
 Final implementation source is `a6229303ce34fa45fe1245722ea7346ea4d0d49e`. All 14 local check commands
 passed on that clean revision: 2,644 Rust test cases passed, zero failed, and 12 existing cases were
 ignored. [The command report](evidence/local-checks.json) records toolchain, applied GPU environment,
 timings and actual exit codes. The additional CI helper/identity guard suite passed eight tests.
 [Final-source packaging lint](https://github.com/damquan1001/shotclutch/actions/runs/41308407723)
-passed. [Final CI](https://github.com/damquan1001/shotclutch/actions/runs/41308404270) is running;
-Linux and macOS completed all 14 commands with 2,660 and 2,614 passing Rust cases respectively,
-zero failed and 12 ignored on each. Both release builds and the compiled browser alias check passed.
-See [Linux checks](evidence/linux-checks.json), [macOS checks](evidence/macos-checks.json) and
+passed. [Final CI](https://github.com/damquan1001/shotclutch/actions/runs/41308404270) completed
+successfully, including the required aggregate. Windows, Linux and macOS completed all 14 commands
+with 2,644, 2,660 and 2,614 passing Rust cases respectively, zero failed and 12 ignored on each.
+Both release builds and the compiled browser alias check passed.
+See [Windows checks](evidence/windows-checks.json), [Linux checks](evidence/linux-checks.json), [macOS checks](evidence/macos-checks.json) and
 [browser aliases](evidence/browser-aliases.json).
 
 The unsigned MSI/ZIP built and passed package inspection, including PE identity, original icon,
@@ -88,6 +89,8 @@ The first private desktop attempt was interrupted by the agent after save when i
 between status checks. No pass was inferred from that attempt. The complete rerun used a fresh
 directory and passed; existing applications/data and earlier artifacts were preserved.
 
-Only hosted Windows checks remain pending. IDENTITY-001 stays In Progress until that lane and the
-final aggregate pass. Hosted checks establish build/test coverage, not consumer playback
-qualification on macOS or Linux. Earlier M0 reports remain unchanged.
+IDENTITY-001 is Done. The [final CI job record](evidence/final-ci.json) retains every job conclusion.
+Application/build/validation source is the qualified revision a6229303; subsequent commits contain
+qualification documentation only. Hosted checks establish build/test coverage, not consumer playback
+qualification on macOS or Linux. Earlier M0 reports remain unchanged. No main promotion, signing,
+release publication, installed application modification or user-data migration was performed.

@@ -12,4 +12,4 @@ Original ShotClutch icon artwork is used across platform packages, web favicon a
 
 Required copyright/license notices, retained-asset authorship, genuine upstream source URLs, original fixtures and archived M0/upstream reports remain truthful. This is legal/provenance retention, not product branding. The original M0 baseline and reports are not regenerated or renamed. See NOTICE, LICENSE-MIT, LICENSE-APACHE and ATTRIBUTION.md for retained notices. No user data or installed application is moved or modified by this change.
 
-Validation results and the final package/CI source binding are recorded separately as they complete; this document is not a claim that pending checks passed.
+Qualification passed for implementation a6229303: complete Windows/Linux/macOS CI, unsigned Windows packages, hosted installation/uninstallation and the exact packaged desktop workflow. See [the validation record](identity/EVIDENCE.md) for commands, hashes, repairs and scope limits. IDENTITY-001 is complete; M0 evidence remains unchanged.
