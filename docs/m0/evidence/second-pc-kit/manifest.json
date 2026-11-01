@@ -1,0 +1,33 @@
+{
+  "source_revision": "a7fbcf2ffba3156bef1e175d30880670d7ff3bfc",
+  "run_id": 40834967572,
+  "package_attempt": 4,
+  "fixture": "generated testsrc2 1920x1080 30fps 2s + 440Hz stereo 48kHz",
+  "result": "prepared_not_executed",
+  "files": {
+    "collect-profile.ps1": {
+      "bytes": 1508,
+      "sha256": "0d8b68aaf07af15e885149b397df75ead108e25f0f54cc07145db8de159c1155"
+    },
+    "fixture-1080p.mp4": {
+      "bytes": 1585948,
+      "sha256": "525bd6c2f9f5f30de38dfb081ff43e6908c450f92ddf68570bf545b2d5f5e614"
+    },
+    "observations.md": {
+      "bytes": 476,
+      "sha256": "da528c21f4d470ae9be7d6da437ec4e1c37438b99d178a582f55698f674cd564"
+    },
+    "README.md": {
+      "bytes": 2799,
+      "sha256": "9f9dd0cbd4206ca6a03453c0be2721ea112e4edcd7f25e0b43d59a5443a9e95f"
+    },
+    "packages/shotclutch-0.13.0-windows-x64-portable.zip": {
+      "bytes": 42120041,
+      "sha256": "ef3611a1ca14e8ac6eaa3da3c1576bdc38f949f0ea753ae58fbcece04bcaeeaa"
+    },
+    "packages/shotclutch-0.13.0-windows-x64.msi": {
+      "bytes": 32247808,
+      "sha256": "34cfe7c13c873a94909ff5268d4ab99efafd9e9b762e6e0f94c6bc6d67cadf65"
+    }
+  }
+}

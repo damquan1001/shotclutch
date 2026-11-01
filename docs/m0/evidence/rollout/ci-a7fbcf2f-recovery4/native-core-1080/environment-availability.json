@@ -1,0 +1,11 @@
+{
+  "os": "Windows 11 Home Single Language 10.0.26200",
+  "vmware_vmrun": "C:/Program Files (x86)/VMware/VMware Workstation/vmrun.exe",
+  "vmrun_list": "Total running VMs: 0",
+  "standard_documents_VM_folder": "No VMX files found in checked standard folder; other storage locations were not searched",
+  "windows_sandbox_executable_found": false,
+  "virtualbox_default_executable_found": false,
+  "VM_started_or_modified": false,
+  "second_physical_machine": "Not supplied",
+  "next_action": "Owner identifies disposable VM path and/or separate PC. Do not infer absence of all VMs from this bounded inventory."
+}

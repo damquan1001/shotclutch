@@ -1,0 +1,20 @@
+{
+  "result": "passed",
+  "source_revision": "a7fbcf2ffba3156bef1e175d30880670d7ff3bfc",
+  "run_id": 40834967572,
+  "attempt": 4,
+  "desktop_sha256": "d4b67b5bbaad7bf0c8863ddc00be13164dd196f18713e294aab5f3bc770cea52",
+  "fixture_sha256": "525bd6c2f9f5f30de38dfb081ff43e6908c450f92ddf68570bf545b2d5f5e614",
+  "render_sha256": "6db8952a38c90f9f1330907d0dc41c0acfe14d472e938c76491e951b2269d3ad",
+  "verification": {
+    "width": 1920,
+    "height": 1080,
+    "fps": "30/1",
+    "frames": 50,
+    "stereo_sample_frames": 80000,
+    "sample_rate": 48000
+  },
+  "oracle_tools_on_app_PATH": false,
+  "clean_install_on_local_host": false,
+  "sandbox_attempt": "Localhost socket denied with WinError 10013; no product failure inferred. Host-side permitted rerun passed."
+}
