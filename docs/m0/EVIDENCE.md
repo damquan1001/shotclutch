@@ -93,3 +93,7 @@ CLI integration qualification initially stopped at the renamed MCP display-name 
 ## Hosted CI repeatability accepted (2026-11-01)
 
 Two independent workflow runs at repaired source `a7fbcf2f` now pass, including all three OS check/build lanes and recovered Windows package/install/export/uninstall jobs. CI-002 is Done. Each run retains its own cold attempt-1 checks and package/install recovery evidence; failed historical attempts remain recorded. [Final CI acceptance and artifact bindings](CI_RUNTIME_EXECUTION.md#two-run-ci-acceptance-retained-2026-11-01) supersede earlier pending CI status above. This does not close the separate runtime/performance/consumer-environment/review gates or authorize promotion.
+
+## Original M0 scope closed (2026-11-01)
+
+The original CORE-001 / CORE-005 / PERF-001 foundation scope is Done. [Completion record and acceptance mapping](M0_COMPLETION.md) supersede earlier overall M0/CORE-005 In Review wording. Clean installation/core workflow and verified second-PC acceptance are retained; extra offline/performance/lifecycle qualification and CI-003 promotion/settings work remain separately tracked. No merge or release was performed.

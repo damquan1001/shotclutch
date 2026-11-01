@@ -27,3 +27,7 @@ These findings do not become passes through successful compilation or a successf
 ## Owner-controlled promotion
 
 Main, repository protection, schedules, billing, signing and release publishing have not been changed. Two independent repaired-source runs are now green. Review the branch and authorize promotion/settings changes separately; the runtime limits above remain open. Opening a PR or merging was excluded from the original implementation scope unless requested. The [proposed required-check value](CI_RUNTIME_EXECUTION.md#ci-003--proposed-required-check-value-not-applied) names `CI required` and `Packaging required` from GitHub Actions app 15368; preserve intervening owner settings and verify private-repository feature availability before applying it. New qualification schedules remain unapplied pending an observed budget and an appropriate runtime environment.
+
+## Original M0 scope closed (2026-11-01)
+
+The original CORE-001 / CORE-005 / PERF-001 foundation scope is Done. [Completion record and acceptance mapping](M0_COMPLETION.md) supersede earlier overall M0/CORE-005 In Review wording. Clean installation/core workflow and verified second-PC acceptance are retained; extra offline/performance/lifecycle qualification and CI-003 promotion/settings work remain separately tracked. No merge or release was performed.

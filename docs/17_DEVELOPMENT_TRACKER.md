@@ -6,9 +6,9 @@ Baseline 0.1 · Last updated: 2026-10-27 · Authoritative living work record.
 
 The documentation baseline is committed at `b739515e04b3467ed8b681e6296f7dc5867f43dd`. M0 implementation is delivered on `codex/m0-foundation`, based on inherited source `3a5f217b348bf0c9dc1678f305c34b6c88617f37`. The initial working tree was clean. Production application revision: `3aeef47218c74067fb4998b0d14e4aacee7dad10`; subsequent commits add test, measurement and evidence refinements. See [the foundation audit](m0/FOUNDATION_AUDIT.md), [executed evidence](m0/EVIDENCE.md), [qualification procedure](m0/QUALIFICATION.md), and [upstream policy](m0/UPSTREAM_POLICY.md).
 
-Current milestone: **M0 — Foundation audit and reproducible baseline, In Review; remote CI repeatability passed.** Initial qualification platform: Windows x64. Owner: Codex implementation session. Local builds, 1,383 targeted tests, desktop workflow, packages and paired CPU benchmark captures have evidence. The user confirms that the 0.13.0 MSI installs cleanly, launches, imports/edits, saves/reopens and exports video successfully. [Manual acceptance](m0/evidence/clean-install-user-confirmation.md) is recorded; two independent hosted CI runs now pass on the repaired source; native runtime observations retain their measured limits and historical failures. See [execution results](m0/CI_RUNTIME_EXECUTION.md).
+Current milestone: **M0 — Foundation audit and reproducible baseline, Done (2026-11-01).** Original scope CORE-001, CORE-005 and PERF-001 is complete: standalone identity/legal/capability audit, clean-install/core-workflow acceptance, reproducible locked builds, two green same-source hosted CI runs, package validation and comparable baseline captures. The verified second-PC result is accepted. [Completion record](m0/M0_COMPLETION.md). Expanded runtime/release qualification and repository promotion remain separate work.
 
-There are **48 implementation requirements: 44 in v0.1 (M0–M4) and 4 in M5**. CORE-001 and PERF-001 have their bounded M0 acceptance evidence; CORE-005 remains In Review for review and remaining qualification limits; automated CI repeatability has passed. No broader feature or performance-release qualification is implied. M1–M5 remain Planned. Staffing, budget and release dates are unassigned.
+There are **48 implementation requirements: 44 in v0.1 (M0–M4) and 4 in M5**. CORE-001, CORE-005 and PERF-001 have their bounded M0 acceptance evidence and are Done. No broader feature or performance-release qualification is implied. M1–M5 remain Planned; no new feature milestone has started.
 
 ## How to maintain this document
 
@@ -31,7 +31,7 @@ Each active item must have an owner, implementation/change reference, linked tes
 
 | Milestone | Scope | Status | Exit evidence |
 |---|---|---|---|
-| M0 | Audit, standalone build, baseline measurements | In Review | Local evidence and user-confirmed clean/core workflow passed; [remote CI rollout](m0/CI_RUNTIME_EXECUTION.md) active; two independent same-source CI runs passed; review and separate runtime qualification limits remain |
+| M0 | Audit, standalone build, baseline measurements | Done | [Completion and acceptance mapping](m0/M0_COMPLETION.md): local/clean-install/core evidence, two independent same-source green CI runs, accepted second-PC verification and paired baselines. Expanded runtime/release and promotion gates remain separately tracked. |
 | M1 | Durable project, exact commands, native media, local editing | Not started | None |
 | M2 | Smart Rough Cut and workspace | Not started | None |
 | M3 | Semantic indexing, verified agent, MCP/CLI | Not started | None |
@@ -50,7 +50,7 @@ Dependencies below are completion gates, not a requirement to postpone design or
 | CORE-002 | Use one canonical project with stable IDs and versioned extensions | P0 | M1 | Planned | CORE-001 |
 | CORE-003 | Use integer ticks and rational rates for edit math | P0 | M1 | Planned | CORE-002 |
 | CORE-004 | Persist changes crash-safely | P0 | M1 | Planned | CORE-002 |
-| CORE-005 | Establish reproducible build, automated checks, release packaging plan, and upstream-change policy | P0 | M0 | In Review | CORE-001 |
+| CORE-005 | Establish reproducible build, automated checks, release packaging plan, and upstream-change policy | P0 | M0 | Done | CORE-001 |
 | UI-001 | Provide usable multitrack editing, exact trim/split/move, linked A/V, nesting, monitor seeking, audio levels, save, relink, and undo | P0 | M1 | Planned | CORE-003, AGENT-001, MEDIA-003, MEDIA-004 |
 | UI-002 | Provide a dedicated Smart Rough Cut workspace with transcript, waveform, source and result preview, take comparison, reasons, and apply/restore controls | P0 | M2 | Planned | PRE-002, PRE-003 |
 | MEDIA-001 | Select a usable hardware, native, or fallback decoder through one source interface | P0 | M1 | Planned | CORE-001, CORE-003 |
@@ -97,7 +97,7 @@ Dependencies below are completion gates, not a requirement to postpone design or
 
 ## Active work and evidence register
 
-M0 implementation and local evidence are ready on `codex/m0-foundation`. CORE-001 now combines executable local evidence with user-confirmed clean/core workflow acceptance; PERF-001 covers baseline captures only. CORE-005 retains its review gate with hosted CI repeatability now verified.
+M0 is complete on `codex/m0-foundation`. CORE-001 combines executable evidence with user-confirmed clean/core acceptance; CORE-005 has reproducible build/check/package/policy evidence; PERF-001 covers baseline captures. [Reviewed closeout](m0/M0_COMPLETION.md) separates these criteria from additional runtime/release and repository-promotion work.
 
 | Record | State | Owner | Evidence / next action |
 |---|---|---|---|
@@ -105,7 +105,7 @@ M0 implementation and local evidence are ready on `codex/m0-foundation`. CORE-00
 | REVIEW-001 | Planned | Unassigned | Review baseline API/schema choices against the selected source revision; record accepted amendments |
 | SETUP-001 | Done | Codex | Recorded inherited revision and clean documentation baseline; selected Windows x64 and pinned Rust 1.95.0 |
 | CORE-001 | Done | Codex / user acceptance | Production `3aeef472`, installer correction `b5102d3c`; standalone builds, identity/compatibility and capability/legal inventory recorded. Native edit/export has independent frame/sample checks. User confirms clean MSI install and launch/import/edit/save/reopen/export: [acceptance](m0/evidence/clean-install-user-confirmation.md). Next: broaden runtime coverage without changing this bounded M0 conclusion. |
-| CORE-005 | In Review | Codex | Rust 1.95 locked builds, pinned repository-owned CI, unsigned MSI/ZIP, attribution and upstream policy have executable evidence. Two independent repaired-source CI aggregates passed; CI-002 is Done. Review and separate runtime qualification limits remain open. [Execution](m0/CI_RUNTIME_EXECUTION.md). |
+| CORE-005 | Done | Codex | Rust 1.95 locked builds, pinned repository-owned CI, unsigned MSI/ZIP, attribution and upstream policy have reviewed executable evidence. Two independent repaired-source CI aggregates and packaging lint passed; clean/core and second-PC evidence accepted. [M0 closeout](m0/M0_COMPLETION.md). Repository promotion/settings and expanded runtime qualification remain separate. |
 | PERF-001 | Done | Codex | Harness `f35fac68`; seven matching software/CPU sections, identical generated fixture hashes, available hardware/software/cache metadata and raw samples retained. [Comparison](m0/BENCHMARKS.md), [upstream](m0/evidence/upstream/manifest.json), [ShotClutch](m0/evidence/shotclutch/manifest.json). Acceptance is baseline capture, with slow cases and unavailable telemetry disclosed; GPU/second-profile work and release budgets remain separate. |
 | MSI-UX-001 | Done | Codex / user acceptance | Fix `b5102d3c` adds a wizard and Finish launch checkbox; artifact validation passes. The user confirms successful clean installation and launched core workflow. [Diagnosis](m0/evidence/msi-wizard/diagnosis.json), [manual acceptance](m0/evidence/clean-install-user-confirmation.md). Finish-checkbox and uninstall paths get separate lifecycle coverage in RT-001. |
 | CI-001 | Done | Codex | GitHub CLI/admin access and read-only settings preflight recorded; strict test/oracle/logging helpers deployed at 5f697163. Existing hosted runners only; billing budget not independently verified. [Execution](m0/CI_RUNTIME_EXECUTION.md). |
