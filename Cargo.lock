@@ -5079,6 +5079,7 @@ dependencies = [
  "shotclutch-text",
  "shotclutch-time",
  "shotclutch-tts",
+ "tempfile",
  "thiserror 2.0.21",
  "web-time",
 ]
@@ -5136,11 +5137,13 @@ dependencies = [
  "log",
  "serde",
  "serde_json",
+ "sha2",
  "shotclutch-media",
  "shotclutch-project",
  "shotclutch-time",
  "tempfile",
  "thiserror 2.0.21",
+ "uuid",
 ]
 
 [[package]]

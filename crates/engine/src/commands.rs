@@ -1199,8 +1199,11 @@ fn build() -> Vec<CommandSpec> {
     let mut v = vec![
         // ================= File =================
         cmd!("file.newProject", "Project…", ["File", "New"], Some("Cmd+Alt+N"), r#"{"name":str}"#, always, |s, p| {
+            s.ensure_revision_available()?;
             let name = str_p(p, "name").unwrap_or("Untitled").to_string();
             s.project = std::sync::Arc::new(shotclutch_project::Project::new(&name));
+            s.document_id = Default::default();
+            s.id_watermark = s.project.next_id;
             s.history = Default::default();
             s.history.limit = 200;
             s.state = crate::Session::default().state;
@@ -1214,8 +1217,11 @@ fn build() -> Vec<CommandSpec> {
             Ok(json!({"name": name, "revision": s.revision}))
         }),
         cmd!("file.openDemoProject", "Demo Project", ["File", "New"], None, "{}", always, |s, _| {
+            s.ensure_revision_available()?;
             let (p, seq) = crate::demo::demo_project(&s.media);
             s.project = std::sync::Arc::new(p);
+            s.document_id = Default::default();
+            s.id_watermark = s.project.next_id;
             s.history = Default::default();
             s.history.limit = 200;
             s.state = crate::Session::default().state;
@@ -4546,6 +4552,7 @@ pub fn inspect_project(s: &Session) -> Value {
     }
     json!({
         "name": p.name,
+        "projectId": s.document_id.to_string(),
         "path": s.path,
         "dirty": s.is_dirty(),
         "revision": s.revision,
@@ -4634,7 +4641,9 @@ fn write_project(s: &mut Session, path: &str, adopt: bool) -> Result<Value> {
     };
     let view = s.project_view();
     let project = renamed.as_ref().unwrap_or(&s.project);
-    let bytes = shotclutch_format::encode_with_view(project, Some(&view), false);
+    let mut snapshot = s.document_snapshot();
+    snapshot.project = std::sync::Arc::new(project.clone());
+    let bytes = snapshot.encode(Some(&view), false).map_err(EngineError::Other)?;
     let mut backup = None;
     if adopt && s.path.as_deref() == Some(path) && s.loaded_schema < shotclutch_format::SCHEMA_VERSION {
         let b = schema_backup_path(path, s.loaded_schema);
@@ -4667,7 +4676,16 @@ fn schema_backup_path(path: &str, schema: u32) -> String {
 }
 
 /// Make `proj` the session's project (fresh history, media pool and editor state).
-fn install_project(s: &mut Session, proj: shotclutch_project::Project, path: Option<String>, clean: bool) {
+fn install_project(
+    s: &mut Session,
+    proj: shotclutch_project::Project,
+    path: Option<String>,
+    clean: bool,
+    edit_state: Option<shotclutch_format::session::DocumentState>,
+) -> Result<()> {
+    s.ensure_revision_available()?;
+    let restored = crate::document::restore(edit_state, &proj).map_err(EngineError::Other)?;
+    let revision = s.revision.checked_add(1).ok_or_else(|| EngineError::Other("document revision exhausted".into()))?.max(restored.revision);
     let proxies = s.media.use_proxies();
     s.media = std::sync::Arc::new(crate::MediaPool::default());
     s.media.set_use_proxies(proxies);
@@ -4675,8 +4693,9 @@ fn install_project(s: &mut Session, proj: shotclutch_project::Project, path: Opt
     let first = proj.sequences().next().map(|i| i.id);
     s.media.add_stored(&proj, path.as_deref());
     s.project = std::sync::Arc::new(proj);
-    s.history = Default::default();
-    s.history.limit = 200;
+    s.history = restored.history;
+    s.document_id = restored.id;
+    s.id_watermark = restored.next_id;
     s.state = crate::Session::default().state;
     s.state.active_sequence = first;
     s.state.open_sequences = first.into_iter().collect();
@@ -4686,20 +4705,22 @@ fn install_project(s: &mut Session, proj: shotclutch_project::Project, path: Opt
         s.previews.set_dir(Some(crate::project_tools::previews_dir_for(&s.project, p, &s.prefs.auto_save.scratch_folders)));
     }
     s.path = path;
-    s.revision += 1;
+    s.revision = revision;
     // A recovered project is unsaved: its saved revision is one that never existed.
     s.saved_revision = if clean { s.revision } else { 0 };
     s.loaded_schema = shotclutch_format::SCHEMA_VERSION;
     s.legacy_project_identity = false;
     s.events.push(crate::Event::ProjectChanged { revision: s.revision });
     crate::project_tools::warn_untrusted_scratch(s);
+    Ok(())
 }
 
 fn open_project(s: &mut Session, path: &str) -> Result<Value> {
     let bytes = s.services.read_file(path).map_err(|e| EngineError::Other(format!("{path}: {e}")))?;
     let loaded = shotclutch_format::decode(&bytes).map_err(|e| EngineError::Other(format!("{path}: {e}")))?;
-    let (from, migrated, legacy_identity) = (loaded.schema_version, loaded.migrated(), loaded.legacy_identity);
-    install_project(s, loaded.project, Some(path.to_string()), true);
+    let (from, migrated, legacy_identity) =
+        (loaded.schema_version, loaded.migrated(), loaded.legacy_identity || loaded.recovery.as_ref().is_some_and(|i| i.legacy_identity));
+    install_project(s, loaded.project, Some(path.to_string()), true, loaded.edit_state)?;
     if let Some(view) = loaded.view.filter(|_| s.prefs.timeline.restore_open_sequences) {
         s.restore_project_view(view);
     }
@@ -4732,22 +4753,61 @@ fn recover(s: &mut Session, id: Option<&str>) -> Result<Value> {
     let c = per.candidates[idx].clone();
     let saved_at = per.local_time(c.meta.saved_unix);
     let loaded = crate::autosave::load_candidate(&c).map_err(EngineError::Other)?;
-    let legacy_identity = loaded.legacy_identity;
-    install_project(s, loaded.project, c.meta.project_path.clone(), false);
-    s.legacy_project_identity = legacy_identity || c.meta.legacy_identity || s.path.as_deref().is_some_and(shotclutch_format::is_legacy_project_path);
+    let legacy_identity = loaded.legacy_identity || loaded.recovery.as_ref().map(|i| i.legacy_identity).unwrap_or(c.meta.legacy_identity);
+    let source_schema = loaded.recovery.as_ref().map(|i| i.source_schema).unwrap_or(loaded.schema_version);
+    let path = loaded.recovery.as_ref().map(|i| i.project_path.clone()).unwrap_or(c.meta.project_path.clone());
+    // Validate and prepare a private document first. A failed replacement journal must leave
+    // both the current document and the original recovery candidate available to the caller.
+    let mut recovered = Session::new(s.services.clone());
+    recovered.revision = s.revision;
+    recovered.prefs = s.prefs.clone();
+    recovered.media.set_use_proxies(s.media.use_proxies());
+    install_project(&mut recovered, loaded.project, path, false, loaded.edit_state)?;
+    recovered.loaded_schema = source_schema;
+    recovered.legacy_project_identity = legacy_identity || recovered.path.as_deref().is_some_and(shotclutch_format::is_legacy_project_path);
+    if let Some(view) = loaded.view.filter(|_| recovered.prefs.timeline.restore_open_sequences) {
+        recovered.restore_project_view(view);
+    }
+    if let Some(per) = &s.persistence {
+        per.commit_snapshot(recovered.document_snapshot()).map_err(EngineError::Other)?;
+    }
+    s.project = recovered.project.clone();
+    s.media = recovered.media.clone();
+    s.document_id = recovered.document_id;
+    s.id_watermark = recovered.id_watermark;
+    s.history = std::mem::take(&mut recovered.history);
+    s.state = std::mem::take(&mut recovered.state);
+    s.revision = recovered.revision;
+    s.saved_revision = 0;
+    s.path = recovered.path.clone();
+    s.loaded_schema = recovered.loaded_schema;
+    s.legacy_project_identity = recovered.legacy_project_identity;
+    s.offline = Default::default();
+    s.events.append(&mut recovered.events);
+    if let Some(path) = &s.path
+        && !cfg!(target_arch = "wasm32")
+    {
+        s.previews.set_dir(Some(crate::project_tools::previews_dir_for(&s.project, path, &s.prefs.auto_save.scratch_folders)));
+    }
     if let Some(seq) = s.state.active_sequence {
         s.events.push(crate::Event::OpenSequence(seq));
     }
     crate::relink::on_open(s);
-    // Our own journal must hold the recovered state before the old one is deleted.
     s.sync_persistence();
-    if let Some(per) = s.persistence.as_mut() {
-        per.flush();
-        per.candidates.remove(idx);
-    }
-    crate::autosave::discard_candidate(&c).map_err(|e| EngineError::Other(e.to_string()))?;
-    s.toast(format!("Recovered unsaved changes to {} from {saved_at}", c.meta.project_name));
-    Ok(json!({"id": c.id, "name": c.meta.project_name, "path": c.meta.project_path, "savedAt": saved_at, "revision": c.meta.revision}))
+    let retained = match crate::autosave::discard_candidate(&c) {
+        Ok(()) => {
+            if let Some(per) = s.persistence.as_mut() {
+                per.candidates.remove(idx);
+            }
+            false
+        }
+        Err(e) => {
+            s.error_toast("file.recover", format!("Recovery succeeded; the old recovery record could not be removed: {e}"));
+            true
+        }
+    };
+    s.toast(format!("Recovered unsaved changes to {} from {saved_at}", s.project.name));
+    Ok(json!({"id": c.id, "name": s.project.name, "path": s.path, "savedAt": saved_at, "revision": s.revision, "retainedRecovery": retained}))
 }
 
 /// Where auto-saves of the current project go.

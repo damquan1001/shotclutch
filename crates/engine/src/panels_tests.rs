@@ -178,6 +178,7 @@ fn project_notes_are_saved_and_typing_is_one_undo_step() {
     // an older file without notes still loads, with none
     let mut doc: Value = serde_json::from_slice(&shotclutch_format::encode(&shotclutch_project::Project::new("old"), false)).unwrap();
     doc["schema_version"] = json!(14);
+    doc.as_object_mut().unwrap().remove("integrity");
     assert_eq!(shotclutch_format::decode(&serde_json::to_vec(&doc).unwrap()).unwrap().project.notes, "");
 
     s.execute("edit.undo", json!({})).unwrap();

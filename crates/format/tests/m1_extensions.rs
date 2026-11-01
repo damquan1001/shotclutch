@@ -30,6 +30,7 @@ fn v15_upgrades_without_discarding_optional_extension_data() {
     let p = Project::new("v15");
     let mut doc: serde_json::Value = serde_json::from_slice(&encode(&p, false)).unwrap();
     doc["schema_version"] = json!(15);
+    doc.as_object_mut().unwrap().remove("integrity");
     doc["project"]["extensions"] = json!({"example.future": {"version": 1, "data": {"keep": [1, 2, 3]}}});
     let loaded = decode(&serde_json::to_vec(&doc).unwrap()).unwrap();
     assert!(loaded.migrated());

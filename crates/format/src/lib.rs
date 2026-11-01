@@ -41,11 +41,14 @@
 //!   would drop them when saving.
 //! - **v16** (ShotClutch M1): opaque versioned project extensions. Unknown optional records
 //!   round-trip; unknown required records are refused before the project reaches the editor.
+//! - **v17** (ShotClutch M1): document identity, revision, allocation watermark, retained history,
+//!   recovery source metadata and checksums in the atomic envelope. See [`session`].
 
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable))]
 
 pub mod atomic;
 pub mod autosave;
+pub mod session;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -73,7 +76,7 @@ pub type Migration = fn(Value) -> Result<Value, String>;
 /// edit a shipped one.
 pub const MIGRATIONS: &[Migration] = &[
     v1_to_v2, v2_to_v3, v3_to_v4, v4_to_v5, v5_to_v6, v6_to_v7, v7_to_v8, v8_to_v9, v9_to_v10, v10_to_v11, v11_to_v12, v12_to_v13, v13_to_v14, v14_to_v15,
-    v15_to_v16,
+    v15_to_v16, v16_to_v17,
 ];
 
 /// The schema version this build writes (and the newest it reads).
@@ -113,6 +116,8 @@ pub struct Loaded {
     /// What was open when the file was saved (sequence tabs and how each was shown), when the
     /// file records it and it can be read.
     pub view: Option<ProjectView>,
+    pub edit_state: Option<session::DocumentState>,
+    pub recovery: Option<session::RecoveryInfo>,
 }
 
 impl Loaded {
@@ -135,6 +140,11 @@ struct EnvelopeOut<'a> {
     project: &'a Project,
     #[serde(skip_serializing_if = "Option::is_none")]
     view: Option<&'a ProjectView>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    edit_state: Option<&'a session::DocumentState>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    recovery: Option<&'a session::RecoveryInfo>,
+    integrity: String,
 }
 
 #[derive(Deserialize)]
@@ -146,18 +156,32 @@ struct EnvelopeIn {
     /// it never stops a project from opening.
     #[serde(default)]
     view: Option<Value>,
+    #[serde(default)]
+    edit_state: Option<session::DocumentState>,
+    #[serde(default)]
+    recovery: Option<session::RecoveryInfo>,
 }
 
 impl EnvelopeIn {
     fn loaded(self, schema_version: u32) -> Loaded {
         let view = self.view.and_then(|v| serde_json::from_value(v).ok());
-        Loaded { project: self.project, schema_version, legacy_identity: false, generator: self.generator, view }
+        Loaded {
+            project: self.project,
+            schema_version,
+            legacy_identity: false,
+            generator: self.generator,
+            view,
+            edit_state: self.edit_state,
+            recovery: self.recovery,
+        }
     }
 }
 
 /// Just enough of a document to know which schema it is.
 #[derive(Deserialize)]
 struct Probe {
+    #[serde(default)]
+    integrity: Option<serde::de::IgnoredAny>,
     #[serde(default)]
     format: Option<String>,
     #[serde(default)]
@@ -181,10 +205,36 @@ pub fn encode(project: &Project, pretty: bool) -> Vec<u8> {
 /// outside the schema's promises: builds that do not know it ignore it, and it is dropped rather
 /// than migrated when it cannot be read.
 pub fn encode_with_view(project: &Project, view: Option<&ProjectView>, pretty: bool) -> Vec<u8> {
-    let env = EnvelopeOut { format: FORMAT_ID, schema_version: SCHEMA_VERSION, generator: generator(), project, view };
+    encode_document(project, view, None, None, pretty)
+}
+
+/// Encode canonical data and retained history as one atomic-save payload. Project-only writers
+/// can continue using `encode`; the engine adopts identity when opening such a file.
+pub fn encode_document(
+    project: &Project,
+    view: Option<&ProjectView>,
+    edit_state: Option<&session::DocumentState>,
+    recovery: Option<&session::RecoveryInfo>,
+    pretty: bool,
+) -> Vec<u8> {
+    // Hash the representation actually written by serde. Converting Project directly to Value
+    // widens f32 parameters, which differs from their shorter f32 wire encoding.
+    let wire = serde_json::to_vec(&(FORMAT_ID, SCHEMA_VERSION, project, edit_state, recovery)).unwrap_or_default();
+    let payload = serde_json::from_slice(&wire).unwrap_or(Value::Null);
+    let integrity = integrity_digest(payload);
+    let env = EnvelopeOut { format: FORMAT_ID, schema_version: SCHEMA_VERSION, generator: generator(), project, view, edit_state, recovery, integrity };
     let r = if pretty { serde_json::to_vec_pretty(&env) } else { serde_json::to_vec(&env) };
     // Serializing plain data (string keys, finite numbers or null) cannot fail.
     r.unwrap_or_default()
+}
+
+/// Canonical JSON object ordering makes checksums independent of indentation and key order.
+/// The optional UI view and writer label are deliberately outside the editorial checksum.
+fn integrity_digest(mut payload: Value) -> String {
+    use sha2::{Digest, Sha256};
+    payload.sort_all_objects();
+    let bytes = serde_json::to_vec(&payload).unwrap_or_default();
+    format!("sha256:{:x}", Sha256::digest(bytes))
 }
 
 /// Detect the schema version of a parsed document.
@@ -222,6 +272,14 @@ pub fn decode(bytes: &[u8]) -> Result<Loaded, FormatError> {
     let legacy_identity = probe.format.as_deref() != Some(FORMAT_ID);
     let found = probe_version(&probe)?;
     check_supported(found)?;
+    if found >= 17 || probe.integrity.is_some() {
+        let doc: Value = serde_json::from_slice(bytes).map_err(|e| FormatError::Corrupt(e.to_string()))?;
+        let expected =
+            integrity_digest(serde_json::json!([doc.get("format"), doc.get("schema_version"), doc.get("project"), doc.get("edit_state"), doc.get("recovery")]));
+        if doc.get("integrity").and_then(Value::as_str) != Some(expected.as_str()) {
+            return Err(FormatError::Corrupt("document checksum mismatch; restore a previous save or recovery snapshot".into()));
+        }
+    }
     if found == SCHEMA_VERSION {
         // Fast path: deserialize straight into the model.
         let env: EnvelopeIn = serde_json::from_slice(bytes).map_err(|e| FormatError::Corrupt(e.to_string()))?;
@@ -240,6 +298,14 @@ pub fn decode(bytes: &[u8]) -> Result<Loaded, FormatError> {
 /// Refuse only values that would overflow or exhaust memory later (`Sequence::check_bounds`);
 /// structural rules such as overlaps are left to the editor, so projects that open today still open.
 fn validate_loaded(mut loaded: Loaded) -> Result<Loaded, FormatError> {
+    if let Some(state) = &loaded.edit_state {
+        if state.version != 1 {
+            return Err(FormatError::Corrupt(format!("CAPABILITY_UNAVAILABLE: document state version {}", state.version)));
+        }
+        if state.revision == 0 || state.revision == u64::MAX || state.next_id > Project::MAX_NEXT_ID || state.undo.len() > 200 || state.redo.len() > 200 {
+            return Err(FormatError::Corrupt("invalid document revision, ID allocator or history length".into()));
+        }
+    }
     for (name, extension) in &loaded.project.extensions {
         if extension.version == 0 {
             return Err(FormatError::Corrupt(format!("extension `{name}` must have a positive version")));
@@ -428,13 +494,18 @@ fn v15_to_v16(doc: Value) -> Result<Value, String> {
     Ok(doc)
 }
 
+/// v16 → v17: durable document identity, revision and history alongside the project.
+fn v16_to_v17(doc: Value) -> Result<Value, String> {
+    Ok(doc)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn schema_version_matches_table() {
-        assert_eq!(SCHEMA_VERSION, 16);
+        assert_eq!(SCHEMA_VERSION, 17);
     }
 
     #[test]
@@ -628,6 +699,8 @@ mod identity_tests {
         let project = Project::default();
         let mut value: Value = serde_json::from_slice(&encode(&project, false)).unwrap();
         value["format"] = LEGACY_FORMAT_ID.into();
+        value["schema_version"] = 16.into();
+        value.as_object_mut().unwrap().remove("integrity");
         let loaded = decode(&serde_json::to_vec(&value).unwrap()).unwrap();
         assert!(loaded.legacy_identity);
         let native: Value = serde_json::from_slice(&encode(&loaded.project, false)).unwrap();

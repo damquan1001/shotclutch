@@ -663,6 +663,7 @@ fn list_templates(s: &mut Session, _: &Value) -> Result<Value> {
 }
 
 fn new_from_template(s: &mut Session, p: &Value) -> Result<Value> {
+    s.ensure_revision_available()?;
     let t = str_p(p, "template").ok_or_else(|| bad("file.newProjectFromTemplate", "need `template`"))?;
     let path = if t.ends_with(".scproj") || t.contains('/') || t.contains('\\') {
         t.to_string()
@@ -689,6 +690,8 @@ fn new_from_template(s: &mut Session, p: &Value) -> Result<Value> {
     s.media.clear();
     s.media.clear_stored();
     s.media.add_stored(&s.project, Some(path.as_str()));
+    s.document_id = Default::default();
+    s.id_watermark = s.project.next_id;
     s.revision += 1;
     s.saved_revision = s.revision;
     s.events.push(crate::Event::ProjectChanged { revision: s.revision });

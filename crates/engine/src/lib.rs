@@ -18,6 +18,7 @@ pub mod color;
 pub mod commands;
 pub mod demo;
 pub mod doc_path;
+mod document;
 pub mod essential_sound;
 pub mod export_tools;
 pub mod graphic_templates;
@@ -429,6 +430,10 @@ pub enum Event {
 }
 
 pub struct Session {
+    /// Canonical document identity, retained by save/recovery and distinct from the file path.
+    pub document_id: shotclutch_format::session::DocumentId,
+    /// Highest allocated ID, independent of undo snapshots and redo-branch deletion.
+    id_watermark: u64,
     pub project: Arc<Project>,
     pub history: History,
     pub revision: u64,
@@ -495,6 +500,7 @@ pub struct Session {
     pub browser: media_browser::BrowserState,
     /// Nesting depth of [`Session::execute`] (commands that run other commands).
     exec_depth: u32,
+    edit_group_depth: u32,
     /// Each media file's size and modification time when last seen (Settings ▸ Media ▸
     /// Automatically refresh growing files, [`media_watch`]).
     pub media_stamps: std::collections::HashMap<String, media_watch::Stamp>,
@@ -549,6 +555,8 @@ impl Session {
     pub fn new(services: Arc<dyn Services>) -> Self {
         Self {
             project: Arc::new(Project::new("Untitled")),
+            document_id: Default::default(),
+            id_watermark: 1,
             history: History { limit: 200, ..Default::default() },
             revision: 1,
             saved_revision: 1,
@@ -591,6 +599,7 @@ impl Session {
             log: Default::default(),
             browser: Default::default(),
             exec_depth: 0,
+            edit_group_depth: 0,
             media_stamps: Default::default(),
             media_scan: None,
         }
@@ -658,14 +667,21 @@ impl Session {
     /// Tell the worker about the current project state if it changed (cheap: an `Arc` clone and a
     /// channel send; serialization happens on the worker). Called after every command.
     pub fn sync_persistence(&mut self) {
+        if self.edit_group_depth != 0 {
+            return;
+        }
         let dirty = self.is_dirty();
-        let Some(p) = self.persistence.as_mut() else { return };
         let cur = autosave::Sent { revision: self.revision, saved_revision: self.saved_revision, path: self.path.clone() };
+        let Some(p) = self.persistence.as_ref() else { return };
         if p.last_sent.as_ref() == Some(&cur) {
             return;
         }
+        let snapshot = dirty.then(|| self.document_snapshot());
+        let Some(p) = self.persistence.as_mut() else { return };
         if dirty {
-            p.send_dirty(self.project.clone(), self.revision, self.path.clone(), self.legacy_project_identity);
+            if let Some(snapshot) = snapshot {
+                p.send_dirty(snapshot);
+            }
         } else {
             p.send_clean();
         }
@@ -731,6 +747,9 @@ impl Session {
     /// A change of what the project *looks like* that isn't an edit (proxies toggled): bumps the
     /// revision so frame caches refresh, without marking a clean project as modified.
     pub fn bump_view(&mut self) {
+        if self.ensure_revision_available().is_err() {
+            return;
+        }
         let clean = !self.is_dirty();
         self.bump();
         if clean {
@@ -776,7 +795,9 @@ impl Session {
         }
         self.sync_persistence();
         // playback reads the newest snapshot (mixer moves, mutes… are heard while playing)
-        self.previews.live.publish_project(self.project.clone());
+        if self.edit_group_depth == 0 {
+            self.previews.live.publish_project(self.project.clone());
+        }
         if r.is_ok() && spec.journal {
             self.journal.push((id.to_string(), params));
             if self.journal.len() > 10_000 {
@@ -887,9 +908,14 @@ impl Session {
 
     /// Apply an undoable project edit. The closure gets a mutable copy; on error nothing changes.
     pub fn edit<R>(&mut self, label: &str, f: impl FnOnce(&mut Project, &mut EditorState) -> Result<R>) -> Result<R> {
+        self.ensure_revision_available()?;
         let mut p = (*self.project).clone();
+        p.next_id = p.next_id.max(self.id_watermark);
         let mut st = self.state.clone();
         let r = f(&mut p, &mut st)?;
+        if p.next_id > Project::MAX_NEXT_ID {
+            return Err(EngineError::Other("RESOURCE_LIMIT: project ID space exhausted".into()));
+        }
         self.refuse_self_nesting(&p)?;
         let old = std::mem::replace(&mut self.project, Arc::new(p));
         self.history.undo.push((label.to_string(), old));
@@ -907,6 +933,7 @@ impl Session {
     /// Like [`Session::edit`], but consecutive calls with the same `key` (and no other edit in
     /// between) share one undo step: dragging a control is one undoable change.
     pub fn edit_merged<R>(&mut self, label: &str, key: &str, f: impl FnOnce(&mut Project, &mut EditorState) -> Result<R>) -> Result<R> {
+        self.ensure_revision_available()?;
         let merge = self.history.merge_key.as_deref() == Some(key) && self.history.undo.last().is_some_and(|u| u.0 == label);
         if !merge {
             let r = self.edit(label, f)?;
@@ -914,8 +941,12 @@ impl Session {
             return Ok(r);
         }
         let mut p = (*self.project).clone();
+        p.next_id = p.next_id.max(self.id_watermark);
         let mut st = self.state.clone();
         let r = f(&mut p, &mut st)?;
+        if p.next_id > Project::MAX_NEXT_ID {
+            return Err(EngineError::Other("RESOURCE_LIMIT: project ID space exhausted".into()));
+        }
         self.refuse_self_nesting(&p)?;
         self.project = Arc::new(p);
         self.state = st;
@@ -927,40 +958,49 @@ impl Session {
     /// Run several undoable edits as one undo step labelled `label`. If `f` fails, every edit it made
     /// is rolled back and the history is as before.
     pub fn edit_group<R>(&mut self, label: &str, f: impl FnOnce(&mut Session) -> Result<R>) -> Result<R> {
-        let (project, state, undo, redo, limit) =
-            (self.project.clone(), self.state.clone(), self.history.undo.len(), self.history.redo.clone(), self.history.limit);
-        // keep every step the group makes, however many, so the first one can be found afterwards
+        self.ensure_revision_available()?;
+        let project = self.project.clone();
+        let state = self.state.clone();
+        let history = self.history.clone();
+        let revision = self.revision;
+        let event_count = self.events.len();
+        let journal_count = self.journal.len();
         self.history.limit = usize::MAX;
-        // a panic inside the group must not leave the history unlimited: restore, then let it go on
-        let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| f(self)));
-        self.history.limit = limit;
-        let first = self.history.undo.get(undo).map(|e| e.1.clone());
-        let rolled_back = |s: &mut Session| {
-            s.history.undo.truncate(undo);
-            s.history.redo = redo.clone();
-            s.history.merge_key = None;
-            s.project = project.clone();
-            s.state = state.clone();
-            s.bump();
-        };
-        match (r, first) {
-            (Ok(Ok(v)), Some(first)) => {
-                self.history.undo.truncate(undo);
-                self.history.undo.push((label.to_string(), first));
-                if self.history.undo.len() > limit {
-                    self.history.undo.remove(0);
+        self.history.merge_key = None;
+        self.edit_group_depth += 1;
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| f(self)));
+        self.edit_group_depth -= 1;
+        self.history.limit = history.limit;
+        match result {
+            Ok(Ok(value)) => {
+                if !Arc::ptr_eq(&project, &self.project) {
+                    self.history = history;
+                    self.history.undo.push((label.into(), project));
+                    if self.history.undo.len() > self.history.limit {
+                        self.history.undo.remove(0);
+                    }
+                    self.history.redo.clear();
+                    self.history.merge_key = None;
+                    self.revision = revision;
+                    self.bump();
                 }
-                self.history.merge_key = None;
-                Ok(v)
+                self.sync_persistence();
+                if self.edit_group_depth == 0 {
+                    self.previews.live.publish_project(self.project.clone());
+                }
+                Ok(value)
             }
-            (Ok(Ok(v)), None) => Ok(v),
-            (Ok(Err(e)), _) => {
-                rolled_back(self);
-                Err(e)
-            }
-            (Err(panic), _) => {
-                rolled_back(self);
-                std::panic::resume_unwind(panic)
+            error => {
+                self.project = project;
+                self.state = state;
+                self.history = history;
+                self.revision = revision;
+                self.events.truncate(event_count);
+                self.journal.truncate(journal_count);
+                match error {
+                    Ok(result) => result,
+                    Err(panic) => std::panic::resume_unwind(panic),
+                }
             }
         }
     }
@@ -974,6 +1014,9 @@ impl Session {
     /// not: the project returns to how it was at `mark`, and neither undo nor redo keeps them.
     /// Nothing happens when `mark` has left the history. Returns how many steps were taken back.
     pub fn revert_to(&mut self, mark: UndoMark) -> usize {
+        if self.ensure_revision_available().is_err() {
+            return 0;
+        }
         if let UndoMark(Some(p)) = mark
             && !self.history.undo.iter().any(|u| Arc::as_ptr(&u.1) as usize == p)
         {
@@ -1035,20 +1078,24 @@ impl Session {
     }
 
     pub fn undo(&mut self) -> Option<String> {
+        self.ensure_revision_available().ok()?;
         let (label, prev) = self.history.undo.pop()?;
         self.history.merge_key = None;
         let cur = std::mem::replace(&mut self.project, prev);
         self.history.redo.push((label.clone(), cur));
+        self.media.add_stored(&self.project, self.path.as_deref());
         self.fix_state();
         self.bump();
         Some(label)
     }
 
     pub fn redo(&mut self) -> Option<String> {
+        self.ensure_revision_available().ok()?;
         let (label, next) = self.history.redo.pop()?;
         self.history.merge_key = None;
         let cur = std::mem::replace(&mut self.project, next);
         self.history.undo.push((label.clone(), cur));
+        self.media.add_stored(&self.project, self.path.as_deref());
         self.fix_state();
         self.bump();
         Some(label)
@@ -1103,9 +1150,19 @@ impl Session {
         }
     }
 
+    fn ensure_revision_available(&self) -> Result<()> {
+        if self.revision >= u64::MAX - 1 {
+            return Err(EngineError::Other("RESOURCE_LIMIT: document revision exhausted".into()));
+        }
+        Ok(())
+    }
+
     fn bump(&mut self) {
+        self.id_watermark = self.id_watermark.max(self.project.next_id);
         self.revision += 1;
-        self.events.push(Event::ProjectChanged { revision: self.revision });
+        if self.edit_group_depth == 0 {
+            self.events.push(Event::ProjectChanged { revision: self.revision });
+        }
     }
 
     pub fn toast(&mut self, msg: impl Into<String>) {

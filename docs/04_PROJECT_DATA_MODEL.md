@@ -1,6 +1,6 @@
 # ShotClutch — Project Data Model
 
-Baseline 0.1 · 2026-10-26 · Logical schema; storage engine, file extension, and tick frequency await the foundation audit.
+Baseline 0.1 · 2026-10-26 · Logical schema baseline; the M1 physical storage decision is recorded in [DEC-002](m1/DEC-002_PROJECT_PERSISTENCE.md).
 
 ## Canonical ownership
 
@@ -125,3 +125,7 @@ Validate referential integrity, acyclic nesting, time domains, positive denomina
 Garbage collection follows reachability from current project state, retained history, saved maps, and export manifests. Cache eviction can be automatic; deletion of authored or provenance-bearing resources requires the project retention policy. Undo must not depend on a cache that may disappear.
 
 Traceability: CORE-002 through CORE-004, PRE-002, PRE-005, AI-001, AGENT-005, MOTION-004, EXPORT-006.
+
+## M1 physical implementation note
+
+[DEC-002](m1/DEC-002_PROJECT_PERSISTENCE.md) retains `.scproj`, the copy-on-write project model and 254,016,000,000 ticks/second. Schema v17 stores logical project identity, revision, allocator state and retained undo/redo in the envelope beside editorial Project data. The Session owns these canonical fields in memory; they are not UI view state. Full source/time qualification and external transaction contracts remain in progress.

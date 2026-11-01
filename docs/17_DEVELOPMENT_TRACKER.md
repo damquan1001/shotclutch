@@ -49,7 +49,7 @@ Dependencies below are completion gates, not a requirement to postpone design or
 | CORE-001 | Build a standalone ShotClutch fork | P0 | M0 | Done | — |
 | CORE-002 | Use one canonical project with stable IDs and versioned extensions | P0 | M1 | In Progress | CORE-001 |
 | CORE-003 | Use integer ticks and rational rates for edit math | P0 | M1 | Planned | CORE-002 |
-| CORE-004 | Persist changes crash-safely | P0 | M1 | Planned | CORE-002 |
+| CORE-004 | Persist changes crash-safely | P0 | M1 | In Progress | CORE-002 |
 | CORE-005 | Establish reproducible build, automated checks, release packaging plan, and upstream-change policy | P0 | M0 | Done | CORE-001 |
 | UI-001 | Provide usable multitrack editing, exact trim/split/move, linked A/V, nesting, monitor seeking, audio levels, save, relink, and undo | P0 | M1 | Planned | CORE-003, AGENT-001, MEDIA-003, MEDIA-004 |
 | UI-002 | Provide a dedicated Smart Rough Cut workspace with transcript, waveform, source and result preview, take comparison, reasons, and apply/restore controls | P0 | M2 | Planned | PRE-002, PRE-003 |
@@ -124,7 +124,7 @@ These are implementation details or proposed baseline choices. They do not reope
 | ID | Decision | Baseline / alternatives to evaluate | Needed by | Owner / state |
 |---|---|---|---|---|
 | DEC-001 | Initial OS and qualification hardware | Windows x64 first; Windows 11 10.0.26200, Ryzen 7 4800H, 16 logical cores, approximately 32 GiB RAM; all adapters/drivers and actual memory in benchmark manifests | M0 | Codex / Profile captured; clean-machine and GPU qualification pending |
-| DEC-002 | Canonical schema, tick frequency, storage/migration layout | Extend inherited model; audit integer/rational representation and transaction durability before selecting physical layout | M1 | Unassigned / Open |
+| DEC-002 | Canonical schema, tick frequency, storage/migration layout | Retain inherited timebase/COW model; schema v17 atomic JSON document/history snapshots selected in [DEC-002](m1/DEC-002_PROJECT_PERSISTENCE.md); exact mapping and broader durability qualification remain | M1 | Codex / Implemented storage choice; qualification In Progress |
 | DEC-003 | MotionScene JS runtime and TS/JSX compiler | Compare deterministic evaluation, embedding, sandboxing, startup, memory, licensing, and debugging | M4 | Unassigned / Open |
 | DEC-004 | Web runtime embedding/distribution | Chromium worker strategy, headless rendering, GPU sharing, isolation, readiness, platform packaging | M5 | Unassigned / Open |
 | DEC-005 | Local ASR, embeddings, and visual model profiles | Evaluate quality/language, hardware cost, licenses, installation size, offline operation; no mandatory cloud fallback | M2 for ASR; M3 for others | Unassigned / Open |
@@ -200,3 +200,5 @@ The original M0 reports and fixtures remain unchanged. This work changes product
 ## M1 active work — 2026-11-02
 
 Owner: Codex. Branch: `codex/m1-editing-foundation`. [Implementation, test scope, remaining gates and next actions](m1/IMPLEMENTATION.md). Ready-PR-only single-job hosted CI replaces routine matrix/package runs; full workflows remain manual. CORE-002, AGENT-001/002 and TEST-001 are In Progress for the initial structural staging and focused correctness gate. No M1 requirement is marked Done.
+
+- 2026-11-02 — Continued M1 on `codex/m1-editing-foundation`: schema v17 document identity/history/revision and integrity, durable commit acknowledgement, recovery retry safety, migration protection, and non-rewinding allocation. CORE-004 joins the active items. [Decision and limits](m1/DEC-002_PROJECT_PERSISTENCE.md); [validation and remaining gates](m1/IMPLEMENTATION.md). No requirement is marked Done by this slice.

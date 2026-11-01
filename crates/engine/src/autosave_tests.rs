@@ -429,6 +429,8 @@ fn inherited_snapshot_is_discovered_and_not_deleted() {
     std::fs::create_dir_all(&legacy).unwrap();
     let mut doc: serde_json::Value = serde_json::from_slice(&shotclutch_format::encode(&shotclutch_project::Project::default(), false)).unwrap();
     doc["format"] = shotclutch_format::LEGACY_FORMAT_ID.into();
+    doc["schema_version"] = json!(16);
+    doc.as_object_mut().unwrap().remove("integrity");
     let original = serde_json::to_vec(&doc).unwrap();
     std::fs::write(legacy.join("snapshot.fcproj"), &original).unwrap();
     let candidates = crate::autosave::scan_candidates(&d, None);
@@ -460,6 +462,8 @@ fn recovery_preserves_legacy_envelope_protection_even_with_a_native_extension() 
     let path = d.join("inherited.scproj");
     let mut doc: serde_json::Value = serde_json::from_slice(&shotclutch_format::encode(&shotclutch_project::Project::default(), false)).unwrap();
     doc["format"] = shotclutch_format::LEGACY_FORMAT_ID.into();
+    doc["schema_version"] = json!(16);
+    doc.as_object_mut().unwrap().remove("integrity");
     let original = serde_json::to_vec(&doc).unwrap();
     std::fs::write(&path, &original).unwrap();
     let mut s = Session::default();

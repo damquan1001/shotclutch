@@ -1,9 +1,10 @@
 //! Isolated, revision-checked structural previews of timeline edits.
 //!
-//! This is the first M1 transaction slice. Commands use the existing edit service; the staged
-//! session has no persistence worker. A preview is process-local and cannot be deserialized or
-//! used to execute file/network operations. Durable history and adapter grants remain separate
-//! work before this can be exposed as the complete external transaction contract.
+//! Commands use the existing edit service; the staged session has no persistence worker. A
+//! preview is process-local and cannot be deserialized or execute file/network operations.
+//! Native durable commits acknowledge the atomic project/history snapshot before publication.
+//! Scoped grants, idempotent receipts and verification policy remain required before exposing
+//! the complete external transaction contract.
 
 use std::sync::Arc;
 
@@ -44,6 +45,10 @@ pub enum TransactionError {
     InvalidArgument(String),
     #[error("VERIFICATION_FAILED: {0}")]
     VerificationFailed(String),
+    #[error("INTERNAL_ERROR: durable commit failed: {0}")]
+    PersistenceFailed(String),
+    #[error("CAPABILITY_UNAVAILABLE: {0}")]
+    CapabilityUnavailable(&'static str),
 }
 
 /// An immutable structural preview. Drop it to abort. Its project can be rendered using the
@@ -99,6 +104,8 @@ impl Session {
         }
         let mut staged = Session::new(self.services.clone());
         staged.project = self.project.clone();
+        staged.document_id = self.document_id;
+        staged.id_watermark = self.id_watermark;
         staged.media = self.media.clone();
         staged.revision = self.revision;
         staged.state = self.state.clone();
@@ -144,21 +151,55 @@ impl Session {
 
     /// Compare-and-swap the reviewed snapshot into this session as one undo item. An intervening
     /// edit or project replacement rejects the preview, including a switch to another document.
+    /// A configured recovery worker is acknowledged before publication. Without one this is an
+    /// in-memory commit; callers needing a durability guarantee must use `commit_edits_durable`.
     pub fn commit_edits(&mut self, prepared: PreparedEdit) -> std::result::Result<Vec<Value>, TransactionError> {
         if self.revision != prepared.revision || !Arc::ptr_eq(&self.project, &prepared.base) {
             return Err(TransactionError::RevisionConflict);
         }
-        let project = (*prepared.project).clone();
-        self.edit(&prepared.label, |p, _| {
-            *p = project;
-            Ok(())
-        })
-        .map_err(|e| TransactionError::VerificationFailed(e.to_string()))?;
+        self.ensure_revision_available().map_err(|e| TransactionError::InvalidArgument(e.to_string()))?;
+        if self.edit_group_depth != 0 {
+            return Err(TransactionError::InvalidArgument("transaction commits cannot be nested in command groups".into()));
+        }
+        if self.trim_play.active() {
+            return Err(TransactionError::RevisionConflict);
+        }
+        self.refuse_self_nesting(&prepared.project).map_err(|e| TransactionError::VerificationFailed(e.to_string()))?;
+        let mut snapshot = self.document_snapshot();
+        snapshot.project = prepared.project;
+        snapshot.revision = self.revision.checked_add(1).ok_or_else(|| TransactionError::InvalidArgument("revision exhausted".into()))?;
+        snapshot.next_id = snapshot.next_id.max(snapshot.project.next_id);
+        snapshot.history.undo.push((prepared.label, self.project.clone()));
+        if snapshot.history.undo.len() > snapshot.history.limit {
+            snapshot.history.undo.remove(0);
+        }
+        snapshot.history.redo.clear();
+        snapshot.history.merge_key = None;
+        // No canonical state, history item or event is published until the worker acknowledges
+        // the atomic recovery snapshot containing both the complete edit and its inverse.
+        if let Some(persistence) = &self.persistence {
+            persistence.commit_snapshot(snapshot.clone()).map_err(TransactionError::PersistenceFailed)?;
+        }
+        #[cfg(test)]
+        crate::document::after_durable_commit();
+        self.project = snapshot.project;
+        self.history = snapshot.history;
+        self.id_watermark = snapshot.next_id;
+        self.bump();
         // Keep the user's current view/selection; staging uses an explicit sequence and targets.
         self.fix_state();
         self.sync_persistence();
         self.previews.live.publish_project(self.project.clone());
         Ok(prepared.results)
+    }
+
+    /// Fail closed when the host cannot acknowledge durable storage. Suitable for native
+    /// service adapters once their independent permission/idempotency policies are implemented.
+    pub fn commit_edits_durable(&mut self, prepared: PreparedEdit) -> std::result::Result<Vec<Value>, TransactionError> {
+        if self.persistence.is_none() || !self.prefs.auto_save.recovery_journal {
+            return Err(TransactionError::CapabilityUnavailable("an enabled recovery worker is required for durable commit"));
+        }
+        self.commit_edits(prepared)
     }
 }
 

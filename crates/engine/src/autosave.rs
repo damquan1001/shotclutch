@@ -12,14 +12,13 @@
 //! the next launch any session directory whose lock can be taken and that holds a snapshot is a
 //! recovery candidate ("Recover unsaved changes from <time>?").
 //!
-//! **Threading.** The UI thread only hands the worker an `Arc<Project>` (the immutable snapshot the
-//! engine already keeps for undo) — a pointer copy and a channel send. Serialization and all file
-//! I/O happen on the worker thread, so neither ever stalls the UI.
+//! **Threading.** Snapshot messages carry the current `Arc<Project>`, retained history Arcs and
+//! view/identity metadata. Normal debounced serialization and file I/O run on the worker. The
+//! internal durable transaction API explicitly waits for its commit acknowledgement.
 
 use std::fs::{self, File};
 use std::io;
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
 use std::sync::mpsc::{Receiver, RecvTimeoutError, Sender, channel};
 use std::thread::JoinHandle;
 use std::time::Duration;
@@ -27,7 +26,6 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use shotclutch_format::autosave as names;
-use shotclutch_project::Project;
 use web_time::{Instant, SystemTime, UNIX_EPOCH};
 
 use crate::settings;
@@ -648,12 +646,7 @@ pub(crate) struct Sent {
     pub path: Option<String>,
 }
 
-struct Snapshot {
-    project: Arc<Project>,
-    revision: u64,
-    path: Option<String>,
-    legacy_identity: bool,
-}
+use crate::document::Snapshot;
 
 enum Msg {
     /// The project has unsaved changes at this revision.
@@ -662,7 +655,8 @@ enum Msg {
     Clean,
     Prefs(AutoSavePrefs),
     AutoSaveNow(Sender<Result<PathBuf, String>>),
-    Flush(Sender<()>),
+    Flush(Sender<Result<(), String>>),
+    Commit(Snapshot, Sender<Result<(), String>>),
     Stop,
 }
 
@@ -773,8 +767,8 @@ impl Persistence {
         })
     }
 
-    pub(crate) fn send_dirty(&self, project: Arc<Project>, revision: u64, path: Option<String>, legacy_identity: bool) {
-        let _ = self.tx.send(Msg::Dirty(Snapshot { project, revision, path, legacy_identity }));
+    pub(crate) fn send_dirty(&self, snapshot: Snapshot) {
+        let _ = self.tx.send(Msg::Dirty(snapshot));
     }
 
     pub(crate) fn send_clean(&self) {
@@ -787,10 +781,21 @@ impl Persistence {
 
     /// Write any pending journal now and wait for it.
     pub fn flush(&self) {
+        let _ = self.flush_checked();
+    }
+
+    /// A checked flush is required before discarding a recovery candidate. Success acknowledges
+    /// the atomic snapshot write, not merely delivery of a request to the worker.
+    pub fn flush_checked(&self) -> Result<(), String> {
         let (tx, rx) = channel();
-        if self.tx.send(Msg::Flush(tx)).is_ok() {
-            let _ = rx.recv_timeout(Duration::from_secs(30));
-        }
+        self.tx.send(Msg::Flush(tx)).map_err(|_| "recovery worker stopped".to_string())?;
+        rx.recv().map_err(|_| "recovery worker stopped before acknowledging the snapshot".to_string())?
+    }
+
+    pub(crate) fn commit_snapshot(&self, snapshot: Snapshot) -> Result<(), String> {
+        let (tx, rx) = channel();
+        self.tx.send(Msg::Commit(snapshot, tx)).map_err(|_| "recovery worker stopped".to_string())?;
+        rx.recv().map_err(|_| "commit acknowledgement lost; recover the snapshot before retrying".to_string())?
     }
 
     /// Write an auto-save now (if there are unsaved changes) and wait for the result.
@@ -960,17 +965,29 @@ impl Worker {
                     let _ = reply.send(r);
                 }
                 Some(Msg::Flush(ack)) => {
-                    if self.journal_due().is_some() {
-                        self.write_journal();
+                    let r = if self.latest.is_some() && !self.prefs.recovery_journal {
+                        Err("recovery journal is disabled".into())
+                    } else if self.journal_due().is_some() {
+                        self.write_journal()
+                    } else {
+                        Ok(())
+                    };
+                    let _ = ack.send(r);
+                }
+                Some(Msg::Commit(snapshot, ack)) => {
+                    let previous = self.latest.replace(snapshot);
+                    let r = if self.prefs.recovery_journal { self.write_journal() } else { Err("recovery journal is disabled".into()) };
+                    if r.is_err() {
+                        self.latest = previous;
                     }
-                    let _ = ack.send(());
+                    let _ = ack.send(r);
                 }
                 Some(Msg::Stop) => return,
                 None => {}
             }
             let now = Instant::now();
             if self.journal_due().is_some_and(|d| d <= now) {
-                self.write_journal();
+                let _ = self.write_journal();
             }
             if self.prefs.enabled && self.next_autosave <= now {
                 if self.latest.as_ref().is_some_and(|s| s.revision != self.autosaved) {
@@ -986,10 +1003,10 @@ impl Worker {
         let _ = self.events.send(WorkerEvent::Error(e));
     }
 
-    fn write_journal(&mut self) {
-        let Some(s) = &self.latest else { return };
+    fn write_journal(&mut self) -> Result<(), String> {
+        let Some(s) = &self.latest else { return Ok(()) };
         let t0 = Instant::now();
-        let bytes = shotclutch_format::encode(&s.project, false);
+        let bytes = s.encode(None, true)?;
         let serialize_ms = t0.elapsed().as_secs_f64() * 1000.0;
         let t1 = Instant::now();
         let unix = unix_now();
@@ -1000,21 +1017,28 @@ impl Worker {
         meta.project_path = s.path.clone();
         meta.legacy_identity = s.legacy_identity;
         meta.bytes = bytes.len();
-        // Snapshot first, then the meta that makes it a candidate.
-        let r = shotclutch_format::atomic_write(&self.session_dir.join(SNAPSHOT), &bytes)
-            .and_then(|_| shotclutch_format::atomic_write(&self.session_dir.join(META), &serde_json::to_vec_pretty(&meta).unwrap_or_default()));
+        // The snapshot is the commit marker and includes all recovery-critical metadata.
+        // session.json is advisory; a failed metadata write cannot turn a committed snapshot
+        // into a reported failed commit or cause the caller to retry the edit.
+        let r = shotclutch_format::atomic_write(&self.session_dir.join(SNAPSHOT), &bytes);
         let write_ms = t1.elapsed().as_secs_f64() * 1000.0;
         match r {
             Ok(()) => {
+                if let Err(e) = shotclutch_format::atomic_write(&self.session_dir.join(META), &serde_json::to_vec_pretty(&meta).unwrap_or_default()) {
+                    self.error(format!("recovery metadata (snapshot is committed): {e}"));
+                }
                 self.journaled = s.revision;
                 self.first_pending = None;
                 let _ = self.events.send(WorkerEvent::Journaled { revision: s.revision, unix, serialize_ms, write_ms, bytes: bytes.len() });
+                Ok(())
             }
             Err(e) => {
                 // Try again at the next interval rather than spinning.
                 self.first_pending = Some(Instant::now());
                 self.last_change = Instant::now();
-                self.error(format!("recovery journal: {e}"));
+                let message = format!("recovery journal: {e}");
+                self.error(message.clone());
+                Err(message)
             }
         }
     }
@@ -1041,7 +1065,7 @@ impl Worker {
             (None, _) => (self.data_dir.join(names::AUTO_SAVE_DIR), s.project.name.clone()),
         };
         let t0 = Instant::now();
-        let bytes = shotclutch_format::encode(&s.project, false);
+        let bytes = s.encode(None, false)?;
         let serialize_ms = t0.elapsed().as_secs_f64() * 1000.0;
         let t1 = Instant::now();
         let unix = unix_now();
@@ -1052,6 +1076,7 @@ impl Worker {
                 self.autosaved = s.revision;
                 let _ = self.events.send(WorkerEvent::AutoSaved { path: path.clone(), revision: s.revision, unix, serialize_ms, write_ms, bytes: bytes.len() });
                 if self.prefs.save_current_project
+                    && s.loaded_schema == shotclutch_format::SCHEMA_VERSION
                     && !s.legacy_identity
                     && let Some(p) = &s.path
                     && !shotclutch_format::is_legacy_project_path(p)

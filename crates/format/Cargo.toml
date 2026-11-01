@@ -10,6 +10,8 @@ rust-version.workspace = true
 workspace = true
 
 [dependencies]
+uuid = { workspace = true }
+sha2 = { workspace = true }
 shotclutch-project = { workspace = true }
 shotclutch-media = { workspace = true }
 log = { workspace = true }
