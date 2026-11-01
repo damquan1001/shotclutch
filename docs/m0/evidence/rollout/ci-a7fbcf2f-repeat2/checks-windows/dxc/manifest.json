@@ -1,0 +1,14 @@
+{
+  "publisher": "Microsoft DirectXShaderCompiler",
+  "release": "v1.8.2505.1",
+  "binary_version": "1.8.2505.32",
+  "url": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2505.1/dxc_2025_07_14.zip",
+  "sha256": "9ad895a6b039e3a8f8c22a1009f866800b840a74b50db9218d13319e215ea8a4",
+  "reported_version": "dxcompiler.dll: 1.9 - 1.8.2505.32 (b106a961d); dxil.dll: 1.9(1.8.2505.32)",
+  "files_sha256": {
+    "dxc.exe": "ce11bb02f6027055e0b9f8c062d13b14f373c876a16557a4fa744314117d31e7",
+    "dxcompiler.dll": "5888d3e590f5bfd8743484e7f31313996734adec5741506271a5c6368cbe8ba9",
+    "dxil.dll": "0cf5fa4b90f74550166108b3870c883f4a85243976b246b1da3ea90ad5b92015"
+  },
+  "scope": "CI test-only; wgpu Auto selects dynamic DXC from PATH; hosted adapter is not physical GPU qualification"
+}

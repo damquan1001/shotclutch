@@ -1,0 +1,185 @@
+   Compiling craft-media v0.1.0 (https://github.com/storytold/craft-libs?rev=f0ad6c1e1d297908915f4be315b0fcfc9be7b5d4#f0ad6c1e)
+   Compiling windows-core v0.62.2
+   Compiling symphonia-core v0.5.5
+   Compiling filmcraft-bitstream v0.13.0 (D:\a\shotclutch\shotclutch\crates\bitstream)
+   Compiling windows-future v0.3.2
+   Compiling filmcraft-frame v0.13.0 (D:\a\shotclutch\shotclutch\crates\frame)
+   Compiling harfrust v0.12.0
+   Compiling skrifa v0.44.0
+   Compiling windows-numerics v0.3.1
+   Compiling windows-collections v0.3.2
+   Compiling filmcraft-dng v0.13.0 (D:\a\shotclutch\shotclutch\crates\dng)
+   Compiling filmcraft-media v0.13.0 (D:\a\shotclutch\shotclutch\crates\media)
+   Compiling windows v0.62.2
+   Compiling symphonia-metadata v0.5.5
+   Compiling filmcraft-project v0.13.0 (D:\a\shotclutch\shotclutch\crates\project)
+   Compiling color v0.3.3
+   Compiling uuid v1.26.1
+   Compiling peniko v0.6.1
+   Compiling accesskit v0.24.1
+   Compiling naga v30.0.1
+   Compiling wgpu-types v30.0.1
+   Compiling symphonia-utils-xiph v0.5.5
+   Compiling gpu-allocator v0.28.0
+   Compiling vello_common v0.1.0
+   Compiling wgpu-naga-bridge v30.0.1
+   Compiling emath v0.36.2
+   Compiling wgpu-hal v30.0.1
+   Compiling filmcraft-text v0.13.0 (D:\a\shotclutch\shotclutch\crates\text)
+   Compiling ecolor v0.36.2
+   Compiling ahash v0.8.12
+   Compiling vello_cpu v0.1.0
+   Compiling chrono v0.4.45
+   Compiling tracing-core v0.1.36
+   Compiling epaint v0.36.2
+   Compiling tracing v0.1.44
+   Compiling filmcraft-captions v0.13.0 (D:\a\shotclutch\shotclutch\crates\captions)
+   Compiling wgpu-core-deps-windows-linux-android v30.0.1
+   Compiling windows-sys v0.61.2
+   Compiling winit v0.30.13
+   Compiling symphonia-format-riff v0.5.5
+   Compiling filmcraft-render v0.13.0 (D:\a\shotclutch\shotclutch\crates\render)
+   Compiling egui v0.36.2
+   Compiling wgpu-core v30.0.1
+   Compiling filmcraft-mxf v0.13.0 (D:\a\shotclutch\shotclutch\crates\mxf)
+   Compiling symphonia-codec-vorbis v0.5.5
+   Compiling symphonia-format-isomp4 v0.5.5
+   Compiling symphonia-bundle-flac v0.5.5
+   Compiling symphonia-format-ogg v0.5.5
+   Compiling accesskit_consumer v0.35.0
+   Compiling symphonia-bundle-mp3 v0.5.5
+   Compiling filmcraft-apv v0.13.0 (D:\a\shotclutch\shotclutch\crates\apv)
+   Compiling filmcraft-aac v0.13.0 (D:\a\shotclutch\shotclutch\crates\aac)
+   Compiling filmcraft-prores v0.13.0 (D:\a\shotclutch\shotclutch\crates\prores)
+   Compiling filmcraft-dnx v0.13.0 (D:\a\shotclutch\shotclutch\crates\dnx)
+   Compiling symphonia-codec-pcm v0.5.5
+   Compiling symphonia-codec-alac v0.5.5
+   Compiling symphonia-codec-aac v0.5.5
+   Compiling filmcraft-isobmff v0.13.0 (D:\a\shotclutch\shotclutch\crates\isobmff)
+   Compiling symphonia v0.5.5
+   Compiling accesskit_windows v0.32.1
+   Compiling wgpu v30.0.1
+   Compiling filmcraft-mpa v0.13.0 (D:\a\shotclutch\shotclutch\crates\mpa)
+   Compiling filmcraft-h264enc v0.13.0 (D:\a\shotclutch\shotclutch\crates\h264enc)
+   Compiling filmcraft-hevc v0.13.0 (D:\a\shotclutch\shotclutch\crates\hevc)
+   Compiling filmcraft-av1 v0.13.0 (D:\a\shotclutch\shotclutch\crates\av1)
+   Compiling filmcraft-h264 v0.13.0 (D:\a\shotclutch\shotclutch\crates\h264)
+   Compiling filmcraft-flac v0.13.0 (D:\a\shotclutch\shotclutch\crates\flac)
+   Compiling filmcraft-vp9 v0.13.0 (D:\a\shotclutch\shotclutch\crates\vp9)
+   Compiling filmcraft-matroska v0.13.0 (D:\a\shotclutch\shotclutch\crates\matroska)
+   Compiling filmcraft-mpeg2v v0.13.0 (D:\a\shotclutch\shotclutch\crates\mpeg2v)
+   Compiling filmcraft-mpegts v0.13.0 (D:\a\shotclutch\shotclutch\crates\mpegts)
+   Compiling filmcraft-ac3 v0.13.0 (D:\a\shotclutch\shotclutch\crates\ac3)
+   Compiling filmcraft-vp8 v0.13.0 (D:\a\shotclutch\shotclutch\crates\vp8)
+   Compiling filmcraft-codecs v0.13.0 (D:\a\shotclutch\shotclutch\crates\codecs)
+   Compiling tempfile v3.27.0
+   Compiling filmcraft-export v0.13.0 (D:\a\shotclutch\shotclutch\crates\export)
+   Compiling arboard v3.6.1
+   Compiling accesskit_winit v0.32.2
+   Compiling windows-result v0.1.2
+   Compiling filmcraft-interchange v0.13.0 (D:\a\shotclutch\shotclutch\crates\interchange)
+   Compiling windows-core v0.54.0
+   Compiling egui-winit v0.36.2
+   Compiling filmcraft-speech v0.13.0 (D:\a\shotclutch\shotclutch\crates\speech)
+   Compiling filmcraft-format v0.13.0 (D:\a\shotclutch\shotclutch\crates\format)
+   Compiling egui-wgpu v0.36.2
+   Compiling filmcraft-edit v0.13.0 (D:\a\shotclutch\shotclutch\crates\edit)
+   Compiling filmcraft-scopes v0.13.0 (D:\a\shotclutch\shotclutch\crates\scopes)
+   Compiling filmcraft-tts v0.13.0 (D:\a\shotclutch\shotclutch\crates\tts)
+   Compiling eframe v0.36.2
+   Compiling filmcraft-gpu v0.13.0 (D:\a\shotclutch\shotclutch\crates\gpu)
+   Compiling filmcraft-engine v0.13.0 (D:\a\shotclutch\shotclutch\crates\engine)
+   Compiling filmcraft v0.13.0 (D:\a\shotclutch\shotclutch\apps\filmcraft)
+   Compiling windows v0.54.0
+   Compiling craft-ui v0.1.0 (https://github.com/storytold/craft-libs?rev=5c874d51eeb3de70e735c8ce87a59a7dedd47675#5c874d51)
+   Compiling dasp_sample v0.11.0
+   Compiling cpal v0.16.0
+   Compiling filmcraft-ui-egui v0.13.0 (D:\a\shotclutch\shotclutch\crates\ui-egui)
+   Compiling rfd v0.17.2
+   Compiling filmcraft-platform v0.13.0 (D:\a\shotclutch\shotclutch\crates\platform)
+   Compiling open v5.4.4
+   Compiling sys-locale v0.3.2
+   Compiling glob v0.3.4
+   Compiling subtle v2.6.1
+    Finished `test` profile [optimized] target(s) in 20m 48s
+     Running unittests src\main.rs (target\debug\deps\shotclutch-422014a3fbe12b69.exe)
+
+running 75 tests
+test app_nap::tests::app_nap_is_disabled_on_macos ... ok
+test args::tests::a_bad_port_in_the_environment_is_an_error_like_a_bad_control_flag ... ok
+test args::tests::a_project_is_recognised_whatever_the_case_of_its_extension ... ok
+test args::tests::help_and_version_do_not_start_the_app ... ok
+test args::tests::graphics_picks_one_of_this_platforms_modes ... ok
+test args::tests::isolated_input_is_explicit_and_requires_a_control_server ... ok
+test args::tests::known_options_and_files_parse_as_before ... ok
+test args::tests::launch_files_are_made_absolute_and_split_case_insensitively ... ok
+test args::tests::unknown_options_are_errors ... ok
+test audio::tests::a_lost_device_restarts_at_once_and_repeated_failures_give_up ... ok
+test audio::tests::a_panicking_mixer_plays_silence_and_fails_the_stream ... ok
+test audio::tests::a_stream_that_errors_and_stops_consuming_is_restarted ... ok
+test audio::tests::an_error_while_samples_keep_flowing_is_only_a_hiccup ... ok
+test audio::tests::fallback_prefers_sound_servers_over_raw_hardware ... ok
+test audio::tests::full_scale_24_bit_samples_remain_representable ... ok
+test audio::tests::integer_conversion_clips_and_preserves_interleaved_channels ... ok
+test audio::tests::notes_name_the_fallback_device ... ok
+test audio::tests::the_device_callback_never_panics_and_counts_played_frames ... ok
+test audio_in::tests::invalid_input_is_reported_without_panicking_or_appending ... ok
+test audio_in::tests::signed_and_unsigned_input_is_deinterleaved_to_float ... ok
+test control_server::tests::a_request_before_junk_still_runs ... ok
+test audio::tests::stream_errors_ask_for_a_restart_instead_of_failing_playback ... ok
+test control_server::tests::active_connection_can_be_reused ... ok
+test control_server::tests::authentication_is_required_on_every_request ... ok
+test control_server::tests::authenticated_tcp_request_reaches_the_ui_queue ... ok
+test control_server::tests::http_request_closes_before_the_body_runs ... ok
+test control_server::tests::extra_connections_are_refused ... ok
+test control_server::tests::idle_connection_releases_its_slot ... ok
+test control_server::tests::line_at_the_limit_is_accepted ... ok
+test control_server::tests::missing_or_invalid_token_leaves_the_listener_closed ... ok
+test control_server::tests::non_request_json_closes_the_connection ... ok
+test control_server::tests::overlong_line_is_refused ... ok
+test control_server::tests::requests_are_answered_in_order_with_ids ... ok
+test control_server::tests::tcp_authentication_happens_before_enqueueing ... ok
+test control_server::tests::tcp_connection_is_closed_after_junk ... ok
+test control_server::tests::unauthenticated_save_as_closes_before_any_command_runs ... ok
+test control_server::tests::unterminated_request_releases_its_slot ... ok
+test control_server::tests::valid_unterminated_request_is_not_dispatched ... ok
+test file_filters::tests::native_filters_receive_only_literal_extensions ... ok
+test file_filters::tests::save_filters_keep_the_literal_default_extension ... ok
+test graphics::tests::a_start_that_paints_keeps_its_mode_and_clears_its_attempt ... ok
+test graphics::tests::an_explicit_backend_leaves_the_data_folder_alone ... ok
+test graphics::tests::concurrent_launches_neither_count_nor_disturb_each_other ... ok
+test graphics::tests::corrupt_huge_or_foreign_files_start_with_the_default ... ok
+test graphics::tests::explicit_backend_override_is_preserved ... ok
+test graphics::tests::fallback_modes_leave_out_the_crashing_backends ... ok
+test graphics::tests::graphics_flag_picks_the_mode_and_default_undoes_a_fallback ... ok
+test control_server::tests::idle_timeout_does_not_cancel_a_pending_ui_reply ... ok
+test graphics::tests::no_mode_validates_indirect_calls ... ok
+test graphics::tests::only_starts_that_died_soon_after_launch_in_the_current_mode_count ... ok
+test graphics::tests::only_the_windows_default_and_software_modes_choose_the_adapter ... ok
+test graphics::tests::many_attempt_files_are_bounded_per_launch ... ok
+test graphics::tests::reset_to_default_wins_over_a_later_confirm ... ok
+test graphics::tests::the_files_round_trip_and_reject_anything_else ... ok
+test graphics::tests::step_down_walks_the_ladder_and_saves_each_mode_at_once ... ok
+test graphics::tests::two_dead_starts_move_on_and_a_painted_one_resets_the_count ... ok
+test graphics::tests::two_failed_starts_in_a_row_move_on_to_the_next_mode_and_keep_it ... ok
+test graphics::tests::windows_default_leaves_out_gl ... ok
+test logging::tests::a_line_carries_time_level_thread_target_and_message ... ok
+test logging::tests::a_poisoned_lock_does_not_stop_logging ... ok
+test logging::tests::attaching_to_an_unusable_directory_reports_an_error_and_keeps_logging ... ok
+test logging::tests::directives_follow_env_logger_and_the_most_specific_one_wins ... ok
+test logging::tests::exactly_max_pending_lines_drop_nothing ... ok
+test logging::tests::hostile_specs_never_panic_and_fall_back_sensibly ... ok
+test logging::tests::lines_logged_before_the_file_exists_are_written_when_it_is_attached ... ok
+test logging::tests::records_from_many_threads_are_whole_lines ... ok
+test logging::tests::rotation_into_an_unusable_directory_is_an_error_not_a_panic ... ok
+test logging::tests::rotation_keeps_the_previous_logs_and_starts_an_empty_file ... ok
+test logging::tests::the_default_filter_shows_filmcraft_info_and_other_crates_warnings ... ok
+test logging::tests::the_file_stops_at_its_size_cap_with_one_note ... ok
+test logging::tests::the_logger_filters_records_and_writes_them_to_the_attached_file ... ok
+test logging::tests::the_pending_buffer_is_bounded_and_says_how_much_it_dropped ... ok
+test logging::tests::timestamps_are_utc_with_milliseconds ... ok
+test tests::startup_registers_the_hardware_decoders_without_a_logger ... ok
+test graphics::tests::the_software_selector_only_picks_a_software_adapter ... ok
+
+test result: ok. 75 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.83s
+

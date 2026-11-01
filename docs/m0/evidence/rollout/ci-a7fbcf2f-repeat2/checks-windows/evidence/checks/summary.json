@@ -1,0 +1,186 @@
+{
+  "revision": "a7fbcf2ffba3156bef1e175d30880670d7ff3bfc",
+  "os": "Windows-2025Server-10.0.26100-SP0",
+  "architecture": "AMD64",
+  "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
+  "logical_cores": 2,
+  "physical_memory_bytes": null,
+  "image_version": "20261021.278.1",
+  "image_os": "win25-vs2026",
+  "run_id": "40860747696",
+  "attempt": "1",
+  "dependency_cache_hit": "true",
+  "compiled_target_cache": "disabled",
+  "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "cargo_lock_sha256": "3a05488c275f867f2f9845258428e7ef6eb25f297a67c104d6ad09322c733013",
+  "min_free_disk_bytes": 72782069760,
+  "profile_overrides": {
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0"
+  },
+  "gpu_required": true,
+  "gpu_test_profile": {
+    "SHOTCLUTCH_CI_GPU_BACKEND": "dx12",
+    "SHOTCLUTCH_CI_DX12_COMPILER": "dxc"
+  },
+  "commands": [
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "log": "01.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 9.719000000000051
+    },
+    {
+      "command": [
+        "cargo",
+        "xtask",
+        "layers"
+      ],
+      "log": "02.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 19.29599999999982
+    },
+    {
+      "command": [
+        "cargo",
+        "xtask",
+        "assets"
+      ],
+      "log": "03.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 0.5790000000001783
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "log": "04.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 681.0
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--workspace",
+        "--lib"
+      ],
+      "log": "05.log",
+      "exit_code": 0,
+      "gpu_environment": {
+        "WGPU_BACKEND": "dx12",
+        "WGPU_DX12_COMPILER": "dxc"
+      },
+      "wall_seconds": 2577.0150000000003
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "filmcraft",
+        "--bin",
+        "shotclutch"
+      ],
+      "log": "06.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 1249.438
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "filmcraft-cli",
+        "--bin",
+        "shotclutch-cli"
+      ],
+      "log": "07.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 900.6719999999996
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "filmcraft-format",
+        "--test",
+        "fixtures"
+      ],
+      "log": "08.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 177.95300000000043
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "filmcraft-cli",
+        "--test",
+        "it"
+      ],
+      "log": "09.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 60.46799999999985
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "filmcraft-ui-egui",
+        "--example",
+        "bench"
+      ],
+      "log": "10.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 606.3439999999991
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--workspace",
+        "--doc"
+      ],
+      "log": "11.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 153.32800000000134
+    }
+  ],
+  "result": "passed"
+}

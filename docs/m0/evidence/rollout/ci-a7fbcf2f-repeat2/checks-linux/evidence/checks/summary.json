@@ -1,0 +1,186 @@
+{
+  "revision": "a7fbcf2ffba3156bef1e175d30880670d7ff3bfc",
+  "os": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+  "architecture": "x86_64",
+  "cpu": "x86_64",
+  "logical_cores": 2,
+  "physical_memory_bytes": null,
+  "image_version": "20261026.354.1",
+  "image_os": "ubuntu24",
+  "run_id": "40860747696",
+  "attempt": "1",
+  "dependency_cache_hit": "true",
+  "compiled_target_cache": "disabled",
+  "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "cargo_lock_sha256": "de03a57ae05724d3eb2321db9577ad115939ed99f70dccfcfd43ab23eb9285fa",
+  "min_free_disk_bytes": 8233218048,
+  "profile_overrides": {
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0"
+  },
+  "gpu_required": true,
+  "gpu_test_profile": {
+    "SHOTCLUTCH_CI_GPU_BACKEND": "vulkan",
+    "SHOTCLUTCH_CI_DX12_COMPILER": "auto"
+  },
+  "commands": [
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "log": "01.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 6.278154803999996
+    },
+    {
+      "command": [
+        "cargo",
+        "xtask",
+        "layers"
+      ],
+      "log": "02.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 9.862177525999982
+    },
+    {
+      "command": [
+        "cargo",
+        "xtask",
+        "assets"
+      ],
+      "log": "03.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 0.21433148700003812
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "log": "04.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 447.116041052
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--workspace",
+        "--lib"
+      ],
+      "log": "05.log",
+      "exit_code": 0,
+      "gpu_environment": {
+        "WGPU_BACKEND": "vulkan",
+        "WGPU_DX12_COMPILER": "auto"
+      },
+      "wall_seconds": 1492.94330333
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "filmcraft",
+        "--bin",
+        "shotclutch"
+      ],
+      "log": "06.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 508.2208085360003
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "filmcraft-cli",
+        "--bin",
+        "shotclutch-cli"
+      ],
+      "log": "07.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 525.635014084
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "filmcraft-format",
+        "--test",
+        "fixtures"
+      ],
+      "log": "08.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 75.41990764899992
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "filmcraft-cli",
+        "--test",
+        "it"
+      ],
+      "log": "09.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 28.677998088000095
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "filmcraft-ui-egui",
+        "--example",
+        "bench"
+      ],
+      "log": "10.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 391.3728354589998
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--workspace",
+        "--doc"
+      ],
+      "log": "11.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 77.09904040099991
+    }
+  ],
+  "result": "passed"
+}

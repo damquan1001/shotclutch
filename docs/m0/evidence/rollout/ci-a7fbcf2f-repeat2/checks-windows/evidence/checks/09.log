@@ -1,0 +1,24 @@
+   Compiling filmcraft-cli v0.13.0 (D:\a\shotclutch\shotclutch\apps\filmcraft-cli)
+    Finished `test` profile [optimized] target(s) in 46.96s
+     Running tests\it\main.rs (target\debug\deps\it-95c52f3c4385caaa.exe)
+
+running 16 tests
+test cli::closed_stdout_ends_quietly ... ok
+test cli::closed_stdout_still_runs_the_script_and_saves ... ok
+test cli::exec_inspect_and_describe ... ok
+test cli::exec_save_as_then_reopen ... ok
+test cli::export_wav_waits_for_job ... ok
+test cli::export_with_missing_media_fails_unless_allowed ... ok
+test cli::help_and_usage_errors ... ok
+test cli::long_help_matches_help_command ... ok
+test cli::probe_reports_mpeg_transport_and_program_streams ... ok
+test cli::render_rejects_bad_numbers ... ok
+test cli::run_keep_going_reports_failures ... ok
+test cli::run_waits_for_an_export_on_its_last_line ... ok
+test cli::export_with_presets ... ok
+test cli::version_after_global_options ... ok
+test workflows::phone_vfr_clip_extract_gain_title_to_h264_mp4 ... ok
+test workflows::camera_long_gop_two_audio_tracks_trim_dissolve_to_prores ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 13.25s
+

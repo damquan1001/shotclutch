@@ -1,0 +1,29 @@
+{
+  "platform": "darwin-arm64",
+  "locked_version": "9.0.2",
+  "publisher": "https://ffmpeg.martin-riedl.de/",
+  "tools": {
+    "ffmpeg": {
+      "url": "https://ffmpeg.martin-riedl.de/download/macos/arm64/1789931890_9.0.2/ffmpeg.zip",
+      "sha256": "c8ed4c4e6978a03c485edbfe4e0a5dc2380f8a30bba5150531b31b094492d924",
+      "version": "ffmpeg version 9.0.2-https://www.martin-riedl.de Copyright (c) 2000-2026 the FFmpeg developers",
+      "executable_sha256": "2e11c6f90993cdb79fff84d3f90044d28316b310e75b3e030cfc9a54f2c9d384"
+    },
+    "ffprobe": {
+      "url": "https://ffmpeg.martin-riedl.de/download/macos/arm64/1789931890_9.0.2/ffprobe.zip",
+      "sha256": "fcbe839537485eaee7a7a8bc5cbc0f90d53617e80943e8a5b2e31cb851197ea6",
+      "version": "ffprobe version 9.0.2-https://www.martin-riedl.de Copyright (c) 2007-2026 the FFmpeg developers",
+      "executable_sha256": "2738aa46a7f9acbc8ab09a6715554c90f7de603171ac403726765685df6a0059"
+    }
+  },
+  "verified_encoders": [
+    "aac",
+    "libaom-av1",
+    "libvpx-vp9",
+    "libx264",
+    "libx265",
+    "mp2",
+    "mpeg2video",
+    "prores_ks"
+  ]
+}

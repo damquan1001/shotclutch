@@ -1,0 +1,715 @@
+{
+  "total_count": 8,
+  "jobs": [
+    {
+      "id": 123403045045,
+      "run_id": 40860747696,
+      "workflow_name": "CI",
+      "head_branch": "codex/m0-foundation",
+      "run_url": "https://api.github.com/repos/damquan1001/shotclutch/actions/runs/40860747696",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVXHBgc8AAAAcu2UItQ",
+      "head_sha": "a7fbcf2ffba3156bef1e175d30880670d7ff3bfc",
+      "url": "https://api.github.com/repos/damquan1001/shotclutch/actions/jobs/123403045045",
+      "html_url": "https://github.com/damquan1001/shotclutch/actions/runs/40860747696/job/123403045045",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-29T10:50:43Z",
+      "started_at": "2026-10-29T10:50:47Z",
+      "completed_at": "2026-10-29T11:57:11Z",
+      "name": "checks (ubuntu-24.04)",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-29T10:50:48Z",
+          "completed_at": "2026-10-29T10:50:49Z"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-29T10:50:49Z",
+          "completed_at": "2026-10-29T10:50:52Z"
+        },
+        {
+          "name": "Linux build dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-29T10:50:52Z",
+          "completed_at": "2026-10-29T10:51:07Z"
+        },
+        {
+          "name": "Cargo dependencies (compiled targets are never cached)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-29T10:51:07Z",
+          "completed_at": "2026-10-29T10:51:10Z"
+        },
+        {
+          "name": "Install and verify locked media oracles",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-29T10:51:10Z",
+          "completed_at": "2026-10-29T10:51:11Z"
+        },
+        {
+          "name": "Install checksum-locked DXC for hosted Windows GPU tests",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6,
+          "started_at": "2026-10-29T10:51:11Z",
+          "completed_at": "2026-10-29T10:51:11Z"
+        },
+        {
+          "name": "Require and identify the hosted GPU adapter",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-29T10:51:11Z",
+          "completed_at": "2026-10-29T10:57:43Z"
+        },
+        {
+          "name": "Complete checks with durable command logs",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-29T10:57:43Z",
+          "completed_at": "2026-10-29T11:57:06Z"
+        },
+        {
+          "name": "Retain diagnostics on success or failure",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-29T11:57:06Z",
+          "completed_at": "2026-10-29T11:57:08Z"
+        },
+        {
+          "name": "Post Cargo dependencies (compiled targets are never cached)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17,
+          "started_at": "2026-10-29T11:57:08Z",
+          "completed_at": "2026-10-29T11:57:08Z"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18,
+          "started_at": "2026-10-29T11:57:08Z",
+          "completed_at": "2026-10-29T11:57:08Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19,
+          "started_at": "2026-10-29T11:57:08Z",
+          "completed_at": "2026-10-29T11:57:08Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/damquan1001/shotclutch/check-runs/123403045045",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": 1000000123,
+      "runner_name": "GitHub Actions 1000000123",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 123403045280,
+      "run_id": 40860747696,
+      "workflow_name": "CI",
+      "head_branch": "codex/m0-foundation",
+      "run_url": "https://api.github.com/repos/damquan1001/shotclutch/actions/runs/40860747696",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVXHBgc8AAAAcu2UJoA",
+      "head_sha": "a7fbcf2ffba3156bef1e175d30880670d7ff3bfc",
+      "url": "https://api.github.com/repos/damquan1001/shotclutch/actions/jobs/123403045280",
+      "html_url": "https://github.com/damquan1001/shotclutch/actions/runs/40860747696/job/123403045280",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-29T10:50:43Z",
+      "started_at": "2026-10-29T10:50:46Z",
+      "completed_at": "2026-10-29T12:52:45Z",
+      "name": "checks (windows-2025)",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-29T10:50:47Z",
+          "completed_at": "2026-10-29T10:50:49Z"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-29T10:50:49Z",
+          "completed_at": "2026-10-29T10:51:00Z"
+        },
+        {
+          "name": "Linux build dependencies",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 3,
+          "started_at": "2026-10-29T10:51:00Z",
+          "completed_at": "2026-10-29T10:51:00Z"
+        },
+        {
+          "name": "Cargo dependencies (compiled targets are never cached)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-29T10:51:00Z",
+          "completed_at": "2026-10-29T10:51:03Z"
+        },
+        {
+          "name": "Install and verify locked media oracles",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-29T10:51:04Z",
+          "completed_at": "2026-10-29T10:51:17Z"
+        },
+        {
+          "name": "Install checksum-locked DXC for hosted Windows GPU tests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-29T10:51:17Z",
+          "completed_at": "2026-10-29T10:51:19Z"
+        },
+        {
+          "name": "Require and identify the hosted GPU adapter",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-29T10:51:19Z",
+          "completed_at": "2026-10-29T11:05:19Z"
+        },
+        {
+          "name": "Complete checks with durable command logs",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-29T11:05:19Z",
+          "completed_at": "2026-10-29T12:52:36Z"
+        },
+        {
+          "name": "Retain diagnostics on success or failure",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-29T12:52:36Z",
+          "completed_at": "2026-10-29T12:52:39Z"
+        },
+        {
+          "name": "Post Cargo dependencies (compiled targets are never cached)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17,
+          "started_at": "2026-10-29T12:52:39Z",
+          "completed_at": "2026-10-29T12:52:39Z"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18,
+          "started_at": "2026-10-29T12:52:39Z",
+          "completed_at": "2026-10-29T12:52:42Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19,
+          "started_at": "2026-10-29T12:52:42Z",
+          "completed_at": "2026-10-29T12:52:42Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/damquan1001/shotclutch/check-runs/123403045280",
+      "labels": [
+        "windows-2025"
+      ],
+      "runner_id": 1000000125,
+      "runner_name": "GitHub Actions 1000000125",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 123403045345,
+      "run_id": 40860747696,
+      "workflow_name": "CI",
+      "head_branch": "codex/m0-foundation",
+      "run_url": "https://api.github.com/repos/damquan1001/shotclutch/actions/runs/40860747696",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVXHBgc8AAAAcu2UJ4Q",
+      "head_sha": "a7fbcf2ffba3156bef1e175d30880670d7ff3bfc",
+      "url": "https://api.github.com/repos/damquan1001/shotclutch/actions/jobs/123403045345",
+      "html_url": "https://github.com/damquan1001/shotclutch/actions/runs/40860747696/job/123403045345",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-29T10:50:43Z",
+      "started_at": "2026-10-29T10:50:46Z",
+      "completed_at": "2026-10-29T11:14:31Z",
+      "name": "release-builds (ubuntu-24.04)",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-29T10:50:47Z",
+          "completed_at": "2026-10-29T10:50:48Z"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-29T10:50:48Z",
+          "completed_at": "2026-10-29T10:50:51Z"
+        },
+        {
+          "name": "Linux build dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-29T10:50:51Z",
+          "completed_at": "2026-10-29T10:51:05Z"
+        },
+        {
+          "name": "Release build and Linux browser compilation on fresh disk",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-29T10:51:05Z",
+          "completed_at": "2026-10-29T11:14:27Z"
+        },
+        {
+          "name": "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-29T11:14:27Z",
+          "completed_at": "2026-10-29T11:14:29Z"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-10-29T11:14:29Z",
+          "completed_at": "2026-10-29T11:14:29Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-29T11:14:29Z",
+          "completed_at": "2026-10-29T11:14:29Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/damquan1001/shotclutch/check-runs/123403045345",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": 1000000124,
+      "runner_name": "GitHub Actions 1000000124",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 123403045442,
+      "run_id": 40860747696,
+      "workflow_name": "CI",
+      "head_branch": "codex/m0-foundation",
+      "run_url": "https://api.github.com/repos/damquan1001/shotclutch/actions/runs/40860747696",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVXHBgc8AAAAcu2UKQg",
+      "head_sha": "a7fbcf2ffba3156bef1e175d30880670d7ff3bfc",
+      "url": "https://api.github.com/repos/damquan1001/shotclutch/actions/jobs/123403045442",
+      "html_url": "https://github.com/damquan1001/shotclutch/actions/runs/40860747696/job/123403045442",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-29T10:50:43Z",
+      "started_at": "2026-10-29T10:50:46Z",
+      "completed_at": "2026-10-29T11:25:52Z",
+      "name": "windows-package / package",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-29T10:50:47Z",
+          "completed_at": "2026-10-29T10:50:48Z"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-29T10:50:48Z",
+          "completed_at": "2026-10-29T10:50:59Z"
+        },
+        {
+          "name": "Run dotnet tool install wix --tool-path target/m0/tools --version 5.0.2",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-29T10:50:59Z",
+          "completed_at": "2026-10-29T10:51:06Z"
+        },
+        {
+          "name": "Install and verify locked fixture/oracle tools",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-29T10:51:06Z",
+          "completed_at": "2026-10-29T10:51:17Z"
+        },
+        {
+          "name": "Stage generated workflow input separately from application execution",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-29T10:51:17Z",
+          "completed_at": "2026-10-29T10:51:18Z"
+        },
+        {
+          "name": "Build and validate unsigned x64 qualification packages",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-29T10:51:18Z",
+          "completed_at": "2026-10-29T11:25:39Z"
+        },
+        {
+          "name": "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-29T11:25:39Z",
+          "completed_at": "2026-10-29T11:25:44Z"
+        },
+        {
+          "name": "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-29T11:25:44Z",
+          "completed_at": "2026-10-29T11:25:46Z"
+        },
+        {
+          "name": "Retain build and package diagnostics",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-29T11:25:46Z",
+          "completed_at": "2026-10-29T11:25:48Z"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18,
+          "started_at": "2026-10-29T11:25:48Z",
+          "completed_at": "2026-10-29T11:25:50Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19,
+          "started_at": "2026-10-29T11:25:50Z",
+          "completed_at": "2026-10-29T11:25:50Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/damquan1001/shotclutch/check-runs/123403045442",
+      "labels": [
+        "windows-2025"
+      ],
+      "runner_id": 1000000126,
+      "runner_name": "GitHub Actions 1000000126",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 123403045456,
+      "run_id": 40860747696,
+      "workflow_name": "CI",
+      "head_branch": "codex/m0-foundation",
+      "run_url": "https://api.github.com/repos/damquan1001/shotclutch/actions/runs/40860747696",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVXHBgc8AAAAcu2UKUA",
+      "head_sha": "a7fbcf2ffba3156bef1e175d30880670d7ff3bfc",
+      "url": "https://api.github.com/repos/damquan1001/shotclutch/actions/jobs/123403045456",
+      "html_url": "https://github.com/damquan1001/shotclutch/actions/runs/40860747696/job/123403045456",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-29T10:50:43Z",
+      "started_at": "2026-10-29T10:50:46Z",
+      "completed_at": "2026-10-29T11:21:20Z",
+      "name": "checks (macos-15)",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-29T10:50:46Z",
+          "completed_at": "2026-10-29T10:50:47Z"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-29T10:50:47Z",
+          "completed_at": "2026-10-29T10:50:50Z"
+        },
+        {
+          "name": "Linux build dependencies",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 3,
+          "started_at": "2026-10-29T10:50:50Z",
+          "completed_at": "2026-10-29T10:50:50Z"
+        },
+        {
+          "name": "Cargo dependencies (compiled targets are never cached)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-29T10:50:50Z",
+          "completed_at": "2026-10-29T10:50:51Z"
+        },
+        {
+          "name": "Install and verify locked media oracles",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-29T10:50:51Z",
+          "completed_at": "2026-10-29T10:50:53Z"
+        },
+        {
+          "name": "Install checksum-locked DXC for hosted Windows GPU tests",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6,
+          "started_at": "2026-10-29T10:50:53Z",
+          "completed_at": "2026-10-29T10:50:53Z"
+        },
+        {
+          "name": "Require and identify the hosted GPU adapter",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-29T10:50:53Z",
+          "completed_at": "2026-10-29T10:54:04Z"
+        },
+        {
+          "name": "Complete checks with durable command logs",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-29T10:54:04Z",
+          "completed_at": "2026-10-29T11:21:14Z"
+        },
+        {
+          "name": "Retain diagnostics on success or failure",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-29T11:21:14Z",
+          "completed_at": "2026-10-29T11:21:16Z"
+        },
+        {
+          "name": "Post Cargo dependencies (compiled targets are never cached)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17,
+          "started_at": "2026-10-29T11:21:16Z",
+          "completed_at": "2026-10-29T11:21:16Z"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18,
+          "started_at": "2026-10-29T11:21:16Z",
+          "completed_at": "2026-10-29T11:21:16Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19,
+          "started_at": "2026-10-29T11:21:16Z",
+          "completed_at": "2026-10-29T11:21:18Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/damquan1001/shotclutch/check-runs/123403045456",
+      "labels": [
+        "macos-15"
+      ],
+      "runner_id": 1000000128,
+      "runner_name": "GitHub Actions 1000000128",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 123403045504,
+      "run_id": 40860747696,
+      "workflow_name": "CI",
+      "head_branch": "codex/m0-foundation",
+      "run_url": "https://api.github.com/repos/damquan1001/shotclutch/actions/runs/40860747696",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVXHBgc8AAAAcu2UKgA",
+      "head_sha": "a7fbcf2ffba3156bef1e175d30880670d7ff3bfc",
+      "url": "https://api.github.com/repos/damquan1001/shotclutch/actions/jobs/123403045504",
+      "html_url": "https://github.com/damquan1001/shotclutch/actions/runs/40860747696/job/123403045504",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-29T10:50:43Z",
+      "started_at": "2026-10-29T10:50:46Z",
+      "completed_at": "2026-10-29T10:59:54Z",
+      "name": "release-builds (macos-15)",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-29T10:50:47Z",
+          "completed_at": "2026-10-29T10:50:48Z"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-29T10:50:48Z",
+          "completed_at": "2026-10-29T10:50:51Z"
+        },
+        {
+          "name": "Linux build dependencies",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 3,
+          "started_at": "2026-10-29T10:50:51Z",
+          "completed_at": "2026-10-29T10:50:51Z"
+        },
+        {
+          "name": "Release build and Linux browser compilation on fresh disk",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-29T10:50:51Z",
+          "completed_at": "2026-10-29T10:59:51Z"
+        },
+        {
+          "name": "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-29T10:59:51Z",
+          "completed_at": "2026-10-29T10:59:52Z"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-10-29T10:59:52Z",
+          "completed_at": "2026-10-29T10:59:53Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-29T10:59:53Z",
+          "completed_at": "2026-10-29T10:59:53Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/damquan1001/shotclutch/check-runs/123403045504",
+      "labels": [
+        "macos-15"
+      ],
+      "runner_id": 1000000127,
+      "runner_name": "GitHub Actions 1000000127",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 123418543560,
+      "run_id": 40860747696,
+      "workflow_name": "CI",
+      "head_branch": "codex/m0-foundation",
+      "run_url": "https://api.github.com/repos/damquan1001/shotclutch/actions/runs/40860747696",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVXHBgc8AAAAcvFGFyA",
+      "head_sha": "a7fbcf2ffba3156bef1e175d30880670d7ff3bfc",
+      "url": "https://api.github.com/repos/damquan1001/shotclutch/actions/jobs/123418543560",
+      "html_url": "https://github.com/damquan1001/shotclutch/actions/runs/40860747696/job/123418543560",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-10-29T11:25:53Z",
+      "started_at": "2026-10-29T11:25:53Z",
+      "completed_at": "2026-10-29T11:25:55Z",
+      "name": "windows-package / install",
+      "steps": [],
+      "check_run_url": "https://api.github.com/repos/damquan1001/shotclutch/check-runs/123418543560",
+      "labels": [
+        "windows-2025"
+      ],
+      "runner_id": 0,
+      "runner_name": "",
+      "runner_group_id": 0,
+      "runner_group_name": ""
+    },
+    {
+      "id": 123458060844,
+      "run_id": 40860747696,
+      "workflow_name": "CI",
+      "head_branch": "codex/m0-foundation",
+      "run_url": "https://api.github.com/repos/damquan1001/shotclutch/actions/runs/40860747696",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVXHBgc8AAAAcvqyCLA",
+      "head_sha": "a7fbcf2ffba3156bef1e175d30880670d7ff3bfc",
+      "url": "https://api.github.com/repos/damquan1001/shotclutch/actions/jobs/123458060844",
+      "html_url": "https://github.com/damquan1001/shotclutch/actions/runs/40860747696/job/123458060844",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-10-29T12:52:45Z",
+      "started_at": "2026-10-29T12:52:45Z",
+      "completed_at": "2026-10-29T12:52:48Z",
+      "name": "CI required",
+      "steps": [],
+      "check_run_url": "https://api.github.com/repos/damquan1001/shotclutch/check-runs/123458060844",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": 0,
+      "runner_name": "",
+      "runner_group_id": 0,
+      "runner_group_name": ""
+    }
+  ]
+}

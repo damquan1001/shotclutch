@@ -7,42 +7,53 @@
   ],
   "result": "running",
   "no_promotion": true,
-  "updated_utc": "2026-10-29T10:52:46.853152+00:00",
+  "updated_utc": "2026-10-29T12:53:28.049076+00:00",
   "active_run": 40860747696,
   "jobs": [
     [
       "checks (ubuntu-24.04)",
-      "in_progress",
-      null
+      "completed",
+      "success"
     ],
     [
       "checks (windows-2025)",
-      "in_progress",
-      null
+      "completed",
+      "success"
     ],
     [
       "release-builds (ubuntu-24.04)",
-      "in_progress",
-      null
+      "completed",
+      "success"
     ],
     [
       "windows-package / package",
-      "in_progress",
-      null
+      "completed",
+      "success"
     ],
     [
       "checks (macos-15)",
-      "in_progress",
-      null
+      "completed",
+      "success"
     ],
     [
       "release-builds (macos-15)",
-      "in_progress",
-      null
+      "completed",
+      "success"
+    ],
+    [
+      "windows-package / install",
+      "completed",
+      "failure"
+    ],
+    [
+      "CI required",
+      "completed",
+      "failure"
     ]
   ],
   "recovery_attempt": 4,
   "passed_runs": [
     40834967572
-  ]
+  ],
+  "second_recovery_attempt": 2
 }
