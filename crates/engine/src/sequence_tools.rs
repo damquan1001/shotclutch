@@ -30,11 +30,11 @@
 
 use std::collections::{BTreeMap, HashMap, HashSet};
 
-use filmcraft_edit as edit;
-use filmcraft_media::MediaKind;
-use filmcraft_project::{AudioChannels, ClipId, ItemId, Label, Marker, MarkerId, MarkerKind, Project, Sequence, SplitMarks, TrackId, TrackItem, TrackKind};
-use filmcraft_time::{FrameRate, Tick, TimeRange};
 use serde_json::{Value, json};
+use shotclutch_edit as edit;
+use shotclutch_media::MediaKind;
+use shotclutch_project::{AudioChannels, ClipId, ItemId, Label, Marker, MarkerId, MarkerKind, Project, Sequence, SplitMarks, TrackId, TrackItem, TrackKind};
+use shotclutch_time::{FrameRate, Tick, TimeRange};
 
 use crate::commands::{
     CommandSpec, always, bad, bool_p, clips_p, has_seq, marker_color_p, sequence_time_p, source_mark_time, str_p, time_p, track_p, with_links,
@@ -508,7 +508,7 @@ fn comparable_master(project: &Project, it: &TrackItem) -> Option<(ItemId, Frame
 /// they are set. The new sequence is added to the project and selected; the original is unchanged.
 /// Give a sequence made from part of `from` (Nest…, Make Subsequence) the track names and audio
 /// channel layouts of `from`'s tracks, track for track.
-pub(crate) fn lay_out_tracks_like(new: &mut filmcraft_project::Sequence, from: &filmcraft_project::Sequence) {
+pub(crate) fn lay_out_tracks_like(new: &mut shotclutch_project::Sequence, from: &shotclutch_project::Sequence) {
     for (tr, src) in new.video_tracks.iter_mut().zip(&from.video_tracks) {
         tr.name = src.name.clone();
     }
@@ -580,7 +580,7 @@ fn make_subsequence(s: &mut Session, p: &Value) -> Result<Value> {
                     let inside = range.is_none_or(|r| trn.start >= r.start && trn.end() <= r.end());
                     if inside && from != Some(None) && to != Some(None) {
                         let mut t = trn.clone();
-                        t.id = filmcraft_project::TransitionId(pr.alloc_id());
+                        t.id = shotclutch_project::TransitionId(pr.alloc_id());
                         t.from = from.flatten();
                         t.to = to.flatten();
                         t.start -= offset;
@@ -683,7 +683,7 @@ pub(crate) fn place_sequence_clips(
                     let to = trn.to.map(|c| ids.get(&c).copied());
                     if trn.start >= range.start && trn.end() <= range.end() && from != Some(None) && to != Some(None) {
                         let mut t = trn.clone();
-                        t.id = filmcraft_project::TransitionId(p.alloc_id());
+                        t.id = shotclutch_project::TransitionId(p.alloc_id());
                         (t.from, t.to) = (from.flatten(), to.flatten());
                         t.start = at + (t.start - range.start);
                         transitions.push((kind, lane, t));
@@ -700,7 +700,7 @@ pub(crate) fn place_sequence_clips(
                 let id = TrackId(p.alloc_id());
                 let tracks = p.sequence_mut(seq_id).ok_or(EngineError::NoSequence)?.tracks_mut(kind);
                 let (word, n) = (if kind == TrackKind::Video { "Video" } else { "Audio" }, tracks.len() + 1);
-                tracks.push(filmcraft_project::Track::new(id, kind, format!("{word} {n}")));
+                tracks.push(shotclutch_project::Track::new(id, kind, format!("{word} {n}")));
             }
             let id = p.sequence(seq_id).and_then(|q| q.tracks(kind).get(index)).map(|t| t.id).ok_or(EngineError::NoSequence)?;
             dest.insert((is_audio, lane), id);
@@ -771,7 +771,7 @@ fn placement(p: &Value, key: &str, letter: char, len: usize) -> Result<usize> {
 
 /// Give the tracks that still carry a default name (`<prefix> <number>`) the number of their
 /// place, as Premiere numbers its tracks; a track the user named keeps its name.
-fn renumber(tracks: &mut [filmcraft_project::Track], prefix: &str) {
+fn renumber(tracks: &mut [shotclutch_project::Track], prefix: &str) {
     for (i, t) in tracks.iter_mut().enumerate() {
         let default = t.name.strip_prefix(prefix).and_then(|r| r.strip_prefix(' ')).is_some_and(|n| !n.is_empty() && n.bytes().all(|b| b.is_ascii_digit()));
         if default {
@@ -817,7 +817,7 @@ pub(crate) fn add_tracks(s: &mut Session, p: &Value) -> Result<Value> {
     }
     let added = s.edit_sequence("Add Tracks", |q, ctx, _| {
         let mut new = |kind: TrackKind, prefix: &str, channels: Option<AudioChannels>| {
-            let mut t = filmcraft_project::Track::new(TrackId(ctx.alloc()), kind, format!("{prefix} 0"));
+            let mut t = shotclutch_project::Track::new(TrackId(ctx.alloc()), kind, format!("{prefix} 0"));
             if let Some(c) = channels {
                 t.channels = c;
             }
@@ -1013,8 +1013,8 @@ impl Side {
 
 fn source_marks(s: &Session, item: ItemId) -> (Option<Tick>, Option<Tick>) {
     match s.project.item(item).map(|i| &i.kind) {
-        Some(filmcraft_project::ItemKind::Media(m)) => (m.mark_in, m.mark_out),
-        Some(filmcraft_project::ItemKind::Sequence(q)) => (q.mark_in, q.mark_out),
+        Some(shotclutch_project::ItemKind::Media(m)) => (m.mark_in, m.mark_out),
+        Some(shotclutch_project::ItemKind::Sequence(q)) => (q.mark_in, q.mark_out),
         _ => (None, None),
     }
 }

@@ -5,7 +5,7 @@
 //! by (target, frame, scale, revision); the UI shows the exact frame when ready and otherwise holds
 //! the nearest frame it already has, so scrubbing never flashes black and never blocks the UI.
 //! Sequence frames inside a rendered segment come from its render preview instead of the live
-//! render (see `filmcraft_engine::previews`).
+//! render (see `shotclutch_engine::previews`).
 
 use std::cell::Cell;
 use std::collections::{HashMap, VecDeque};
@@ -15,10 +15,10 @@ use std::time::Duration;
 
 use web_time::Instant;
 
-use filmcraft_engine::previews::PreviewStore;
-use filmcraft_engine::{MediaPool, Services};
-use filmcraft_project::{ItemId, Project};
-use filmcraft_time::Tick;
+use shotclutch_engine::previews::PreviewStore;
+use shotclutch_engine::{MediaPool, Services};
+use shotclutch_project::{ItemId, Project};
+use shotclutch_time::Tick;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Target {
@@ -41,7 +41,7 @@ pub enum Target {
 
 /// Item jobs at this priority or a larger number are background work: thumbnails of the Project
 /// panel and the timeline (50) and the Media Browser (40). Monitors and playback use 0..=3. Their
-/// decoders are small and are not kept (`filmcraft_media::cancel::with_background`).
+/// decoders are small and are not kept (`shotclutch_media::cancel::with_background`).
 pub const BACKGROUND_PRIO: u32 = 40;
 
 /// Whether a job is a thumbnail: a single item at a background priority. Sequence frames are never
@@ -64,7 +64,7 @@ pub struct FrameKey {
     pub revision: u64,
     /// Draft decoding (reduced-resolution playback with Settings ▸ Playback ▸ Draft decoding):
     /// sources may decode approximate non-reference pictures
-    /// ([`filmcraft_media::cancel::with_draft`]). Draft frames have their own keys, so a paused
+    /// ([`shotclutch_media::cancel::with_draft`]). Draft frames have their own keys, so a paused
     /// monitor, an export or a render never shows one.
     pub draft: bool,
 }
@@ -76,7 +76,7 @@ pub fn draft_playback(playing: bool, scale: f32, enabled: bool) -> bool {
 }
 
 /// A rendered frame as sRGB RGBA8: the color is the picture over black and the fourth byte is
-/// its alpha ([`filmcraft_render::Image::over_black_with_alpha_rgba8`]).
+/// its alpha ([`shotclutch_render::Image::over_black_with_alpha_rgba8`]).
 pub struct Rgba {
     pub w: usize,
     pub h: usize,
@@ -133,13 +133,13 @@ fn straight_srgb(a: u8, v: u8) -> u8 {
 struct Job {
     key: FrameKey,
     queued: Instant,
-    /// Set when the job is no longer wanted; sources poll it (`filmcraft_media::cancel`).
+    /// Set when the job is no longer wanted; sources poll it (`shotclutch_media::cancel`).
     cancel: Arc<std::sync::atomic::AtomicBool>,
     /// Queued by playback prefetch (dropped when playback stops).
     prefetch: bool,
     /// While playing: how far before this frame the frames are late (the playhead's distance;
     /// zero for the frame due now), so a decoder catching up may skip pictures only late frames
-    /// need (`filmcraft_media::cancel::with_catch_up`).
+    /// need (`shotclutch_media::cancel::with_catch_up`).
     catch_up: Option<Tick>,
     time: Tick,
     /// Output scale relative to the target's frame size.
@@ -293,19 +293,19 @@ fn timed_source<R>(f: impl FnOnce() -> R) -> R {
 }
 
 /// A media source that times its `video_frame` calls (see [`JobRecord::source_wall`]).
-struct TimedSource(filmcraft_media::SharedSource);
+struct TimedSource(shotclutch_media::SharedSource);
 
-impl filmcraft_media::MediaSource for TimedSource {
-    fn info(&self) -> &filmcraft_media::MediaInfo {
+impl shotclutch_media::MediaSource for TimedSource {
+    fn info(&self) -> &shotclutch_media::MediaInfo {
         self.0.info()
     }
-    fn video_frame(&self, req: filmcraft_media::FrameRequest) -> filmcraft_media::Result<Arc<filmcraft_frame::VideoFrame>> {
+    fn video_frame(&self, req: shotclutch_media::FrameRequest) -> shotclutch_media::Result<Arc<shotclutch_frame::VideoFrame>> {
         timed_source(|| self.0.video_frame(req))
     }
-    fn audio(&self, start: i64, frames: usize, sample_rate: u32) -> filmcraft_media::Result<filmcraft_frame::AudioBuffer> {
+    fn audio(&self, start: i64, frames: usize, sample_rate: u32) -> shotclutch_media::Result<shotclutch_frame::AudioBuffer> {
         self.0.audio(start, frames, sample_rate)
     }
-    fn audio_stream(&self, stream: usize, start: i64, frames: usize, sample_rate: u32) -> filmcraft_media::Result<filmcraft_frame::AudioBuffer> {
+    fn audio_stream(&self, stream: usize, start: i64, frames: usize, sample_rate: u32) -> shotclutch_media::Result<shotclutch_frame::AudioBuffer> {
         self.0.audio_stream(stream, start, frames, sample_rate)
     }
 }
@@ -313,11 +313,11 @@ impl filmcraft_media::MediaSource for TimedSource {
 /// The job's source provider: the pool, with source fetches timed (the time feeds
 /// [`FrameServer::render_cost`] and, while profiling, [`JobRecord`]).
 struct JobProvider {
-    inner: filmcraft_engine::media_pool::PoolProvider,
+    inner: shotclutch_engine::media_pool::PoolProvider,
 }
 
-impl filmcraft_render::SourceProvider for JobProvider {
-    fn source(&self, item: ItemId) -> Option<filmcraft_media::SharedSource> {
+impl shotclutch_render::SourceProvider for JobProvider {
+    fn source(&self, item: ItemId) -> Option<shotclutch_media::SharedSource> {
         let s = self.inner.pool.monitor_source(item, self.inner.source(item)?);
         Some(Arc::new(TimedSource(s)))
     }
@@ -325,8 +325,8 @@ impl filmcraft_render::SourceProvider for JobProvider {
 
 /// A GPU frame plan with its layers' texel conversions already done (off the UI thread).
 pub struct GpuPlan {
-    pub plan: filmcraft_render::plan::FramePlan,
-    pub prepared: filmcraft_gpu::PreparedPlan,
+    pub plan: shotclutch_render::plan::FramePlan,
+    pub prepared: shotclutch_gpu::PreparedPlan,
 }
 
 impl GpuPlan {
@@ -487,7 +487,7 @@ impl FrameServer {
             let services = services.clone();
             let rp = repaint.clone();
             let pv = previews.clone();
-            std::thread::Builder::new().name(format!("filmcraft-frames-{i}")).spawn(move || worker(sh, pool, services, pv, rp)).ok();
+            std::thread::Builder::new().name(format!("shotclutch-frames-{i}")).spawn(move || worker(sh, pool, services, pv, rp)).ok();
         }
         #[cfg(target_arch = "wasm32")]
         let _ = workers;
@@ -632,7 +632,7 @@ impl FrameServer {
     /// When frames cost more to render than the frame interval (CPU effects), frames that could
     /// not be ready in time are not started and the workers get evenly spaced frames they can
     /// finish ([`playback_plan`]). While `preroll` (clock not started yet) every frame is wanted.
-    pub fn schedule_playback(&self, key: FrameKey, rate: filmcraft_time::FrameRate, scale: f32, project: &Arc<Project>, speed: f64, preroll: bool) {
+    pub fn schedule_playback(&self, key: FrameKey, rate: shotclutch_time::FrameRate, scale: f32, project: &Arc<Project>, speed: f64, preroll: bool) {
         let dir = if speed < 0.0 { -1 } else { 1 };
         let step = speed.abs().max(1.0) as i64;
         let fps = rate.as_f64() * speed.abs().max(1.0) / step as f64;
@@ -904,24 +904,24 @@ fn run_job(sh: &Shared, job: &Job, pool: &Arc<MediaPool>, services: &Arc<dyn Ser
     // A cancelled job may have missed layers (its source gave up): its result is not cached.
     // A job whose media bytes were still loading (web) rendered with missing layers: like a
     // cancelled one, its result is not cached (the caller retries it).
-    let _ = filmcraft_media::pending::take();
+    let _ = shotclutch_media::pending::take();
     let mut loading = false;
-    let preview = filmcraft_media::cancel::with_cancel(&job.cancel, || {
-        filmcraft_media::cancel::with_catch_up(job.catch_up, || {
-            filmcraft_media::cancel::with_draft(job.key.draft, || {
-                filmcraft_media::cancel::with_background(is_background(job), || {
+    let preview = shotclutch_media::cancel::with_cancel(&job.cancel, || {
+        shotclutch_media::cancel::with_catch_up(job.catch_up, || {
+            shotclutch_media::cancel::with_draft(job.key.draft, || {
+                shotclutch_media::cancel::with_background(is_background(job), || {
                     if let Target::SequencePlan(seq) = job.key.target {
                         let (plan, pv) = plan_job(job, seq, pool, services, previews);
-                        loading = filmcraft_media::pending::take();
+                        loading = shotclutch_media::pending::take();
                         if !job.cancel.load(Ordering::Relaxed) && !loading {
                             // Convert texels for upload here, not on the UI thread when the frame is shown.
-                            let prepared = filmcraft_gpu::prepare(&plan);
+                            let prepared = shotclutch_gpu::prepare(&plan);
                             sh.plans.lock().unwrap_or_else(|e| e.into_inner()).insert(job.key, GpuPlan { plan, prepared });
                         }
                         pv
                     } else {
                         let (img, pv) = render_job(job, pool, services, previews);
-                        loading = filmcraft_media::pending::take();
+                        loading = shotclutch_media::pending::take();
                         if !job.cancel.load(Ordering::Relaxed) && !loading {
                             sh.done.lock().unwrap_or_else(|e| e.into_inner()).insert(job.key, Arc::new(img));
                         }
@@ -980,7 +980,7 @@ fn run_job(sh: &Shared, job: &Job, pool: &Arc<MediaPool>, services: &Arc<dyn Ser
 }
 
 /// The preview frame for a sequence job, when its segment has been rendered.
-fn preview_frame(job: &Job, seq: ItemId, pool: &MediaPool, previews: &PreviewStore) -> Option<Arc<filmcraft_frame::VideoFrame>> {
+fn preview_frame(job: &Job, seq: ItemId, pool: &MediaPool, previews: &PreviewStore) -> Option<Arc<shotclutch_frame::VideoFrame>> {
     let rate = job.project.sequence(seq)?.settings.frame_rate;
     timed_source(|| previews.frame(pool, &job.project, seq, rate.frame_at(job.time), job.scale))
 }
@@ -989,30 +989,37 @@ fn provider(job: &Job, pool: &Arc<MediaPool>, services: &Arc<dyn Services>) -> J
     JobProvider { inner: pool.provider(job.project.clone(), services.clone()) }
 }
 
-fn plan_job(job: &Job, seq: ItemId, pool: &Arc<MediaPool>, services: &Arc<dyn Services>, previews: &PreviewStore) -> (filmcraft_render::plan::FramePlan, bool) {
-    let opts = filmcraft_render::RenderOptions { scale: job.scale, captions: true, ..Default::default() };
+fn plan_job(
+    job: &Job,
+    seq: ItemId,
+    pool: &Arc<MediaPool>,
+    services: &Arc<dyn Services>,
+    previews: &PreviewStore,
+) -> (shotclutch_render::plan::FramePlan, bool) {
+    let opts = shotclutch_render::RenderOptions { scale: job.scale, captions: true, ..Default::default() };
     if let Some(frame) = preview_frame(job, seq, pool, previews)
         && let Some(q) = job.project.sequence(seq)
     {
         // One full-frame layer: the preview scaled to the output size. Previews never contain
         // captions (they are not part of the preview hash), so captions are layered on live.
-        let (w, h) = filmcraft_render::output_size(q, job.scale);
-        let matrix = filmcraft_geom::Affine::scale(w as f64 / frame.width.max(1) as f64, h as f64 / frame.height.max(1) as f64);
-        let mut layers = vec![filmcraft_render::plan::PlanLayer { frame, matrix, opacity: 1.0, blend: filmcraft_render::Blend::Normal, fx: None, input: None }];
-        for o in filmcraft_render::caption_overlays(q, job.time, w, h) {
-            layers.push(filmcraft_render::plan::PlanLayer {
-                frame: Arc::new(filmcraft_frame::VideoFrame::rgba_f32(o.w as u32, o.h as u32, o.px)),
-                matrix: filmcraft_geom::Affine::translate(o.x as f64, o.y as f64),
+        let (w, h) = shotclutch_render::output_size(q, job.scale);
+        let matrix = shotclutch_geom::Affine::scale(w as f64 / frame.width.max(1) as f64, h as f64 / frame.height.max(1) as f64);
+        let mut layers =
+            vec![shotclutch_render::plan::PlanLayer { frame, matrix, opacity: 1.0, blend: shotclutch_render::Blend::Normal, fx: None, input: None }];
+        for o in shotclutch_render::caption_overlays(q, job.time, w, h) {
+            layers.push(shotclutch_render::plan::PlanLayer {
+                frame: Arc::new(shotclutch_frame::VideoFrame::rgba_f32(o.w as u32, o.h as u32, o.px)),
+                matrix: shotclutch_geom::Affine::translate(o.x as f64, o.y as f64),
                 opacity: 1.0,
-                blend: filmcraft_render::Blend::Normal,
+                blend: shotclutch_render::Blend::Normal,
                 fx: None,
                 input: None,
             });
         }
-        return (filmcraft_render::plan::FramePlan::Layers { width: w, height: h, layers }, true);
+        return (shotclutch_render::plan::FramePlan::Layers { width: w, height: h, layers }, true);
     }
     let provider = provider(job, pool, services);
-    (filmcraft_render::plan::plan_frame(&job.project, seq, job.time, opts, &provider), false)
+    (shotclutch_render::plan::plan_frame(&job.project, seq, job.time, opts, &provider), false)
 }
 
 /// Render a job to RGBA8; the flag says whether it came from a render preview.
@@ -1021,33 +1028,33 @@ fn render_job(job: &Job, pool: &Arc<MediaPool>, services: &Arc<dyn Services>, pr
         && let Some(f) = preview_frame(job, seq, pool, previews)
         && let Some(q) = job.project.sequence(seq)
     {
-        let (w, h) = filmcraft_render::output_size(q, job.scale);
-        let img = filmcraft_render::Image { w: f.width as usize, h: f.height as usize, px: f.to_linear_f32() };
+        let (w, h) = shotclutch_render::output_size(q, job.scale);
+        let img = shotclutch_render::Image { w: f.width as usize, h: f.height as usize, px: f.to_linear_f32() };
         let mut img = if img.w == w && img.h == h {
             img
         } else {
-            img.transformed(w, h, &filmcraft_geom::Affine::scale(w as f64 / img.w.max(1) as f64, h as f64 / img.h.max(1) as f64))
+            img.transformed(w, h, &shotclutch_geom::Affine::scale(w as f64 / img.w.max(1) as f64, h as f64 / img.h.max(1) as f64))
         };
         if matches!(job.key.target, Target::Sequence(_)) {
-            for o in filmcraft_render::caption_overlays(q, job.time, w, h) {
+            for o in shotclutch_render::caption_overlays(q, job.time, w, h) {
                 o.composite_onto(&mut img.px, w, h);
             }
         }
         return (Rgba { w: img.w, h: img.h, px: img.over_black_with_alpha_rgba8() }, true);
     }
     let provider = provider(job, pool, services);
-    let opts = filmcraft_render::RenderOptions { scale: job.scale, captions: true, ..Default::default() };
+    let opts = shotclutch_render::RenderOptions { scale: job.scale, captions: true, ..Default::default() };
     let img = match job.key.target {
         Target::Sequence(seq) | Target::SequencePlan(seq) | Target::SequenceLive(seq) => {
-            Some(filmcraft_render::render_sequence(&job.project, seq, job.time, opts, &provider))
+            Some(shotclutch_render::render_sequence(&job.project, seq, job.time, opts, &provider))
         }
-        Target::Item(item) => filmcraft_render::render_item(&job.project, item, job.time, job.scale, &provider),
+        Target::Item(item) => shotclutch_render::render_item(&job.project, item, job.time, job.scale, &provider),
         Target::MulticamGrid(item, side, page) => {
             let side = (side > 0).then_some(side as usize);
-            filmcraft_render::multicam::render_grid_page(&job.project, item, job.time, job.scale, side, page as usize, &provider).map(|(img, _)| img)
+            shotclutch_render::multicam::render_grid_page(&job.project, item, job.time, job.scale, side, page as usize, &provider).map(|(img, _)| img)
         }
         Target::MulticamAngle(item, angle) => {
-            filmcraft_render::multicam::render_angle_thumbnail(&job.project, item, angle as usize, job.time, job.scale, &provider)
+            shotclutch_render::multicam::render_angle_thumbnail(&job.project, item, angle as usize, job.time, job.scale, &provider)
         }
     };
     let rgba = match img {
@@ -1060,7 +1067,7 @@ fn render_job(job: &Job, pool: &Arc<MediaPool>, services: &Arc<dyn Services>, pr
 #[cfg(test)]
 mod tests {
     use super::{PlaybackMeter, Target, background_work, playback_plan};
-    use filmcraft_project::ItemId;
+    use shotclutch_project::ItemId;
 
     #[test]
     fn only_item_thumbnails_are_background_work() {
@@ -1103,7 +1110,7 @@ mod tests {
         assert!(!draft_playback(true, 1.0, true), "full resolution is never draft");
         assert!(!draft_playback(false, 0.5, true), "a paused frame is never draft");
         assert!(!draft_playback(true, 0.5, false), "off unless enabled");
-        assert!(!filmcraft_engine::autosave::Preferences::default().playback.draft_decode, "off by default");
+        assert!(!shotclutch_engine::autosave::Preferences::default().playback.draft_decode, "off by default");
     }
 
     #[test]
@@ -1168,11 +1175,11 @@ mod tests {
         use std::sync::Arc;
         use std::time::{Duration, Instant};
 
-        let s = filmcraft_engine::Session::default();
+        let s = shotclutch_engine::Session::default();
         let server = FrameServer::new(s.media.clone(), s.services.clone(), s.previews.clone(), 3);
-        let p = Arc::new(filmcraft_project::Project::new("Frames"));
+        let p = Arc::new(shotclutch_project::Project::new("Frames"));
         let key = FrameKey { target: Target::Item(ItemId(999)), frame: 0, size: 32, revision: 0, draft: false };
-        server.request(key, filmcraft_time::Tick::ZERO, 0.1, &p, 0);
+        server.request(key, shotclutch_time::Tick::ZERO, 0.1, &p, 0);
         let (shared, project) = (Arc::downgrade(&server.shared), Arc::downgrade(&p));
         drop(p);
         drop(server);
@@ -1191,7 +1198,7 @@ mod tests {
         use std::sync::Arc;
         use std::sync::atomic::Ordering;
 
-        let s = filmcraft_engine::Session::default();
+        let s = shotclutch_engine::Session::default();
         let server = FrameServer::new(s.media.clone(), s.services.clone(), s.previews.clone(), 1);
         let job = Job {
             key: FrameKey { target: Target::Item(ItemId(999)), frame: 0, size: 32, revision: 0, draft: false },
@@ -1199,9 +1206,9 @@ mod tests {
             cancel: Default::default(),
             prefetch: false,
             catch_up: None,
-            time: filmcraft_time::Tick::ZERO,
+            time: shotclutch_time::Tick::ZERO,
             scale: 0.1,
-            project: Arc::new(filmcraft_project::Project::new("Frames")),
+            project: Arc::new(shotclutch_project::Project::new("Frames")),
             prio: 0,
         };
         // what `Drop` sets before it cancels the jobs in flight

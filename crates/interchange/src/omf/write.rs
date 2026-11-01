@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use filmcraft_time::Tick;
+use shotclutch_time::Tick;
 
 use super::bento;
 use crate::comp::{CItem, CKind, Document, Gain, Source, ticks_to_units};
@@ -292,7 +292,7 @@ pub(crate) fn write(doc: &Document, report: &mut Report) -> Result<Vec<u8>> {
                     let start = w.u(c.start, rate);
                     let sc = w.sclp("omfi:data:Sound", n, mid, mtrack, start);
                     if !c.name.is_empty() {
-                        w.str(sc, "FilmCraft:SCLP:ClipName", &c.name);
+                        w.str(sc, "ShotClutch:SCLP:ClipName", &c.name);
                     }
                     let seg = match &c.gain {
                         Some(g) => {
@@ -325,7 +325,7 @@ pub(crate) fn write(doc: &Document, report: &mut Report) -> Result<Vec<u8>> {
                     w.cpnt(e, "omfi:data:Sound", n);
                     w.r#ref(e, "OMFI:EFFE:EffectKind", kind);
                     w.refs(e, "OMFI:EFFE:EffectSlots", &[]);
-                    w.str(e, "FilmCraft:EFFE:EffectID", &x.effect);
+                    w.str(e, "ShotClutch:EFFE:EffectID", &x.effect);
                     let tr = w.obj(b"TRAN");
                     w.cpnt(tr, "omfi:data:Sound", n);
                     w.i32(tr, "OMFI:TRAN:CutPoint", "omfi:Position32", cut);

@@ -10,12 +10,12 @@
 
 use std::collections::HashMap;
 
-use filmcraft_media::MediaKind;
-use filmcraft_project::{
+use shotclutch_media::MediaKind;
+use shotclutch_project::{
     AudioChannels, ClipId, Interpolation, ItemId, ItemKind, Keyframe, Label, Marker, MarkerId, MarkerKind, MediaRef, Param, ParamValue, Project, Sequence,
     Track, TrackItem, TrackKind, Transition, TransitionAlign, TransitionId, find_effect,
 };
-use filmcraft_time::{FrameRate, TICKS_PER_SECOND, Tick};
+use shotclutch_time::{FrameRate, TICKS_PER_SECOND, Tick};
 
 use crate::common::{Builder, MediaSpec, base_item, db_to_gain, file_name, file_stem, gain_to_db, param, set_param, settings_for, transition_effect};
 use crate::essence::{EssenceData, EssenceKey, MediaOptions};
@@ -801,7 +801,7 @@ fn safe_path_component(name: &str) -> String {
 fn build_sequence(
     b: &mut Builder,
     comp: &Composition,
-    settings: filmcraft_project::SequenceSettings,
+    settings: shotclutch_project::SequenceSettings,
     sources: &[Source],
     item_of: &HashMap<usize, ItemId>,
     report: &mut Report,
@@ -924,7 +924,7 @@ fn build_track(b: &mut Builder, track: &mut Track, kind: TrackKind, t: &CTrack, 
         };
         let audio = kind == TrackKind::Audio;
         let effect = match find_effect(effect) {
-            Some(d) if d.kind == if audio { filmcraft_project::EffectKind::AudioTransition } else { filmcraft_project::EffectKind::VideoTransition } => {
+            Some(d) if d.kind == if audio { shotclutch_project::EffectKind::AudioTransition } else { shotclutch_project::EffectKind::VideoTransition } => {
                 d.instance()
             }
             _ => transition_effect(effect, audio, report),

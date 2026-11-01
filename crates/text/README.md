@@ -1,6 +1,6 @@
-# filmcraft-text
+# shotclutch-text
 
-FilmCraft's text engine (layer L1: depends on `filmcraft-color`, `skrifa`, `harfrust`,
+ShotClutch's text engine (layer L1: depends on `shotclutch-color`, `skrifa`, `harfrust`,
 `unicode-bidi` and `unicode-linebreak`). It draws graphic-clip text and shapes, caption burn-in
 and the Timecode / Clip Name effects. Pure Rust; it builds for `wasm32-unknown-unknown`.
 

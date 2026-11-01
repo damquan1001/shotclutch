@@ -1,5 +1,5 @@
 [package]
-name = "filmcraft-testkit"
+name = "shotclutch-testkit"
 description = "Test-only helpers: ffmpeg/ffprobe oracle discovery, fixture directories, golden-image comparison"
 version.workspace = true
 edition.workspace = true
@@ -10,9 +10,10 @@ publish = false
 [lints]
 workspace = true
 
-# Used only as a dev-dependency. No FilmCraft dependencies, so any crate (including L0 codecs) can
+# Used only as a dev-dependency. No ShotClutch dependencies, so any crate (including L0 codecs) can
 # use it without creating dependency cycles.
 [dependencies]
+shotclutch-env = { workspace = true }
 png = "0.18"
 chrono = { workspace = true }
 

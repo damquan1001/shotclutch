@@ -3,8 +3,8 @@
 use crate::common;
 
 use common::*;
-use filmcraft_isobmff::{CodecConfig, Mp4File, TrackKind, open};
 use serde_json::Value;
+use shotclutch_isobmff::{CodecConfig, Mp4File, TrackKind, open};
 
 fn pcm_name_matches(ff: &str, c: &CodecConfig) -> bool {
     let CodecConfig::Pcm(p) = c else { return false };
@@ -71,7 +71,7 @@ fn check_stream(file: &Mp4File, idx: usize, st: &Value) -> Result<(), String> {
                 && cp == "bt709"
             {
                 match &v.color {
-                    Some(filmcraft_isobmff::ColorInfo::Nclx { primaries: 1, .. }) | Some(filmcraft_isobmff::ColorInfo::Nclc { primaries: 1, .. }) => {}
+                    Some(shotclutch_isobmff::ColorInfo::Nclx { primaries: 1, .. }) | Some(shotclutch_isobmff::ColorInfo::Nclc { primaries: 1, .. }) => {}
                     other => return Err(format!("colr {other:?}")),
                 }
             }
@@ -278,6 +278,6 @@ fn specific_properties() {
 fn generate_fixtures() {
     for name in all_fixture_names() {
         let out = [fixture_dir().join(name)];
-        filmcraft_testkit::fixtures::generate_and_report(&format!("isobmff/{name}"), &out, || fixture(name));
+        shotclutch_testkit::fixtures::generate_and_report(&format!("isobmff/{name}"), &out, || fixture(name));
     }
 }

@@ -30,7 +30,7 @@ pub struct BridgeClient {
 }
 
 impl BridgeClient {
-    /// `addr` such as `127.0.0.1:9876` (loopback only). Reads `FILMCRAFT_CONTROL_TOKEN`
+    /// `addr` such as `127.0.0.1:9876` (loopback only). Reads `SHOTCLUTCH_CONTROL_TOKEN`
     /// from the environment; the desktop app requires this credential on every request.
     pub fn new(addr: impl Into<String>) -> Result<Self, AutomationError> {
         let addr = addr.into();
@@ -38,12 +38,7 @@ impl BridgeClient {
         if !matches!(host, "127.0.0.1" | "localhost" | "[::1]" | "::1") {
             return Err(AutomationError::BadRequest(format!("bridge address must be loopback, got `{addr}`")));
         }
-        Ok(Self {
-            addr,
-            token: std::env::var("SHOTCLUTCH_CONTROL_TOKEN").or_else(|_| std::env::var("FILMCRAFT_CONTROL_TOKEN")).ok(),
-            idle: Mutex::new(Vec::new()),
-            next_id: AtomicU64::new(1),
-        })
+        Ok(Self { addr, token: shotclutch_env::var("SHOTCLUTCH_CONTROL_TOKEN").ok(), idle: Mutex::new(Vec::new()), next_id: AtomicU64::new(1) })
     }
 
     /// Run engine command `id` in the app. A blocking export (`file.exportMedia` with
@@ -128,7 +123,7 @@ impl BridgeClient {
         let s = tokio::time::timeout(Duration::from_secs(5), TcpStream::connect(&self.addr))
             .await
             .map_err(|_| AutomationError::Bridge(format!("timed out connecting to {}", self.addr)))?
-            .map_err(|e| AutomationError::Bridge(format!("cannot connect to {} ({e}); start the app with `filmcraft --control <port>`", self.addr)))?;
+            .map_err(|e| AutomationError::Bridge(format!("cannot connect to {} ({e}); start the app with `shotclutch --control <port>`", self.addr)))?;
         let (r, w) = s.into_split();
         Ok((BufReader::new(r), w))
     }
@@ -299,10 +294,10 @@ mod tests {
         let token = "0123456789abcdef".repeat(4);
         b.token = Some(token.clone());
         b.call("ui.inspect", json!({})).await.unwrap();
-        b.execute("file.saveAs", json!({"path": "/owner/project.fcproj"})).await.unwrap();
+        b.execute("file.saveAs", json!({"path": "/owner/project.scproj"})).await.unwrap();
         let seen = seen.lock().await;
         assert_eq!(seen.len(), 2);
         assert!(seen.iter().all(|request| request["token"] == token));
-        assert_eq!(seen[1]["params"]["params"]["path"], "/owner/project.fcproj");
+        assert_eq!(seen[1]["params"]["params"]["path"], "/owner/project.scproj");
     }
 }

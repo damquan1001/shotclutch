@@ -1,5 +1,5 @@
 [package]
-name = "filmcraft-opus"
+name = "shotclutch-opus"
 description = "Clean-room pure-Rust Opus decoder (RFC 6716 / RFC 8251; OpusHead, multistream surround)"
 version.workspace = true
 edition.workspace = true
@@ -10,6 +10,7 @@ rust-version.workspace = true
 workspace = true
 
 [dependencies]
+shotclutch-env = { workspace = true }
 
 [dev-dependencies]
-filmcraft-testkit = { workspace = true }
+shotclutch-testkit = { workspace = true }

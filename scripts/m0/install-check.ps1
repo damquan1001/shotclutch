@@ -16,6 +16,9 @@ try {
   $summary.install_exit = $p.ExitCode
   if ($p.ExitCode -ne 0) { throw "MSI installation failed: $($p.ExitCode); see install.log" }
   $installed = $true
+  $association = Get-ItemProperty -LiteralPath 'Registry::HKEY_LOCAL_MACHINE\Software\Classes\.scproj'
+  if ($association.'(default)' -ne 'ShotClutch.Project') { throw 'Installed native project association is incorrect' }
+  $summary.native_project_association = '.scproj'
   $folder = Join-Path $env:ProgramFiles 'ShotClutch'
   $machine = if ($Arch -eq 'arm64') { 0xAA64 } else { 0x8664 }
   foreach ($name in 'shotclutch.exe','shotclutch-cli.exe') {
@@ -30,7 +33,7 @@ try {
   if ($LASTEXITCODE -ne 0 -or $version -notlike 'shotclutch-cli *') { throw 'Installed CLI did not run' }
   & (Join-Path $folder 'shotclutch-cli.exe') --demo inspect project
   if ($LASTEXITCODE -ne 0) { throw 'Installed CLI could not inspect a project' }
-  $sentinel = Join-Path $folder 'user-created-project.fcproj'
+  $sentinel = Join-Path $folder 'user-created-project.scproj'
   Set-Content -LiteralPath $sentinel -Value 'qualification sentinel: preserve user-created files'
   if ($Fixtures) {
     & python scripts/ci/package-smoke.py exercise --fixtures $Fixtures --bin-dir $folder --output (Join-Path $out 'workflow')

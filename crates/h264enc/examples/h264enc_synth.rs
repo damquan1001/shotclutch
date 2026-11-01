@@ -1,11 +1,11 @@
 //! Development tool: encode synthetic (or lavfi) content and verify against ffmpeg.
 //!
-//! `cargo run --release -p filmcraft-h264enc --example h264enc_synth -- W H FRAMES [profile] [preset] [bframes] [rate] [slices] [src]`
+//! `cargo run --release -p shotclutch-h264enc --example h264enc_synth -- W H FRAMES [profile] [preset] [bframes] [rate] [slices] [src]`
 //! profile: baseline|main|high, preset: speed|balanced|quality, rate: qpN | crfN | cbrN | vbrN
 #[path = "../tests/it/common/mod.rs"]
 mod common;
 
-use filmcraft_h264enc::*;
+use shotclutch_h264enc::*;
 use std::time::Instant;
 
 fn main() {
@@ -39,17 +39,17 @@ fn main() {
     };
     cfg.slices = arg(8, "0").parse().unwrap();
     let src_kind = arg(9, "synth");
-    if let Ok(t) = std::env::var("THREADS") {
+    if let Ok(t) = shotclutch_env::var("THREADS") {
         cfg.threads = t.parse().unwrap();
     }
-    if let Ok(k) = std::env::var("KEYINT") {
+    if let Ok(k) = shotclutch_env::var("KEYINT") {
         cfg.keyint = k.parse().unwrap();
     }
-    if let Ok(k) = std::env::var("AQ") {
+    if let Ok(k) = shotclutch_env::var("AQ") {
         cfg.aq_strength = k.parse().unwrap();
     }
     // PERF=k: generate only k distinct pictures and cycle them (for long speed runs without verification).
-    let distinct = std::env::var("PERF").ok().map_or(n, |k| k.parse::<usize>().unwrap().min(n));
+    let distinct = shotclutch_env::var("PERF").ok().map_or(n, |k| k.parse::<usize>().unwrap().min(n));
     let base: Vec<common::Yuv> =
         if src_kind == "synth" { (0..distinct).map(|t| common::synth(w, h, t)).collect() } else { common::ffmpeg_source(&src_kind, w, h, distinct) };
     let perf = distinct < n;
@@ -123,7 +123,7 @@ fn main() {
                     d[pos],
                     rb[pos]
                 );
-                if std::env::var("MAP").is_ok() {
+                if shotclutch_env::var("MAP").is_ok() {
                     let (mbw, mbh) = (w.div_ceil(16), h.div_ceil(16));
                     for my in 0..mbh {
                         let mut line = String::new();

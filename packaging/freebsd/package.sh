@@ -47,7 +47,7 @@ echo "==> ShotClutch $VERSION for FreeBSD $ARCH"
 # The release VM has 12 GB; full parallelism on the biggest crates runs it out of memory.
 export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-4}"
 if [[ "$SKIP_BUILD" = 0 ]]; then
-  (cd "$ROOT" && cargo build --release --locked -p filmcraft -p filmcraft-cli)
+  (cd "$ROOT" && cargo build --release --locked -p shotclutch -p shotclutch-cli)
 fi
 WORK="$CARGO_TARGET_DIR/freebsd-package"
 STAGE="$WORK/$BASENAME"
@@ -76,7 +76,7 @@ strip "$STAGE/bin/shotclutch" "$STAGE/bin/shotclutch-cli" 2>/dev/null || true
 # The desktop entry, MIME type, metainfo and icons are the freedesktop files Linux ships.
 install -m 644 "$LINUX/$APP_ID.desktop" "$STAGE/share/applications/$APP_ID.desktop"
 install -m 644 "$LINUX/$APP_ID.mime.xml" "$STAGE/share/mime/packages/$APP_ID.xml"
-sed -e "s/@VERSION@/$VERSION/g" -e "s/@DATE@/$FILMCRAFT_BUILD_DATE/g" \
+sed -e "s/@VERSION@/$VERSION/g" -e "s/@DATE@/$SHOTCLUTCH_BUILD_DATE/g" \
   "$LINUX/$APP_ID.metainfo.xml.in" >"$STAGE/share/metainfo/$APP_ID.metainfo.xml"
 mkdir -p "$STAGE/share/icons/hicolor/256x256/apps" "$STAGE/share/icons/hicolor/scalable/apps"
 install -m 644 "$ROOT/assets/app-icon/shotclutch.png" "$STAGE/share/icons/hicolor/256x256/apps/$APP_ID.png"

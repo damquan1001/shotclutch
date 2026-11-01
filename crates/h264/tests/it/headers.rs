@@ -2,9 +2,9 @@
 
 use crate::common;
 
-use filmcraft_bitstream::{annexb_nals, unescape_rbsp};
-use filmcraft_h264::params::{Pps, Sps};
-use filmcraft_h264::slice::{NalHeader, PocState, SliceHeader, nal_type};
+use shotclutch_bitstream::{annexb_nals, unescape_rbsp};
+use shotclutch_h264::params::{Pps, Sps};
+use shotclutch_h264::slice::{NalHeader, PocState, SliceHeader, nal_type};
 
 /// Parse every NAL of a fixture; returns (sps, number of pictures, pocs in decoding order).
 fn parse_stream(name: &str) -> Option<(Sps, usize, Vec<i32>)> {

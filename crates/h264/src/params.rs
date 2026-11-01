@@ -2,7 +2,7 @@
 
 use crate::error::{Result, ensure, unsupported};
 use crate::tables::*;
-use filmcraft_bitstream::BitReader;
+use shotclutch_bitstream::BitReader;
 
 /// Maximum supported reconstructed luma area. 8K UHD fits comfortably while
 /// hostile SPS dimensions cannot allocate full pictures and decoder work state.
@@ -683,7 +683,7 @@ impl Pps {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use filmcraft_bitstream::BitWriter;
+    use shotclutch_bitstream::BitWriter;
 
     #[test]
     fn scaling_list_default_signal() {

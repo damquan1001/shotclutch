@@ -12,7 +12,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let hdr_len = usize::from(u16::from_le_bytes([data[6], data[7]]));
     let mut pos = hdr_len;
     let mut out = std::io::BufWriter::new(std::fs::File::create(output)?);
-    let mut dec = filmcraft_vp8::Decoder::new();
+    let mut dec = shotclutch_vp8::Decoder::new();
     let mut n = 0;
     let t = std::time::Instant::now();
     while pos + 12 <= data.len() {
@@ -23,7 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         pos += size;
         match dec.decode(frame, pts) {
             Ok(Some(p)) => {
-                if std::env::var_os("VP8DEC_SIZES").is_some() {
+                if shotclutch_env::var_os("VP8DEC_SIZES").is_some() {
                     println!("{} {}", p.width, p.height);
                 }
                 out.write_all(&p.y)?;

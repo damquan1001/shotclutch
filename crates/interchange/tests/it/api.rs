@@ -4,9 +4,9 @@ use crate::support;
 
 use std::collections::HashSet;
 
-use filmcraft_interchange::{ExportOptions, Format, detect, export, import, merge_into, rebase_source_timecode};
-use filmcraft_project::{ItemKind, Project, TrackKind, TransitionAlign};
-use filmcraft_time::FrameRate;
+use shotclutch_interchange::{ExportOptions, Format, detect, export, import, merge_into, rebase_source_timecode};
+use shotclutch_project::{ItemKind, Project, TrackKind, TransitionAlign};
+use shotclutch_time::FrameRate;
 use support::*;
 
 #[test]

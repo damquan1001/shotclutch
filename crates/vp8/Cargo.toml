@@ -1,5 +1,5 @@
 [package]
-name = "filmcraft-vp8"
+name = "shotclutch-vp8"
 description = "Clean-room pure-Rust VP8 decoder (RFC 6386)"
 version.workspace = true
 edition.workspace = true
@@ -10,7 +10,8 @@ rust-version.workspace = true
 workspace = true
 
 [dependencies]
+shotclutch-env = { workspace = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]
-filmcraft-testkit = { workspace = true }
+shotclutch-testkit = { workspace = true }

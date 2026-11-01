@@ -1,4 +1,4 @@
-# FilmCraft interface
+# ShotClutch interface
 
 The egui frontend draws panels and dialogs, and dispatches project changes through the engine.
 Interactive controls keep stable automation ids regardless of the interface language.
@@ -23,7 +23,7 @@ incompatible clip types show no valid transition preview. Ordinary effects retai
 outline. `timeline.transitionDropPreview` exposes the span and edge to automation.
 
 `transition_drop_ui` covers both edges of short video/audio clips, hover without project edits,
-the committed span and undo. Set `FILMCRAFT_UI_SNAPSHOT_DIR` to render screenshots with wgpu.
+the committed span and undo. Set `SHOTCLUTCH_UI_SNAPSHOT_DIR` to render screenshots with wgpu.
 
 ## Localisation
 
@@ -53,7 +53,7 @@ build. `cargo xtask i18n-report` prints each language's missing strings (menus, 
 registry names) and its entries whose source the interface no longer has; `cargo xtask ci` prints
 the same report in its log.
 
-Verification: `cargo test -p filmcraft-ui-egui` checks catalog syntax, duplicate keys, placeholders
+Verification: `cargo test -p shotclutch-ui-egui` checks catalog syntax, duplicate keys, placeholders
 and UI behaviour in other languages (switching, search, font coverage); `cargo xtask ci` runs the
 workspace gates. Visual checks use the control channel to switch language and capture the resulting
 panels.
@@ -79,7 +79,7 @@ keeps Source navigation, markers and marked-range playback separate from Program
 ## Pane layout controls
 
 Dock transactions and pointer targets use `craft-ui::docking`; bounded split geometry and
-keyboard-accessible resize handles use `craft-ui::layout`. FilmCraft adapts its existing saved
+keyboard-accessible resize handles use `craft-ui::layout`. ShotClutch adapts its existing saved
 dock tree and panel identities to the shared model. Panel tabs or their header grip can move
 between tab groups, split at an edge, reorder, or float when released with Cmd/Ctrl. Floating
 panels move by their empty header and resize from the bottom-right corner. Timeline sequence

@@ -28,6 +28,6 @@ jobs:
             set -eu
             export PATH="$HOME/.cargo/bin:$PATH"
             export CARGO_BUILD_JOBS=4
-            cargo build --locked --release -p filmcraft -p filmcraft-cli
+            cargo build --locked --release -p shotclutch -p shotclutch-cli
             bash packaging/freebsd/package.sh --skip-build
             tar -tzf dist/release/shotclutch-*-freebsd-*.tar.gz

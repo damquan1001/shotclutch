@@ -1,9 +1,9 @@
-//! `.fcproj` project files.
+//! `.scproj` project files.
 //!
 //! A project file is UTF-8 JSON with an explicit schema version:
 //!
 //! ```json
-//! { "format": "filmcraft.project", "schema_version": 2, "generator": "ShotClutch 0.1.0", "project": { … } }
+//! { "format": "shotclutch.project", "schema_version": 2, "generator": "ShotClutch 0.1.0", "project": { … } }
 //! ```
 //!
 //! - **Versioning.** [`SCHEMA_VERSION`] is the version this build writes. Older files are upgraded on
@@ -13,7 +13,7 @@
 //! - **Atomic saves.** [`atomic_write`] writes a temp file in the destination directory, fsyncs it,
 //!   renames it over the target and fsyncs the directory: a crash or power cut during a save leaves
 //!   either the old file or the new one, never a torn mix.
-//! - **Auto-save naming/rotation** lives in [`autosave`] (`<name>-YYYY-MM-DD_HH-MM-SS.fcproj` in an
+//! - **Auto-save naming/rotation** lives in [`autosave`] (`<name>-YYYY-MM-DD_HH-MM-SS.scproj` in an
 //!   `Auto-Save` folder next to the project, oldest pruned beyond the version limit).
 //!
 //! Schema history:
@@ -45,14 +45,24 @@
 pub mod atomic;
 pub mod autosave;
 
-use filmcraft_project::{Project, ProjectView};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use shotclutch_project::{Project, ProjectView};
 
 pub use atomic::{atomic_write, atomic_write_new};
 
 /// The `format` tag written in every envelope.
-pub const FORMAT_ID: &str = "filmcraft.project";
+pub const FORMAT_ID: &str = "shotclutch.project";
+/// Read-only compatibility identifier; all writers use FORMAT_ID.
+pub const LEGACY_FORMAT_ID: &str = "filmcraft.project";
+
+pub fn is_legacy_project_path(path: &str) -> bool {
+    std::path::Path::new(path).extension().is_some_and(|e| e.eq_ignore_ascii_case("fcproj"))
+}
+
+pub fn is_project_path(path: &str) -> bool {
+    std::path::Path::new(path).extension().is_some_and(|e| e.eq_ignore_ascii_case("scproj")) || is_legacy_project_path(path)
+}
 
 /// A migration upgrades a whole document from schema `n` to `n + 1`.
 pub type Migration = fn(Value) -> Result<Value, String>;
@@ -90,6 +100,8 @@ pub struct Loaded {
     pub project: Project,
     /// Schema version found in the file (before migration).
     pub schema_version: u32,
+    /// Legacy identity is read-only until explicitly saved under a new native filename.
+    pub legacy_identity: bool,
     /// The `generator` string of the writer, if recorded.
     pub generator: Option<String>,
     /// What was open when the file was saved (sequence tabs and how each was shown), when the
@@ -133,7 +145,7 @@ struct EnvelopeIn {
 impl EnvelopeIn {
     fn loaded(self, schema_version: u32) -> Loaded {
         let view = self.view.and_then(|v| serde_json::from_value(v).ok());
-        Loaded { project: self.project, schema_version, generator: self.generator, view }
+        Loaded { project: self.project, schema_version, legacy_identity: false, generator: self.generator, view }
     }
 }
 
@@ -179,6 +191,7 @@ fn probe_version(p: &Probe) -> Result<u32, FormatError> {
     if let Some(v) = p.schema_version {
         if let Some(f) = &p.format
             && f != FORMAT_ID
+            && f != LEGACY_FORMAT_ID
         {
             return Err(FormatError::NotAProject(format!("format is `{f}`, expected `{FORMAT_ID}`")));
         }
@@ -200,17 +213,22 @@ fn probe_version(p: &Probe) -> Result<u32, FormatError> {
 pub fn decode(bytes: &[u8]) -> Result<Loaded, FormatError> {
     let probe: Probe = serde_json::from_slice(bytes)
         .map_err(|e| if e.is_syntax() || e.is_eof() { FormatError::Corrupt(e.to_string()) } else { FormatError::NotAProject(e.to_string()) })?;
+    let legacy_identity = probe.format.as_deref() != Some(FORMAT_ID);
     let found = probe_version(&probe)?;
     check_supported(found)?;
     if found == SCHEMA_VERSION {
         // Fast path: deserialize straight into the model.
         let env: EnvelopeIn = serde_json::from_slice(bytes).map_err(|e| FormatError::Corrupt(e.to_string()))?;
-        return validate_loaded(env.loaded(found));
+        let mut loaded = env.loaded(found);
+        loaded.legacy_identity = legacy_identity;
+        return validate_loaded(loaded);
     }
     let doc: Value = serde_json::from_slice(bytes).map_err(|e| FormatError::Corrupt(e.to_string()))?;
     let doc = migrate_with(MIGRATIONS, doc, found)?;
     let env: EnvelopeIn = serde_json::from_value(doc).map_err(|e| FormatError::Corrupt(format!("after upgrading from schema v{found}: {e}")))?;
-    validate_loaded(env.loaded(found))
+    let mut loaded = env.loaded(found);
+    loaded.legacy_identity = legacy_identity;
+    validate_loaded(loaded)
 }
 
 /// Refuse only values that would overflow or exhaust memory later (`Sequence::check_bounds`);
@@ -219,7 +237,7 @@ fn validate_loaded(mut loaded: Loaded) -> Result<Loaded, FormatError> {
     // Embedded LUT text is rendered on the hot path. Drop oversize entries at load time so a
     // hostile project cannot retain an unrenderable multi-megabyte source or repeatedly offer it
     // to renderers. Clips that refer to one simply have no LUT, like a deleted library entry.
-    let max_lut = filmcraft_project::MAX_LUT_TEXT_BYTES;
+    let max_lut = shotclutch_project::MAX_LUT_TEXT_BYTES;
     loaded.project.luts.retain(|lut| {
         let keep = lut.text.len() <= max_lut;
         if !keep {
@@ -230,20 +248,20 @@ fn validate_loaded(mut loaded: Loaded) -> Result<Loaded, FormatError> {
     // Out-of-range audio stream data is repaired, not refused: failing the load would lose the
     // whole project over one bad index. A media item keeps its first `MAX_AUDIO_STREAMS` streams; a
     // clip pointing past that plays stream 0.
-    let max = filmcraft_media::MAX_AUDIO_STREAMS;
+    let max = shotclutch_media::MAX_AUDIO_STREAMS;
     for item in loaded.project.items.values_mut() {
         let name = item.name.clone();
         match &mut item.kind {
-            filmcraft_project::ItemKind::Media(m) => {
+            shotclutch_project::ItemKind::Media(m) => {
                 if let Some(video) = &m.info.video {
-                    filmcraft_project::validate_frame_size(video.width, video.height).map_err(|e| FormatError::Corrupt(format!("media `{name}`: {e}")))?;
+                    shotclutch_project::validate_frame_size(video.width, video.height).map_err(|e| FormatError::Corrupt(format!("media `{name}`: {e}")))?;
                 }
                 if m.info.audio_streams.len() > max {
                     log::warn!("media `{name}`: {} audio streams, keeping the first {max}", m.info.audio_streams.len());
                     m.info.audio_streams.truncate(max);
                 }
             }
-            filmcraft_project::ItemKind::Sequence(sequence) => {
+            shotclutch_project::ItemKind::Sequence(sequence) => {
                 let sequence = std::sync::Arc::make_mut(sequence);
                 for clip in sequence.audio_tracks.iter_mut().flat_map(|t| t.items.iter_mut()) {
                     if clip.audio_stream >= max {
@@ -256,7 +274,7 @@ fn validate_loaded(mut loaded: Loaded) -> Result<Loaded, FormatError> {
         }
     }
     for item in loaded.project.sequences() {
-        if let filmcraft_project::ItemKind::Sequence(sequence) = &item.kind {
+        if let shotclutch_project::ItemKind::Sequence(sequence) = &item.kind {
             sequence.check_bounds().map_err(|e| FormatError::Corrupt(format!("sequence `{}`: {e}", item.name)))?;
         }
     }
@@ -314,7 +332,7 @@ fn v1_to_v2(doc: Value) -> Result<Value, String> {
     Ok(serde_json::json!({
         "format": FORMAT_ID,
         "schema_version": 2,
-        "generator": "FilmCraft (schema v1)",
+        "generator": "ShotClutch (schema v1)",
         "project": Value::Object(project),
     }))
 }
@@ -401,7 +419,7 @@ mod tests {
     #[test]
     fn damaged_sequence_settings_are_rejected_before_rendering() {
         let mut p = Project::new("Invalid sequence");
-        let id = p.new_sequence("Bad", filmcraft_project::SequenceSettings::default(), 1, 1, None);
+        let id = p.new_sequence("Bad", shotclutch_project::SequenceSettings::default(), 1, 1, None);
         for (width, height, sample_rate) in [(0, 90, 48000), (160, 0, 48000), (160, 90, 0), (65536, 90, 48000), (32768, 16384, 48000)] {
             let settings = &mut p.sequence_mut(id).unwrap().settings;
             (settings.width, settings.height, settings.sample_rate) = (width, height, sample_rate);
@@ -414,13 +432,13 @@ mod tests {
     /// opens, as it did before; and 16K sequences are not "too large".
     #[test]
     fn structural_rule_breaks_still_open() {
-        use filmcraft_project::{ItemKind, SequenceSettings, TrackKind};
-        use filmcraft_time::{FrameRate, Tick, TimeRange};
+        use shotclutch_project::{ItemKind, SequenceSettings, TrackKind};
+        use shotclutch_time::{FrameRate, Tick, TimeRange};
         let mut p = Project::new("Legacy");
         let rate = FrameRate::FPS_24;
         let layer = p.add_item(
             "Layer",
-            filmcraft_project::Label::Iris,
+            shotclutch_project::Label::Iris,
             ItemKind::AdjustmentLayer { width: 1920, height: 1080, rate, duration: rate.tick_of(48) },
             None,
         );
@@ -453,12 +471,12 @@ mod tests {
     #[test]
     fn oversized_embedded_luts_are_dropped_on_load() {
         let mut p = Project::new("LUT limit");
-        p.luts.push(filmcraft_project::ProjectLut {
+        p.luts.push(shotclutch_project::ProjectLut {
             id: "huge".into(),
             name: "huge".into(),
             source_path: None,
             format: "cube".into(),
-            text: "#".repeat(filmcraft_project::MAX_LUT_TEXT_BYTES + 1).into(),
+            text: "#".repeat(shotclutch_project::MAX_LUT_TEXT_BYTES + 1).into(),
         });
         let loaded = decode(&encode(&p, false)).unwrap();
         assert!(loaded.project.luts.is_empty());
@@ -468,14 +486,14 @@ mod tests {
     /// read, opens all the same.
     #[test]
     fn the_view_is_kept_beside_the_project_and_never_stops_a_file_from_opening() {
-        use filmcraft_project::{ItemId, SequenceSettings, SequenceView};
+        use shotclutch_project::{ItemId, SequenceSettings, SequenceView};
         let mut p = Project::new("Tabs");
         let seq = p.new_sequence("Sequence 01", SequenceSettings::default(), 1, 1, None);
         let view = ProjectView {
             open_sequences: vec![seq],
             active_sequence: Some(seq),
             sequences: [(seq, SequenceView { pps: 80.0, scroll: 1.5, v_scroll: 0.0, a_scroll: 4.0, video_track_h: 60.0, audio_track_h: 56.0 })].into(),
-            playheads: [(seq, filmcraft_time::Tick(3 * filmcraft_time::TICKS_PER_SECOND))].into(),
+            playheads: [(seq, shotclutch_time::Tick(3 * shotclutch_time::TICKS_PER_SECOND))].into(),
         };
         for pretty in [true, false] {
             let l = decode(&encode_with_view(&p, Some(&view), pretty)).unwrap();
@@ -500,12 +518,12 @@ mod tests {
     /// used to be refused as damaged; it opens, and the points are still "auto".
     #[test]
     fn auto_points_written_as_null_open_again() {
-        use filmcraft_project::{ItemKind, SequenceSettings, TrackKind};
-        use filmcraft_time::{FrameRate, Tick, TimeRange};
+        use shotclutch_project::{ItemKind, SequenceSettings, TrackKind};
+        use shotclutch_time::{FrameRate, Tick, TimeRange};
         let mut p = Project::new("Imported");
         let layer = p.add_item(
             "Layer",
-            filmcraft_project::Label::Iris,
+            shotclutch_project::Label::Iris,
             ItemKind::AdjustmentLayer { width: 3840, height: 2160, rate: FrameRate::FPS_24, duration: FrameRate::FPS_24.tick_of(48) },
             None,
         );
@@ -578,5 +596,27 @@ mod tests {
         assert!(matches!(migrate_with(table, serde_json::json!({}), 5), Err(FormatError::TooNew { found: 5, supported: 4 })));
         let e = migrate_with(&[a, fail], serde_json::json!({}), 1).unwrap_err();
         assert!(matches!(e, FormatError::Migration { from: 2, .. }), "{e}");
+    }
+}
+
+#[cfg(test)]
+mod identity_tests {
+    use super::*;
+    #[test]
+    fn legacy_tag_reads_but_writers_emit_only_native_tag() {
+        let project = Project::default();
+        let mut value: Value = serde_json::from_slice(&encode(&project, false)).unwrap();
+        value["format"] = LEGACY_FORMAT_ID.into();
+        let loaded = decode(&serde_json::to_vec(&value).unwrap()).unwrap();
+        assert!(loaded.legacy_identity);
+        let native: Value = serde_json::from_slice(&encode(&loaded.project, false)).unwrap();
+        assert_eq!(native["format"], FORMAT_ID);
+        assert!(!decode(&serde_json::to_vec(&native).unwrap()).unwrap().legacy_identity);
+        value["format"] = "unrelated.project".into();
+        assert!(decode(&serde_json::to_vec(&value).unwrap()).is_err());
+        for path in ["edit.SCPrOj", "edit.FcPrOj"] {
+            assert!(is_project_path(path));
+        }
+        assert!(!is_project_path("video.mov"));
     }
 }

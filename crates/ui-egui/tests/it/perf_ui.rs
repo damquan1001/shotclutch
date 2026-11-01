@@ -7,14 +7,14 @@ use std::sync::mpsc::{Sender, channel};
 use std::time::{Duration, Instant};
 
 use egui_kittest::Harness;
-use filmcraft_engine::Session;
-use filmcraft_ui_egui::FilmcraftApp;
-use filmcraft_ui_egui::control::ControlRequest;
-use filmcraft_ui_egui::frames::{FrameKey, Target};
 use serde_json::{Value, json};
+use shotclutch_engine::Session;
+use shotclutch_ui_egui::ShotClutchApp;
+use shotclutch_ui_egui::control::ControlRequest;
+use shotclutch_ui_egui::frames::{FrameKey, Target};
 
 struct Driver {
-    harness: Harness<'static, FilmcraftApp>,
+    harness: Harness<'static, ShotClutchApp>,
     tx: Sender<ControlRequest>,
 }
 
@@ -23,7 +23,7 @@ impl Driver {
         let mut session = Session::default();
         session.execute("file.openDemoProject", json!({})).expect("demo project");
         let (tx, rx) = channel();
-        let app = FilmcraftApp::new(session).with_control(rx);
+        let app = ShotClutchApp::new(session).with_control(rx);
         let harness = Harness::builder().with_size(egui::vec2(1600.0, 980.0)).with_max_steps(10_000).build_eframe(move |_cc| app);
         let mut d = Driver { harness, tx };
         d.frames(4);
@@ -166,10 +166,10 @@ fn program_monitor_follows_a_backward_scrub() {
 /// workers end, so the first project's media pool is released.
 #[test]
 fn opening_a_project_releases_the_previous_media_pool() {
-    let dir = std::env::temp_dir().join(format!("filmcraft-perf-ui-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("shotclutch-perf-ui-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("reopen.fcproj").to_string_lossy().to_string();
+    let path = dir.join("reopen.scproj").to_string_lossy().to_string();
 
     let mut d = Driver::demo();
     d.settled();
@@ -200,7 +200,7 @@ fn a_newer_revision_keeps_the_frame_being_rendered() {
     // the clip with Lumetri Color at full resolution: tens of milliseconds on the CPU
     let seq = app.session.state.active_sequence.unwrap();
     let rate = app.session.active_sequence().unwrap().settings.frame_rate;
-    let frame = rate.frame_at(filmcraft_time::Tick::from_seconds_f64(15.0));
+    let frame = rate.frame_at(shotclutch_time::Tick::from_seconds_f64(15.0));
     let key = |revision| FrameKey { target: Target::Sequence(seq), frame, size: 1000, revision, draft: false };
     let project = app.session.project.clone();
     idle();

@@ -7,11 +7,11 @@
 
 use serde_json::{Value, json};
 
-use filmcraft_captions::{Document, Format, WriteOptions};
-use filmcraft_edit as edit;
-use filmcraft_edit::Edge;
-use filmcraft_project::{CaptionAlign, CaptionAnchor, CaptionFormat, CaptionStyle, CaptionTrack, ClipId, SequenceSettings, TrackId};
-use filmcraft_time::{Tick, TimeDisplay, format_time};
+use shotclutch_captions::{Document, Format, WriteOptions};
+use shotclutch_edit as edit;
+use shotclutch_edit::Edge;
+use shotclutch_project::{CaptionAlign, CaptionAnchor, CaptionFormat, CaptionStyle, CaptionTrack, ClipId, SequenceSettings, TrackId};
+use shotclutch_time::{Tick, TimeDisplay, format_time};
 
 use crate::commands::{CommandSpec, always, bad, bool_p, f64_p, has_seq, str_p, time_p, u64_p};
 use crate::{EngineError, Result, Session};
@@ -106,13 +106,13 @@ pub fn detect(path: &str, bytes: &[u8]) -> Option<Format> {
     if !matches!(ext.as_deref(), Some("srt" | "vtt" | "scc" | "webvtt" | "mcc" | "stl" | "ttml" | "dfxp" | "xml")) {
         return None;
     }
-    filmcraft_captions::detect(bytes, ext.as_deref())
+    shotclutch_captions::detect(bytes, ext.as_deref())
 }
 
 /// Import a caption file as a new caption track in the active sequence (a new sequence is made
 /// when none is open), snapped to the sequence's frames. One undo step.
 pub fn import(s: &mut Session, path: &str, bytes: &[u8], format: Format, name: Option<&str>) -> Result<Value> {
-    let mut doc = filmcraft_captions::parse(bytes, format).map_err(|e| EngineError::Other(format!("{path}: {e}")))?;
+    let mut doc = shotclutch_captions::parse(bytes, format).map_err(|e| EngineError::Other(format!("{path}: {e}")))?;
     let stem = std::path::Path::new(path).file_stem().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| "Captions".into());
     let track_name = name.map(str::to_string).unwrap_or_else(|| stem.clone());
     let seq_id = match s.state.active_sequence.filter(|id| s.project.sequence(*id).is_some()) {
@@ -136,7 +136,7 @@ pub fn import(s: &mut Session, path: &str, bytes: &[u8], format: Format, name: O
             next += 1;
             v
         };
-        let mut track = filmcraft_captions::track_from_document(&doc, tid, &track_name, format.track_format(), &mut alloc);
+        let mut track = shotclutch_captions::track_from_document(&doc, tid, &track_name, format.track_format(), &mut alloc);
         if format == Format::Scc {
             track.style.background_color = [0, 0, 0, 255];
         }
@@ -169,10 +169,10 @@ pub fn delete(s: &mut Session, ids: &[ClipId], ripple: bool) -> Result<Value> {
 pub fn copy(s: &mut Session) -> usize {
     let Some(q) = s.active_sequence() else { return 0 };
     let sel = &s.state.caption_selection;
-    let picked: Vec<(usize, filmcraft_project::Caption)> =
+    let picked: Vec<(usize, shotclutch_project::Caption)> =
         q.caption_tracks.iter().enumerate().flat_map(|(ti, t)| t.captions.iter().filter(|c| sel.contains(&c.id)).map(move |c| (ti, c.clone()))).collect();
     let min = picked.iter().map(|(_, c)| c.start).min().unwrap_or_default();
-    s.state.caption_clipboard = picked.into_iter().map(|(ti, c)| (ti, filmcraft_project::Caption { start: c.start - min, ..c })).collect();
+    s.state.caption_clipboard = picked.into_iter().map(|(ti, c)| (ti, shotclutch_project::Caption { start: c.start - min, ..c })).collect();
     s.state.clipboard.clear();
     s.state.clipboard_markers.clear();
     s.state.caption_clipboard.len()
@@ -186,14 +186,14 @@ pub fn paste(s: &mut Session, insert: bool) -> Result<Value> {
     let at = s.playhead();
     let clip = s.state.caption_clipboard.clone();
     let span = clip.iter().map(|(_, c)| c.end()).max().unwrap_or_default();
-    let mut by_track: Vec<(TrackId, Vec<filmcraft_project::Caption>)> = Vec::new();
+    let mut by_track: Vec<(TrackId, Vec<shotclutch_project::Caption>)> = Vec::new();
     {
         let q = s.active_sequence().ok_or(EngineError::NoSequence)?;
         for (ti, c) in clip {
             let Some(t) = q.caption_tracks.get(ti).or(q.caption_tracks.last()) else {
                 return Err(bad("edit.paste", "the sequence has no caption track to paste into"));
             };
-            let c = filmcraft_project::Caption { start: c.start + at, ..c };
+            let c = shotclutch_project::Caption { start: c.start + at, ..c };
             match by_track.iter_mut().find(|(id, _)| *id == t.id) {
                 Some((_, v)) => v.push(c),
                 None => by_track.push((t.id, vec![c])),
@@ -216,7 +216,7 @@ pub fn paste(s: &mut Session, insert: bool) -> Result<Value> {
     Ok(json!({"captions": ids.iter().map(|c| c.0).collect::<Vec<_>>()}))
 }
 
-fn caption_json(s: &Session, c: &filmcraft_project::Caption) -> Value {
+fn caption_json(s: &Session, c: &shotclutch_project::Caption) -> Value {
     let q = s.active_sequence();
     let (rate, df) = q.map(|q| (q.settings.frame_rate, q.settings.drop_frame)).unwrap_or_default();
     let tc = |t: Tick| format_time(t, rate, df, TimeDisplay::Timecode, 48_000);
@@ -260,9 +260,9 @@ fn export(s: &mut Session, p: &Value) -> Result<Value> {
     let tid = track_param(s, p).ok_or_else(|| bad("captions.export", "no caption track"))?;
     let seq = s.active_sequence().ok_or(EngineError::NoSequence)?;
     let track = seq.caption_track(tid).ok_or_else(|| bad("captions.export", "no such caption track"))?;
-    let doc: Document = filmcraft_captions::document_from_track(track, Tick::ZERO);
+    let doc: Document = shotclutch_captions::document_from_track(track, Tick::ZERO);
     let df = bool_p(p, "dropFrame").unwrap_or(true);
-    let bytes = filmcraft_captions::write(&doc, format, WriteOptions { drop_frame: df, rate: Some(seq.settings.frame_rate) });
+    let bytes = shotclutch_captions::write(&doc, format, WriteOptions { drop_frame: df, rate: Some(seq.settings.frame_rate) });
     let n = doc.cues.len();
     s.services.write_file(&path, &bytes).map_err(|e| EngineError::Other(e.to_string()))?;
     Ok(json!({"path": path, "format": format.name(), "captions": n, "bytes": bytes.len()}))
@@ -531,7 +531,7 @@ pub fn commands() -> Vec<CommandSpec> {
             }
             let d = delta_p(s, p).ok_or_else(|| bad("captions.duplicate", "need `delta` or `deltaFrames`"))?;
             let q = s.active_sequence().ok_or(EngineError::NoSequence)?;
-            let mut by_track: Vec<(TrackId, Vec<filmcraft_project::Caption>)> = Vec::new();
+            let mut by_track: Vec<(TrackId, Vec<shotclutch_project::Caption>)> = Vec::new();
             for id in &ids {
                 let (tid, c) = q.find_caption(*id).ok_or(EngineError::Edit(edit::EditError::NoItem(*id)))?;
                 match by_track.iter_mut().find(|(t, _)| *t == tid) {
@@ -548,7 +548,7 @@ pub fn commands() -> Vec<CommandSpec> {
             let new = s.edit_sequence("Duplicate Captions", |q, ctx, st| {
                 let mut new = Vec::new();
                 for (tid, caps) in &by_track {
-                    let moved: Vec<_> = caps.iter().map(|c| filmcraft_project::Caption { start: c.start + d, ..c.clone() }).collect();
+                    let moved: Vec<_> = caps.iter().map(|c| shotclutch_project::Caption { start: c.start + d, ..c.clone() }).collect();
                     new.extend(edit::captions::overwrite_captions(q, *tid, &moved, ctx)?);
                 }
                 st.caption_selection = new.clone();
@@ -594,7 +594,7 @@ pub fn commands() -> Vec<CommandSpec> {
             let path = str_p(p, "path").ok_or_else(|| bad("captions.import", "need `path`"))?.to_string();
             let bytes = s.services.read_file(&path).map_err(|e| EngineError::Other(format!("{path}: {e}")))?;
             let ext = std::path::Path::new(&path).extension().and_then(|e| e.to_str()).map(str::to_ascii_lowercase);
-            let format = filmcraft_captions::detect(&bytes, ext.as_deref()).ok_or_else(|| EngineError::Other(format!("{path}: not a caption file")))?;
+            let format = shotclutch_captions::detect(&bytes, ext.as_deref()).ok_or_else(|| EngineError::Other(format!("{path}: not a caption file")))?;
             import(s, &path, &bytes, format, str_p(p, "name"))
         }),
         spec(

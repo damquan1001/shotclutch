@@ -18,7 +18,7 @@ fn main() {
         .unwrap_or(Value::Null);
     let people =
         read(&dir.join("people.toml"), "contributors are shown by username only", |t| t.parse::<toml::Table>().map_err(|e| e.to_string())).unwrap_or_default();
-    let out = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap_or_default()).join("credits.rs");
+    let out = std::path::PathBuf::from(shotclutch_env::var_os("OUT_DIR").unwrap_or_default()).join("credits.rs");
     if let Err(e) = std::fs::write(&out, generate(&json, &people)) {
         println!("cargo::warning=writing {}: {e}", out.display());
     }

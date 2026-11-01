@@ -12,7 +12,7 @@
 //! - [`tr_ctx`]: when one English word needs different translations (the Edit menu, the Edit button).
 //! - [`fmt`]: fill `{name}` placeholders after translating a template; translators may reorder them.
 //!
-//! Japanese text uses the Japanese craft-fonts when FilmCraft was built with them (`CRAFT_FONTS_DIR`;
+//! Japanese text uses the Japanese craft-fonts when ShotClutch was built with them (`CRAFT_FONTS_DIR`;
 //! `theme::install` already puts them in every font family, see [`craft_japanese_font`]), otherwise
 //! a font already installed on the system ([`system_japanese_font`]); with neither, switching to
 //! Japanese is refused with a message.
@@ -194,7 +194,7 @@ thread_local! {
     static CURRENT: Cell<Language> = const { Cell::new(Language::En) };
 }
 
-/// Set the language for drawing. `FilmcraftApp::frame` calls this at the start of every frame from
+/// Set the language for drawing. `ShotClutchApp::frame` calls this at the start of every frame from
 /// the UI state, so widgets translate without every call site carrying the language around.
 pub fn set_current(lang: Language) {
     CURRENT.with(|c| c.set(lang));
@@ -278,11 +278,11 @@ const JAPANESE_FONT: &str = "system-japanese";
 pub fn system_japanese_font() -> Option<Arc<egui::FontData>> {
     static FONT: OnceLock<Option<Arc<egui::FontData>>> = OnceLock::new();
     FONT.get_or_init(|| {
-        filmcraft_text::fonts::scan_system();
-        let faces: Vec<_> = filmcraft_text::fonts::all_faces().into_iter().filter(|f| f.info.origin == "system" && !f.info.italic).collect();
-        let covers = |f: &filmcraft_text::fonts::Face| f.covers_text(JAPANESE_SAMPLE);
+        shotclutch_text::fonts::scan_system();
+        let faces: Vec<_> = shotclutch_text::fonts::all_faces().into_iter().filter(|f| f.info.origin == "system" && !f.info.italic).collect();
+        let covers = |f: &shotclutch_text::fonts::Face| f.covers_text(JAPANESE_SAMPLE);
         // within a family, the face closest to regular weight
-        let by_weight = |f: &&Arc<filmcraft_text::fonts::Face>| f.info.weight.abs_diff(400);
+        let by_weight = |f: &&Arc<shotclutch_text::fonts::Face>| f.info.weight.abs_diff(400);
         let preferred =
             PREFERRED_JAPANESE.iter().find_map(|name| faces.iter().filter(|f| f.info.family.eq_ignore_ascii_case(name) && covers(f)).min_by_key(by_weight));
         let face = preferred.or_else(|| faces.iter().filter(|f| covers(f)).min_by_key(by_weight))?;
@@ -298,10 +298,10 @@ pub fn system_japanese_font() -> Option<Arc<egui::FontData>> {
 /// Japanese interface font: some craft-fonts face covers [`JAPANESE_SAMPLE`]. `theme::install` adds
 /// these faces to every font family, so nothing else needs installing (and no system scan runs).
 pub fn craft_japanese_font() -> bool {
-    filmcraft_text::fonts::craft_japanese().next().is_some()
-        && filmcraft_text::fonts::all_faces()
+    shotclutch_text::fonts::craft_japanese().next().is_some()
+        && shotclutch_text::fonts::all_faces()
             .iter()
-            .any(|f| f.info.origin == filmcraft_text::fonts::CRAFT_ORIGIN && JAPANESE_SAMPLE.chars().all(|c| f.has_char(c)))
+            .any(|f| f.info.origin == shotclutch_text::fonts::CRAFT_ORIGIN && JAPANESE_SAMPLE.chars().all(|c| f.has_char(c)))
 }
 
 /// Japanese for the interface: true when built with the craft-fonts (already installed by
@@ -457,7 +457,7 @@ mod tests {
     /// Every string the interface translates: menu labels and paths (the native macOS app menu
     /// included), `tl!`/`tlf!` literals, and names translated through `i18n::t`.
     fn interface_strings() -> Vec<String> {
-        let app = crate::FilmcraftApp::new(filmcraft_engine::Session::default());
+        let app = crate::ShotClutchApp::new(shotclutch_engine::Session::default());
         let mut out = Vec::new();
         for top in crate::menus::MENUS.into_iter().chain(["Audio"]).chain(crate::menus::NATIVE_APP_MENU) {
             push(&mut out, top);
@@ -506,7 +506,7 @@ mod tests {
     /// and is refused (the interface stays as it was) without one.
     #[test]
     fn chinese_switches_and_persists_or_is_refused_without_a_font() {
-        let mut app = crate::FilmcraftApp::new(filmcraft_engine::Session::default());
+        let mut app = crate::ShotClutchApp::new(shotclutch_engine::Session::default());
         let ctx = egui::Context::default();
         let r = crate::menus::invoke(&mut app, &ctx, "app.language.chinese", serde_json::json!({}));
         if !chinese_font_available() {
@@ -525,9 +525,9 @@ mod tests {
         assert_eq!(app.session.prefs.general.interface_language, "zh-cn");
         assert!(crate::menus::menu_items(&app).iter().any(|it| it.id == "app.language.chinese" && it.checked == Some(true)));
         let prefs = serde_json::to_string(&app.session.prefs).unwrap();
-        let mut restarted = filmcraft_engine::Session::default();
+        let mut restarted = shotclutch_engine::Session::default();
         restarted.prefs = serde_json::from_str(&prefs).unwrap();
-        assert_eq!(crate::FilmcraftApp::new(restarted).ui.language, Language::ZhCn);
+        assert_eq!(crate::ShotClutchApp::new(restarted).ui.language, Language::ZhCn);
         crate::menus::invoke(&mut app, &ctx, "app.language.english", serde_json::json!({})).unwrap();
         set_current(Language::En);
     }
@@ -602,8 +602,8 @@ mod tests {
         }
     }
 
-    fn settings_rows(list: &[filmcraft_engine::settings::Row], out: &mut Vec<String>) {
-        use filmcraft_engine::settings::{Kind, Row};
+    fn settings_rows(list: &[shotclutch_engine::settings::Row], out: &mut Vec<String>) {
+        use shotclutch_engine::settings::{Kind, Row};
         for r in list {
             match r {
                 Row::Field(f) => {
@@ -629,21 +629,21 @@ mod tests {
     /// schemas from the engine and the other crates, and the UI's own enums.
     fn dynamic_names() -> Vec<String> {
         let mut out = Vec::new();
-        for c in filmcraft_engine::settings::categories() {
+        for c in shotclutch_engine::settings::categories() {
             push(&mut out, c.title);
             settings_rows(c.rows, &mut out);
         }
-        filmcraft_engine::settings::DURATION_UNITS.iter().for_each(|(_, l)| push(&mut out, l));
-        for top in filmcraft_project::vtransition::EFFECT_TOP_FOLDERS {
+        shotclutch_engine::settings::DURATION_UNITS.iter().for_each(|(_, l)| push(&mut out, l));
+        for top in shotclutch_project::vtransition::EFFECT_TOP_FOLDERS {
             push(&mut out, top);
         }
-        for d in filmcraft_project::effect_defs() {
+        for d in shotclutch_project::effect_defs() {
             push(&mut out, d.name);
             d.category.iter().for_each(|c| push(&mut out, c));
             for p in &d.params {
                 push(&mut out, p.label);
                 p.group.iter().for_each(|g| push(&mut out, g));
-                if let filmcraft_project::ParamKind::Choice(opts) = p.kind {
+                if let shotclutch_project::ParamKind::Choice(opts) = p.kind {
                     opts.iter().for_each(|o| push(&mut out, o));
                 }
             }
@@ -674,21 +674,21 @@ mod tests {
             "Appearance",
         ];
         sections.iter().for_each(|s| push(&mut out, s));
-        for p in filmcraft_render::lumetri_presets::presets() {
+        for p in shotclutch_render::lumetri_presets::presets() {
             push(&mut out, p.name);
             push(&mut out, p.folder);
             push(&mut out, p.description);
         }
         crate::dock::PanelKind::ALL.iter().for_each(|p| push(&mut out, p.title()));
         crate::dock::WORKSPACES.iter().for_each(|w| push(&mut out, w));
-        filmcraft_project::Label::ALL.iter().for_each(|l| push(&mut out, l.name()));
+        shotclutch_project::Label::ALL.iter().for_each(|l| push(&mut out, l.name()));
         crate::panels::panel_state::TcMode::ALL.iter().for_each(|m| push(&mut out, m.label()));
         crate::panels::panel_state::TcSource::ALL.iter().for_each(|s| push(&mut out, s.label()));
         crate::panels::panel_state::SCOPE_PRESETS.iter().for_each(|p| push(&mut out, p.0));
-        filmcraft_time::TimeDisplay::ALL.iter().for_each(|d| push(&mut out, d.label()));
-        use filmcraft_engine::panels::Level;
+        shotclutch_time::TimeDisplay::ALL.iter().for_each(|d| push(&mut out, d.label()));
+        use shotclutch_engine::panels::Level;
         [Level::Info, Level::Warning, Level::Error].iter().for_each(|l| push(&mut out, l.label()));
-        use filmcraft_scopes as sc;
+        use shotclutch_scopes as sc;
         sc::ScopeKind::ALL.iter().for_each(|k| push(&mut out, k.label()));
         sc::WaveformType::ALL.iter().for_each(|k| push(&mut out, k.label()));
         sc::ParadeType::ALL.iter().for_each(|k| push(&mut out, k.label()));
@@ -700,28 +700,28 @@ mod tests {
         crate::state::Tool::ALL.iter().for_each(|t| push(&mut out, t.label()));
         crate::credits::NameMode::ALL.iter().for_each(|m| push(&mut out, m.label()));
         crate::credits::SortKey::ALL.iter().for_each(|k| push(&mut out, k.label().0));
-        filmcraft_project::TimeInterpolation::ALL.iter().for_each(|m| push(&mut out, m.label()));
-        filmcraft_project::CaptionFormat::ALL.iter().for_each(|f| push(&mut out, f.label()));
-        filmcraft_project::MaskMode::ALL.iter().for_each(|m| push(&mut out, m.label()));
-        use filmcraft_project::essential as es;
+        shotclutch_project::TimeInterpolation::ALL.iter().for_each(|m| push(&mut out, m.label()));
+        shotclutch_project::CaptionFormat::ALL.iter().for_each(|f| push(&mut out, f.label()));
+        shotclutch_project::MaskMode::ALL.iter().for_each(|m| push(&mut out, m.label()));
+        use shotclutch_project::essential as es;
         for kind in es::AudioType::ALL {
             push(&mut out, kind.label());
             kind.sections().iter().for_each(|s| push(&mut out, s.label()));
         }
         es::EQ_PRESETS.iter().for_each(|p| push(&mut out, p.name));
         es::REVERB_PRESETS.iter().for_each(|p| push(&mut out, p.name));
-        filmcraft_engine::essential_sound::presets(&filmcraft_engine::Session::default()).iter().for_each(|p| push(&mut out, &p.name));
-        filmcraft_project::TrackMethod::ALL.iter().for_each(|m| push(&mut out, m.label()));
-        filmcraft_project::AutomationMode::ALL.iter().for_each(|m| push(&mut out, m.label()));
-        filmcraft_project::graphic_design::RollMode::ALL.iter().for_each(|m| push(&mut out, m.label()));
-        filmcraft_project::InputMap::ALL.iter().for_each(|m| push(&mut out, m.label()));
-        filmcraft_engine::panels::LOG_FIELDS.iter().for_each(|f| push(&mut out, f));
-        filmcraft_engine::project_panel::BUILTIN_COLUMNS.iter().for_each(|c| push(&mut out, c));
-        filmcraft_project::find::COLUMNS.iter().for_each(|c| push(&mut out, c));
-        filmcraft_project::FindOp::ALL.iter().for_each(|o| push(&mut out, o.label()));
-        filmcraft_engine::media_browser::ALL_COLUMNS.iter().for_each(|c| push(&mut out, c));
+        shotclutch_engine::essential_sound::presets(&shotclutch_engine::Session::default()).iter().for_each(|p| push(&mut out, &p.name));
+        shotclutch_project::TrackMethod::ALL.iter().for_each(|m| push(&mut out, m.label()));
+        shotclutch_project::AutomationMode::ALL.iter().for_each(|m| push(&mut out, m.label()));
+        shotclutch_project::graphic_design::RollMode::ALL.iter().for_each(|m| push(&mut out, m.label()));
+        shotclutch_project::InputMap::ALL.iter().for_each(|m| push(&mut out, m.label()));
+        shotclutch_engine::panels::LOG_FIELDS.iter().for_each(|f| push(&mut out, f));
+        shotclutch_engine::project_panel::BUILTIN_COLUMNS.iter().for_each(|c| push(&mut out, c));
+        shotclutch_project::find::COLUMNS.iter().for_each(|c| push(&mut out, c));
+        shotclutch_project::FindOp::ALL.iter().for_each(|o| push(&mut out, o.label()));
+        shotclutch_engine::media_browser::ALL_COLUMNS.iter().for_each(|c| push(&mut out, c));
         // export: presets, settings choices, ranges and pixel aspects
-        use filmcraft_engine::export as ex;
+        use shotclutch_engine::export as ex;
         for p in ex::builtin_presets() {
             push(&mut out, &p.name);
             push(&mut out, &p.category);
@@ -735,31 +735,31 @@ mod tests {
         [ex::H264Profile::Baseline, ex::H264Profile::Main, ex::H264Profile::High].iter().for_each(|p| push(&mut out, p.label()));
         crate::panels::export_mode::RANGES.iter().for_each(|(_, l)| push(&mut out, l));
         crate::panels::export_mode::PARS.iter().for_each(|(l, _)| push(&mut out, l));
-        for template in filmcraft_project::gtemplate::builtin_templates() {
+        for template in shotclutch_project::gtemplate::builtin_templates() {
             push(&mut out, &template.name);
             push(&mut out, &template.category);
             push(&mut out, &template.description);
             template.controls.iter().for_each(|c| push(&mut out, &c.name));
         }
         // effect presets (Effects panel ▸ Presets)
-        for p in filmcraft_engine::presets::builtin_presets() {
+        for p in shotclutch_engine::presets::builtin_presets() {
             push(&mut out, &p.name);
             push(&mut out, &p.description);
         }
         // every command (Keyboard Shortcuts dialog, History panel) and the shortcut contexts
-        let app = crate::FilmcraftApp::new(filmcraft_engine::Session::default());
+        let app = crate::ShotClutchApp::new(shotclutch_engine::Session::default());
         for c in app.session.shortcuts.commands() {
             push(&mut out, &c.label);
             push(&mut out, &c.category);
         }
-        push(&mut out, filmcraft_engine::shortcuts::APPLICATION);
-        filmcraft_engine::shortcuts::PANELS.iter().for_each(|p| push(&mut out, p));
+        push(&mut out, shotclutch_engine::shortcuts::APPLICATION);
+        shotclutch_engine::shortcuts::PANELS.iter().for_each(|p| push(&mut out, p));
         // metadata rows, item types and history entries of the demo project
-        let mut s = filmcraft_engine::Session::default();
+        let mut s = shotclutch_engine::Session::default();
         let _ = s.execute("file.openDemoProject", serde_json::json!({}));
         for it in s.project.items.values() {
             push(&mut out, it.type_label());
-            for f in filmcraft_engine::panels::metadata_fields(&s.project, it.id) {
+            for f in shotclutch_engine::panels::metadata_fields(&s.project, it.id) {
                 push(&mut out, f.section);
                 push(&mut out, &f.name);
             }
@@ -775,7 +775,7 @@ mod tests {
 
     #[test]
     fn language_commands_switch_and_persist_without_a_document() {
-        let mut app = crate::FilmcraftApp::new(filmcraft_engine::Session::default());
+        let mut app = crate::ShotClutchApp::new(shotclutch_engine::Session::default());
         let ctx = egui::Context::default();
         // Japanese needs an installed font (see `japanese_needs_an_installed_font`); skip that step without one
         if craft_japanese_font() || system_japanese_font().is_some() {
@@ -788,9 +788,9 @@ mod tests {
         crate::menus::invoke(&mut app, &ctx, "app.language.spanish", serde_json::json!({})).unwrap();
         assert_eq!(app.ui.language, Language::Es);
         let prefs = serde_json::to_string(&app.session.prefs).unwrap();
-        let mut restarted = filmcraft_engine::Session::default();
+        let mut restarted = shotclutch_engine::Session::default();
         restarted.prefs = serde_json::from_str(&prefs).unwrap();
-        assert_eq!(crate::FilmcraftApp::new(restarted).ui.language, Language::Es);
+        assert_eq!(crate::ShotClutchApp::new(restarted).ui.language, Language::Es);
         assert!(crate::menus::menu_items(&app).iter().any(|it| it.id == "app.language.spanish" && it.checked == Some(true)));
         crate::menus::invoke(&mut app, &ctx, "app.language.portuguese", serde_json::json!({})).unwrap();
         assert_eq!(app.ui.language, Language::PtBr);
@@ -808,9 +808,9 @@ mod tests {
         assert_eq!(restored.language, Language::Uk);
         assert_eq!(app.session.prefs.general.interface_language, "uk");
         let prefs = serde_json::to_string(&app.session.prefs).unwrap();
-        let mut restarted = filmcraft_engine::Session::default();
+        let mut restarted = shotclutch_engine::Session::default();
         restarted.prefs = serde_json::from_str(&prefs).unwrap();
-        assert_eq!(crate::FilmcraftApp::new(restarted).ui.language, Language::Uk);
+        assert_eq!(crate::ShotClutchApp::new(restarted).ui.language, Language::Uk);
         let result = crate::menus::invoke(&mut app, &ctx, "app.language.german", serde_json::json!({})).unwrap();
         assert_eq!(result, serde_json::json!("de"));
         assert_eq!((app.ui.language, current()), (Language::De, Language::De));
@@ -828,9 +828,9 @@ mod tests {
         let restored: crate::state::UiState = serde_json::from_str(&saved).unwrap();
         assert_eq!(restored.language, Language::De);
         let prefs = serde_json::to_string(&app.session.prefs).unwrap();
-        let mut restarted = filmcraft_engine::Session::default();
+        let mut restarted = shotclutch_engine::Session::default();
         restarted.prefs = serde_json::from_str(&prefs).unwrap();
-        assert_eq!(crate::FilmcraftApp::new(restarted).ui.language, Language::De);
+        assert_eq!(crate::ShotClutchApp::new(restarted).ui.language, Language::De);
         let result = crate::menus::invoke(&mut app, &ctx, "app.language.french", serde_json::json!({})).unwrap();
         assert_eq!(result, serde_json::json!("fr"));
         assert_eq!((app.ui.language, current()), (Language::Fr, Language::Fr));
@@ -845,9 +845,9 @@ mod tests {
         let saved = serde_json::to_string(&app.ui).unwrap();
         assert!(saved.contains("\"language\":\"fr\""), "{saved}");
         let prefs = serde_json::to_string(&app.session.prefs).unwrap();
-        let mut restarted = filmcraft_engine::Session::default();
+        let mut restarted = shotclutch_engine::Session::default();
         restarted.prefs = serde_json::from_str(&prefs).unwrap();
-        assert_eq!(crate::FilmcraftApp::new(restarted).ui.language, Language::Fr);
+        assert_eq!(crate::ShotClutchApp::new(restarted).ui.language, Language::Fr);
         let result = crate::menus::invoke(&mut app, &ctx, "app.language.indonesian", serde_json::json!({})).unwrap();
         assert_eq!(result, serde_json::json!("id"));
         assert_eq!((app.ui.language, current()), (Language::Id, Language::Id));
@@ -863,9 +863,9 @@ mod tests {
         let saved = serde_json::to_string(&app.ui).unwrap();
         assert!(saved.contains("\"language\":\"id\""), "{saved}");
         let prefs = serde_json::to_string(&app.session.prefs).unwrap();
-        let mut restarted = filmcraft_engine::Session::default();
+        let mut restarted = shotclutch_engine::Session::default();
         restarted.prefs = serde_json::from_str(&prefs).unwrap();
-        assert_eq!(crate::FilmcraftApp::new(restarted).ui.language, Language::Id);
+        assert_eq!(crate::ShotClutchApp::new(restarted).ui.language, Language::Id);
         let result = crate::menus::invoke(&mut app, &ctx, "app.language.italian", serde_json::json!({})).unwrap();
         assert_eq!(result, serde_json::json!("it"));
         assert_eq!((app.ui.language, current()), (Language::It, Language::It));
@@ -881,9 +881,9 @@ mod tests {
         let saved = serde_json::to_string(&app.ui).unwrap();
         assert!(saved.contains("\"language\":\"it\""), "{saved}");
         let prefs = serde_json::to_string(&app.session.prefs).unwrap();
-        let mut restarted = filmcraft_engine::Session::default();
+        let mut restarted = shotclutch_engine::Session::default();
         restarted.prefs = serde_json::from_str(&prefs).unwrap();
-        assert_eq!(crate::FilmcraftApp::new(restarted).ui.language, Language::It);
+        assert_eq!(crate::ShotClutchApp::new(restarted).ui.language, Language::It);
         crate::menus::invoke(&mut app, &ctx, "app.language.english", serde_json::json!({})).unwrap();
         assert_eq!(app.ui.language, Language::En);
         set_current(Language::En);
@@ -949,13 +949,13 @@ mod tests {
     #[test]
     fn system_language_preference_uses_the_host_languages() {
         let ctx = egui::Context::default();
-        let session = filmcraft_engine::Session::default();
+        let session = shotclutch_engine::Session::default();
         assert_eq!(session.prefs.general.interface_language, "system");
-        let mut app = crate::FilmcraftApp::new(session);
+        let mut app = crate::ShotClutchApp::new(session);
         app.apply_prefs(&ctx);
         assert_eq!(app.ui.language, Language::En, "no host hook");
 
-        let mut app = crate::FilmcraftApp::new(filmcraft_engine::Session::default());
+        let mut app = crate::ShotClutchApp::new(shotclutch_engine::Session::default());
         let asked = std::rc::Rc::new(std::cell::Cell::new(0));
         let count = asked.clone();
         app.hooks.system_languages = Some(Box::new(move || {
@@ -1063,7 +1063,7 @@ mod tests {
 
     #[test]
     fn japanese_needs_an_installed_font() {
-        let mut app = crate::FilmcraftApp::new(filmcraft_engine::Session::default());
+        let mut app = crate::ShotClutchApp::new(shotclutch_engine::Session::default());
         let ctx = egui::Context::default();
         crate::theme::install(&ctx, &crate::theme::Tokens::for_kind(crate::theme::ThemeKind::default()));
         let r = crate::menus::invoke(&mut app, &ctx, "app.language.japanese", serde_json::json!({}));

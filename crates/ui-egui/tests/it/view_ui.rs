@@ -3,18 +3,18 @@
 //! source waveform), magnification and panning, rulers and guides (drag out of the ruler, move,
 //! lock, clear, Add Guide…, templates), Snap in Program Monitor, and the Graphics menu commands.
 //!
-//! With `FILMCRAFT_UI_SHOTS=<dir>` the test also renders the UI with wgpu and writes `view-*.png`.
+//! With `SHOTCLUTCH_UI_SHOTS=<dir>` the test also renders the UI with wgpu and writes `view-*.png`.
 
 use std::sync::mpsc::{Sender, channel};
 
 use egui_kittest::Harness;
-use filmcraft_engine::Session;
-use filmcraft_ui_egui::FilmcraftApp;
-use filmcraft_ui_egui::control::ControlRequest;
 use serde_json::{Value, json};
+use shotclutch_engine::Session;
+use shotclutch_ui_egui::ShotClutchApp;
+use shotclutch_ui_egui::control::ControlRequest;
 
 struct Driver {
-    harness: Harness<'static, FilmcraftApp>,
+    harness: Harness<'static, ShotClutchApp>,
     tx: Sender<ControlRequest>,
     shots: Option<std::path::PathBuf>,
 }
@@ -24,8 +24,8 @@ impl Driver {
         let mut session = Session::default();
         session.execute("file.openDemoProject", json!({})).expect("demo project");
         let (tx, rx) = channel();
-        let app = FilmcraftApp::new(session).with_control(rx);
-        let shots = std::env::var_os("FILMCRAFT_UI_SHOTS").map(std::path::PathBuf::from);
+        let app = ShotClutchApp::new(session).with_control(rx);
+        let shots = shotclutch_env::var_os("SHOTCLUTCH_UI_SHOTS").map(std::path::PathBuf::from);
         let mut b = Harness::builder().with_size(egui::vec2(1600.0, 980.0)).with_max_steps(10_000);
         if shots.is_some() {
             b = b.wgpu().with_pixels_per_point(1.0);
@@ -211,11 +211,11 @@ fn fills_in(d: &Driver, area: egui::Rect) -> (Vec<(egui::Rect, egui::Color32)>, 
 /// the picture instead of the monitor background; each monitor keeps its own setting.
 #[test]
 fn transparency_grid_paints_a_checkerboard_behind_the_picture() {
-    use filmcraft_ui_egui::frames::Target;
-    use filmcraft_ui_egui::panels::monitor_view::{GRID_DARK, GRID_LIGHT};
+    use shotclutch_ui_egui::frames::Target;
+    use shotclutch_ui_egui::panels::monitor_view::{GRID_DARK, GRID_LIGHT};
     let mut d = Driver::demo();
     // the check mark of the wrench menu item
-    let checked = |d: &mut Driver| filmcraft_ui_egui::panels::monitor_view::checked(d.harness.state(), "view.transparencyGrid");
+    let checked = |d: &mut Driver| shotclutch_ui_egui::panels::monitor_view::checked(d.harness.state(), "view.transparencyGrid");
     let menu = d.ok("ui.menu.list", json!({}));
     assert!(menu.as_array().unwrap().iter().all(|m| m["id"] != "view.transparencyGrid"), "not in the View menu");
     assert_eq!(d.program()["transparency_grid"], false, "off by default");
@@ -295,7 +295,7 @@ fn transparency_grid_paints_a_checkerboard_behind_the_picture() {
 /// keeps the usual frames.
 #[test]
 fn alpha_display_mode_shows_a_live_render() {
-    use filmcraft_ui_egui::frames::Target;
+    use shotclutch_ui_egui::frames::Target;
     let shown_live = |d: &mut Driver, live: bool| {
         let is = |d: &Driver| match d.harness.state().program_picture().map(|k| k.target) {
             Some(Target::SequenceLive(_)) => live,

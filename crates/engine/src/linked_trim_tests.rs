@@ -2,9 +2,9 @@
 //! in the Timeline) edits only the given clip, while the default still edits its partners too.
 
 use crate::Session;
-use filmcraft_project::ClipId;
-use filmcraft_time::Tick;
 use serde_json::json;
+use shotclutch_project::ClipId;
+use shotclutch_time::Tick;
 
 fn linked_pair() -> (Session, ClipId, ClipId) {
     let mut s = Session::default();

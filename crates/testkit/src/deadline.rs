@@ -16,12 +16,12 @@ pub fn set_progress(label: &str) {
     p.push_str(label);
 }
 
-/// Run `f` on a worker thread and wait at most `secs` seconds (`FILMCRAFT_HOSTILE_TIMEOUT_SECS` overrides the
+/// Run `f` on a worker thread and wait at most `secs` seconds (`SHOTCLUTCH_HOSTILE_TIMEOUT_SECS` overrides the
 /// budget). A panic in `f` is re-raised here; a timeout panics with the last [`set_progress`] label. A hung
 /// worker is abandoned (the failing test process exits anyway).
 pub fn with_deadline(secs: u64, f: impl FnOnce() + Send + 'static) {
-    let secs = std::env::var("SHOTCLUTCH_HOSTILE_TIMEOUT_SECS")
-        .or_else(|_| std::env::var("FILMCRAFT_HOSTILE_TIMEOUT_SECS"))
+    let secs = shotclutch_env::var("SHOTCLUTCH_HOSTILE_TIMEOUT_SECS")
+        .or_else(|_| shotclutch_env::var("SHOTCLUTCH_HOSTILE_TIMEOUT_SECS"))
         .ok()
         .and_then(|v| v.parse::<u64>().ok())
         .filter(|&n| n > 0)

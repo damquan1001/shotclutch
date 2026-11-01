@@ -21,16 +21,16 @@
 //! `quickExport.go`, `quickExport.close`.
 
 use egui::{Align2, Color32, Rect, Sense, pos2, vec2};
-use filmcraft_engine::export::presets::{DEFAULT_PRESET, preset_key};
-use filmcraft_engine::export::{
+use serde::{Deserialize, Serialize};
+use serde_json::{Value, json};
+use shotclutch_engine::export::presets::{DEFAULT_PRESET, preset_key};
+use shotclutch_engine::export::{
     AudioCodec, BitrateMode, ExportSettings, ExrCompression, FieldOrder, Format, GpuRendering, H264Profile, HardwareEncoding, Multiplexer, MxfVideoCodec,
     Placement, SampleFormat, Scaling, TextOverlay, builtin_presets, format_bytes,
 };
-use filmcraft_engine::time::{FrameRate, Tick};
-use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
+use shotclutch_engine::time::{FrameRate, Tick};
 
-use crate::FilmcraftApp;
+use crate::ShotClutchApp;
 use crate::frames::{FrameKey, Target};
 use crate::native_dialogs::FileDialog;
 use crate::theme::Tokens;
@@ -63,7 +63,7 @@ pub struct ExportUi {
 
 impl Default for ExportUi {
     fn default() -> Self {
-        let preset = filmcraft_engine::export::presets::find_builtin(DEFAULT_PRESET).map(|p| p.settings).unwrap_or_default();
+        let preset = shotclutch_engine::export::presets::find_builtin(DEFAULT_PRESET).map(|p| p.settings).unwrap_or_default();
         ExportUi {
             preset: DEFAULT_PRESET.into(),
             settings: preset,
@@ -102,7 +102,7 @@ impl Reg {
     fn add(&mut self, id: impl Into<String>, r: Rect, label: impl Into<String>) {
         self.0.push((id.into(), r, label.into()));
     }
-    fn flush(self, app: &mut FilmcraftApp) {
+    fn flush(self, app: &mut ShotClutchApp) {
         for (id, r, l) in self.0 {
             app.auto.add(&id, r, &l);
         }
@@ -114,7 +114,7 @@ fn settings_json(s: &ExportSettings) -> Value {
 }
 
 /// Apply a preset by name (from the engine's library).
-pub fn apply_preset(app: &mut FilmcraftApp, name: &str) -> bool {
+pub fn apply_preset(app: &mut ShotClutchApp, name: &str) -> bool {
     match app.session.export_presets.find(name) {
         Some(p) => {
             app.ui.export.settings = p.settings;
@@ -131,13 +131,13 @@ pub fn apply_preset(app: &mut FilmcraftApp, name: &str) -> bool {
 /// Full output path of the current settings.
 pub fn output_path(ex: &ExportUi) -> String {
     let name = if ex.file_name.trim().is_empty() { "Export" } else { ex.file_name.trim() };
-    let dir = filmcraft_engine::export_tools::expand_home(ex.location.trim());
+    let dir = shotclutch_engine::export_tools::expand_home(ex.location.trim());
     let file = format!("{name}.{}", ex.settings.extension());
     if dir.is_empty() { file } else { std::path::Path::new(&dir).join(file).to_string_lossy().to_string() }
 }
 
 /// Engine params for the current settings (`file.exportMedia` / `export.queue.add`).
-pub fn export_params(app: &FilmcraftApp) -> Value {
+pub fn export_params(app: &ShotClutchApp) -> Value {
     let ex = &app.ui.export;
     let mut p = json!({"path": output_path(ex), "settings": settings_json(&ex.settings), "range": ex.range});
     if ex.range == "custom" {
@@ -147,18 +147,18 @@ pub fn export_params(app: &FilmcraftApp) -> Value {
     p
 }
 
-fn sync_sequence(app: &mut FilmcraftApp) {
+fn sync_sequence(app: &mut ShotClutchApp) {
     let Some(seq) = app.session.state.active_sequence else { return };
     if app.ui.export.for_sequence != Some(seq.0) || app.ui.export.file_name.is_empty() {
         app.ui.export.file_name = app.session.project.item(seq).map(|i| i.name.clone()).unwrap_or_else(|| "Sequence".into());
         app.ui.export.for_sequence = Some(seq.0);
     }
     if app.ui.export.location.is_empty() {
-        app.ui.export.location = filmcraft_engine::export_tools::default_export_dir(&app.session).to_string_lossy().to_string();
+        app.ui.export.location = shotclutch_engine::export_tools::default_export_dir(&app.session).to_string_lossy().to_string();
     }
 }
 
-pub fn show(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect) {
+pub fn show(app: &mut ShotClutchApp, ui: &mut egui::Ui, rect: Rect) {
     let t = app.tokens;
     let left = Rect::from_min_size(rect.min, vec2(300.0, rect.height()));
     let right = Rect::from_min_max(pos2(rect.max.x - (rect.width() * 0.4).clamp(360.0, 640.0), rect.min.y), rect.max);
@@ -193,7 +193,7 @@ pub fn show(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect) {
 // left: destinations + queue
 // ---------------------------------------------------------------------------------------------
 
-fn queue_column(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect) {
+fn queue_column(app: &mut ShotClutchApp, ui: &mut egui::Ui, rect: Rect) {
     let t = app.tokens;
     let mut reg = Reg::default();
     let p = ui.painter();
@@ -340,7 +340,7 @@ fn combo_why(ui: &mut egui::Ui, reg: &mut Reg, id: &str, selected: &str, options
 /// software encoder: without a hardware one (NVENC on NVIDIA, VideoToolbox on macOS) they are
 /// greyed out with the reason, instead of failing at export time.
 fn unavailable_why(format: Format) -> Option<&'static str> {
-    if filmcraft_engine::export::available(format) {
+    if shotclutch_engine::export::available(format) {
         return None;
     }
     Some(match format {
@@ -494,7 +494,7 @@ pub(crate) const PARS: [(&str, Option<(u32, u32)>); 6] = [
     ("Anamorphic 2:1 (2.0)", Some((2, 1))),
 ];
 
-fn settings_column(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect) {
+fn settings_column(app: &mut ShotClutchApp, ui: &mut egui::Ui, rect: Rect) {
     let t = app.tokens;
     let mut reg = Reg::default();
     let mut open_manager = false;
@@ -755,7 +755,7 @@ fn video_section(ui: &mut egui::Ui, reg: &mut Reg, s: &mut ExportSettings, t: &T
                     row(ui, t, tl!("Encoder"), |ui| ui.label(tl!("Hardware (AV1 has no software encoder)")));
                 } else {
                     // the hardware encoder writes Main (8-bit 4:2:0), or Main 10 for HDR sequences where it can; level chosen by the encoder
-                    let label = match (filmcraft_engine::export::hdr_available(Format::Hevc), seq_hdr && !s.sdr) {
+                    let label = match (shotclutch_engine::export::hdr_available(Format::Hevc), seq_hdr && !s.sdr) {
                         (true, true) => tl!("Main 10 (10-bit, HDR)"),
                         (true, false) => tl!("Main (8-bit; Main 10 for HDR sequences)"),
                         (false, _) => tl!("Main (8-bit)"),
@@ -792,7 +792,7 @@ fn video_section(ui: &mut egui::Ui, reg: &mut Reg, s: &mut ExportSettings, t: &T
             });
             if s.bitrate_mode == BitrateMode::Crf {
                 row(ui, t, tl!("Quality (CRF)"), |ui| {
-                    let mut crf = if s.crf.is_finite() { f64::from(s.crf) } else { f64::from(filmcraft_engine::export::DEFAULT_CRF) };
+                    let mut crf = if s.crf.is_finite() { f64::from(s.crf) } else { f64::from(shotclutch_engine::export::DEFAULT_CRF) };
                     if drag(ui, reg, "export.video.crf", &mut crf, 0.0..=51.0, 0.1, "", 0) {
                         s.crf = crf.round() as f32;
                     }
@@ -901,7 +901,7 @@ fn video_section(ui: &mut egui::Ui, reg: &mut Reg, s: &mut ExportSettings, t: &T
         }
         _ => {}
     }
-    // Composite the picture on the GPU (filmcraft-gpu) instead of the CPU reference renderer;
+    // Composite the picture on the GPU (shotclutch-gpu) instead of the CPU reference renderer;
     // Auto falls back to the CPU wherever the GPU cannot render the frame.
     row(ui, t, tl!("GPU Rendering"), |ui| {
         let mut on = s.gpu_rendering == GpuRendering::Auto;
@@ -1080,7 +1080,7 @@ fn effects_section(ui: &mut egui::Ui, reg: &mut Reg, s: &mut ExportSettings, t: 
 
 pub(crate) const RANGES: [(&str, &str); 4] = [("entire", "Entire Source"), ("inOut", "Source In/Out"), ("workArea", "Work Area"), ("custom", "Custom")];
 
-fn preview_column(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect, seq_id: filmcraft_engine::project::ItemId) {
+fn preview_column(app: &mut ShotClutchApp, ui: &mut egui::Ui, rect: Rect, seq_id: shotclutch_engine::project::ItemId) {
     let t = app.tokens;
     let mut reg = Reg::default();
     let Some(q) = app.session.active_sequence().cloned() else { return };
@@ -1225,7 +1225,7 @@ fn preview_column(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect, seq_id:
 }
 
 /// The export range in sequence ticks (for the summary).
-fn range_ticks(ex: &ExportUi, q: &filmcraft_engine::project::Sequence) -> (Tick, Tick) {
+fn range_ticks(ex: &ExportUi, q: &shotclutch_engine::project::Sequence) -> (Tick, Tick) {
     let fd = q.settings.frame_rate.frame_duration();
     let end = q.duration().max(fd);
     match ex.range.as_str() {
@@ -1243,7 +1243,7 @@ fn range_ticks(ex: &ExportUi, q: &filmcraft_engine::project::Sequence) -> (Tick,
 // Preset Manager
 // ---------------------------------------------------------------------------------------------
 
-fn preset_manager(app: &mut FilmcraftApp, ctx: &egui::Context) {
+fn preset_manager(app: &mut ShotClutchApp, ctx: &egui::Context) {
     let Some(mut m) = app.ui.export.manager.clone() else { return };
     let t = app.tokens;
     let mut reg = Reg::default();
@@ -1413,7 +1413,7 @@ fn paint_star(p: &egui::Painter, r: Rect, filled: bool, color: Color32) {
 // ---------------------------------------------------------------------------------------------
 
 /// Presets offered by Quick Export: favourites first, then the common delivery presets.
-fn quick_presets(app: &FilmcraftApp) -> Vec<String> {
+fn quick_presets(app: &ShotClutchApp) -> Vec<String> {
     let mut v: Vec<String> =
         app.session.export_presets.all().iter().filter(|p| app.session.export_presets.is_favorite(&p.name)).map(|p| p.name.clone()).collect();
     for p in builtin_presets().into_iter().filter(|p| p.category == "Match Source" || p.category == "Web & Social").map(|p| p.name) {
@@ -1427,7 +1427,7 @@ fn quick_presets(app: &FilmcraftApp) -> Vec<String> {
 /// The Quick Export path for the preset's extension `ext`, or None when `path` already fits. No
 /// folder means the default one and no file name the sequence's; another format's extension is
 /// swapped and any other kept, so a typed or chosen name survives a preset change.
-fn quick_file(app: &FilmcraftApp, path: &str, seq_name: &str, ext: &str) -> Option<String> {
+fn quick_file(app: &ShotClutchApp, path: &str, seq_name: &str, ext: &str) -> Option<String> {
     let p = std::path::Path::new(path);
     let folder = path.ends_with(['/', '\\']);
     let dir = if folder { Some(p) } else { p.parent() }.filter(|d| !d.as_os_str().is_empty());
@@ -1439,19 +1439,19 @@ fn quick_file(app: &FilmcraftApp, path: &str, seq_name: &str, ext: &str) -> Opti
     let file = match name {
         // Sequence names come from the project, not from this Quick Export interaction. Keep
         // metadata in one filename component before joining it to the selected/default folder.
-        None => format!("{}.{}", filmcraft_engine::export_tools::file_safe(seq_name), ext),
+        None => format!("{}.{}", shotclutch_engine::export_tools::file_safe(seq_name), ext),
         Some(n) if cur.eq_ignore_ascii_case(ext) => n.to_string(),
         Some(n) if !cur.is_empty() && app.session.export_presets.all().iter().any(|x| x.settings.extension().eq_ignore_ascii_case(cur)) => {
             std::path::Path::new(n).with_extension(ext).to_string_lossy().to_string()
         }
         Some(n) => format!("{n}.{ext}"),
     };
-    let dir = dir.map(std::path::Path::to_path_buf).unwrap_or_else(|| filmcraft_engine::export_tools::default_export_dir(&app.session));
+    let dir = dir.map(std::path::Path::to_path_buf).unwrap_or_else(|| shotclutch_engine::export_tools::default_export_dir(&app.session));
     Some(dir.join(file).to_string_lossy().to_string())
 }
 
 /// The Quick Export popup under the header button at `anchor`.
-pub fn quick_export(app: &mut FilmcraftApp, ctx: &egui::Context, anchor: egui::Pos2) {
+pub fn quick_export(app: &mut ShotClutchApp, ctx: &egui::Context, anchor: egui::Pos2) {
     if !app.ui.export.quick_open {
         return;
     }

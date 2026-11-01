@@ -7,15 +7,15 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
-use filmcraft_export::{ExportSettings, Exporter, Format, FrameRenderer, GpuRendering, Progress, Step, export, gpu_render_stats, register_frame_renderer};
-use filmcraft_media::generators::GeneratorSource;
-use filmcraft_media::{Generator, MediaSource};
-use filmcraft_project::{ItemId, ItemKind, Label, MediaClip, MediaRef, Project, SequenceSettings, TrackKind};
-use filmcraft_render::{Image, RenderOptions, SourceMap, SourceProvider};
-use filmcraft_time::{FrameRate, Tick, TimeRange};
 use rayon::prelude::*;
+use shotclutch_export::{ExportSettings, Exporter, Format, FrameRenderer, GpuRendering, Progress, Step, export, gpu_render_stats, register_frame_renderer};
+use shotclutch_media::generators::GeneratorSource;
+use shotclutch_media::{Generator, MediaSource};
+use shotclutch_project::{ItemId, ItemKind, Label, MediaClip, MediaRef, Project, SequenceSettings, TrackKind};
+use shotclutch_render::{Image, RenderOptions, SourceMap, SourceProvider};
+use shotclutch_time::{FrameRate, Tick, TimeRange};
 
-const CHILD: &str = "FILMCRAFT_RENDERER_REENTRANCY_CASE";
+const CHILD: &str = "SHOTCLUTCH_RENDERER_REENTRANCY_CASE";
 const FRAMES: i64 = 6;
 static CREATED: AtomicUsize = AtomicUsize::new(0);
 static RENDERED: AtomicUsize = AtomicUsize::new(0);
@@ -30,7 +30,7 @@ impl FrameRenderer for YieldingRenderer {
         let checksum: usize = (0..4096usize).into_par_iter().map(|x| x ^ 37).sum();
         assert!(checksum > 0);
         RENDERED.fetch_add(1, Ordering::Relaxed);
-        Some(filmcraft_render::render_sequence(project, seq, t, opts, sources))
+        Some(shotclutch_render::render_sequence(project, seq, t, opts, sources))
     }
 }
 
@@ -126,7 +126,7 @@ fn run_case(case: &str) {
 
 #[test]
 fn nested_rayon_renderers_finish_every_export_path() {
-    if let Ok(case) = std::env::var(CHILD) {
+    if let Ok(case) = shotclutch_env::var(CHILD) {
         let (done, finished) = std::sync::mpsc::channel();
         let diagnostic = case.clone();
         let watchdog = std::thread::spawn(move || {

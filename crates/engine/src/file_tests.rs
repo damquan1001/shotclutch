@@ -1,4 +1,4 @@
-//! `.fcproj` save/open through the command interface: schema envelope, legacy upgrade, Save a Copy,
+//! `.scproj` save/open through the command interface: schema envelope, legacy upgrade, Save a Copy,
 //! Revert.
 
 use super::*;
@@ -20,18 +20,21 @@ fn temp_dir(tag: &str) -> std::path::PathBuf {
 #[test]
 fn saved_file_is_versioned_and_save_copy_keeps_state() {
     let d = temp_dir("schema");
-    let path = d.join("p.fcproj").to_string_lossy().to_string();
+    let path = d.join("p.scproj").to_string_lossy().to_string();
     let mut s = demo();
     s.execute("file.saveAs", json!({"path": path})).unwrap();
     let v: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-    assert_eq!(v["schema_version"], filmcraft_format::SCHEMA_VERSION);
-    assert_eq!(v["format"], "filmcraft.project");
+    assert_eq!(v["schema_version"], shotclutch_format::SCHEMA_VERSION);
+    assert_eq!(v["format"], "shotclutch.project");
     s.execute("sequence.addEdit", json!({"seconds": 1.0})).unwrap();
     assert!(s.is_dirty());
-    let copy = d.join("copy.fcproj").to_string_lossy().to_string();
+    let copy = d.join("copy.scproj").to_string_lossy().to_string();
     s.execute("file.saveCopy", json!({"path": copy})).unwrap();
     assert!(s.is_dirty(), "Save a Copy leaves the project unsaved");
     assert_eq!(s.path.as_deref(), Some(path.as_str()));
+    let saved = std::fs::read(&path).unwrap();
+    assert!(s.execute("file.saveCopy", json!({"path": path})).is_err());
+    assert_eq!(std::fs::read(&path).unwrap(), saved, "Save a Copy cannot replace its source");
     let mut t = Session::default();
     t.execute("file.open", json!({"path": copy})).unwrap();
     assert_eq!(*t.project, *s.project);
@@ -47,46 +50,53 @@ fn saved_file_is_versioned_and_save_copy_keeps_state() {
 }
 
 #[test]
-fn legacy_project_opens_and_first_save_keeps_a_backup() {
+fn legacy_project_opens_and_requires_a_new_native_destination() {
     let d = temp_dir("legacy");
     let fixture = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../format/tests/fixtures/v1-edit.fcproj");
-    let path = d.join("old.fcproj");
+    let path = d.join("old.FcPrOj");
     std::fs::copy(&fixture, &path).unwrap();
+    let original = std::fs::read(&path).unwrap();
     let p = path.to_string_lossy().to_string();
     let mut s = Session::default();
     let r = s.execute("file.open", json!({"path": p})).unwrap();
     assert_eq!(r["schemaVersion"], 1);
-    assert_eq!(r["migrated"], true);
     assert_eq!(s.project.name, "Legacy Edit");
-    assert!(s.drain_events().iter().any(|e| matches!(e, Event::Toast { message, .. } if message.contains("Upgraded"))));
-    let r = s.execute("file.save", json!({})).unwrap();
-    let backup = r["backup"].as_str().unwrap().to_string();
-    assert!(backup.ends_with("old (schema v1 backup).fcproj"), "{backup}");
-    assert_eq!(std::fs::read(&backup).unwrap(), std::fs::read(&fixture).unwrap());
-    let v: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-    assert_eq!(v["schema_version"], filmcraft_format::SCHEMA_VERSION);
-    // Second save: no new backup.
-    assert!(s.execute("file.save", json!({})).unwrap()["backup"].is_null());
-    // A file from the future is refused clearly.
-    let mut v = v;
-    v["schema_version"] = json!(filmcraft_format::SCHEMA_VERSION + 1);
-    std::fs::write(&path, serde_json::to_vec(&v).unwrap()).unwrap();
-    let e = Session::default().execute("file.open", json!({"path": p})).unwrap_err().to_string();
-    assert!(e.contains("newer version of ShotClutch"), "{e}");
-    let _ = std::fs::remove_dir_all(&d);
+    assert!(s.legacy_project_identity);
+    assert!(s.execute("file.save", json!({})).unwrap_err().to_string().contains("Save As"));
+    assert!(s.execute("file.saveAs", json!({"path": p})).is_err());
+    assert_eq!(std::fs::read(&path).unwrap(), original);
+    let native = d.join("native.scproj").to_string_lossy().to_string();
+    s.execute("file.saveAs", json!({"path": native})).unwrap();
+    let bytes = std::fs::read(&native).unwrap();
+    let value: Value = serde_json::from_slice(&bytes).unwrap();
+    assert_eq!(value["format"], "shotclutch.project");
+    assert_eq!(value["schema_version"], shotclutch_format::SCHEMA_VERSION);
+    assert!(!s.legacy_project_identity);
+    assert!(s.execute("file.save", json!({})).is_ok());
+    assert_eq!(std::fs::read(&path).unwrap(), original);
+    let mut reopened = Session::default();
+    reopened.execute("file.open", json!({"path": native})).unwrap();
+    assert!(!reopened.legacy_project_identity);
+    // Another session cannot clobber an existing Save As destination or change its name on failure.
+    let mut other = demo();
+    let name = other.project.name.clone();
+    assert!(other.execute("file.saveAs", json!({"path": native})).is_err());
+    assert_eq!(other.project.name, name);
+    assert_eq!(other.path, None);
+    assert_eq!(std::fs::read(&native).unwrap(), bytes);
 }
 
 #[test]
 fn project_is_named_after_its_file() {
     let d = temp_dir("name");
     let mut s = demo();
-    let a = d.join("Apollo 11 - Tranquility.fcproj").to_string_lossy().to_string();
+    let a = d.join("Apollo 11 - Tranquility.scproj").to_string_lossy().to_string();
     s.execute("file.saveAs", json!({"path": a})).unwrap();
     assert_eq!(s.project.name, "Apollo 11 - Tranquility");
     assert_eq!(s.project.root.name, "Apollo 11 - Tranquility");
     assert!(!s.is_dirty(), "renaming on Save As is not an edit");
     // Save a Copy keeps the current name.
-    let c = d.join("Backup copy.fcproj").to_string_lossy().to_string();
+    let c = d.join("Backup copy.scproj").to_string_lossy().to_string();
     s.execute("file.saveCopy", json!({"path": c})).unwrap();
     assert_eq!(s.project.name, "Apollo 11 - Tranquility");
     s.execute("file.open", json!({"path": c})).unwrap();
@@ -111,7 +121,7 @@ fn new_project_answers_with_its_name_and_revision() {
 #[test]
 fn open_demo_project_clears_saved_path_so_save_does_not_overwrite() {
     let d = temp_dir("demo-path");
-    let original = d.join("original.fcproj").to_string_lossy().to_string();
+    let original = d.join("original.scproj").to_string_lossy().to_string();
     let mut s = Session::default();
     s.execute("file.newProject", json!({"name": "Original"})).unwrap();
     s.execute("file.newBin", json!({"name": "ORIGINAL"})).unwrap();
@@ -123,8 +133,8 @@ fn open_demo_project_clears_saved_path_so_save_does_not_overwrite() {
     let mut reopen = Session::default();
     reopen.execute("file.open", json!({"path": original})).unwrap();
     assert!(
-        reopen.project.root.children.iter().any(|e| matches!(e, filmcraft_project::BinEntry::Bin(b) if b.name == "ORIGINAL")),
-        "original.fcproj still has the ORIGINAL bin"
+        reopen.project.root.children.iter().any(|e| matches!(e, shotclutch_project::BinEntry::Bin(b) if b.name == "ORIGINAL")),
+        "original.scproj still has the ORIGINAL bin"
     );
     let _ = std::fs::remove_dir_all(&d);
 }

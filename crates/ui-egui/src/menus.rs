@@ -4,7 +4,7 @@
 
 use serde_json::{Value, json};
 
-use crate::FilmcraftApp;
+use crate::ShotClutchApp;
 use crate::dock::PanelKind;
 use crate::state::{Mode, Tool};
 
@@ -171,7 +171,7 @@ pub fn panel_command_id(p: PanelKind) -> String {
 }
 
 /// Explicit monitor parameters override keyboard focus.
-pub fn targets_source(app: &FilmcraftApp, params: &Value) -> bool {
+pub fn targets_source(app: &ShotClutchApp, params: &Value) -> bool {
     match params.get("monitor").and_then(Value::as_str) {
         Some("source") => true,
         Some(_) => false,
@@ -180,11 +180,11 @@ pub fn targets_source(app: &FilmcraftApp, params: &Value) -> bool {
 }
 
 /// Execute a UI or engine command by id.
-pub fn invoke(app: &mut FilmcraftApp, ctx: &egui::Context, id: &str, mut params: Value) -> Result<Value, String> {
+pub fn invoke(app: &mut ShotClutchApp, ctx: &egui::Context, id: &str, mut params: Value) -> Result<Value, String> {
     if id == "edit.selectAll" && (crate::panels::graphics::select_all_edited_text(app) || crate::panels::effect_controls::select_all_keyframes(app)) {
         return Ok(Value::Null);
     }
-    if filmcraft_engine::source_monitor::source_command(id) && targets_source(app, &params) && params.get("target").is_none() {
+    if shotclutch_engine::source_monitor::source_command(id) && targets_source(app, &params) && params.get("target").is_none() {
         let object = params.as_object_mut().ok_or("command parameters must be an object")?;
         object.insert("target".into(), json!("source"));
     }
@@ -363,7 +363,7 @@ pub fn invoke(app: &mut FilmcraftApp, ctx: &egui::Context, id: &str, mut params:
         "playhead.stepBack" | "playhead.stepForward" | "playhead.stepBack5" | "playhead.stepForward5" if targets_source(app, &params) => {
             app.stop_source();
             let item = app.session.state.source_item.ok_or("Open a Source clip first")?;
-            let view = filmcraft_engine::clip_ops::source_view(&app.session, item).ok_or("Source clip is unavailable")?;
+            let view = shotclutch_engine::clip_ops::source_view(&app.session, item).ok_or("Source clip is unavailable")?;
             let count = if id.ends_with('5') { i64::from(app.session.prefs.playback.step_many_frames) } else { 1 };
             let direction = if id.contains("Back") { -1 } else { 1 };
             let time = if view.rate.frame_duration().0 == 0 {
@@ -460,18 +460,18 @@ pub fn invoke(app: &mut FilmcraftApp, ctx: &egui::Context, id: &str, mut params:
         }
         // File ▸ Export ▸ AAF… / OMF… open their settings dialogs; with a path they export directly.
         "file.exportAaf" | "file.exportOmf" if params.get("path").is_none() => {
-            filmcraft_engine::find_command(id).map_or(Ok(()), |c| (c.enabled)(&app.session))?;
+            shotclutch_engine::find_command(id).map_or(Ok(()), |c| (c.enabled)(&app.session))?;
             return crate::panels::interchange_export::open(app, ctx, id);
         }
         // File ▸ Export ▸ Media… opens the Export mode, like ⌘M (#382); with a path it exports directly.
         "file.exportMedia" if params.get("path").is_none() => {
-            filmcraft_engine::find_command(id).map_or(Ok(()), |c| (c.enabled)(&app.session))?;
+            shotclutch_engine::find_command(id).map_or(Ok(()), |c| (c.enabled)(&app.session))?;
             app.ui.mode = Mode::Export;
             return Ok(json!({"mode": "export"}));
         }
         // Audio Gain from the menu or G opens the dialog; with params it applies directly.
         "clip.audioGain" if params.as_object().is_none_or(|m| m.is_empty()) => {
-            filmcraft_engine::find_command("clip.audioGain").map_or(Ok(()), |c| (c.enabled)(&app.session))?;
+            shotclutch_engine::find_command("clip.audioGain").map_or(Ok(()), |c| (c.enabled)(&app.session))?;
             if app.ui.audio_gain.mode.is_empty() {
                 app.ui.audio_gain.mode = "adjust".into();
             }
@@ -480,21 +480,21 @@ pub fn invoke(app: &mut FilmcraftApp, ctx: &egui::Context, id: &str, mut params:
         }
         // Colour dialogs from the menus; with params the engine command applies directly.
         "clip.interpretFootage" if params.get("colorSpace").is_none() && params.get("pixelAspect").is_none() => {
-            filmcraft_engine::find_command(id).map_or(Ok(()), |c| (c.enabled)(&app.session))?;
+            shotclutch_engine::find_command(id).map_or(Ok(()), |c| (c.enabled)(&app.session))?;
             crate::panels::color_dialogs::open_interpret(app, &params);
             return Ok(json!({"dialog": "interpretFootage"}));
         }
         // Remix Properties… from the menu opens the dialog; with params it applies directly.
         "clip.remix.properties" if params.as_object().is_none_or(|m| m.is_empty()) => {
-            filmcraft_engine::find_command(id).map_or(Ok(()), |c| (c.enabled)(&app.session))?;
+            shotclutch_engine::find_command(id).map_or(Ok(()), |c| (c.enabled)(&app.session))?;
             return crate::panels::remix::open(app, ctx);
         }
         // Add Tracks… from the menu opens the dialog (new tracks after the last ones, as Premiere
         // offers); with params it adds the tracks directly.
         "sequence.addTracks" if params.as_object().is_none_or(|m| m.is_empty()) => {
-            filmcraft_engine::find_command(id).map_or(Ok(()), |c| (c.enabled)(&app.session))?;
+            shotclutch_engine::find_command(id).map_or(Ok(()), |c| (c.enabled)(&app.session))?;
             let seq = app.session.active_sequence();
-            let count = |f: fn(&filmcraft_engine::project::Sequence) -> usize| seq.map_or(0, f);
+            let count = |f: fn(&shotclutch_engine::project::Sequence) -> usize| seq.map_or(0, f);
             app.ui.add_tracks = crate::state::AddTracksDraft {
                 video_after: count(|q| q.video_tracks.len()),
                 audio_after: count(|q| q.audio_tracks.len()),
@@ -505,7 +505,7 @@ pub fn invoke(app: &mut FilmcraftApp, ctx: &egui::Context, id: &str, mut params:
             return Ok(json!({"dialog": "addTracks"}));
         }
         "sequence.deleteTracks" if params.as_object().is_none_or(|m| m.is_empty()) => {
-            filmcraft_engine::find_command(id).map_or(Ok(()), |c| (c.enabled)(&app.session))?;
+            shotclutch_engine::find_command(id).map_or(Ok(()), |c| (c.enabled)(&app.session))?;
             app.ui.delete_tracks = Default::default();
             app.dialog = Some(crate::Dialog::DeleteTracks);
             return Ok(json!({"dialog": "deleteTracks"}));
@@ -513,7 +513,7 @@ pub fn invoke(app: &mut FilmcraftApp, ctx: &egui::Context, id: &str, mut params:
         // Sequence Settings… from the menu opens the dialog; with params the engine command applies
         // them directly.
         "sequence.settings" if params.as_object().is_none_or(|m| m.is_empty()) => {
-            filmcraft_engine::find_command(id).map_or(Ok(()), |c| (c.enabled)(&app.session))?;
+            shotclutch_engine::find_command(id).map_or(Ok(()), |c| (c.enabled)(&app.session))?;
             crate::panels::sequence_settings::open(app);
             return Ok(json!({"dialog": "sequenceSettings"}));
         }
@@ -524,7 +524,7 @@ pub fn invoke(app: &mut FilmcraftApp, ctx: &egui::Context, id: &str, mut params:
             return Ok(json!({"dialog": "newSequence"}));
         }
         "sequence.colorSettings" if params.as_object().is_none_or(|m| m.is_empty()) => {
-            filmcraft_engine::find_command(id).map_or(Ok(()), |c| (c.enabled)(&app.session))?;
+            shotclutch_engine::find_command(id).map_or(Ok(()), |c| (c.enabled)(&app.session))?;
             crate::panels::color_dialogs::open_sequence(app);
             return Ok(json!({"dialog": "sequenceColor"}));
         }
@@ -592,7 +592,11 @@ pub fn invoke(app: &mut FilmcraftApp, ctx: &egui::Context, id: &str, mut params:
         || (id == "file.saveAs" && params.get("path").is_none())
         || (id == "file.saveCopy" && params.get("path").is_none())
         || (id == "file.open" && params.get("path").is_none())
-        || (id == "file.save" && params.get("path").is_none() && app.session.path.is_none())
+        || (id == "file.save"
+            && params.get("path").is_none()
+            && (app.session.path.is_none()
+                || app.session.legacy_project_identity
+                || app.session.path.as_deref().is_some_and(shotclutch_format::is_legacy_project_path)))
         || (matches!(id, "captions.import" | "captions.export") && params.get("path").is_none())
         || (id == "graphics.newFromFile" && params.get("path").is_none())
         || (crate::EXPORT_SAVE_DIALOGS.iter().any(|(c, ..)| *c == id) && params.get("path").is_none())
@@ -621,7 +625,7 @@ pub fn invoke(app: &mut FilmcraftApp, ctx: &egui::Context, id: &str, mut params:
 
 /// Snapshot OS files/image present at Copy/Cut. Many platforms keep a previous file list after
 /// `copy_text`, so Paste would otherwise import those files instead of the clips (#697).
-fn remember_stale_clipboard_media(app: &mut FilmcraftApp) {
+fn remember_stale_clipboard_media(app: &mut ShotClutchApp) {
     app.stale_clipboard_media = app.hooks.clipboard_media.as_mut().and_then(|f| f()).as_ref().map(clipboard_media_key);
 }
 
@@ -643,7 +647,7 @@ fn clipboard_media_key(media: &crate::ClipboardMedia) -> String {
 /// system clipboard holds text (an empty clipboard sends no paste at all, #199). Put the copied
 /// clip names there, like other editors put their own data on the clipboard, so Ctrl+V pastes the
 /// clips right after a copy.
-fn put_clip_names_on_system_clipboard(app: &FilmcraftApp, ctx: &egui::Context) {
+fn put_clip_names_on_system_clipboard(app: &ShotClutchApp, ctx: &egui::Context) {
     let names: Vec<&str> = app.session.state.clipboard.iter().map(|(_, _, c)| c.name.as_str()).collect();
     if names.is_empty() {
         return;
@@ -654,7 +658,7 @@ fn put_clip_names_on_system_clipboard(app: &FilmcraftApp, ctx: &egui::Context) {
 
 /// Paste the files or the image on the system clipboard: placed on the Timeline when it has focus,
 /// imported into the shown bin in the Project panel. None when the clipboard holds neither.
-fn paste_clipboard_media(app: &mut FilmcraftApp, insert: bool) -> Option<Result<Value, String>> {
+fn paste_clipboard_media(app: &mut ShotClutchApp, insert: bool) -> Option<Result<Value, String>> {
     let media = (app.hooks.clipboard_media.as_mut()?)()?;
     if app.stale_clipboard_media.as_ref() == Some(&clipboard_media_key(&media)) {
         return None;
@@ -662,7 +666,7 @@ fn paste_clipboard_media(app: &mut FilmcraftApp, insert: bool) -> Option<Result<
     let paths = match media {
         crate::ClipboardMedia::Files(paths) => paths,
         crate::ClipboardMedia::Image { width, height, rgba } => match encode_png(width, height, rgba)
-            .and_then(|png| filmcraft_engine::paste_media::save_pasted_image(&mut app.session, &png).map_err(|e| e.to_string()))
+            .and_then(|png| shotclutch_engine::paste_media::save_pasted_image(&mut app.session, &png).map_err(|e| e.to_string()))
         {
             Ok(path) => vec![path],
             Err(e) => return Some(Err(e)),
@@ -698,10 +702,10 @@ pub const MENUS: [&str; 9] = ["File", "Edit", "Clip", "Sequence", "Markers", "Gr
 
 /// Labels only the native macOS app menu shows, with no command in the menu tree behind them: the
 /// Settings submenu and the predefined Hide, Hide Others and Quit items. They are translated through
-/// the catalogs like menu labels (`apps/filmcraft/src/native_menu.rs`).
+/// the catalogs like menu labels (`apps/shotclutch/src/native_menu.rs`).
 pub const NATIVE_APP_MENU: [&str; 4] = ["Settings", "Hide ShotClutch", "Hide Others", "Quit ShotClutch"];
 
-pub fn menu_items(app: &FilmcraftApp) -> Vec<MenuItem> {
+pub fn menu_items(app: &ShotClutchApp) -> Vec<MenuItem> {
     let mut v = menu_items_for(&app.session);
     for it in &mut v {
         it.label = app.ui.language.tr(&it.label).to_string();
@@ -733,7 +737,7 @@ pub fn menu_items(app: &FilmcraftApp) -> Vec<MenuItem> {
 /// File ▸ Open Recent, after Open Project…: the recent projects (General ▸ `recentProjects`),
 /// newest first, then Clear Recent Files. Clear is always there, so the submenu exists (in the
 /// native menu too, built once at launch) before the first project is saved.
-fn open_recent(items: &mut Vec<MenuItem>, session: &filmcraft_engine::Session, tr: impl Fn(&str) -> String) {
+fn open_recent(items: &mut Vec<MenuItem>, session: &shotclutch_engine::Session, tr: impl Fn(&str) -> String) {
     let Some(at) = items.iter().position(|it| it.id == "file.open") else { return };
     let path: Vec<String> = vec!["File".into(), "Open Recent".into()];
     let recent = &session.prefs.general.recent_projects;
@@ -755,7 +759,7 @@ pub fn recent_name(path: &str) -> String {
 /// built-in workspaces, nothing checked. Deterministic, so `cargo xtask parity` can measure it
 /// (`examples/menu_tree.rs` prints it as JSON).
 pub fn default_menu_items() -> Vec<MenuItem> {
-    let session = filmcraft_engine::Session::default();
+    let session = shotclutch_engine::Session::default();
     let mut v = menu_items_for(&session);
     crate::panels::workspaces::default_menu(&mut v, &session);
     open_recent(&mut v, &session, str::to_string);
@@ -763,14 +767,14 @@ pub fn default_menu_items() -> Vec<MenuItem> {
 }
 
 /// Menu entries with their live shortcuts and enablement.
-pub fn menu_items_for(session: &filmcraft_engine::Session) -> Vec<MenuItem> {
+pub fn menu_items_for(session: &shotclutch_engine::Session) -> Vec<MenuItem> {
     let mut out = Vec::new();
-    for c in filmcraft_engine::command_specs() {
+    for c in shotclutch_engine::command_specs() {
         if c.menu.is_empty() {
             continue;
         }
         // Edit ▸ Label items carry the names from Settings ▸ Labels
-        let label = match c.id.strip_prefix("edit.label.").and_then(filmcraft_project::Label::from_name) {
+        let label = match c.id.strip_prefix("edit.label.").and_then(shotclutch_project::Label::from_name) {
             Some(l) => session.prefs.labels.name(l),
             None => c.label.into(),
         };
@@ -811,7 +815,7 @@ pub fn menu_items_for(session: &filmcraft_engine::Session) -> Vec<MenuItem> {
 
 /// Shortcut text for menus in this OS's notation (`⇧⌘K` on macOS, `Ctrl+Shift+K` elsewhere).
 pub fn shortcut_text(s: &str) -> String {
-    use filmcraft_engine::shortcuts::{Chord, Platform};
+    use shotclutch_engine::shortcuts::{Chord, Platform};
     Chord::parse(s).map(|c| c.display(Platform::current())).unwrap_or_else(|_| s.to_string())
 }
 
@@ -856,7 +860,7 @@ pub type KeyBinding = (egui::Modifiers, egui::Key, String, Option<String>);
 
 /// The active key bindings (from the engine's shortcut set), most specific first so Shift+I
 /// doesn't also fire I.
-pub fn bindings(app: &FilmcraftApp) -> Vec<KeyBinding> {
+pub fn bindings(app: &ShotClutchApp) -> Vec<KeyBinding> {
     let mut v: Vec<KeyBinding> =
         app.session.shortcuts.bindings.iter().filter_map(|b| parse_shortcut(&b.keys).map(|(m, k)| (m, k, b.command.clone(), b.panel.clone()))).collect();
     // With Shift held, a punctuation key arrives as its shifted glyph (Shift+; is `:` on US layouts).
@@ -900,8 +904,8 @@ fn shifted_key(k: egui::Key) -> Option<egui::Key> {
 
 /// Frontend-owned commands, registered with the engine's shortcut set so they can be listed,
 /// rebound and resolved alongside engine commands (the `shortcuts.` commands).
-pub fn external_commands() -> Vec<filmcraft_engine::shortcuts::CommandInfo> {
-    use filmcraft_engine::shortcuts::CommandInfo;
+pub fn external_commands() -> Vec<shotclutch_engine::shortcuts::CommandInfo> {
+    use shotclutch_engine::shortcuts::CommandInfo;
     let mut v: Vec<CommandInfo> =
         UI_COMMANDS.iter().chain(crate::panels::keyboard::COMMANDS).map(|c| CommandInfo::new(c.id, c.label, c.menu, c.shortcut)).collect();
     for p in PanelKind::ALL {
@@ -911,7 +915,7 @@ pub fn external_commands() -> Vec<filmcraft_engine::shortcuts::CommandInfo> {
 }
 
 /// Draw the in-window menu bar.
-pub fn menu_bar(app: &mut FilmcraftApp, ui: &mut egui::Ui) {
+pub fn menu_bar(app: &mut ShotClutchApp, ui: &mut egui::Ui) {
     ui.ctx().data_mut(|d| d.insert_temp(egui::Id::new("interface-language"), app.ui.language));
     let items = menu_items(app);
     // Draw Edit ▸ Label with the user's live palette, not the baked-in label colours.
@@ -963,7 +967,7 @@ fn menu_level(
     depth: usize,
     clicked: &mut Option<String>,
     auto: &mut crate::automation::Registry,
-    labels: &filmcraft_engine::settings::LabelPrefs,
+    labels: &shotclutch_engine::settings::LabelPrefs,
 ) {
     let mut subs: Vec<&str> = Vec::new();
     for it in items {
@@ -986,13 +990,13 @@ fn menu_level(
 }
 
 /// Only Edit ▸ Label choices get a swatch. Other commands keep their usual menu layout.
-fn label_menu_swatch(id: &str, labels: &filmcraft_engine::settings::LabelPrefs) -> Option<egui::Color32> {
-    let label = id.strip_prefix("edit.label.").and_then(filmcraft_project::Label::from_name)?;
+fn label_menu_swatch(id: &str, labels: &shotclutch_engine::settings::LabelPrefs) -> Option<egui::Color32> {
+    let label = id.strip_prefix("edit.label.").and_then(shotclutch_project::Label::from_name)?;
     Some(label_color(labels, label))
 }
 
 /// The user's colour for label `l` (Preferences ▸ Labels), else the built-in one.
-pub fn label_color(labels: &filmcraft_engine::settings::LabelPrefs, l: filmcraft_project::Label) -> egui::Color32 {
+pub fn label_color(labels: &shotclutch_engine::settings::LabelPrefs, l: shotclutch_project::Label) -> egui::Color32 {
     let [r, g, b] = labels.rgb(l);
     egui::Color32::from_rgb(r, g, b)
 }
@@ -1003,8 +1007,8 @@ pub fn label_color(labels: &filmcraft_engine::settings::LabelPrefs, l: filmcraft
 pub fn label_choice(
     ui: &mut egui::Ui,
     auto: &mut crate::automation::Registry,
-    labels: &filmcraft_engine::settings::LabelPrefs,
-    l: filmcraft_project::Label,
+    labels: &shotclutch_engine::settings::LabelPrefs,
+    l: shotclutch_project::Label,
     prefix: &str,
 ) -> egui::Response {
     let name = labels.name(l);
@@ -1022,7 +1026,7 @@ fn paint_swatch(ui: &egui::Ui, row: egui::Rect, color: egui::Color32) {
     ui.painter().rect_stroke(rect, 2.0, egui::Stroke::new(1.0, ui.visuals().widgets.inactive.bg_stroke.color), egui::StrokeKind::Inside);
 }
 
-fn menu_entry(ui: &mut egui::Ui, it: &MenuItem, auto: &mut crate::automation::Registry, labels: &filmcraft_engine::settings::LabelPrefs) -> bool {
+fn menu_entry(ui: &mut egui::Ui, it: &MenuItem, auto: &mut crate::automation::Registry, labels: &shotclutch_engine::settings::LabelPrefs) -> bool {
     // Checkmarks and label swatches each occupy the same left gutter.
     let swatch = label_menu_swatch(&it.id, labels);
     let label = if it.checked.is_some() || swatch.is_some() { format!("      {}", it.label) } else { it.label.clone() };
@@ -1055,8 +1059,8 @@ mod parse_shortcut_tests {
 
     #[test]
     fn edit_label_menu_swatch_uses_current_custom_palette() {
-        use filmcraft_engine::settings::{LabelPrefs, label_id};
-        use filmcraft_project::Label;
+        use shotclutch_engine::settings::{LabelPrefs, label_id};
+        use shotclutch_project::Label;
 
         let mut labels = LabelPrefs::default();
         let label = Label::Iris;
@@ -1120,7 +1124,7 @@ mod tests {
     fn hovering_another_title_switches_the_open_menu() {
         use egui_kittest::{Harness, kittest::Queryable};
 
-        let app = FilmcraftApp::new(filmcraft_engine::Session::default());
+        let app = ShotClutchApp::new(shotclutch_engine::Session::default());
         let mut harness = Harness::builder().with_size(egui::vec2(1200.0, 700.0)).build_ui_state(|ui, app| menu_bar(app, ui), app);
         harness.run_steps(3);
         // Nothing open: hovering a title does not open it.

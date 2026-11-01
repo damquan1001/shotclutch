@@ -1,5 +1,5 @@
 [package]
-name = "filmcraft-dng"
+name = "shotclutch-dng"
 description = "Clean-room DNG / CinemaDNG camera RAW decoder (TIFF container, lossless JPEG, DNG colour pipeline)"
 version.workspace = true
 edition.workspace = true
@@ -13,11 +13,12 @@ threads = ["dep:rayon"]
 writer = []
 
 [dependencies]
+shotclutch-env = { workspace = true }
 rayon = { workspace = true, optional = true }
 thiserror.workspace = true
 
 [dev-dependencies]
-filmcraft-dng = { path = ".", features = ["writer"] }
+shotclutch-dng = { path = ".", features = ["writer"] }
 
 [lints]
 workspace = true

@@ -44,6 +44,17 @@ foreach ($sequence in 'InstallExecuteSequence','InstallUISequence') {
   if ($sequenceView.Fetch()) { throw 'MSI must not auto-launch during a quiet install' }
 }
 if ($properties.WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT -ne 'Launch ShotClutch') { throw 'MSI launch checkbox missing' }
+$registryView = $database.OpenView('SELECT `Key`, `Value` FROM `Registry`')
+$registryView.Execute()
+$nativeAssociation = $false
+$nativeOpenCommand = $false
+while ($row = $registryView.Fetch()) {
+  $key = $row.StringData(1)
+  if ($key -eq 'Software\Classes\.scproj' -and $row.StringData(2) -eq 'ShotClutch.Project') { $nativeAssociation = $true }
+  if ($key -eq 'Software\Classes\ShotClutch.Project\shell\open\command' -and $row.StringData(2) -eq '"[#ShotclutchExe]" "%1"') { $nativeOpenCommand = $true }
+  if ($key -eq 'Software\Classes\.fcproj') { throw 'MSI must not claim the legacy project association' }
+}
+if (-not $nativeAssociation -or -not $nativeOpenCommand) { throw 'MSI .scproj association/open command missing' }
 $fileView = $database.OpenView('SELECT `FileName` FROM `File`')
 $fileView.Execute()
 $names = @()

@@ -19,9 +19,9 @@ fn main() {
     println!("cargo::rerun-if-changed=build.rs");
     println!("cargo::rerun-if-env-changed=CRAFT_FONTS_DIR");
     println!("cargo::rerun-if-env-changed=CRAFT_FONTS_REQUIRED");
-    let required = std::env::var_os("CRAFT_FONTS_REQUIRED").is_some_and(|v| v == "1");
+    let required = shotclutch_env::var_os("CRAFT_FONTS_REQUIRED").is_some_and(|v| v == "1");
     let mut src = String::from("pub static CRAFT_FONTS: &[CraftFont] = &[\n");
-    match std::env::var_os("CRAFT_FONTS_DIR").filter(|d| !d.is_empty()).map(PathBuf::from) {
+    match shotclutch_env::var_os("CRAFT_FONTS_DIR").filter(|d| !d.is_empty()).map(PathBuf::from) {
         Some(dir) => match craft_fonts(&dir) {
             Ok(entries) => src.push_str(&entries),
             Err(e) if required => println!("cargo::error=CRAFT_FONTS_DIR={}: {e}", dir.display()),
@@ -33,7 +33,7 @@ fn main() {
         None => {}
     }
     src.push_str("];\n");
-    let out = PathBuf::from(std::env::var_os("OUT_DIR").unwrap_or_default()).join("craft_fonts.rs");
+    let out = PathBuf::from(shotclutch_env::var_os("OUT_DIR").unwrap_or_default()).join("craft_fonts.rs");
     if let Err(e) = std::fs::write(&out, src) {
         println!("cargo::error=writing {}: {e}", out.display());
     }
@@ -44,7 +44,7 @@ fn craft_fonts(dir: &std::path::Path) -> Result<String, String> {
     let manifest = dir.join("fonts/manifest.txt");
     println!("cargo::rerun-if-changed={}", manifest.display());
     let text = std::fs::read_to_string(&manifest).map_err(|e| format!("{}: {e}", manifest.display()))?;
-    let wasm = std::env::var("CARGO_CFG_TARGET_ARCH").as_deref() == Ok("wasm32");
+    let wasm = shotclutch_env::var("CARGO_CFG_TARGET_ARCH").as_deref() == Ok("wasm32");
     let mut out = String::new();
     for line in text.lines().map(str::trim).filter(|l| !l.is_empty() && !l.starts_with('#')) {
         let f: Vec<&str> = line.split(" | ").map(str::trim).collect();

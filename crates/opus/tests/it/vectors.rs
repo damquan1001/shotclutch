@@ -11,7 +11,7 @@ use crate::common;
 
 use std::path::PathBuf;
 
-use filmcraft_opus::StreamDecoder;
+use shotclutch_opus::StreamDecoder;
 
 fn vectors_dir() -> Option<PathBuf> {
     let d = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/fixtures/opus/vectors");
@@ -133,7 +133,7 @@ fn vector_diag() {
     let Some(dir) = vectors_dir() else {
         return;
     };
-    let v: usize = std::env::var("VEC").ok().and_then(|s| s.parse().ok()).unwrap_or(2);
+    let v: usize = shotclutch_env::var("VEC").ok().and_then(|s| s.parse().ok()).unwrap_or(2);
     let name = format!("testvector{v:02}");
     let packets = read_bit(&dir.join(format!("{name}.bit")));
     let mut dec = StreamDecoder::new(48000, 2).unwrap();
@@ -145,7 +145,7 @@ fn vector_diag() {
             dec.decode_interleaved(None, &mut out).unwrap();
             lines.push((start, "LOST".to_string()));
         } else {
-            let p = filmcraft_opus::Packet::parse(pkt).unwrap();
+            let p = shotclutch_opus::Packet::parse(pkt).unwrap();
             dec.decode_interleaved(Some(pkt), &mut out).unwrap();
             lines.push((start, format!("{:?} {:?} st{} n{}", p.toc.mode, p.toc.bandwidth, p.toc.stereo as u8, p.frames.len())));
         }

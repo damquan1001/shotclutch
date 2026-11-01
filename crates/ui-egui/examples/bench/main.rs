@@ -6,7 +6,7 @@
 //! cargo xtask bench                                   # every section, writes target/bench/bench-<label>.{json,md}
 //! cargo xtask bench --sections decode,scrub --repeat 3 --label after
 //! cargo xtask bench --sections decode --hw off --label hw-off   # ShotClutch's own decoders only
-//! cargo run --release -p filmcraft-ui-egui --example bench -- --section timeline   # one section, this process
+//! cargo run --release -p shotclutch-ui-egui --example bench -- --section timeline   # one section, this process
 //! ```
 //!
 //! Each section runs in its own child process (fresh caches, and its own peak resident set size,
@@ -65,8 +65,8 @@ fn main() {
         hw: arg_value(&args, "--hw").unwrap_or_else(|| "auto".into()),
     };
     // as the desktop app: OS hardware decoders in front of ours, unless Hardware decoding is Off
-    filmcraft_platform::register();
-    filmcraft_codecs::hw::set_hardware_decoding(opts.hw != "off");
+    shotclutch_platform::register();
+    shotclutch_codecs::hw::set_hardware_decoding(opts.hw != "off");
     if let Some(section) = arg_value(&args, "--section") {
         let v = run_section(&section, &opts);
         let text = serde_json::to_string_pretty(&v).unwrap_or_default();
@@ -204,7 +204,7 @@ fn machine_info() -> Value {
                 .and_then(|c| c.lines().find(|l| l.starts_with("model name")).and_then(|l| l.split(':').nth(1)).map(|s| s.trim().to_string()))
         })
         .or_else(|| sh("powershell", &["-NoProfile", "-Command", "(Get-CimInstance Win32_Processor | Select-Object -First 1).Name"]))
-        .or_else(|| std::env::var("PROCESSOR_IDENTIFIER").ok())
+        .or_else(|| shotclutch_env::var("PROCESSOR_IDENTIFIER").ok())
         .unwrap_or_else(|| "unknown CPU".into());
     let windows = windows_machine_info();
     let mem_gb = sh("sysctl", &["-n", "hw.memsize"])

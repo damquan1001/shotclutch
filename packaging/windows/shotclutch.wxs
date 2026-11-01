@@ -4,7 +4,7 @@
 
     wix build shotclutch.wxs -arch x64 -d Version=1.2.3 -d BinDir=... -d IconPath=... -o out.msi
 
-  Per-machine install into Program Files and a Start Menu shortcut. No file associations.
+  Per-machine install into Program Files and a Start Menu shortcut. Native .scproj file association only; legacy files can be opened explicitly.
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
@@ -65,6 +65,10 @@
               Icon="ShotclutchIcon.ico" IconIndex="0" />
         </File>
 
+        <RegistryValue Root="HKLM" Key="Software\Classes\.scproj" Value="ShotClutch.Project" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ShotClutch.Project" Value="ShotClutch Project" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ShotClutch.Project\DefaultIcon" Value="&quot;[#ShotclutchExe]&quot;,0" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ShotClutch.Project\shell\open\command" Value="&quot;[#ShotclutchExe]&quot; &quot;%1&quot;" Type="string" />
         <RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\App Paths\shotclutch.exe" Value="[#ShotclutchExe]" Type="string" />
       </Component>
 

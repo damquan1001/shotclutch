@@ -12,7 +12,7 @@ def sha(path):
 
 
 def oracle(name):
-    return os.environ.get('FILMCRAFT_' + name.upper(), name)
+    return os.environ.get('SHOTCLUTCH_' + name.upper(), name)
 
 
 def main():
@@ -41,14 +41,14 @@ def main():
         parser.error('--output is required')
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
-    project = output / 'smoke.fcproj'
+    project = output / 'smoke.scproj'
     rendered = output / 'render.mov'
     if args.mode == 'exercise':
         if not args.bin_dir:
             parser.error('--bin-dir is required')
         binary = args.bin_dir.resolve() / ('shotclutch-cli.exe' if os.name == 'nt' else 'shotclutch-cli')
         child_environment = dict(os.environ)
-        for key in ['FILMCRAFT_FFMPEG', 'SHOTCLUTCH_FFMPEG', 'FILMCRAFT_FFPROBE', 'SHOTCLUTCH_FFPROBE']:
+        for key in ['SHOTCLUTCH_FFMPEG', 'SHOTCLUTCH_FFMPEG', 'SHOTCLUTCH_FFPROBE', 'SHOTCLUTCH_FFPROBE']:
             child_environment.pop(key, None)
         # Oracles remain usable by the parent verification step, but not by the application child.
         child_environment['PATH'] = os.pathsep.join([str(binary.parent), os.path.join(os.environ['SystemRoot'], 'System32')]) if os.name == 'nt' else str(binary.parent)

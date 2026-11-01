@@ -17,12 +17,12 @@ fn conformance_vectors() {
 }
 
 /// The wider libaom set (slow: many downloads and decodes):
-/// `cargo test -p filmcraft-av1 --test it conformance:: -- --ignored`; `AV1_VECTORS=a,b` overrides it.
+/// `cargo test -p shotclutch-av1 --test it conformance:: -- --ignored`; `AV1_VECTORS=a,b` overrides it.
 #[test]
 #[ignore]
 fn conformance_vectors_extended() {
     let Some(ff) = ffmpeg_dav1d() else { return };
-    let list: Vec<String> = match std::env::var("AV1_VECTORS") {
+    let list: Vec<String> = match shotclutch_env::var("AV1_VECTORS") {
         Ok(v) => v.split(',').map(str::to_string).collect(),
         Err(_) => EXTENDED.iter().map(|s| s.to_string()).collect(),
     };

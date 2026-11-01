@@ -1,10 +1,10 @@
 //! Auto-save file naming and rotation (Premiere behaviour).
 //!
 //! Auto-saves go to an `Auto-Save` folder next to the project, named
-//! `<project name>-YYYY-MM-DD_HH-MM-SS-<unix seconds>.fcproj` (local wall-clock time, then the real
+//! `<project name>-YYYY-MM-DD_HH-MM-SS-<unix seconds>.scproj` (local wall-clock time, then the real
 //! time that orders the files). After each write the oldest files of that project beyond the "Maximum
-//! Project Versions" limit are deleted. Only files whose name is exactly `<name>-<timestamp>.fcproj`
-//! or `<name>-<timestamp>-<unix seconds>.fcproj` are ever touched.
+//! Project Versions" limit are deleted. Only files whose name is exactly `<name>-<timestamp>.scproj`
+//! or `<name>-<timestamp>-<unix seconds>.scproj` are ever touched.
 
 use std::fs;
 use std::io;
@@ -70,10 +70,10 @@ pub fn display_time(unix: i64, offset_secs: i32) -> String {
     format!("{y:04}-{mo:02}-{d:02} {h:02}:{mi:02}:{s:02}")
 }
 
-/// `<stem>-YYYY-MM-DD_HH-MM-SS-<unix seconds>.fcproj`. The local stamp is for people; the unix time
+/// `<stem>-YYYY-MM-DD_HH-MM-SS-<unix seconds>.scproj`. The local stamp is for people; the unix time
 /// orders the files (the local clock can go back, or repeat an hour, when daylight saving time ends).
 pub fn auto_save_name(name: &str, unix: i64, offset_secs: i32) -> String {
-    format!("{}-{}-{unix}.fcproj", file_stem(name), timestamp(unix, offset_secs))
+    format!("{}-{}-{unix}.scproj", file_stem(name), timestamp(unix, offset_secs))
 }
 
 fn is_stamp(s: &str) -> bool {
@@ -107,7 +107,11 @@ pub fn list_auto_saves(dir: &Path, name: &str) -> Vec<PathBuf> {
         .filter_map(|e| e.ok())
         .filter_map(|e| {
             let f = e.file_name().to_string_lossy().into_owned();
-            let (stamp, unix) = parse_stamp(f.strip_prefix(&prefix)?.strip_suffix(".fcproj")?)?;
+            if !crate::is_project_path(&f) {
+                return None;
+            }
+            let stem = Path::new(&f).file_stem()?.to_str()?;
+            let (stamp, unix) = parse_stamp(stem.strip_prefix(&prefix)?)?;
             Some((unix, stamp.to_string(), e.path()))
         })
         .collect();
@@ -117,7 +121,7 @@ pub fn list_auto_saves(dir: &Path, name: &str) -> Vec<PathBuf> {
 
 /// Delete the oldest auto-saves of `name` so at most `max` remain. Returns the deleted paths.
 pub fn rotate(dir: &Path, name: &str, max: usize) -> io::Result<Vec<PathBuf>> {
-    let all = list_auto_saves(dir, name);
+    let all: Vec<_> = list_auto_saves(dir, name).into_iter().filter(|p| !crate::is_legacy_project_path(&p.to_string_lossy())).collect();
     let n = all.len().saturating_sub(max.max(1));
     let mut gone = Vec::new();
     for p in all.into_iter().take(n) {
@@ -139,6 +143,21 @@ pub fn write_auto_save(dir: &Path, name: &str, unix: i64, offset_secs: i32, data
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn discovery_accepts_mixed_case_extensions_and_rotation_preserves_legacy() {
+        let d = std::env::temp_dir().join(format!("shotclutch-legacy-autosave-{}", std::process::id()));
+        fs::create_dir_all(&d).unwrap();
+        let legacy = d.join("Cut-2026-01-01_00-00-00.FcPrOj");
+        let native = d.join("Cut-2026-01-02_00-00-00.ScPrOj");
+        fs::write(&legacy, b"legacy original").unwrap();
+        fs::write(&native, b"native").unwrap();
+        assert_eq!(list_auto_saves(&d, "Cut"), vec![legacy.clone(), native.clone()]);
+        write_auto_save(&d, "Cut", 1_790_000_000, 0, b"new", 1).unwrap();
+        assert!(!native.exists());
+        assert_eq!(fs::read(&legacy).unwrap(), b"legacy original");
+        fs::remove_dir_all(d).unwrap();
+    }
 
     #[test]
     fn civil_dates() {
@@ -171,15 +190,15 @@ mod tests {
 
     #[test]
     fn names_and_stems() {
-        assert_eq!(auto_save_name("My Film", 0, 0), "My Film-1970-01-01_00-00-00-0.fcproj");
+        assert_eq!(auto_save_name("My Film", 0, 0), "My Film-1970-01-01_00-00-00-0.scproj");
         assert_eq!(file_stem("a/b:c"), "a_b_c");
         assert_eq!(file_stem("  "), "Untitled");
-        assert_eq!(auto_save_dir(Path::new("/x/y/p.fcproj")), Path::new("/x/y/Auto-Save"));
+        assert_eq!(auto_save_dir(Path::new("/x/y/p.scproj")), Path::new("/x/y/Auto-Save"));
     }
 
     #[test]
     fn rotation_survives_the_clock_going_back_at_the_end_of_dst() {
-        let d = std::env::temp_dir().join(format!("filmcraft-rotate-dst-{}", std::process::id()));
+        let d = std::env::temp_dir().join(format!("shotclutch-rotate-dst-{}", std::process::id()));
         let _ = fs::remove_dir_all(&d);
         let t0 = 1_792_900_000;
         // 02:30 at +02:00, then 40 minutes later the clock reads 02:10 at +01:00.
@@ -192,7 +211,7 @@ mod tests {
 
     #[test]
     fn repeated_wall_clock_hour_does_not_overwrite_earlier_saves() {
-        let d = std::env::temp_dir().join(format!("filmcraft-rotate-dst2-{}", std::process::id()));
+        let d = std::env::temp_dir().join(format!("shotclutch-rotate-dst2-{}", std::process::id()));
         let _ = fs::remove_dir_all(&d);
         let t0 = 1_792_900_000;
         // The same wall-clock second, one hour apart (+02:00 then +01:00).
@@ -207,18 +226,18 @@ mod tests {
 
     #[test]
     fn rotation_keeps_newest_and_ignores_other_files() {
-        let d = std::env::temp_dir().join(format!("filmcraft-rotate-{}", std::process::id()));
+        let d = std::env::temp_dir().join(format!("shotclutch-rotate-{}", std::process::id()));
         let _ = fs::remove_dir_all(&d);
         for i in 0..7 {
             write_auto_save(&d, "Cut", 1_790_000_000 + i * 60, 0, b"{}", 5).unwrap();
         }
         // Another project whose name starts with the same prefix, and an unrelated file.
-        fs::write(d.join("Cut-Two-2026-01-01_00-00-00.fcproj"), b"{}").unwrap();
+        fs::write(d.join("Cut-Two-2026-01-01_00-00-00.scproj"), b"{}").unwrap();
         fs::write(d.join("notes.txt"), b"keep").unwrap();
         let left = list_auto_saves(&d, "Cut");
         assert_eq!(left.len(), 5);
-        assert!(left[0].to_string_lossy().ends_with(&format!("Cut-{}-1790000120.fcproj", timestamp(1_790_000_120, 0))));
-        assert!(left[4].to_string_lossy().ends_with(&format!("Cut-{}-1790000360.fcproj", timestamp(1_790_000_360, 0))));
+        assert!(left[0].to_string_lossy().ends_with(&format!("Cut-{}-1790000120.scproj", timestamp(1_790_000_120, 0))));
+        assert!(left[4].to_string_lossy().ends_with(&format!("Cut-{}-1790000360.scproj", timestamp(1_790_000_360, 0))));
         assert_eq!(list_auto_saves(&d, "Cut-Two").len(), 1);
         assert!(d.join("notes.txt").exists());
         rotate(&d, "Cut", 2).unwrap();

@@ -3,7 +3,6 @@
 use std::sync::{Arc, Mutex, PoisonError};
 
 use base64::Engine as _;
-use filmcraft_engine::Session;
 use rmcp::handler::server::router::tool::ToolRouter;
 use rmcp::handler::server::wrapper::Parameters;
 use rmcp::model::{CallToolResult, ContentBlock as Content};
@@ -11,6 +10,7 @@ use rmcp::{ErrorData as McpError, ServerHandler, ServiceExt, tool, tool_handler,
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{Value, json};
+use shotclutch_engine::Session;
 
 use crate::{AutomationError, BridgeClient, png_rgba};
 
@@ -33,7 +33,7 @@ fn join_error(e: tokio::task::JoinError) -> AutomationError {
 }
 
 #[derive(Clone)]
-pub struct FilmcraftMcp {
+pub struct ShotClutchMcp {
     backend: Arc<Backend>,
     tool_router: ToolRouter<Self>,
 }
@@ -195,7 +195,7 @@ fn wrap(r: Result<Value, AutomationError>) -> Result<CallToolResult, McpError> {
     })
 }
 
-impl FilmcraftMcp {
+impl ShotClutchMcp {
     pub fn headless(session: Session) -> Self {
         Self { backend: Arc::new(Backend::Headless(Arc::new(Mutex::new(session)))), tool_router: Self::tool_router() }
     }
@@ -316,7 +316,7 @@ impl FilmcraftMcp {
 }
 
 #[tool_router]
-impl FilmcraftMcp {
+impl ShotClutchMcp {
     #[tool(
         title = "List commands",
         description = "List every command (id, label, menu path, shortcut, parameter doc, enabled now). Menus, shortcuts, panels and timeline gestures all map to these ids.",
@@ -436,7 +436,7 @@ impl FilmcraftMcp {
                 let r = tokio::task::spawn_blocking(move || -> Result<Vec<u8>, AutomationError> {
                     let g = s.lock().unwrap_or_else(PoisonError::into_inner);
                     // read-only: render at `seconds` without moving the playhead (#114)
-                    let t = p.seconds.map_or_else(|| g.playhead(), filmcraft_time::Tick::from_seconds_f64);
+                    let t = p.seconds.map_or_else(|| g.playhead(), shotclutch_time::Tick::from_seconds_f64);
                     let (w, h) =
                         g.active_sequence().map(|q| (q.settings.width, q.settings.height)).ok_or_else(|| AutomationError::Other("no sequence".into()))?;
                     let scale = render_scale(max, w, h);
@@ -565,7 +565,7 @@ impl FilmcraftMcp {
     }
 }
 
-impl FilmcraftMcp {
+impl ShotClutchMcp {
     async fn screenshot(&self, b: &BridgeClient, panel: Option<String>, max: u32) -> Result<CallToolResult, McpError> {
         // The desktop bridge needs a pathname, so use a freshly-created,
         // owner-only directory rather than exposing image bytes at a
@@ -594,7 +594,7 @@ impl FilmcraftMcp {
     }
 }
 
-impl FilmcraftMcp {
+impl ShotClutchMcp {
     /// The first argument `tool` doesn't take, as a message naming the ones it does.
     fn unknown_arg(&self, tool: &str, args: Option<&rmcp::model::JsonObject>) -> Option<String> {
         let def = self.tool_router.get(tool)?;
@@ -609,8 +609,8 @@ impl FilmcraftMcp {
 const INSTRUCTIONS: &str = "ShotClutch local-first video editor. Every edit is an engine command: `command_list` to discover ids/params, `command_run` to execute (undoable; `command_batch` runs several). `doc_inspect` (or `project_inspect`/`sequence_inspect`) returns ids you can pass to commands; `render_preview` shows the result. In bridge mode the `ui_*` tools drive the live app: `ui_elements` lists clickable ids, `ui_click`/`ui_drag`/`ui_key` operate it, `ui_screenshot` shows it. Time is in ticks: 254016000000 per second (commands also accept `seconds`, `frame` or `timecode`).";
 
 /// Resources: the project (as `doc_inspect`) and the command catalog (as `command_list`).
-const DOCUMENT_URI: &str = "filmcraft://document";
-const COMMANDS_URI: &str = "filmcraft://commands";
+const DOCUMENT_URI: &str = "shotclutch://document";
+const COMMANDS_URI: &str = "shotclutch://commands";
 
 /// MCP 2026-07-28 clients (current Claude Code) require `ttlMs` and `cacheScope` on list and read
 /// results; rmcp fills `resultType` and leaves the cache hints to the server, as the generated
@@ -620,7 +620,7 @@ fn cache_hints(context: &rmcp::service::RequestContext<rmcp::RoleServer>, ttl_ms
 }
 
 #[tool_handler(router = self.tool_router)]
-impl ServerHandler for FilmcraftMcp {
+impl ServerHandler for ShotClutchMcp {
     fn get_info(&self) -> rmcp::model::ServerConfig {
         rmcp::model::ServerConfig::new(rmcp::model::ServerCapabilities::builder().enable_tools().enable_resources().build())
             .with_server_info(rmcp::model::Implementation::new("shotclutch", env!("CARGO_PKG_VERSION")))
@@ -679,8 +679,8 @@ impl ServerHandler for FilmcraftMcp {
         context: rmcp::service::RequestContext<rmcp::RoleServer>,
     ) -> Result<rmcp::model::ReadResourceResponse, McpError> {
         let v = match request.uri.as_str() {
-            DOCUMENT_URI => self.document().await,
-            COMMANDS_URI => self.run("command.list", json!({})).await,
+            DOCUMENT_URI | "filmcraft://document" => self.document().await,
+            COMMANDS_URI | "filmcraft://commands" => self.run("command.list", json!({})).await,
             other => return Err(McpError::resource_not_found(format!("resource not found: {other}"), None)),
         }
         .map_err(|e| McpError::internal_error(e.to_string(), None))?;
@@ -717,7 +717,7 @@ mod tests {
     async fn headless_commands_and_render() {
         let mut s = Session::default();
         s.execute("file.openDemoProject", json!({})).unwrap();
-        let m = FilmcraftMcp::headless(s);
+        let m = ShotClutchMcp::headless(s);
         let v = m.run("sequence.addEditAllTracks", json!({"seconds": 2.0})).await.unwrap();
         assert!(v["cuts"].as_u64().unwrap() >= 2);
         let r = m.render_frame(Parameters(RenderParams { seconds: Some(1.0), max_side: Some(320) })).await.unwrap();
@@ -729,7 +729,7 @@ mod tests {
     /// the frame at `seconds`.
     #[tokio::test]
     async fn rendering_at_a_time_does_not_move_the_playhead() {
-        let m = FilmcraftMcp::headless(demo());
+        let m = ShotClutchMcp::headless(demo());
         m.run("sequence.selectionFollowsPlayhead", json!({"on": true})).await.unwrap();
         m.run("playhead.set", json!({"seconds": 1.0})).await.unwrap();
         let before = m.run("sequence.inspect", json!({})).await.unwrap();
@@ -756,7 +756,7 @@ mod tests {
             use tokio::io::AsyncBufReadExt;
             let (tx, server_in) = tokio::io::duplex(1 << 22);
             let (server_out, rx) = tokio::io::duplex(1 << 22);
-            tokio::spawn(FilmcraftMcp::headless(s).serve_io(server_in, server_out));
+            tokio::spawn(ShotClutchMcp::headless(s).serve_io(server_in, server_out));
             Self { tx, rx: tokio::io::BufReader::new(rx).lines() }
         }
         async fn send(&mut self, line: &str) {
@@ -783,7 +783,7 @@ mod tests {
     /// #499: `media_import` takes `paths` (a required array), and forwards `bin` / `image_sequence` to `file.import`.
     #[test]
     fn media_import_schema_and_params() {
-        let m = FilmcraftMcp::headless(Session::default());
+        let m = ShotClutchMcp::headless(Session::default());
         let def = m.tool_router.get("media_import").unwrap();
         let schema = Value::Object((*def.input_schema).clone());
         assert_eq!(schema["properties"]["paths"]["type"], "array", "{schema}");
@@ -859,7 +859,7 @@ mod tests {
         assert_eq!(r["result"]["content"][0]["type"], "image", "{r}");
     }
 
-    /// `filmcraft://document` and `filmcraft://commands` are listed and readable as JSON.
+    /// `shotclutch://document` and `shotclutch://commands` are listed and readable as JSON.
     #[tokio::test(flavor = "multi_thread")]
     async fn resources_document_and_commands() {
         let mut c = Client::start(demo());
@@ -873,9 +873,15 @@ mod tests {
         assert_eq!(r["result"]["contents"][0]["mimeType"], "application/json", "{r}");
         let v: Value = serde_json::from_str(r["result"]["contents"][0]["text"].as_str().unwrap()).unwrap();
         assert!(v["project"].is_object() && v["sequence"].is_object(), "{v}");
+        let document_text = r["result"]["contents"][0]["text"].clone();
         let r = c.ask(json!({"jsonrpc":"2.0","id":3,"method":"resources/read","params":{"uri":COMMANDS_URI}})).await;
         assert!(r["result"]["contents"][0]["text"].as_str().unwrap().contains("timeline.razor"), "{r}");
-        let r = c.ask(json!({"jsonrpc":"2.0","id":4,"method":"resources/read","params":{"uri":"filmcraft://nope"}})).await;
+        let commands_text = r["result"]["contents"][0]["text"].clone();
+        for (id, uri, expected) in [(5, "filmcraft://document", document_text), (6, "filmcraft://commands", commands_text)] {
+            let alias = c.ask(json!({"jsonrpc":"2.0","id":id,"method":"resources/read","params":{"uri":uri}})).await;
+            assert_eq!(alias["result"]["contents"][0]["text"], expected, "{alias}");
+        }
+        let r = c.ask(json!({"jsonrpc":"2.0","id":4,"method":"resources/read","params":{"uri":"shotclutch://nope"}})).await;
         assert!(r["error"]["code"].is_i64(), "{r}");
     }
 
@@ -915,7 +921,7 @@ mod tests {
     /// it, deletes the partial file and sends no response.
     #[tokio::test(flavor = "multi_thread")]
     async fn export_progress_and_cancel() {
-        let dir = std::env::temp_dir().join(format!("filmcraft-mcp-progress-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("shotclutch-mcp-progress-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let mut c = Client::start(demo());
         c.init().await;
@@ -1007,7 +1013,7 @@ mod tests {
     /// "session lock poisoned" until the server was restarted.
     #[tokio::test(flavor = "multi_thread")]
     async fn a_poisoned_session_lock_keeps_serving() {
-        let m = FilmcraftMcp::headless(demo());
+        let m = ShotClutchMcp::headless(demo());
         let Backend::Headless(s) = &*m.backend else { panic!("headless backend") };
         let s = s.clone();
         let _ = std::thread::spawn(move || {
@@ -1051,7 +1057,7 @@ mod tests {
                 w.write_all(line.as_bytes()).await.unwrap();
             }
         });
-        let m = FilmcraftMcp::bridge(&addr).unwrap();
+        let m = ShotClutchMcp::bridge(&addr).unwrap();
         let v = m.document().await.unwrap();
         assert_eq!(v["project"]["activeSequence"], json!(21), "{v}");
         assert_eq!(v["sequence"]["id"], json!(21), "sequence must describe the reported active id, not whatever is active now: {v}");
@@ -1084,7 +1090,7 @@ mod tests {
                 w.write_all(line.as_bytes()).await.unwrap();
             }
         });
-        let m = FilmcraftMcp::bridge(&addr).unwrap();
+        let m = ShotClutchMcp::bridge(&addr).unwrap();
         let v = m.document().await.unwrap();
         assert_eq!(v["project"]["activeSequence"].as_u64(), Some(HUGE), "{v}");
         assert_eq!(v["sequence"]["id"].as_u64(), Some(HUGE), "an id above i64::MAX must still be inspected, not dropped to a null sequence: {v}");

@@ -8,21 +8,21 @@ use std::time::{Duration, Instant};
 
 use egui::CursorIcon;
 use egui_kittest::Harness;
-use filmcraft_engine::Session;
-use filmcraft_engine::autosave::AutosaveConfig;
-use filmcraft_ui_egui::FilmcraftApp;
-use filmcraft_ui_egui::control::ControlRequest;
 use serde_json::{Value, json};
+use shotclutch_engine::Session;
+use shotclutch_engine::autosave::AutosaveConfig;
+use shotclutch_ui_egui::ShotClutchApp;
+use shotclutch_ui_egui::control::ControlRequest;
 
 struct Driver {
-    harness: Harness<'static, FilmcraftApp>,
+    harness: Harness<'static, ShotClutchApp>,
     tx: Sender<ControlRequest>,
 }
 
 impl Driver {
     fn new(session: Session) -> Self {
         let (tx, rx) = channel();
-        let app = FilmcraftApp::new(session).with_control(rx);
+        let app = ShotClutchApp::new(session).with_control(rx);
         let harness = Harness::builder().with_size(egui::vec2(1600.0, 980.0)).with_max_steps(10_000).build_eframe(move |_cc| app);
         let mut d = Driver { harness, tx };
         d.frames(4);
@@ -128,7 +128,7 @@ fn recovery_prompt_buttons_show_the_pointing_hand() {
 fn revert_confirmation_buttons_show_the_pointing_hand() {
     let data = temp_dir("revert");
     let mut s = demo();
-    s.execute("file.saveAs", json!({"path": data.join("film.fcproj").to_string_lossy()})).unwrap();
+    s.execute("file.saveAs", json!({"path": data.join("film.scproj").to_string_lossy()})).unwrap();
     s.execute("sequence.addEdit", json!({"seconds": 1.5})).unwrap();
     let mut d = Driver::new(s);
     d.menu("file.revert");

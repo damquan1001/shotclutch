@@ -48,7 +48,7 @@ def main():
         fixture.parent.mkdir(parents=True, exist_ok=True)
         if fixture.exists():
             raise RuntimeError('Refusing to overwrite an existing qualification fixture')
-        ffmpeg = os.environ.get('FILMCRAFT_FFMPEG', 'ffmpeg')
+        ffmpeg = os.environ.get('SHOTCLUTCH_FFMPEG', 'ffmpeg')
         # Brief quiet markers every minute; fixture creation is outside measured playback.
         subprocess.run([ffmpeg, '-v', 'error', '-f', 'lavfi', '-i', f'testsrc2=size=1920x1080:rate=30:duration={args.seconds + 2}',
             '-f', 'lavfi', '-i', f"aevalsrc=exprs='if(lt(mod(t,60),0.05),0.01*sin(2*PI*1000*t),0)':s=48000:d={args.seconds + 2}",
@@ -70,7 +70,7 @@ def main():
         port = reservation.getsockname()[1]
     token = secrets.token_hex(32)
     environment = dict(os.environ, SHOTCLUTCH_CONTROL_TOKEN=token, SHOTCLUTCH_CONTROL_PORT=str(port),
-        RUST_LOG='warn,filmcraft*=info,shotclutch*=info,wgpu_core=info')
+        RUST_LOG='warn,shotclutch*=info,shotclutch*=info,wgpu_core=info')
     log = (output / 'desktop-stderr.log').open('w', encoding='utf-8')
     process = subprocess.Popen([str(binary), '--empty', '--no-recover', '--data-dir', str(output / 'data')], env=environment, stdout=log, stderr=log)
     summary = {'binary_sha256': digest(binary), 'fixture_sha256': digest(fixture), 'requested_seconds': args.seconds,
@@ -108,7 +108,7 @@ def main():
         imported = execute('file.import', {'paths': [str(fixture)]})
         assert not imported['errors'], imported
         execute('file.newSequenceFromClip', {'items': imported['items']})
-        execute('file.saveAs', {'path': str(output / 'soak.fcproj')})
+        execute('file.saveAs', {'path': str(output / 'soak.scproj')})
         call('ui.set', {'playbackRes': args.resolution})
         call('ui.playback', {'action': 'play'})
         start_wait = time.monotonic()

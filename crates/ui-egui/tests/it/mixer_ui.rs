@@ -1,20 +1,20 @@
 //! Headless UI tests of the Audio Track Mixer, Audio Clip Mixer and timeline track keyframes: the
-//! real `FilmcraftApp` under `egui_kittest`, driven by automation id and by frame-by-frame pointer
+//! real `ShotClutchApp` under `egui_kittest`, driven by automation id and by frame-by-frame pointer
 //! input (a fader drag spans several frames, as with a mouse).
 //!
-//! Set `FILMCRAFT_UI_SNAPSHOT_DIR=<dir>` to also render the window offscreen with wgpu and write PNGs
+//! Set `SHOTCLUTCH_UI_SNAPSHOT_DIR=<dir>` to also render the window offscreen with wgpu and write PNGs
 //! there (`mixer-*.png`); without it no GPU is needed.
 
 use std::sync::mpsc::{Sender, channel};
 
 use egui_kittest::Harness;
-use filmcraft_engine::Session;
-use filmcraft_ui_egui::FilmcraftApp;
-use filmcraft_ui_egui::control::ControlRequest;
 use serde_json::{Value, json};
+use shotclutch_engine::Session;
+use shotclutch_ui_egui::ShotClutchApp;
+use shotclutch_ui_egui::control::ControlRequest;
 
 struct Driver {
-    harness: Harness<'static, FilmcraftApp>,
+    harness: Harness<'static, ShotClutchApp>,
     tx: Sender<ControlRequest>,
     snapshots: Option<std::path::PathBuf>,
 }
@@ -28,8 +28,8 @@ impl Driver {
         let mut session = Session::default();
         session.execute("file.openDemoProject", json!({})).expect("demo project");
         let (tx, rx) = channel();
-        let app = FilmcraftApp::new(session).with_control(rx);
-        let snapshots = std::env::var_os("FILMCRAFT_UI_SNAPSHOT_DIR").map(std::path::PathBuf::from);
+        let app = ShotClutchApp::new(session).with_control(rx);
+        let snapshots = shotclutch_env::var_os("SHOTCLUTCH_UI_SNAPSHOT_DIR").map(std::path::PathBuf::from);
         let mut b = Harness::builder().with_size(egui::vec2(1600.0, 980.0)).with_max_steps(10_000);
         if let Some(dt) = step_dt {
             b = b.with_step_dt(dt);

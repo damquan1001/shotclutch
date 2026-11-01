@@ -7,12 +7,12 @@
 //! `timeline.captionTrack.C1.*`).
 
 use egui::{Align2, Color32, CursorIcon, Rect, Sense, Stroke, StrokeKind, pos2, vec2};
-use filmcraft_project::{CaptionTrack, ClipId, Sequence};
-use filmcraft_time::Tick;
 use serde_json::{Value, json};
+use shotclutch_project::{CaptionTrack, ClipId, Sequence};
+use shotclutch_time::Tick;
 
 use super::timeline::Layout;
-use crate::FilmcraftApp;
+use crate::ShotClutchApp;
 use crate::dock::PanelKind;
 use crate::icons::Icon;
 use crate::state::Tool;
@@ -47,7 +47,7 @@ fn drag_state(ctx: &egui::Context) -> Option<(u64, u8, i64)> {
 
 /// Where a caption is drawn while a drag is live: a move carries the whole selection along with
 /// the grabbed caption, a trim only the grabbed one.
-fn block_rect(c: &filmcraft_project::Caption, row: Rect, layout: &Layout, drag: Option<(u64, u8, i64)>, sel: &[ClipId]) -> Rect {
+fn block_rect(c: &shotclutch_project::Caption, row: Rect, layout: &Layout, drag: Option<(u64, u8, i64)>, sel: &[ClipId]) -> Rect {
     let (mut s, mut e) = (c.start, c.end());
     if let Some((_, g, d)) = drag.filter(|d| moves_with(c.id, *d, sel)) {
         match g {
@@ -68,7 +68,7 @@ fn moves_with(id: ClipId, (grabbed, g, d): (u64, u8, i64), sel: &[ClipId]) -> bo
 }
 
 /// Paint headers and caption blocks.
-pub fn paint(app: &mut FilmcraftApp, ui: &mut egui::Ui, seq: &Sequence, area: Rect, layout: &Layout, t: &Tokens) {
+pub fn paint(app: &mut ShotClutchApp, ui: &mut egui::Ui, seq: &Sequence, area: Rect, layout: &Layout, t: &Tokens) {
     if seq.caption_tracks.is_empty() {
         return;
     }
@@ -160,7 +160,7 @@ pub fn paint(app: &mut FilmcraftApp, ui: &mut egui::Ui, seq: &Sequence, area: Re
                 p.rect_stroke(r, 3.0, Stroke::new(1.0, t.clip_selected_border), StrokeKind::Inside);
             }
             if r.width() > 14.0 {
-                let text = filmcraft_project::plain_text(&c.text).replace('\n', " ");
+                let text = shotclutch_project::plain_text(&c.text).replace('\n', " ");
                 // in reading order; Arabic and Hebrew start at the block's right edge
                 crate::rtl::paint_line(
                     &p.with_clip_rect(r.shrink2(vec2(4.0, 0.0)).intersect(lane)),
@@ -183,7 +183,7 @@ pub fn paint(app: &mut FilmcraftApp, ui: &mut egui::Ui, seq: &Sequence, area: Re
 
 /// Pointer interaction on caption blocks (call after the timeline's own interaction so captions
 /// are on top).
-pub fn interact(app: &mut FilmcraftApp, ui: &mut egui::Ui, seq: &Sequence, area: Rect, layout: &Layout) {
+pub fn interact(app: &mut ShotClutchApp, ui: &mut egui::Ui, seq: &Sequence, area: Rect, layout: &Layout) {
     let ctx = ui.ctx().clone();
     let rate = seq.settings.frame_rate;
     let drag = drag_state(&ctx);
@@ -210,12 +210,12 @@ pub fn interact(app: &mut FilmcraftApp, ui: &mut egui::Ui, seq: &Sequence, area:
 /// there (Shift: every caption on an unlocked caption track at that time), as it cuts clips.
 #[allow(clippy::too_many_arguments)]
 fn razor_block(
-    app: &mut FilmcraftApp,
+    app: &mut ShotClutchApp,
     ui: &mut egui::Ui,
     seq: &Sequence,
     layout: &Layout,
     tr: &CaptionTrack,
-    c: &filmcraft_project::Caption,
+    c: &shotclutch_project::Caption,
     r: Rect,
     row: Rect,
     actions: &mut Vec<(String, Value)>,
@@ -226,7 +226,7 @@ fn razor_block(
         return;
     }
     let rate = seq.settings.frame_rate;
-    let at = |app: &mut FilmcraftApp, x: f32| super::timeline::snap(app, seq, layout, rate.snap_nearest(layout.tick_at(x)), &[]);
+    let at = |app: &mut ShotClutchApp, x: f32| super::timeline::snap(app, seq, layout, rate.snap_nearest(layout.tick_at(x)), &[]);
     if let Some(p) = resp.hover_pos() {
         ctx.set_cursor_icon(CursorIcon::Crosshair);
         let x = layout.x_of(at(app, p.x));
@@ -246,12 +246,12 @@ fn razor_block(
 }
 
 fn interact_block(
-    app: &mut FilmcraftApp,
+    app: &mut ShotClutchApp,
     ui: &mut egui::Ui,
     tr: &CaptionTrack,
-    c: &filmcraft_project::Caption,
+    c: &shotclutch_project::Caption,
     r: Rect,
-    rate: filmcraft_time::FrameRate,
+    rate: shotclutch_time::FrameRate,
     actions: &mut Vec<(String, Value)>,
 ) {
     let ctx = ui.ctx().clone();
@@ -340,7 +340,7 @@ fn interact_block(
     }
 }
 
-fn run(app: &mut FilmcraftApp, ui: &egui::Ui, actions: Vec<(String, Value)>) {
+fn run(app: &mut ShotClutchApp, ui: &egui::Ui, actions: Vec<(String, Value)>) {
     let ctx = ui.ctx().clone();
     for (cmd, p) in actions {
         if let Err(e) = crate::menus::invoke(app, &ctx, &cmd, p) {

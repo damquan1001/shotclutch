@@ -18,13 +18,14 @@ $out = [IO.Path]::GetFullPath((Join-Path $Output $Label))
 New-Item -ItemType Directory -Force -Path $out | Out-Null
 # Both products read the same fixtures. Restore caller environment when finished.
 $previous = @{}
-foreach ($key in 'FILMCRAFT_FIXTURES','SHOTCLUTCH_FIXTURES') {
+foreach ($key in 'SHOTCLUTCH_FIXTURES','SHOTCLUTCH_FIXTURES') {
   $previous[$key] = [Environment]::GetEnvironmentVariable($key)
   [Environment]::SetEnvironmentVariable($key, (Join-Path $root 'target/fixtures'))
 }
 Push-Location -LiteralPath $checkoutPath
 try {
-  & cargo build --locked --release -p filmcraft-ui-egui --example bench
+  $benchPackage = if ((Get-Content -LiteralPath (Join-Path $checkoutPath "Cargo.toml") -Raw) -match "filmcraft-ui-egui") { "filmcraft-ui-egui" } else { "shotclutch-ui-egui" }
+  & cargo build --locked --release -p $benchPackage --example bench
   if ($LASTEXITCODE -ne 0) { throw 'Benchmark build failed' }
   $targetRoot = if ($env:CARGO_TARGET_DIR) { $env:CARGO_TARGET_DIR } else { Join-Path $checkoutPath 'target' }
   $exe = Join-Path $targetRoot 'release/examples/bench.exe'

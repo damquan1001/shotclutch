@@ -2,7 +2,7 @@
 //! Prints timing information to stderr. `H264_BENCH_ITERS=n` (with `H264_THREADS=t`, and
 //! `H264_DRAFT=1` for draft mode) turns it into a benchmark.
 
-use filmcraft_h264::Decoder;
+use shotclutch_h264::Decoder;
 use std::io::Write;
 
 fn main() {
@@ -13,13 +13,13 @@ fn main() {
     }
     let data = std::fs::read(&args[1]).expect("read input");
     // H264_BENCH_ITERS=n: decode n times without output and report the best run
-    if let Some(n) = std::env::var("H264_BENCH_ITERS").ok().and_then(|v| v.parse::<usize>().ok()) {
+    if let Some(n) = shotclutch_env::var("H264_BENCH_ITERS").ok().and_then(|v| v.parse::<usize>().ok()) {
         let mut best = f64::MAX;
         let mut frames = 0;
-        let threads = std::env::var("H264_THREADS").ok().and_then(|v| v.parse::<usize>().ok());
+        let threads = shotclutch_env::var("H264_THREADS").ok().and_then(|v| v.parse::<usize>().ok());
         for _ in 0..n {
             let mut dec = threads.map(Decoder::with_threads).unwrap_or_default();
-            dec.set_draft(std::env::var_os("H264_DRAFT").is_some());
+            dec.set_draft(shotclutch_env::var_os("H264_DRAFT").is_some());
             let t0 = std::time::Instant::now();
             frames = dec.decode(&data, 0).expect("decode").len() + dec.flush().len();
             best = best.min(t0.elapsed().as_secs_f64());
@@ -31,7 +31,7 @@ fn main() {
     let mut dec = Decoder::new();
     let t0 = std::time::Instant::now();
     let mut n = 0usize;
-    let mut write = |pics: Vec<filmcraft_h264::Picture>| {
+    let mut write = |pics: Vec<shotclutch_h264::Picture>| {
         for p in pics {
             n += 1;
             if let Some(o) = out.as_mut() {
@@ -50,7 +50,7 @@ fn main() {
     if let Some(e) = dec.take_error() {
         eprintln!("decode error: {e}");
     }
-    if std::env::var("H264_STATS").is_ok() {
+    if shotclutch_env::var("H264_STATS").is_ok() {
         eprintln!("{:#?}", dec.stats());
     }
     eprintln!("{n} frames in {dt:.3}s ({:.1} fps)", n as f64 / dt);

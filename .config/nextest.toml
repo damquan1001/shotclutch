@@ -5,10 +5,10 @@
 nvenc = { max-threads = 1 }
 
 [[profile.default.overrides]]
-filter = "package(filmcraft-platform) and (binary(/nvenc/) or test(/nvenc/))"
+filter = "package(shotclutch-platform) and (binary(/nvenc/) or test(/nvenc/))"
 test-group = "nvenc"
 
 # A throughput gate: it measures one core's speed, so nothing else runs beside it.
 [[profile.default.overrides]]
-filter = "package(filmcraft-render) and binary(mixer_perf)"
+filter = "package(shotclutch-render) and binary(mixer_perf)"
 threads-required = "num-test-threads"

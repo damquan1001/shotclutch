@@ -1,5 +1,5 @@
 //! Decode throughput and per-stage breakdown (ignored; run with
-//! `cargo test --release -p filmcraft-av1 --test it perf:: -- --ignored --nocapture`).
+//! `cargo test --release -p shotclutch-av1 --test it perf:: -- --ignored --nocapture`).
 //!
 //! The machine may be busy (other builds), so single-threaded work is also measured with the
 //! thread CPU clock, which is robust to load; wall-clock figures are printed next to the load
@@ -7,7 +7,7 @@
 
 use crate::common;
 use common::*;
-use filmcraft_av1::{DecodeStats, Decoder, Stage};
+use shotclutch_av1::{DecodeStats, Decoder, Stage};
 use std::time::Instant;
 
 fn thread_cpu_secs() -> Option<f64> {
@@ -52,7 +52,7 @@ fn run(frames: &[Vec<u8>], threads: usize) -> Run {
 
 fn bench(spec: &Spec) {
     // AV1_PERF_ONLY=<substring>[,<substring>...] limits the run to matching fixtures.
-    if std::env::var("AV1_PERF_ONLY").is_ok_and(|f| !f.split(',').any(|f| spec.name.contains(f))) {
+    if shotclutch_env::var("AV1_PERF_ONLY").is_ok_and(|f| !f.split(',').any(|f| spec.name.contains(f))) {
         return;
     }
     let Some(ff) = ffmpeg() else { return };

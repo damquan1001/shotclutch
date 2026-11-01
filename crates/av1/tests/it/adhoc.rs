@@ -1,5 +1,5 @@
 //! Compare an arbitrary IVF file with libdav1d:
-//! `AV1_IVF=/path/x.ivf AV1_PIX=yuv420p cargo test -p filmcraft-av1 --test it adhoc:: -- --ignored --nocapture`
+//! `AV1_IVF=/path/x.ivf AV1_PIX=yuv420p cargo test -p shotclutch-av1 --test it adhoc:: -- --ignored --nocapture`
 
 use crate::common;
 use common::*;
@@ -8,7 +8,7 @@ use common::*;
 #[ignore]
 fn adhoc_compare() {
     let Some(ff) = ffmpeg_dav1d() else { return };
-    let Some(path) = std::env::var_os("AV1_IVF") else { return };
+    let Some(path) = shotclutch_env::var_os("AV1_IVF") else { return };
     let path = std::path::PathBuf::from(path);
     let pics = decode_all(&path).unwrap();
     let pix = pix_fmt_for(&pics[0]).to_string();

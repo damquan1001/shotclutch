@@ -11,7 +11,7 @@
 # Clean-room: every entry was written from the plain meaning of the English text using ordinary
 # Spanish video-editing vocabulary (pista, cabezal, secuencia, bandeja, procesar…). No proprietary
 # localisation resource, string table or product UI was consulted or copied; add entries the same
-# way. Product and technology names (ShotClutch, ArtCraft, Lumetri, ProRes, LUFS…) keep their
+# way. Product and technology names (ShotClutch, ShotClutch, Lumetri, ProRes, LUFS…) keep their
 # spelling. "video" is written without an accent, as in the rest of this catalog.
 
 	About ShotClutch	Acerca de ShotClutch
@@ -40,7 +40,7 @@
 	Apply Default Transitions to Selection	Aplicar transiciones predeterminadas a la selección
 	Apply Video Transition	Aplicar transición de video
 	Arrange	Organizar
-	ArtCraft Website	Sitio web de ArtCraft
+	ShotClutch Website	Sitio web de ShotClutch
 	Assembly	Ensamblaje
 	Attach Proxies…	Adjuntar proxies…
 	Audio Channels…	Canales de audio…
@@ -135,7 +135,7 @@
 	Fill frame	Rellenar fotograma
 	ShotClutch Help…	Ayuda de ShotClutch…
 	ShotClutch on GitHub	ShotClutch en GitHub
-	ShotClutch on getartcraft.com	ShotClutch en getartcraft.com
+	ShotClutch on getshotclutch.com	ShotClutch en getshotclutch.com
 	Find Next	Buscar siguiente
 	Find…	Buscar…
 	Fit	Ajustar
@@ -182,7 +182,7 @@
 	Insert Frame Hold Segment	Insertar segmento de fotograma congelado
 	Install Motion Graphics Template…	Instalar plantilla de animación…
 	Interpret Footage…	Interpretar material…
-	Join the ArtCraft Discord…	Únete al Discord de ArtCraft…
+	Join the ShotClutch Discord…	Únete al Discord de ShotClutch…
 	Keyboard Shortcuts…	Atajos de teclado…
 	Label	Etiqueta
 	Labels…	Etiquetas…
@@ -379,7 +379,7 @@
 	Master volume: use the Audio Track Mixer	Volumen maestro: usa el mezclador de pistas de audio
 	Search	Buscar
 	Quick Export	Exportación rápida
-	Join the ArtCraft Discord (discord.gg/artcraft)	Únete al Discord de ArtCraft (discord.gg/artcraft)
+	Join the ShotClutch Discord (discord.gg/shotclutch)	Únete al Discord de ShotClutch (discord.gg/shotclutch)
 	Cancel	Cancelar
 	OK	Aceptar
 	Interpret Footage	Interpretar material
@@ -422,8 +422,8 @@
 	Delete Caption Track	Eliminar pista de subtítulos
 	Delete Empty Caption Tracks	Eliminar pistas de subtítulos vacías
 	Version {version}	Versión {version}
-	A clean-room, pure-Rust non-linear video editor. Part of the ArtCraft family.	Un editor de video no lineal en Rust puro, desarrollado en sala limpia. Parte de la familia ArtCraft.
-	Join the ArtCraft Discord	Únete al Discord de ArtCraft
+	A clean-room, pure-Rust non-linear video editor. Part of the ShotClutch family.	Un editor de video no lineal en Rust puro, desarrollado en sala limpia. Parte de la familia ShotClutch.
+	Join the ShotClutch Discord	Únete al Discord de ShotClutch
 	Source code on GitHub	Código fuente en GitHub
 	Report an issue	Informar de un problema
 	MIT OR Apache-2.0. Fonts: Inter, Noto Serif and JetBrains Mono (SIL OFL 1.1).	MIT OR Apache-2.0. Fuentes: Inter, Noto Serif y JetBrains Mono (SIL OFL 1.1).
@@ -2760,7 +2760,7 @@
 	no GPU adapter: the CPU compositor is used	no hay adaptador de GPU: se usa el compositor de CPU
 	Avid Log Exchange	Avid Log Exchange
 	ShotClutch Project	Proyecto de ShotClutch
-	{name} Selection.fcproj	{name} Selección.fcproj
+	{name} Selection.scproj	{name} Selección.scproj
 	{name} (Simplified)	{name} (simplificada)
 	Find in:	Buscar en:
 	Find:	Buscar:

@@ -25,7 +25,7 @@ def install(root):
     binaries = destination / 'bin'
     binaries.mkdir(exist_ok=True)
     evidence = {'platform': key, 'locked_version': locked['version'], 'publisher': locked['publisher'], 'tools': {}}
-    environment = {'FILMCRAFT_REQUIRE_ORACLES': '1'}
+    environment = {'SHOTCLUTCH_REQUIRE_ORACLES': '1'}
     for tool, asset in locked['tools'].items():
         archive = destination / (asset['sha256'] + '.zip')
         if not archive.exists() or sha256(archive) != asset['sha256']:
@@ -50,7 +50,7 @@ def install(root):
         if not version.startswith(f'{tool} version {locked["version"]}'):
             raise RuntimeError(f'Unexpected tool version: {version}')
         evidence['tools'][tool] = {**asset, 'version': version, 'executable_sha256': sha256(executable)}
-        environment['FILMCRAFT_' + tool.upper()] = str(executable)
+        environment['SHOTCLUTCH_' + tool.upper()] = str(executable)
         environment['SHOTCLUTCH_' + tool.upper()] = str(executable)
     encoders = subprocess.check_output([str(binaries / ('ffmpeg.exe' if os.name == 'nt' else 'ffmpeg')), '-hide_banner', '-encoders'], text=True)
     names = {parts[1] for line in encoders.splitlines() if len(parts := line.split()) >= 2}

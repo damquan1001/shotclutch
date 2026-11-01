@@ -18,19 +18,19 @@ def main():
     output = root / 'target/ci/evidence' / options.lane
     output.mkdir(parents=True, exist_ok=True)
     commands = {
-        'gpu-probe': [['cargo', 'test', '--locked', '-p', 'filmcraft-gpu', '--lib', 'qualification_adapter', '--', '--nocapture']],
+        'gpu-probe': [['cargo', 'test', '--locked', '-p', 'shotclutch-gpu', '--lib', 'qualification_adapter', '--', '--nocapture']],
         'checks': [
-            ['cargo', 'fmt', '--all', '--', '--check'], ['cargo', 'xtask', 'layers'], ['cargo', 'xtask', 'assets'],
+            ['cargo', 'fmt', '--all', '--', '--check'], ['python', 'scripts/check-identity.py', '--report', 'target/ci/identity-residuals.json'], ['python', 'scripts/ci/test_identity.py'], ['cargo', 'xtask', 'layers'], ['cargo', 'xtask', 'assets'],
             ['cargo', 'clippy', '--locked', '--workspace', '--all-targets', '--', '-D', 'warnings'],
             ['cargo', 'test', '--locked', '--workspace', '--lib'],
-            ['cargo', 'test', '--locked', '-p', 'filmcraft', '--bin', 'shotclutch'],
-            ['cargo', 'test', '--locked', '-p', 'filmcraft-cli', '--bin', 'shotclutch-cli'],
-            ['cargo', 'test', '--locked', '-p', 'filmcraft-format', '--test', 'fixtures'],
-            ['cargo', 'test', '--locked', '-p', 'filmcraft-cli', '--test', 'it'],
-            ['cargo', 'test', '--locked', '-p', 'filmcraft-ui-egui', '--example', 'bench'],
+            ['cargo', 'test', '--locked', '-p', 'shotclutch', '--bin', 'shotclutch'],
+            ['cargo', 'test', '--locked', '-p', 'shotclutch-cli', '--bin', 'shotclutch-cli'],
+            ['cargo', 'test', '--locked', '-p', 'shotclutch-format', '--test', 'fixtures'],
+            ['cargo', 'test', '--locked', '-p', 'shotclutch-cli', '--test', 'it'],
+            ['cargo', 'test', '--locked', '-p', 'shotclutch-ui-egui', '--example', 'bench'],
             ['cargo', 'test', '--locked', '--workspace', '--doc'],
         ],
-        'build': [['cargo', 'build', '--locked', '--release', '-p', 'filmcraft', '-p', 'filmcraft-cli']],
+        'build': [['cargo', 'build', '--locked', '--release', '-p', 'shotclutch', '-p', 'shotclutch-cli']],
         'package': [['pwsh', '-NoProfile', '-File', 'packaging/windows/package.ps1', '-Arch', 'x64'],
                     ['pwsh', '-NoProfile', '-File', 'scripts/m0/validate-package.ps1', '-Dist', 'dist/release']],
     }[options.lane]

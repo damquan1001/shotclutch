@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a reproducible problem in FilmCraft.
+description: Report a reproducible problem in ShotClutch.
 labels: [bug]
 body:
   - type: markdown
@@ -10,8 +10,8 @@ body:
   - type: input
     id: version
     attributes:
-      label: FilmCraft version or commit
-      description: Copy the version from Help > About FilmCraft, or give the commit if built from source.
+      label: ShotClutch version or commit
+      description: Copy the version from Help > About ShotClutch, or give the commit if built from source.
       placeholder: "0.8.0"
     validations:
       required: true

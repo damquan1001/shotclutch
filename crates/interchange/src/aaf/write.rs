@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use filmcraft_time::Tick;
+use shotclutch_time::Tick;
 
 use super::ids::{META_DICTIONARY, ROOT, cls, ddef, def, path, pid};
 use super::store::{self, Auid, Obj, Value, rational, utf16z};
@@ -96,7 +96,7 @@ fn source_rate(s: &Source) -> (i64, i64) {
 }
 
 /// Serialise a composition document.
-pub(crate) fn write(doc: &Document, version: filmcraft_cfb::Version, report: &mut Report) -> Result<Vec<u8>> {
+pub(crate) fn write(doc: &Document, version: shotclutch_cfb::Version, report: &mut Report) -> Result<Vec<u8>> {
     let comp = doc.compositions.first().ok_or(Error::Empty)?;
     let mut w = W { report, inexact: false };
     let mut seed = fnv(comp.name.as_bytes(), 0xCBF2_9CE4_8422_2325);
@@ -490,7 +490,7 @@ fn composition_mob(
                         .with(pid::DATA_DEFINITION, weak(path::DATA_DEFS, dd))
                         .data_prop(pid::LENGTH, n.to_le_bytes().to_vec())
                         .with(pid::OPERATION, weak(path::OPERATION_DEFS, op))
-                        .with(pid::COMPONENT_USER_COMMENTS, Value::StrongVec(vec![tagged("FilmCraft Effect", &x.effect)]));
+                        .with(pid::COMPONENT_USER_COMMENTS, Value::StrongVec(vec![tagged("ShotClutch Effect", &x.effect)]));
                     if op == def::VIDEO_DISSOLVE {
                         *uses_varying = true;
                         let pts = [(0, 0), (1, 1)]
@@ -552,8 +552,8 @@ fn composition_mob(
     mob.with(pid::SLOTS, Value::StrongVec(slots)).with(
         pid::MOB_USER_COMMENTS,
         Value::StrongVec(vec![
-            tagged("FilmCraft Frame Size", &format!("{}x{}", comp.width, comp.height)),
-            tagged("FilmCraft Audio Sample Rate", &comp.sample_rate.to_string()),
+            tagged("ShotClutch Frame Size", &format!("{}x{}", comp.width, comp.height)),
+            tagged("ShotClutch Audio Sample Rate", &comp.sample_rate.to_string()),
         ]),
     )
 }

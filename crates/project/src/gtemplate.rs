@@ -5,7 +5,7 @@
 //!
 //! ```json
 //! {
-//!   "format": "filmcraft.graphicsTemplate",
+//!   "format": "shotclutch.graphicsTemplate",
 //!   "version": 1,
 //!   "id": "user:my-lower-third",
 //!   "name": "My Lower Third",
@@ -37,16 +37,16 @@
 
 use std::collections::{HashMap, HashSet};
 
-use filmcraft_geom::Vec2;
-use filmcraft_time::{TICKS_PER_SECOND, Tick};
 use serde::{Deserialize, Serialize};
+use shotclutch_geom::Vec2;
+use shotclutch_time::{TICKS_PER_SECOND, Tick};
 
 use crate::effect::EffectInstance;
 use crate::graphic::{self, new_shape_layer, new_text_layer};
 use crate::graphic_design::{GraphicMeta, LayerExtra, Pin, PinTarget, Roll, RollMode};
 use crate::keyframe::{Param, ParamValue};
 
-pub const TEMPLATE_FORMAT: &str = "filmcraft.graphicsTemplate";
+pub const TEMPLATE_FORMAT: &str = "shotclutch.graphicsTemplate";
 pub const TEMPLATE_VERSION: u32 = 1;
 pub const TEMPLATE_EXTENSION: &str = "fcgt";
 
@@ -240,7 +240,9 @@ pub fn slug(name: &str) -> String {
 impl GraphicsTemplate {
     /// Serialize (pretty JSON).
     pub fn to_json(&self) -> String {
-        serde_json::to_string_pretty(self).unwrap_or_default()
+        let mut canonical = self.clone();
+        canonical.format = TEMPLATE_FORMAT.into();
+        serde_json::to_string_pretty(&canonical).unwrap_or_default()
     }
 
     /// Read a template file. ZIP archives (such as `.mogrt` packages) are refused without being
@@ -252,7 +254,7 @@ impl GraphicsTemplate {
         let text =
             std::str::from_utf8(bytes.strip_prefix(b"\xef\xbb\xbf").unwrap_or(bytes)).map_err(|_| TemplateError::NotTemplate("not UTF-8 text".into()))?;
         let v: serde_json::Value = serde_json::from_str(text).map_err(|e| TemplateError::NotTemplate(e.to_string()))?;
-        if v.get("format").and_then(|f| f.as_str()) != Some(TEMPLATE_FORMAT) {
+        if !matches!(v.get("format").and_then(|f| f.as_str()), Some(TEMPLATE_FORMAT | "filmcraft.graphicsTemplate")) {
             return Err(TemplateError::NotTemplate(format!("`format` is not \"{TEMPLATE_FORMAT}\"")));
         }
         let ver = v.get("version").and_then(|x| x.as_u64()).unwrap_or(0) as u32;
@@ -459,7 +461,7 @@ fn builtin(
         name: name.into(),
         category: category.into(),
         description: description.into(),
-        author: "FilmCraft contributors".into(),
+        author: "ShotClutch contributors".into(),
         license: "MIT OR Apache-2.0".into(),
         tags: vec![category.to_ascii_lowercase()],
         duration: Tick(seconds * TICKS_PER_SECOND),

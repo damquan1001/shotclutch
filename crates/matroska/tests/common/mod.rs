@@ -6,13 +6,13 @@ use serde_json::Value;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-/// (ffmpeg, ffprobe), or `None` after printing `SKIPPED` (see `filmcraft_testkit::oracle`).
+/// (ffmpeg, ffprobe), or `None` after printing `SKIPPED` (see `shotclutch_testkit::oracle`).
 pub fn tools() -> Option<(PathBuf, PathBuf)> {
-    Some((filmcraft_testkit::ffmpeg_or_skip("matroska oracle")?, filmcraft_testkit::ffprobe_or_skip("matroska oracle")?))
+    Some((shotclutch_testkit::ffmpeg_or_skip("matroska oracle")?, shotclutch_testkit::ffprobe_or_skip("matroska oracle")?))
 }
 
 pub fn fixture_dir() -> PathBuf {
-    filmcraft_testkit::fixtures_dir("matroska")
+    shotclutch_testkit::fixtures_dir("matroska")
 }
 
 const V: &[&str] = &["-f", "lavfi", "-i", "testsrc2=size=160x120:rate=25"];
@@ -90,7 +90,7 @@ pub fn fixture(ffmpeg: &Path, name: &str) -> Option<PathBuf> {
         return Some(out);
     }
     write_subs(&dir);
-    let tmp = filmcraft_testkit::temp_path(&out);
+    let tmp = shotclutch_testkit::temp_path(&out);
     let ok = match spec(name) {
         Some(args) => {
             let mut c = Command::new(ffmpeg);

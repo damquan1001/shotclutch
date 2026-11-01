@@ -2,7 +2,7 @@
 
 use crate::common;
 use common::*;
-use filmcraft_prores::{AlphaType, ChromaFormat, DecodeOptions, Interlace, decode_frame, decode_frame_with, probe};
+use shotclutch_prores::{AlphaType, ChromaFormat, DecodeOptions, Interlace, decode_frame, decode_frame_with, probe};
 
 fn specs() -> Vec<Spec> {
     let p422 = "format=yuv422p10le";
@@ -51,7 +51,7 @@ fn native_pix_fmt(chroma: ChromaFormat, alpha: bool) -> &'static str {
 #[test]
 fn decode_matches_ffmpeg() {
     let Some(ff) = ffmpeg() else { return };
-    let filter = std::env::var("PRORES_FIXTURE").ok();
+    let filter = shotclutch_env::var("PRORES_FIXTURE").ok();
     let mut report = vec![format!("{:<26} {:>9} {:>5} {:>8} {:>8} {:>8} {:>8}", "fixture", "format", "maxY", "meanY", "maxC/A", "meanC/A", "exact%")];
     let mut worst = 0;
     for spec in specs() {
@@ -148,6 +148,6 @@ fn generate_fixtures() {
     let Some(ff) = ffmpeg() else { return };
     for spec in specs() {
         let out = [fixture_dir().join(format!("{}.mov", spec.name))];
-        filmcraft_testkit::fixtures::generate_and_report(&format!("prores/{}", spec.name), &out, || Some(make(&ff, &spec)));
+        shotclutch_testkit::fixtures::generate_and_report(&format!("prores/{}", spec.name), &out, || Some(make(&ff, &spec)));
     }
 }

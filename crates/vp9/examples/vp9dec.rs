@@ -1,4 +1,4 @@
-//! Decode an IVF file: `cargo run --release -p filmcraft-vp9 --example vp9dec -- in.ivf [out.yuv]`.
+//! Decode an IVF file: `cargo run --release -p shotclutch-vp9 --example vp9dec -- in.ivf [out.yuv]`.
 //! Writes raw planar output (8-bit or 16-bit little endian) and prints decoder statistics.
 
 use std::io::Write;
@@ -7,12 +7,12 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let data = std::fs::read(&args[1]).expect("read input");
     let mut out = args.get(2).map(|p| std::io::BufWriter::new(std::fs::File::create(p).expect("create output")));
-    let threads = std::env::var("VP9_THREADS").ok().and_then(|s| s.parse().ok()).unwrap_or(0);
-    let mut dec = if threads > 0 { filmcraft_vp9::Decoder::with_threads(threads) } else { filmcraft_vp9::Decoder::new() };
+    let threads = shotclutch_env::var("VP9_THREADS").ok().and_then(|s| s.parse().ok()).unwrap_or(0);
+    let mut dec = if threads > 0 { shotclutch_vp9::Decoder::with_threads(threads) } else { shotclutch_vp9::Decoder::new() };
     // VP9_DRAFT=1: draft mode (non-reference frames skip the loop filter).
-    dec.set_draft(std::env::var_os("VP9_DRAFT").is_some());
+    dec.set_draft(shotclutch_env::var_os("VP9_DRAFT").is_some());
     // VP9_LOOPS=n decodes the file n times (for profiling; the stream starts with a key frame).
-    let loops = std::env::var("VP9_LOOPS").ok().and_then(|s| s.parse().ok()).unwrap_or(1usize);
+    let loops = shotclutch_env::var("VP9_LOOPS").ok().and_then(|s| s.parse().ok()).unwrap_or(1usize);
     let hl = u16::from_le_bytes([data[6], data[7]]) as usize;
     let mut i = 0i64;
     let t0 = std::time::Instant::now();

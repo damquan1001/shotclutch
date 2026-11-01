@@ -188,3 +188,11 @@ At session start, read this file, the relevant requirement, and its owning speci
 - 2026-10-26 — Started M0 on `codex/m0-foundation`; preserved the committed user baseline and recorded source/build/packaging/benchmark decisions. Qualification gates remain explicit.
 
 - 2026-10-26 — Executed authorized CI bootstrap at 5f697163; retained first-run failures and passing package/macOS lanes, exact CI candidate 30-minute Full playback, GPU matrix and interleaved CPU rechecks. Follow-up fixes and repeat green runs are in progress; no release, PR, merge or settings change.
+
+## Post-M0 identity cleanup
+
+| Record | State | Owner | Evidence / next action |
+|---|---|---|---|
+| IDENTITY-001 | In Progress | Codex | Branch `codex/shotclutch-identity` from completed M0 `9114bb6e`; canonical package/app/API names, native .scproj writes, legacy-read/source-preservation guards and original platform artwork implemented. Environment/format/fixture tests, engine file tests, layer check, branding guard and helper regression guards passed locally; final broad checks, packages and one three-OS CI run pending. [Behavior/compatibility](SHOTCLUTCH_IDENTITY.md). |
+
+The original M0 reports and fixtures remain unchanged. This work changes product identity and compatibility boundaries, not M1 project/transaction architecture. Retained copyright/asset provenance is not rewritten as ShotClutch authorship.

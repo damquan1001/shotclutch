@@ -4,10 +4,12 @@ Run from the repository root with Python 3, FFmpeg and ffprobe on PATH.
 The token is private to the child environment and is never persisted.
 """
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
 import secrets
+import shutil
 import socket
 import subprocess
 import time
@@ -24,7 +26,7 @@ def main():
     source = out / "source.mp4"
     subprocess.run([
         "ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i",
-        "testsrc2=size=320x180:rate=30:duration=2", "-f", "lavfi", "-i",
+        "testsrc2=size=1920x1080:rate=30:duration=2", "-f", "lavfi", "-i",
         "sine=frequency=440:sample_rate=48000:duration=2", "-c:v", "libx264",
         "-pix_fmt", "yuv420p", "-c:a", "aac", "-ac", "2", str(source),
     ], check=True)
@@ -35,6 +37,9 @@ def main():
     env = dict(os.environ, SHOTCLUTCH_CONTROL_TOKEN=token,
                FILMCRAFT_CONTROL_TOKEN="0" * 64,
                SHOTCLUTCH_CONTROL_PORT=str(port), FILMCRAFT_CONTROL_PORT="invalid")
+    # Only the test harness uses media oracles; the packaged editor must stand alone.
+    env["PATH"] = os.pathsep.join([str(options.bin_dir.resolve()), str(Path(os.environ["SystemRoot"]) / "System32")])
+    assert shutil.which("ffmpeg", path=env["PATH"]) is None
     startup = subprocess.STARTUPINFO()
     startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
     startup.wShowWindow = subprocess.SW_HIDE
@@ -83,8 +88,12 @@ def main():
         execute("edit.undo")
         assert execute("sequence.inspect")["durationFrames"] == 60
         execute("edit.redo")
-        project = out / "smoke.fcproj"
+        project = out / "smoke.scproj"
         execute("file.saveAs", {"path": str(project)})
+        saved = project.read_bytes()
+        envelope = json.loads(saved)
+        assert envelope["format"] == "shotclutch.project"
+        assert envelope["schema_version"] == 15
         execute("file.open", {"path": str(project)})
         assert execute("sequence.inspect")["durationFrames"] == 50
         rendered = out / "render.mov"
@@ -109,6 +118,10 @@ def main():
                                        "-map", "0:a:0", "-f", "f32le", "-ac", "2", "-ar", "48000", "-"])
         assert len(pcm) // 8 == 80000, len(pcm) // 8
         evidence.append({"verification": "passed", "frames": 50, "stereo_samples": 80000,
+                         "fixture_size": "1920x1080", "project_format": envelope["format"],
+                         "project_sha256": hashlib.sha256(saved).hexdigest(),
+                         "desktop_sha256": hashlib.sha256((options.bin_dir / "shotclutch.exe").read_bytes()).hexdigest(),
+                         "external_media_tools_on_child_path": False,
                          "environment_alias_precedence": "new port/token override invalid legacy values",
                          "clean_machine_install": "not performed"})
         call("app.quit")

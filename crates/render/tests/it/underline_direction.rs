@@ -1,10 +1,10 @@
 //! Horizontal vs vertical graphic text with underline (letter A, 60 px).
-use filmcraft_geom::{Affine, Vec2};
-use filmcraft_project::graphic::{new_text_layer, new_vertical_text_layer};
-use filmcraft_project::{EffectInstance, ParamValue};
-use filmcraft_render::graphic_clip::render_graphic_layers;
-use filmcraft_render::image::Image;
-use filmcraft_time::Tick;
+use shotclutch_geom::{Affine, Vec2};
+use shotclutch_project::graphic::{new_text_layer, new_vertical_text_layer};
+use shotclutch_project::{EffectInstance, ParamValue};
+use shotclutch_render::graphic_clip::render_graphic_layers;
+use shotclutch_render::image::Image;
+use shotclutch_time::Tick;
 
 fn set(e: &mut EffectInstance, k: &str, v: ParamValue) {
     e.params.get_mut(k).unwrap_or_else(|| panic!("{k}")).value = v;

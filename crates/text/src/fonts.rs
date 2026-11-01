@@ -87,16 +87,16 @@ impl DirectorySource {
     /// The platform's standard font folders.
     pub fn system() -> Self {
         let mut dirs: Vec<PathBuf> = Vec::new();
-        let home = std::env::var_os("HOME").map(PathBuf::from);
+        let home = shotclutch_env::var_os("HOME").map(PathBuf::from);
         if cfg!(target_os = "macos") {
             dirs.extend(["/System/Library/Fonts", "/Library/Fonts"].map(PathBuf::from));
             if let Some(h) = &home {
                 dirs.push(h.join("Library/Fonts"));
             }
         } else if cfg!(windows) {
-            let win = std::env::var_os("WINDIR").map(PathBuf::from).unwrap_or_else(|| PathBuf::from("C:\\Windows"));
+            let win = shotclutch_env::var_os("WINDIR").map(PathBuf::from).unwrap_or_else(|| PathBuf::from("C:\\Windows"));
             dirs.push(win.join("Fonts"));
-            if let Some(l) = std::env::var_os("LOCALAPPDATA") {
+            if let Some(l) = shotclutch_env::var_os("LOCALAPPDATA") {
                 dirs.push(PathBuf::from(l).join("Microsoft\\Windows\\Fonts"));
             }
         } else if cfg!(unix) && !cfg!(target_arch = "wasm32") {
@@ -614,7 +614,7 @@ mod tests {
 
     #[test]
     fn covers_text_does_not_keep_file_bytes() {
-        let path = std::env::temp_dir().join(format!("filmcraft-covers-text-{}.ttf", std::process::id()));
+        let path = std::env::temp_dir().join(format!("shotclutch-covers-text-{}.ttf", std::process::id()));
         std::fs::write(&path, INTER_REGULAR).expect("write temp font");
         let info = FaceInfo {
             family: "Inter".into(),

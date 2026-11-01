@@ -4,7 +4,7 @@
 # Clean-room: every entry was written from the plain meaning of the English text using ordinary
 # Japanese computing and video-editing vocabulary (クリップ, シーケンス, トラック, 再生ヘッド, ぼかし ...). No
 # proprietary localisation resource, string table or product UI was consulted or copied; add entries
-# the same way. Product and technology names (ShotClutch, ArtCraft, Lumetri, ProRes, LUFS ...) keep
+# the same way. Product and technology names (ShotClutch, ShotClutch, Lumetri, ProRes, LUFS ...) keep
 # their spelling.
 #
 # House style, so new entries read like the rest:
@@ -42,7 +42,7 @@
 	Apply Default Transitions to Selection	選択範囲に既定のトランジションを適用
 	Apply Video Transition	ビデオトランジションを適用
 	Arrange	重ね順
-	ArtCraft Website	ArtCraft の Web サイト
+	ShotClutch Website	ShotClutch の Web サイト
 	Assembly	アセンブリ
 	Attach Proxies…	プロキシを関連付け…
 	Audio Channels…	オーディオチャンネル…
@@ -137,7 +137,7 @@
 	Fill frame	フレームを埋める
 	ShotClutch Help…	ShotClutch ヘルプ…
 	ShotClutch on GitHub	GitHub の ShotClutch
-	ShotClutch on getartcraft.com	getartcraft.com の ShotClutch
+	ShotClutch on getshotclutch.com	getshotclutch.com の ShotClutch
 	Find Next	次を検索
 	Find…	検索…
 	Fit	合わせる
@@ -184,7 +184,7 @@
 	Insert Frame Hold Segment	フレームホールドセグメントを挿入
 	Install Motion Graphics Template…	モーショングラフィックステンプレートをインストール…
 	Interpret Footage…	素材を解釈…
-	Join the ArtCraft Discord…	ArtCraft の Discord に参加…
+	Join the ShotClutch Discord…	ShotClutch の Discord に参加…
 	Keyboard Shortcuts…	キーボードショートカット…
 	Label	ラベル
 	Labels…	ラベル…
@@ -380,7 +380,7 @@
 	Master volume: use the Audio Track Mixer	マスター音量はオーディオトラックミキサーで調整してください
 	Search	検索
 	Quick Export	クイック書き出し
-	Join the ArtCraft Discord (discord.gg/artcraft)	ArtCraft の Discord に参加 (discord.gg/artcraft)
+	Join the ShotClutch Discord (discord.gg/shotclutch)	ShotClutch の Discord に参加 (discord.gg/shotclutch)
 	Cancel	キャンセル
 	OK	OK
 	Interpret Footage	素材を解釈
@@ -419,8 +419,8 @@
 	Delete Audio Tracks	オーディオトラックを削除する
 	All Empty Tracks	すべての空のトラック
 	Version {version}	バージョン {version}
-	A clean-room, pure-Rust non-linear video editor. Part of the ArtCraft family.	Rust だけで書かれた、クリーンルーム設計のノンリニアビデオ編集ソフトです。ArtCraft ファミリーの一員です。
-	Join the ArtCraft Discord	ArtCraft の Discord に参加
+	A clean-room, pure-Rust non-linear video editor. Part of the ShotClutch family.	Rust だけで書かれた、クリーンルーム設計のノンリニアビデオ編集ソフトです。ShotClutch ファミリーの一員です。
+	Join the ShotClutch Discord	ShotClutch の Discord に参加
 	Source code on GitHub	GitHub のソースコード
 	Report an issue	問題を報告
 	MIT OR Apache-2.0. Fonts: Inter, Noto Serif and JetBrains Mono (SIL OFL 1.1).	MIT OR Apache-2.0。フォント: Inter、Noto Serif、JetBrains Mono (SIL OFL 1.1)。
@@ -2746,7 +2746,7 @@
 	no GPU adapter: the CPU compositor is used	GPU アダプターがありません: CPU コンポジターを使用します
 	Avid Log Exchange	Avid Log Exchange
 	ShotClutch Project	ShotClutch プロジェクト
-	{name} Selection.fcproj	{name} 選択項目.fcproj
+	{name} Selection.scproj	{name} 選択項目.scproj
 	{name} (Simplified)	{name} (単純化済み)
 	Find in:	検索場所:
 	Find:	検索文字列:

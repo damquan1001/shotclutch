@@ -1,12 +1,12 @@
 //! Smaller panels: History, Markers, Info (the Media Browser is `panels::media_browser`).
 
 use egui::{Align2, Color32, Rect, Sense, pos2, vec2};
-use filmcraft_time::{TimeDisplay, format_time};
+use shotclutch_time::{TimeDisplay, format_time};
 
-use crate::FilmcraftApp;
+use crate::ShotClutchApp;
 use crate::theme::Tokens;
 
-pub fn history(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect) {
+pub fn history(app: &mut ShotClutchApp, ui: &mut egui::Ui, rect: Rect) {
     let t = app.tokens;
     let mut child = ui.new_child(egui::UiBuilder::new().max_rect(rect.shrink(6.0)));
     let undo: Vec<String> = app.session.history.undo.iter().map(|h| h.0.clone()).collect();
@@ -55,7 +55,7 @@ const CONFIRM_DELETE_REDOABLE: &str = "history-delete-redoable";
 
 /// The History panel's ≡ menu: Delete Redoable Actions and Clear History (automation ids
 /// `panel.menu.History.deleteRedoable` and `panel.menu.History.clear`). Returns true to close it.
-pub fn history_panel_menu(app: &mut FilmcraftApp, ui: &mut egui::Ui) -> bool {
+pub fn history_panel_menu(app: &mut ShotClutchApp, ui: &mut egui::Ui) -> bool {
     let ctx = ui.ctx().clone();
     let mut close = false;
     for (id, label, command) in [("deleteRedoable", tl!("Delete Redoable Actions"), "history.deleteRedoable"), ("clear", tl!("Clear History"), "history.clear")]
@@ -74,7 +74,7 @@ pub fn history_panel_menu(app: &mut FilmcraftApp, ui: &mut egui::Ui) -> bool {
 
 /// Delete Redoable Actions from the panel menu or a key (no parameters) asks for OK first, as in
 /// Premiere. Returns None for other ids, and for calls with parameters, which run the command.
-pub fn route_history(app: &mut FilmcraftApp, ctx: &egui::Context, id: &str, params: &serde_json::Value) -> Option<Result<serde_json::Value, String>> {
+pub fn route_history(app: &mut ShotClutchApp, ctx: &egui::Context, id: &str, params: &serde_json::Value) -> Option<Result<serde_json::Value, String>> {
     if id != "history.deleteRedoable" || !params.as_object().is_none_or(|m| m.is_empty()) {
         return None;
     }
@@ -87,7 +87,7 @@ pub fn route_history(app: &mut FilmcraftApp, ctx: &egui::Context, id: &str, para
 
 /// The Delete Redoable Actions confirmation (automation ids `history.deleteRedoable.cancel` and
 /// `history.deleteRedoable.ok`). It closes by itself when nothing is left to redo.
-pub fn history_dialogs(app: &mut FilmcraftApp, ctx: &egui::Context) {
+pub fn history_dialogs(app: &mut ShotClutchApp, ctx: &egui::Context) {
     let key = egui::Id::new(CONFIRM_DELETE_REDOABLE);
     if !ctx.data(|d| d.get_temp::<bool>(key)).unwrap_or(false) {
         return;
@@ -122,17 +122,17 @@ pub fn history_dialogs(app: &mut FilmcraftApp, ctx: &egui::Context) {
 
 /// The marker colours of the Markers panel filter (each chip stands for the labels that share its
 /// marker colour).
-pub const MARKER_FILTER: [filmcraft_project::Label; 7] = {
-    use filmcraft_project::Label::*;
+pub const MARKER_FILTER: [shotclutch_project::Label; 7] = {
+    use shotclutch_project::Label::*;
     [Green, Rose, Purple, Mango, Yellow, Blue, Teal]
 };
 
 /// A marker's Label menu. An explicit program target keeps panel focus and clip/project
 /// selections from routing colour changes to another item (#1143).
-pub(crate) fn marker_label_menu(app: &mut FilmcraftApp, ui: &mut egui::Ui, marker: &filmcraft_project::Marker, prefix: &str) {
+pub(crate) fn marker_label_menu(app: &mut ShotClutchApp, ui: &mut egui::Ui, marker: &shotclutch_project::Marker, prefix: &str) {
     let label = crate::i18n::t("Label");
     let menu = ui.menu_button(label, |ui| {
-        for color in filmcraft_project::Label::ALL {
+        for color in shotclutch_project::Label::ALL {
             let name = crate::i18n::t(color.name());
             let r = ui.selectable_label(color == marker.color, name);
             app.auto.add_response(&format!("{prefix}.color.{}", color.name()), &r, name);
@@ -149,7 +149,7 @@ pub(crate) fn marker_label_menu(app: &mut FilmcraftApp, ui: &mut egui::Ui, marke
 
 /// Markers panel: a colour filter row (click a chip to show/hide that colour; automation ids
 /// `markers.filter.<label>`), then the sequence markers (`markers.row.<id>`; click = go to it).
-pub fn markers(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect) {
+pub fn markers(app: &mut ShotClutchApp, ui: &mut egui::Ui, rect: Rect) {
     let t = app.tokens;
     // Keep the immutable project snapshot alive while UI commands mutate the session.
     // Cloning a sequence here copies every clip and effect on every redraw.
@@ -194,11 +194,11 @@ pub fn markers(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect) {
             let name = if m.name.is_empty() { tl!("Marker") } else { &m.name };
             ui.painter().text(pos2(r.min.x + 16.0, r.min.y + 12.0), Align2::LEFT_CENTER, name, Tokens::ui(12.0), t.text);
             let mut tc = format_time(m.start, seq.settings.frame_rate, seq.settings.drop_frame, TimeDisplay::Timecode, 48000);
-            if m.duration > filmcraft_time::Tick::ZERO {
+            if m.duration > shotclutch_time::Tick::ZERO {
                 let d = format_time(m.duration, seq.settings.frame_rate, seq.settings.drop_frame, TimeDisplay::Timecode, 48000);
                 tc = format!("{tc}  ({d})");
             }
-            if m.kind == filmcraft_project::MarkerKind::Chapter {
+            if m.kind == shotclutch_project::MarkerKind::Chapter {
                 tc = tlf!("{tc}  Chapter", tc);
             }
             ui.painter().text(pos2(r.min.x + 16.0, r.min.y + 27.0), Align2::LEFT_CENTER, tc, Tokens::mono(11.0), t.hot_text);
@@ -227,7 +227,7 @@ pub fn markers(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect) {
     }
 }
 
-pub fn info(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect) {
+pub fn info(app: &mut ShotClutchApp, ui: &mut egui::Ui, rect: Rect) {
     let t = app.tokens;
     let mut child = ui.new_child(egui::UiBuilder::new().max_rect(rect.shrink(8.0)));
     let ui = &mut child;

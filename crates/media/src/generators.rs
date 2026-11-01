@@ -10,11 +10,11 @@
 use std::f32::consts::{PI, TAU};
 use std::sync::Arc;
 
-use filmcraft_color::ColorInfo;
-use filmcraft_frame::{AudioBuffer, VideoFrame};
-use filmcraft_time::{FrameRate, TICKS_PER_SECOND, Tick};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
+use shotclutch_color::ColorInfo;
+use shotclutch_frame::{AudioBuffer, VideoFrame};
+use shotclutch_time::{FrameRate, TICKS_PER_SECOND, Tick};
 
 use crate::digits::{draw_text, text_width};
 use crate::{AudioStreamInfo, FrameCache, FrameRequest, MediaError, MediaInfo, MediaKind, MediaSource, Result, VideoStreamInfo};

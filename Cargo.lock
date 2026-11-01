@@ -1686,742 +1686,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "filmcraft"
-version = "0.13.0"
-dependencies = [
- "arboard",
- "chrono",
- "cpal",
- "eframe",
- "egui",
- "filmcraft-engine",
- "filmcraft-export",
- "filmcraft-gpu",
- "filmcraft-platform",
- "filmcraft-project",
- "filmcraft-render",
- "filmcraft-time",
- "filmcraft-ui-egui",
- "glob",
- "log",
- "muda",
- "objc2 0.6.4",
- "objc2-app-kit 0.3.2",
- "objc2-foundation 0.3.2",
- "open",
- "pollster 0.4.0",
- "rfd",
- "serde_json",
- "subtle",
- "sys-locale",
- "winit",
- "winresource",
- "zbus",
-]
-
-[[package]]
-name = "filmcraft-aac"
-version = "0.13.0"
-dependencies = [
- "filmcraft-bitstream",
- "filmcraft-testkit",
- "rayon",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-ac3"
-version = "0.13.0"
-dependencies = [
- "filmcraft-testkit",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-apv"
-version = "0.13.0"
-dependencies = [
- "filmcraft-bitstream",
- "filmcraft-testkit",
- "rayon",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-audio-dsp"
-version = "0.13.0"
-dependencies = [
- "filmcraft-testkit",
-]
-
-[[package]]
-name = "filmcraft-automation"
-version = "0.13.0"
-dependencies = [
- "base64 0.22.1",
- "filmcraft-engine",
- "filmcraft-time",
- "image",
- "rmcp",
- "schemars",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.21",
- "tokio",
-]
-
-[[package]]
-name = "filmcraft-av1"
-version = "0.13.0"
-dependencies = [
- "filmcraft-bitstream",
- "filmcraft-testkit",
- "rayon",
- "rustix 1.1.5",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-avi"
-version = "0.13.0"
-dependencies = [
- "filmcraft-testkit",
-]
-
-[[package]]
-name = "filmcraft-bitstream"
-version = "0.13.0"
-dependencies = [
- "craft-media",
-]
-
-[[package]]
-name = "filmcraft-captions"
-version = "0.13.0"
-dependencies = [
- "filmcraft-color",
- "filmcraft-project",
- "filmcraft-text",
- "filmcraft-time",
- "proptest",
- "roxmltree",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-cfb"
-version = "0.13.0"
-
-[[package]]
-name = "filmcraft-cli"
-version = "0.13.0"
-dependencies = [
- "filmcraft-automation",
- "filmcraft-codecs",
- "filmcraft-engine",
- "filmcraft-export",
- "filmcraft-gpu",
- "filmcraft-media",
- "filmcraft-mpegts",
- "filmcraft-mxf",
- "filmcraft-ogg",
- "filmcraft-platform",
- "filmcraft-project",
- "filmcraft-render",
- "filmcraft-testkit",
- "filmcraft-time",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "filmcraft-codecs"
-version = "0.13.0"
-dependencies = [
- "filmcraft-aac",
- "filmcraft-ac3",
- "filmcraft-apv",
- "filmcraft-av1",
- "filmcraft-avi",
- "filmcraft-bitstream",
- "filmcraft-color",
- "filmcraft-dnx",
- "filmcraft-frame",
- "filmcraft-h264",
- "filmcraft-hevc",
- "filmcraft-isobmff",
- "filmcraft-matroska",
- "filmcraft-media",
- "filmcraft-mpa",
- "filmcraft-mpeg2v",
- "filmcraft-mpegts",
- "filmcraft-mxf",
- "filmcraft-ogg",
- "filmcraft-opus",
- "filmcraft-prores",
- "filmcraft-testkit",
- "filmcraft-time",
- "filmcraft-vp8",
- "filmcraft-vp9",
- "image",
- "log",
- "rayon",
- "serde_json",
- "symphonia",
- "thiserror 2.0.21",
- "web-time",
-]
-
-[[package]]
-name = "filmcraft-color"
-version = "0.13.0"
-dependencies = [
- "proptest",
- "serde",
-]
-
-[[package]]
-name = "filmcraft-dng"
-version = "0.13.0"
-dependencies = [
- "filmcraft-dng",
- "rayon",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-dnx"
-version = "0.13.0"
-dependencies = [
- "filmcraft-bitstream",
- "filmcraft-testkit",
- "rayon",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-edit"
-version = "0.13.0"
-dependencies = [
- "filmcraft-geom",
- "filmcraft-media",
- "filmcraft-project",
- "filmcraft-time",
- "proptest",
- "serde_json",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-engine"
-version = "0.13.0"
-dependencies = [
- "chrono",
- "craft-docpath",
- "filmcraft-audio-dsp",
- "filmcraft-captions",
- "filmcraft-codecs",
- "filmcraft-color",
- "filmcraft-dng",
- "filmcraft-edit",
- "filmcraft-export",
- "filmcraft-format",
- "filmcraft-frame",
- "filmcraft-geom",
- "filmcraft-interchange",
- "filmcraft-isobmff",
- "filmcraft-media",
- "filmcraft-mxf",
- "filmcraft-project",
- "filmcraft-render",
- "filmcraft-scopes",
- "filmcraft-speech",
- "filmcraft-testkit",
- "filmcraft-text",
- "filmcraft-time",
- "filmcraft-tts",
- "image",
- "log",
- "serde",
- "serde_json",
- "thiserror 2.0.21",
- "web-time",
-]
-
-[[package]]
-name = "filmcraft-export"
-version = "0.13.0"
-dependencies = [
- "filmcraft-aac",
- "filmcraft-apv",
- "filmcraft-audio-dsp",
- "filmcraft-codecs",
- "filmcraft-color",
- "filmcraft-dnx",
- "filmcraft-flac",
- "filmcraft-frame",
- "filmcraft-geom",
- "filmcraft-h264enc",
- "filmcraft-isobmff",
- "filmcraft-media",
- "filmcraft-mxf",
- "filmcraft-project",
- "filmcraft-prores",
- "filmcraft-render",
- "filmcraft-testkit",
- "filmcraft-text",
- "filmcraft-time",
- "image",
- "rayon",
- "serde",
- "serde_json",
- "thiserror 2.0.21",
- "web-time",
-]
-
-[[package]]
-name = "filmcraft-flac"
-version = "0.13.0"
-dependencies = [
- "filmcraft-bitstream",
- "filmcraft-testkit",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-format"
-version = "0.13.0"
-dependencies = [
- "chrono",
- "filmcraft-media",
- "filmcraft-project",
- "filmcraft-time",
- "log",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-frame"
-version = "0.13.0"
-dependencies = [
- "filmcraft-color",
- "filmcraft-time",
- "rayon",
- "serde",
-]
-
-[[package]]
-name = "filmcraft-geom"
-version = "0.13.0"
-dependencies = [
- "proptest",
- "serde",
-]
-
-[[package]]
-name = "filmcraft-golden"
-version = "0.13.0"
-dependencies = [
- "filmcraft-color",
- "filmcraft-frame",
- "filmcraft-geom",
- "filmcraft-gpu",
- "filmcraft-media",
- "filmcraft-project",
- "filmcraft-render",
- "filmcraft-testkit",
- "filmcraft-time",
- "pollster 0.4.0",
- "wgpu",
-]
-
-[[package]]
-name = "filmcraft-gpu"
-version = "0.13.0"
-dependencies = [
- "filmcraft-color",
- "filmcraft-export",
- "filmcraft-frame",
- "filmcraft-geom",
- "filmcraft-media",
- "filmcraft-project",
- "filmcraft-render",
- "filmcraft-time",
- "image",
- "log",
- "pollster 0.4.0",
- "rayon",
- "wgpu",
-]
-
-[[package]]
-name = "filmcraft-h264"
-version = "0.13.0"
-dependencies = [
- "filmcraft-bitstream",
- "filmcraft-testkit",
- "rayon",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-h264enc"
-version = "0.13.0"
-dependencies = [
- "filmcraft-bitstream",
- "filmcraft-testkit",
- "rayon",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-hevc"
-version = "0.13.0"
-dependencies = [
- "filmcraft-bitstream",
- "filmcraft-testkit",
- "rayon",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-interchange"
-version = "0.13.0"
-dependencies = [
- "filmcraft-cfb",
- "filmcraft-color",
- "filmcraft-geom",
- "filmcraft-media",
- "filmcraft-project",
- "filmcraft-time",
- "proptest",
- "roxmltree",
- "serde",
- "serde_json",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-isobmff"
-version = "0.13.0"
-dependencies = [
- "craft-media",
- "filmcraft-testkit",
- "proptest",
- "serde_json",
-]
-
-[[package]]
-name = "filmcraft-matroska"
-version = "0.13.0"
-dependencies = [
- "craft-media",
- "filmcraft-testkit",
- "serde_json",
-]
-
-[[package]]
-name = "filmcraft-media"
-version = "0.13.0"
-dependencies = [
- "filmcraft-color",
- "filmcraft-dng",
- "filmcraft-frame",
- "filmcraft-testkit",
- "filmcraft-time",
- "image",
- "png",
- "rayon",
- "serde",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-mpa"
-version = "0.13.0"
-dependencies = [
- "filmcraft-bitstream",
- "filmcraft-testkit",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-mpeg2v"
-version = "0.13.0"
-dependencies = [
- "filmcraft-testkit",
- "rayon",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-mpegts"
-version = "0.13.0"
-dependencies = [
- "filmcraft-testkit",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-mxf"
-version = "0.13.0"
-dependencies = [
- "chrono",
- "filmcraft-testkit",
-]
-
-[[package]]
-name = "filmcraft-ogg"
-version = "0.13.0"
-dependencies = [
- "filmcraft-testkit",
-]
-
-[[package]]
-name = "filmcraft-opus"
-version = "0.13.0"
-dependencies = [
- "filmcraft-testkit",
-]
-
-[[package]]
-name = "filmcraft-platform"
-version = "0.13.0"
-dependencies = [
- "filmcraft-bitstream",
- "filmcraft-codecs",
- "filmcraft-color",
- "filmcraft-export",
- "filmcraft-frame",
- "filmcraft-h264",
- "filmcraft-hevc",
- "filmcraft-isobmff",
- "filmcraft-media",
- "filmcraft-project",
- "filmcraft-render",
- "filmcraft-testkit",
- "filmcraft-time",
- "libloading",
- "log",
- "objc2-core-foundation",
- "objc2-core-media",
- "objc2-core-video",
- "objc2-video-toolbox",
- "windows 0.62.2",
-]
-
-[[package]]
-name = "filmcraft-project"
-version = "0.13.0"
-dependencies = [
- "filmcraft-color",
- "filmcraft-geom",
- "filmcraft-media",
- "filmcraft-time",
- "proptest",
- "serde",
- "serde_json",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-prores"
-version = "0.13.0"
-dependencies = [
- "filmcraft-bitstream",
- "filmcraft-testkit",
- "rayon",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-render"
-version = "0.13.0"
-dependencies = [
- "filmcraft-audio-dsp",
- "filmcraft-captions",
- "filmcraft-color",
- "filmcraft-frame",
- "filmcraft-geom",
- "filmcraft-media",
- "filmcraft-project",
- "filmcraft-text",
- "filmcraft-time",
- "image",
- "rayon",
- "rustix 1.1.5",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "filmcraft-scopes"
-version = "0.13.0"
-dependencies = [
- "filmcraft-color",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "filmcraft-speech"
-version = "0.13.0"
-dependencies = [
- "candle-core",
- "candle-nn",
- "filmcraft-project",
- "filmcraft-time",
- "rayon",
- "rustls",
- "rustls-rustcrypto",
- "serde",
- "serde_json",
- "sha2",
- "tempfile",
- "thiserror 2.0.21",
- "ureq",
-]
-
-[[package]]
-name = "filmcraft-testkit"
-version = "0.13.0"
-dependencies = [
- "chrono",
- "png",
- "tempfile",
-]
-
-[[package]]
-name = "filmcraft-text"
-version = "0.13.0"
-dependencies = [
- "filmcraft-color",
- "harfrust",
- "skrifa",
- "tempfile",
- "unicode-bidi",
- "unicode-linebreak",
- "unicode-segmentation",
-]
-
-[[package]]
-name = "filmcraft-time"
-version = "0.13.0"
-dependencies = [
- "proptest",
- "serde",
-]
-
-[[package]]
-name = "filmcraft-tts"
-version = "0.13.0"
-dependencies = [
- "candle-core",
- "candle-nn",
- "filmcraft-audio-dsp",
- "filmcraft-tts-text",
- "serde",
- "serde_json",
- "sha2",
- "thiserror 2.0.21",
- "zip",
-]
-
-[[package]]
-name = "filmcraft-tts-text"
-version = "0.13.0"
-dependencies = [
- "serde",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-ui-egui"
-version = "0.13.0"
-dependencies = [
- "cpu-time",
- "craft-ui",
- "eframe",
- "egui",
- "egui_kittest",
- "filmcraft-audio-dsp",
- "filmcraft-codecs",
- "filmcraft-color",
- "filmcraft-edit",
- "filmcraft-engine",
- "filmcraft-export",
- "filmcraft-frame",
- "filmcraft-geom",
- "filmcraft-gpu",
- "filmcraft-interchange",
- "filmcraft-media",
- "filmcraft-platform",
- "filmcraft-project",
- "filmcraft-render",
- "filmcraft-scopes",
- "filmcraft-text",
- "filmcraft-time",
- "filmcraft-tts",
- "image",
- "log",
- "pollster 0.4.0",
- "rayon",
- "rustix 1.1.5",
- "serde",
- "serde_json",
- "tempfile",
- "toml 1.1.6+spec-1.1.0",
- "unicode-bidi",
- "web-time",
-]
-
-[[package]]
-name = "filmcraft-vp8"
-version = "0.13.0"
-dependencies = [
- "filmcraft-testkit",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-vp9"
-version = "0.13.0"
-dependencies = [
- "filmcraft-bitstream",
- "filmcraft-testkit",
- "rayon",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "filmcraft-web"
-version = "0.13.0"
-dependencies = [
- "eframe",
- "egui",
- "filmcraft-codecs",
- "filmcraft-color",
- "filmcraft-engine",
- "filmcraft-format",
- "filmcraft-frame",
- "filmcraft-isobmff",
- "filmcraft-media",
- "filmcraft-time",
- "filmcraft-ui-egui",
- "js-sys",
- "log",
- "serde_json",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
- "web-time",
-]
-
-[[package]]
 name = "find-msvc-tools"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5548,6 +4812,772 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
 
 [[package]]
+name = "shotclutch"
+version = "0.13.0"
+dependencies = [
+ "arboard",
+ "chrono",
+ "cpal",
+ "eframe",
+ "egui",
+ "glob",
+ "log",
+ "muda",
+ "objc2 0.6.4",
+ "objc2-app-kit 0.3.2",
+ "objc2-foundation 0.3.2",
+ "open",
+ "pollster 0.4.0",
+ "rfd",
+ "serde_json",
+ "shotclutch-engine",
+ "shotclutch-env",
+ "shotclutch-export",
+ "shotclutch-format",
+ "shotclutch-gpu",
+ "shotclutch-platform",
+ "shotclutch-project",
+ "shotclutch-render",
+ "shotclutch-time",
+ "shotclutch-ui-egui",
+ "subtle",
+ "sys-locale",
+ "winit",
+ "winresource",
+ "zbus",
+]
+
+[[package]]
+name = "shotclutch-aac"
+version = "0.13.0"
+dependencies = [
+ "rayon",
+ "shotclutch-bitstream",
+ "shotclutch-testkit",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-ac3"
+version = "0.13.0"
+dependencies = [
+ "shotclutch-testkit",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-apv"
+version = "0.13.0"
+dependencies = [
+ "rayon",
+ "shotclutch-bitstream",
+ "shotclutch-env",
+ "shotclutch-testkit",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-audio-dsp"
+version = "0.13.0"
+dependencies = [
+ "shotclutch-testkit",
+]
+
+[[package]]
+name = "shotclutch-automation"
+version = "0.13.0"
+dependencies = [
+ "base64 0.22.1",
+ "image",
+ "rmcp",
+ "schemars",
+ "serde",
+ "serde_json",
+ "shotclutch-engine",
+ "shotclutch-env",
+ "shotclutch-time",
+ "tempfile",
+ "thiserror 2.0.21",
+ "tokio",
+]
+
+[[package]]
+name = "shotclutch-av1"
+version = "0.13.0"
+dependencies = [
+ "rayon",
+ "rustix 1.1.5",
+ "shotclutch-bitstream",
+ "shotclutch-env",
+ "shotclutch-testkit",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-avi"
+version = "0.13.0"
+dependencies = [
+ "shotclutch-testkit",
+]
+
+[[package]]
+name = "shotclutch-bitstream"
+version = "0.13.0"
+dependencies = [
+ "craft-media",
+]
+
+[[package]]
+name = "shotclutch-captions"
+version = "0.13.0"
+dependencies = [
+ "proptest",
+ "roxmltree",
+ "shotclutch-color",
+ "shotclutch-project",
+ "shotclutch-text",
+ "shotclutch-time",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-cfb"
+version = "0.13.0"
+
+[[package]]
+name = "shotclutch-cli"
+version = "0.13.0"
+dependencies = [
+ "serde_json",
+ "shotclutch-automation",
+ "shotclutch-codecs",
+ "shotclutch-engine",
+ "shotclutch-export",
+ "shotclutch-gpu",
+ "shotclutch-media",
+ "shotclutch-mpegts",
+ "shotclutch-mxf",
+ "shotclutch-ogg",
+ "shotclutch-platform",
+ "shotclutch-project",
+ "shotclutch-render",
+ "shotclutch-testkit",
+ "shotclutch-time",
+ "tokio",
+]
+
+[[package]]
+name = "shotclutch-codecs"
+version = "0.13.0"
+dependencies = [
+ "image",
+ "log",
+ "rayon",
+ "serde_json",
+ "shotclutch-aac",
+ "shotclutch-ac3",
+ "shotclutch-apv",
+ "shotclutch-av1",
+ "shotclutch-avi",
+ "shotclutch-bitstream",
+ "shotclutch-color",
+ "shotclutch-dnx",
+ "shotclutch-frame",
+ "shotclutch-h264",
+ "shotclutch-hevc",
+ "shotclutch-isobmff",
+ "shotclutch-matroska",
+ "shotclutch-media",
+ "shotclutch-mpa",
+ "shotclutch-mpeg2v",
+ "shotclutch-mpegts",
+ "shotclutch-mxf",
+ "shotclutch-ogg",
+ "shotclutch-opus",
+ "shotclutch-prores",
+ "shotclutch-testkit",
+ "shotclutch-time",
+ "shotclutch-vp8",
+ "shotclutch-vp9",
+ "symphonia",
+ "thiserror 2.0.21",
+ "web-time",
+]
+
+[[package]]
+name = "shotclutch-color"
+version = "0.13.0"
+dependencies = [
+ "proptest",
+ "serde",
+]
+
+[[package]]
+name = "shotclutch-dng"
+version = "0.13.0"
+dependencies = [
+ "rayon",
+ "shotclutch-dng",
+ "shotclutch-env",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-dnx"
+version = "0.13.0"
+dependencies = [
+ "rayon",
+ "shotclutch-bitstream",
+ "shotclutch-env",
+ "shotclutch-testkit",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-edit"
+version = "0.13.0"
+dependencies = [
+ "proptest",
+ "serde_json",
+ "shotclutch-geom",
+ "shotclutch-media",
+ "shotclutch-project",
+ "shotclutch-time",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-engine"
+version = "0.13.0"
+dependencies = [
+ "chrono",
+ "craft-docpath",
+ "image",
+ "log",
+ "serde",
+ "serde_json",
+ "shotclutch-audio-dsp",
+ "shotclutch-captions",
+ "shotclutch-codecs",
+ "shotclutch-color",
+ "shotclutch-dng",
+ "shotclutch-edit",
+ "shotclutch-env",
+ "shotclutch-export",
+ "shotclutch-format",
+ "shotclutch-frame",
+ "shotclutch-geom",
+ "shotclutch-interchange",
+ "shotclutch-isobmff",
+ "shotclutch-media",
+ "shotclutch-mxf",
+ "shotclutch-project",
+ "shotclutch-render",
+ "shotclutch-scopes",
+ "shotclutch-speech",
+ "shotclutch-testkit",
+ "shotclutch-text",
+ "shotclutch-time",
+ "shotclutch-tts",
+ "thiserror 2.0.21",
+ "web-time",
+]
+
+[[package]]
+name = "shotclutch-env"
+version = "0.13.0"
+
+[[package]]
+name = "shotclutch-export"
+version = "0.13.0"
+dependencies = [
+ "image",
+ "rayon",
+ "serde",
+ "serde_json",
+ "shotclutch-aac",
+ "shotclutch-apv",
+ "shotclutch-audio-dsp",
+ "shotclutch-codecs",
+ "shotclutch-color",
+ "shotclutch-dnx",
+ "shotclutch-env",
+ "shotclutch-flac",
+ "shotclutch-frame",
+ "shotclutch-geom",
+ "shotclutch-h264enc",
+ "shotclutch-isobmff",
+ "shotclutch-media",
+ "shotclutch-mxf",
+ "shotclutch-project",
+ "shotclutch-prores",
+ "shotclutch-render",
+ "shotclutch-testkit",
+ "shotclutch-text",
+ "shotclutch-time",
+ "thiserror 2.0.21",
+ "web-time",
+]
+
+[[package]]
+name = "shotclutch-flac"
+version = "0.13.0"
+dependencies = [
+ "shotclutch-bitstream",
+ "shotclutch-testkit",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-format"
+version = "0.13.0"
+dependencies = [
+ "chrono",
+ "log",
+ "serde",
+ "serde_json",
+ "shotclutch-media",
+ "shotclutch-project",
+ "shotclutch-time",
+ "tempfile",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-frame"
+version = "0.13.0"
+dependencies = [
+ "rayon",
+ "serde",
+ "shotclutch-color",
+ "shotclutch-time",
+]
+
+[[package]]
+name = "shotclutch-geom"
+version = "0.13.0"
+dependencies = [
+ "proptest",
+ "serde",
+]
+
+[[package]]
+name = "shotclutch-golden"
+version = "0.13.0"
+dependencies = [
+ "pollster 0.4.0",
+ "shotclutch-color",
+ "shotclutch-frame",
+ "shotclutch-geom",
+ "shotclutch-gpu",
+ "shotclutch-media",
+ "shotclutch-project",
+ "shotclutch-render",
+ "shotclutch-testkit",
+ "shotclutch-time",
+ "wgpu",
+]
+
+[[package]]
+name = "shotclutch-gpu"
+version = "0.13.0"
+dependencies = [
+ "image",
+ "log",
+ "pollster 0.4.0",
+ "rayon",
+ "shotclutch-color",
+ "shotclutch-env",
+ "shotclutch-export",
+ "shotclutch-frame",
+ "shotclutch-geom",
+ "shotclutch-media",
+ "shotclutch-project",
+ "shotclutch-render",
+ "shotclutch-time",
+ "wgpu",
+]
+
+[[package]]
+name = "shotclutch-h264"
+version = "0.13.0"
+dependencies = [
+ "rayon",
+ "shotclutch-bitstream",
+ "shotclutch-env",
+ "shotclutch-testkit",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-h264enc"
+version = "0.13.0"
+dependencies = [
+ "rayon",
+ "shotclutch-bitstream",
+ "shotclutch-env",
+ "shotclutch-testkit",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-hevc"
+version = "0.13.0"
+dependencies = [
+ "rayon",
+ "shotclutch-bitstream",
+ "shotclutch-env",
+ "shotclutch-testkit",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-interchange"
+version = "0.13.0"
+dependencies = [
+ "proptest",
+ "roxmltree",
+ "serde",
+ "serde_json",
+ "shotclutch-cfb",
+ "shotclutch-color",
+ "shotclutch-geom",
+ "shotclutch-media",
+ "shotclutch-project",
+ "shotclutch-time",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-isobmff"
+version = "0.13.0"
+dependencies = [
+ "craft-media",
+ "proptest",
+ "serde_json",
+ "shotclutch-testkit",
+]
+
+[[package]]
+name = "shotclutch-matroska"
+version = "0.13.0"
+dependencies = [
+ "craft-media",
+ "serde_json",
+ "shotclutch-testkit",
+]
+
+[[package]]
+name = "shotclutch-media"
+version = "0.13.0"
+dependencies = [
+ "image",
+ "png",
+ "rayon",
+ "serde",
+ "shotclutch-color",
+ "shotclutch-dng",
+ "shotclutch-frame",
+ "shotclutch-testkit",
+ "shotclutch-time",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-mpa"
+version = "0.13.0"
+dependencies = [
+ "shotclutch-bitstream",
+ "shotclutch-testkit",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-mpeg2v"
+version = "0.13.0"
+dependencies = [
+ "rayon",
+ "shotclutch-env",
+ "shotclutch-testkit",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-mpegts"
+version = "0.13.0"
+dependencies = [
+ "shotclutch-testkit",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-mxf"
+version = "0.13.0"
+dependencies = [
+ "chrono",
+ "shotclutch-testkit",
+]
+
+[[package]]
+name = "shotclutch-ogg"
+version = "0.13.0"
+dependencies = [
+ "shotclutch-testkit",
+]
+
+[[package]]
+name = "shotclutch-opus"
+version = "0.13.0"
+dependencies = [
+ "shotclutch-env",
+ "shotclutch-testkit",
+]
+
+[[package]]
+name = "shotclutch-platform"
+version = "0.13.0"
+dependencies = [
+ "libloading",
+ "log",
+ "objc2-core-foundation",
+ "objc2-core-media",
+ "objc2-core-video",
+ "objc2-video-toolbox",
+ "shotclutch-bitstream",
+ "shotclutch-codecs",
+ "shotclutch-color",
+ "shotclutch-export",
+ "shotclutch-frame",
+ "shotclutch-h264",
+ "shotclutch-hevc",
+ "shotclutch-isobmff",
+ "shotclutch-media",
+ "shotclutch-project",
+ "shotclutch-render",
+ "shotclutch-testkit",
+ "shotclutch-time",
+ "windows 0.62.2",
+]
+
+[[package]]
+name = "shotclutch-project"
+version = "0.13.0"
+dependencies = [
+ "proptest",
+ "serde",
+ "serde_json",
+ "shotclutch-color",
+ "shotclutch-geom",
+ "shotclutch-media",
+ "shotclutch-time",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-prores"
+version = "0.13.0"
+dependencies = [
+ "rayon",
+ "shotclutch-bitstream",
+ "shotclutch-env",
+ "shotclutch-testkit",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-render"
+version = "0.13.0"
+dependencies = [
+ "image",
+ "rayon",
+ "rustix 1.1.5",
+ "serde",
+ "serde_json",
+ "shotclutch-audio-dsp",
+ "shotclutch-captions",
+ "shotclutch-color",
+ "shotclutch-env",
+ "shotclutch-frame",
+ "shotclutch-geom",
+ "shotclutch-media",
+ "shotclutch-project",
+ "shotclutch-text",
+ "shotclutch-time",
+]
+
+[[package]]
+name = "shotclutch-scopes"
+version = "0.13.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "shotclutch-color",
+]
+
+[[package]]
+name = "shotclutch-speech"
+version = "0.13.0"
+dependencies = [
+ "candle-core",
+ "candle-nn",
+ "rayon",
+ "rustls",
+ "rustls-rustcrypto",
+ "serde",
+ "serde_json",
+ "sha2",
+ "shotclutch-env",
+ "shotclutch-project",
+ "shotclutch-time",
+ "tempfile",
+ "thiserror 2.0.21",
+ "ureq",
+]
+
+[[package]]
+name = "shotclutch-testkit"
+version = "0.13.0"
+dependencies = [
+ "chrono",
+ "png",
+ "shotclutch-env",
+ "tempfile",
+]
+
+[[package]]
+name = "shotclutch-text"
+version = "0.13.0"
+dependencies = [
+ "harfrust",
+ "shotclutch-color",
+ "shotclutch-env",
+ "skrifa",
+ "tempfile",
+ "unicode-bidi",
+ "unicode-linebreak",
+ "unicode-segmentation",
+]
+
+[[package]]
+name = "shotclutch-time"
+version = "0.13.0"
+dependencies = [
+ "proptest",
+ "serde",
+]
+
+[[package]]
+name = "shotclutch-tts"
+version = "0.13.0"
+dependencies = [
+ "candle-core",
+ "candle-nn",
+ "serde",
+ "serde_json",
+ "sha2",
+ "shotclutch-audio-dsp",
+ "shotclutch-env",
+ "shotclutch-tts-text",
+ "thiserror 2.0.21",
+ "zip",
+]
+
+[[package]]
+name = "shotclutch-tts-text"
+version = "0.13.0"
+dependencies = [
+ "serde",
+ "shotclutch-env",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-ui-egui"
+version = "0.13.0"
+dependencies = [
+ "cpu-time",
+ "craft-ui",
+ "eframe",
+ "egui",
+ "egui_kittest",
+ "image",
+ "log",
+ "pollster 0.4.0",
+ "rayon",
+ "rustix 1.1.5",
+ "serde",
+ "serde_json",
+ "shotclutch-audio-dsp",
+ "shotclutch-codecs",
+ "shotclutch-color",
+ "shotclutch-edit",
+ "shotclutch-engine",
+ "shotclutch-env",
+ "shotclutch-export",
+ "shotclutch-format",
+ "shotclutch-frame",
+ "shotclutch-geom",
+ "shotclutch-gpu",
+ "shotclutch-interchange",
+ "shotclutch-media",
+ "shotclutch-platform",
+ "shotclutch-project",
+ "shotclutch-render",
+ "shotclutch-scopes",
+ "shotclutch-text",
+ "shotclutch-time",
+ "shotclutch-tts",
+ "tempfile",
+ "toml 1.1.6+spec-1.1.0",
+ "unicode-bidi",
+ "web-time",
+]
+
+[[package]]
+name = "shotclutch-vp8"
+version = "0.13.0"
+dependencies = [
+ "shotclutch-env",
+ "shotclutch-testkit",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-vp9"
+version = "0.13.0"
+dependencies = [
+ "rayon",
+ "shotclutch-bitstream",
+ "shotclutch-env",
+ "shotclutch-testkit",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "shotclutch-web"
+version = "0.13.0"
+dependencies = [
+ "eframe",
+ "egui",
+ "js-sys",
+ "log",
+ "serde_json",
+ "shotclutch-codecs",
+ "shotclutch-color",
+ "shotclutch-engine",
+ "shotclutch-format",
+ "shotclutch-frame",
+ "shotclutch-isobmff",
+ "shotclutch-media",
+ "shotclutch-time",
+ "shotclutch-ui-egui",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "web-time",
+]
+
+[[package]]
 name = "signal-hook-registry"
 version = "1.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7426,8 +7456,8 @@ checksum = "e450f9b2ed1dff33c94c12589a87338689467b9c4f5d8a5710bd09a847d2c8a7"
 name = "xtask"
 version = "0.13.0"
 dependencies = [
- "filmcraft-testkit",
  "serde_json",
+ "shotclutch-testkit",
 ]
 
 [[package]]

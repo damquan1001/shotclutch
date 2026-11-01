@@ -43,7 +43,7 @@ fn bounded_repetitions(params: &Value, key: &str, default: u64, minimum: u64, ma
     Ok(value.max(minimum))
 }
 
-use crate::FilmcraftApp;
+use crate::ShotClutchApp;
 use crate::dock::PanelKind;
 use crate::state::{Mode, PlaybackRes, ThumbnailMode, Tool};
 
@@ -102,7 +102,7 @@ fn as_pressed(mut m: egui::Modifiers) -> egui::Modifiers {
 }
 
 /// Resolve a point from `{id}` (element centre) or `{x, y}`.
-fn point(app: &FilmcraftApp, p: &Value) -> Result<egui::Pos2, String> {
+fn point(app: &ShotClutchApp, p: &Value) -> Result<egui::Pos2, String> {
     if let Some(id) = p.get("id").and_then(Value::as_str) {
         let e = app.auto.find(id).ok_or_else(|| format!("{RETRY}no element `{id}` (see ui.elements)"))?;
         let fx = p.get("fx").and_then(Value::as_f64).unwrap_or(0.5) as f32;
@@ -114,7 +114,7 @@ fn point(app: &FilmcraftApp, p: &Value) -> Result<egui::Pos2, String> {
     Ok(egui::pos2(x as f32, y as f32))
 }
 
-pub fn handle(app: &mut FilmcraftApp, ctx: &egui::Context, req: &ControlRequest) -> Outcome {
+pub fn handle(app: &mut ShotClutchApp, ctx: &egui::Context, req: &ControlRequest) -> Outcome {
     let p = &req.params;
     let s = |k: &str| p.get(k).and_then(Value::as_str);
     match req.method.as_str() {
@@ -516,7 +516,7 @@ fn merge(v: &mut Value, patch: &Value) {
     }
 }
 
-pub fn inspect(app: &FilmcraftApp, ctx: &egui::Context) -> Value {
+pub fn inspect(app: &ShotClutchApp, ctx: &egui::Context) -> Value {
     let size = ctx.content_rect().size();
     let keyboard_focus = ctx.memory(|memory| memory.focused()).map(|id| {
         let elements: Vec<_> = app.auto.previous.iter().filter(|element| element.response_id == Some(id)).collect();
@@ -571,7 +571,7 @@ pub fn save_screenshot(ctx: &egui::Context, image: &egui::ColorImage, path: Opti
             Err(e) => json!({"ok": false, "error": e}),
         };
     }
-    let path = path.map(str::to_string).unwrap_or_else(|| filmcraft_engine::temp_dir().join("filmcraft-screenshot.png").to_string_lossy().to_string());
+    let path = path.map(str::to_string).unwrap_or_else(|| shotclutch_engine::temp_dir().join("shotclutch-screenshot.png").to_string_lossy().to_string());
     match encode_png(&rgba, cw as u32, ch as u32) {
         Ok(png) => match std::fs::write(&path, png) {
             Ok(()) => json!({"ok": true, "result": {"path": path, "width": cw, "height": ch}}),
@@ -654,19 +654,19 @@ mod input_bounds_tests {
     use super::*;
 
     /// Create an empty editor session for inspecting queued synthetic input without a window.
-    fn app() -> FilmcraftApp {
-        FilmcraftApp::new(filmcraft_engine::Session::default())
+    fn app() -> ShotClutchApp {
+        ShotClutchApp::new(shotclutch_engine::Session::default())
     }
 
     /// Dispatch a control request and fail the test if hostile parameters cause a panic.
-    fn request(app: &mut FilmcraftApp, method: &str, params: Value) -> Outcome {
+    fn request(app: &mut ShotClutchApp, method: &str, params: Value) -> Outcome {
         let (req, _) = ControlRequest::new(method, params);
         std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| handle(app, &egui::Context::default(), &req)))
             .expect("hostile control parameters must not panic")
     }
 
     /// Require an immediate error naming `field`, with all previously queued input unchanged.
-    fn assert_rejected(app: &mut FilmcraftApp, method: &str, params: Value, field: &str) {
+    fn assert_rejected(app: &mut ShotClutchApp, method: &str, params: Value, field: &str) {
         let before = app.synthetic.clone();
         let Outcome::Done(reply) = request(app, method, params) else { panic!("invalid input must return an error immediately") };
         assert_eq!(reply["ok"], false);

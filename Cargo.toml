@@ -11,56 +11,57 @@ rust-version = "1.95"
 repository = "https://github.com/damquan1001/shotclutch"
 
 [workspace.dependencies]
+shotclutch-env = { path = "crates/env" }
 # internal
-filmcraft-time = { path = "crates/time" }
-filmcraft-geom = { path = "crates/geom" }
-filmcraft-color = { path = "crates/color" }
-filmcraft-bitstream = { path = "crates/bitstream" }
-filmcraft-isobmff = { path = "crates/isobmff" }
-filmcraft-avi = { path = "crates/avi" }
-filmcraft-matroska = { path = "crates/matroska" }
-filmcraft-mxf = { path = "crates/mxf" }
-filmcraft-cfb = { path = "crates/cfb" }
-filmcraft-mpegts = { path = "crates/mpegts" }
-filmcraft-mpeg2v = { path = "crates/mpeg2v" }
-filmcraft-ac3 = { path = "crates/ac3" }
-filmcraft-mpa = { path = "crates/mpa" }
-filmcraft-ogg = { path = "crates/ogg" }
-filmcraft-h264 = { path = "crates/h264" }
-filmcraft-hevc = { path = "crates/hevc" }
-filmcraft-vp8 = { path = "crates/vp8" }
-filmcraft-vp9 = { path = "crates/vp9" }
-filmcraft-prores = { path = "crates/prores" }
-filmcraft-dnx = { path = "crates/dnx" }
-filmcraft-apv = { path = "crates/apv" }
-filmcraft-dng = { path = "crates/dng" }
-filmcraft-av1 = { path = "crates/av1" }
-filmcraft-aac = { path = "crates/aac" }
-filmcraft-flac = { path = "crates/flac" }
-filmcraft-opus = { path = "crates/opus" }
-filmcraft-h264enc = { path = "crates/h264enc" }
-filmcraft-audio-dsp = { path = "crates/audio-dsp" }
-filmcraft-frame = { path = "crates/frame" }
-filmcraft-media = { path = "crates/media" }
-filmcraft-codecs = { path = "crates/codecs" }
-filmcraft-project = { path = "crates/project" }
-filmcraft-edit = { path = "crates/edit" }
-filmcraft-interchange = { path = "crates/interchange" }
-filmcraft-text = { path = "crates/text" }
-filmcraft-captions = { path = "crates/captions" }
-filmcraft-speech = { path = "crates/speech" }
-filmcraft-tts = { path = "crates/tts" }
-filmcraft-tts-text = { path = "crates/tts-text" }
-filmcraft-render = { path = "crates/render" }
-filmcraft-gpu = { path = "crates/gpu" }
-filmcraft-scopes = { path = "crates/scopes" }
-filmcraft-export = { path = "crates/export" }
-filmcraft-format = { path = "crates/format" }
-filmcraft-engine = { path = "crates/engine" }
-filmcraft-ui-egui = { path = "crates/ui-egui" }
-filmcraft-automation = { path = "crates/automation" }
-filmcraft-platform = { path = "crates/platform" }
-filmcraft-testkit = { path = "crates/testkit" }
+shotclutch-time = { path = "crates/time" }
+shotclutch-geom = { path = "crates/geom" }
+shotclutch-color = { path = "crates/color" }
+shotclutch-bitstream = { path = "crates/bitstream" }
+shotclutch-isobmff = { path = "crates/isobmff" }
+shotclutch-avi = { path = "crates/avi" }
+shotclutch-matroska = { path = "crates/matroska" }
+shotclutch-mxf = { path = "crates/mxf" }
+shotclutch-cfb = { path = "crates/cfb" }
+shotclutch-mpegts = { path = "crates/mpegts" }
+shotclutch-mpeg2v = { path = "crates/mpeg2v" }
+shotclutch-ac3 = { path = "crates/ac3" }
+shotclutch-mpa = { path = "crates/mpa" }
+shotclutch-ogg = { path = "crates/ogg" }
+shotclutch-h264 = { path = "crates/h264" }
+shotclutch-hevc = { path = "crates/hevc" }
+shotclutch-vp8 = { path = "crates/vp8" }
+shotclutch-vp9 = { path = "crates/vp9" }
+shotclutch-prores = { path = "crates/prores" }
+shotclutch-dnx = { path = "crates/dnx" }
+shotclutch-apv = { path = "crates/apv" }
+shotclutch-dng = { path = "crates/dng" }
+shotclutch-av1 = { path = "crates/av1" }
+shotclutch-aac = { path = "crates/aac" }
+shotclutch-flac = { path = "crates/flac" }
+shotclutch-opus = { path = "crates/opus" }
+shotclutch-h264enc = { path = "crates/h264enc" }
+shotclutch-audio-dsp = { path = "crates/audio-dsp" }
+shotclutch-frame = { path = "crates/frame" }
+shotclutch-media = { path = "crates/media" }
+shotclutch-codecs = { path = "crates/codecs" }
+shotclutch-project = { path = "crates/project" }
+shotclutch-edit = { path = "crates/edit" }
+shotclutch-interchange = { path = "crates/interchange" }
+shotclutch-text = { path = "crates/text" }
+shotclutch-captions = { path = "crates/captions" }
+shotclutch-speech = { path = "crates/speech" }
+shotclutch-tts = { path = "crates/tts" }
+shotclutch-tts-text = { path = "crates/tts-text" }
+shotclutch-render = { path = "crates/render" }
+shotclutch-gpu = { path = "crates/gpu" }
+shotclutch-scopes = { path = "crates/scopes" }
+shotclutch-export = { path = "crates/export" }
+shotclutch-format = { path = "crates/format" }
+shotclutch-engine = { path = "crates/engine" }
+shotclutch-ui-egui = { path = "crates/ui-egui" }
+shotclutch-automation = { path = "crates/automation" }
+shotclutch-platform = { path = "crates/platform" }
+shotclutch-testkit = { path = "crates/testkit" }
 
 # foundation
 thiserror = "2"
@@ -104,50 +105,50 @@ opt-level = 1
 debug = "line-tables-only"
 
 # Codec hot loops: debug-build tests (RFC/oracle vectors) are minutes slower below opt-level 3.
-[profile.dev.package.filmcraft-h264]
+[profile.dev.package.shotclutch-h264]
 opt-level = 3
 
-[profile.dev.package.filmcraft-h264enc]
+[profile.dev.package.shotclutch-h264enc]
 opt-level = 3
 
-[profile.dev.package.filmcraft-hevc]
+[profile.dev.package.shotclutch-hevc]
 opt-level = 3
 
-[profile.dev.package.filmcraft-prores]
+[profile.dev.package.shotclutch-prores]
 opt-level = 3
 
-[profile.dev.package.filmcraft-dnx]
+[profile.dev.package.shotclutch-dnx]
 opt-level = 3
 
-[profile.dev.package.filmcraft-apv]
+[profile.dev.package.shotclutch-apv]
 opt-level = 3
 
-[profile.dev.package.filmcraft-dng]
+[profile.dev.package.shotclutch-dng]
 opt-level = 3
 
-[profile.dev.package.filmcraft-av1]
+[profile.dev.package.shotclutch-av1]
 opt-level = 3
 
-[profile.dev.package.filmcraft-aac]
+[profile.dev.package.shotclutch-aac]
 opt-level = 3
 
-[profile.dev.package.filmcraft-flac]
+[profile.dev.package.shotclutch-flac]
 opt-level = 3
 
 # Audio effects: realtime-factor tests and long convolution / spectral runs.
-[profile.dev.package.filmcraft-audio-dsp]
+[profile.dev.package.shotclutch-audio-dsp]
 opt-level = 3
 
-[profile.dev.package.filmcraft-mxf]
+[profile.dev.package.shotclutch-mxf]
 opt-level = 3
 
-[profile.dev.package.filmcraft-opus]
+[profile.dev.package.shotclutch-opus]
 opt-level = 3
 
-[profile.dev.package.filmcraft-vp8]
+[profile.dev.package.shotclutch-vp8]
 opt-level = 3
 
-[profile.dev.package.filmcraft-vp9]
+[profile.dev.package.shotclutch-vp9]
 opt-level = 3
 
 [profile.release]

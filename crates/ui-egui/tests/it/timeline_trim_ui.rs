@@ -1,24 +1,24 @@
 //! Headless UI tests of trimming in the Timeline (#259): a press acts on what was under the
 //! pointer when the button went down, the side of a cut picks the clip, and the cursor,
-//! `ui.timeline.hit` and the press agree. The real `FilmcraftApp` under `egui_kittest` with the
+//! `ui.timeline.hit` and the press agree. The real `ShotClutchApp` under `egui_kittest` with the
 //! demo project, the pointer moving a few pixels per frame as a mouse does.
 
 use std::sync::mpsc::{Sender, channel};
 
 use egui::{CursorIcon, Pos2, pos2};
 use egui_kittest::Harness;
-use filmcraft_engine::Session;
-use filmcraft_project::ClipId;
-use filmcraft_ui_egui::FilmcraftApp;
-use filmcraft_ui_egui::control::ControlRequest;
 use serde_json::{Value, json};
+use shotclutch_engine::Session;
+use shotclutch_project::ClipId;
+use shotclutch_ui_egui::ShotClutchApp;
+use shotclutch_ui_egui::control::ControlRequest;
 
 /// Two clips of the demo project that share a cut on V1.
 const CITY: &str = "City_Night_Drive.mp4";
 const DUNES: &str = "Desert_Dunes.mp4";
 
 struct Driver {
-    harness: Harness<'static, FilmcraftApp>,
+    harness: Harness<'static, ShotClutchApp>,
     tx: Sender<ControlRequest>,
 }
 
@@ -31,7 +31,7 @@ impl Driver {
         session.execute("file.openDemoProject", json!({})).expect("demo project");
         session.execute("sequence.snap", json!({"on": false})).expect("snapping off");
         let (tx, rx) = channel();
-        let app = FilmcraftApp::new(session).with_control(rx);
+        let app = ShotClutchApp::new(session).with_control(rx);
         let harness = Harness::builder().with_size(egui::vec2(1600.0, 980.0)).with_step_dt(1.0 / 60.0).with_max_steps(10_000).build_eframe(move |_cc| app);
         let mut d = Driver { harness, tx };
         d.frames(4);
@@ -72,7 +72,7 @@ impl Driver {
         self.ok("engine.execute", json!({"command": command, "params": params}))
     }
 
-    fn app(&self) -> &FilmcraftApp {
+    fn app(&self) -> &ShotClutchApp {
         self.harness.state()
     }
 
@@ -106,7 +106,7 @@ impl Driver {
     fn screenshot(&mut self, name: &str) -> std::path::PathBuf {
         self.frames(2);
         let img = self.harness.render().expect("render");
-        let png = filmcraft_ui_egui::control::encode_png(img.as_raw(), img.width(), img.height()).expect("png");
+        let png = shotclutch_ui_egui::control::encode_png(img.as_raw(), img.width(), img.height()).expect("png");
         let dir = std::path::PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("ui-screenshots");
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join(format!("{name}.png"));
@@ -360,7 +360,7 @@ fn cursor_hit_test_and_press_agree_at_a_cut() {
 }
 
 /// Renders the hover bracket at the City_Night_Drive / Desert_Dunes cut to PNGs for visual
-/// review (needs a GPU): `cargo test -p filmcraft-ui-egui --test it timeline_trim_ui:: -- --ignored
+/// review (needs a GPU): `cargo test -p shotclutch-ui-egui --test it timeline_trim_ui:: -- --ignored
 /// hover_bracket_screenshots`. Yellow on City_Night_Drive's Out edge just left of the cut and on
 /// Desert_Dunes' In edge just right of it, red for the Ripple tool, both sides for the Rolling tool.
 #[test]
@@ -404,7 +404,7 @@ fn dragging_a_caption_edge_inward_trims_it() {
 }
 
 /// #374: renders the Ambient_Score music clip mid-way through a trim of its In edge, with the
-/// mouse button still down, for visual review (needs a GPU): `cargo test -p filmcraft-ui-egui
+/// mouse button still down, for visual review (needs a GPU): `cargo test -p shotclutch-ui-egui
 /// --test it timeline_trim_ui::trim_waveform_screenshots -- --ignored`. The waveform stays where it was
 /// and is cut off at the moving edge; it used to squeeze the whole clip's waveform into the shorter
 /// clip, so the sound under the pointer moved while dragging.
@@ -442,13 +442,13 @@ fn trim_waveform_screenshots() {
 /// past the media and then jump back when the button came up.
 #[test]
 fn an_edge_dragged_past_the_media_stops_at_its_end() {
-    use filmcraft_ui_egui::panels::timeline::Drag;
+    use shotclutch_ui_egui::panels::timeline::Drag;
     let mut d = Driver::demo();
     let last = d.app().session.active_sequence().expect("sequence").video_tracks[0].items.last().expect("a clip on V1").id.0;
     let (_, x1, y) = d.edges(last);
     let (_, e0) = d.span(last);
-    let far = filmcraft_time::Tick(3600 * filmcraft_time::TICKS_PER_SECOND);
-    let limit = filmcraft_engine::commands::trim_delta(&d.app().session, ClipId(last), filmcraft_edit::Edge::Out, filmcraft_edit::TrimMode::Regular, far)
+    let far = shotclutch_time::Tick(3600 * shotclutch_time::TICKS_PER_SECOND);
+    let limit = shotclutch_engine::commands::trim_delta(&d.app().session, ClipId(last), shotclutch_edit::Edge::Out, shotclutch_edit::TrimMode::Regular, far)
         .expect("limit");
     let (from, to) = (pos2(x1 - 3.0, y), pos2(x1 + 300.0, y));
     let push = |d: &mut Driver, e: egui::Event| d.harness.input_mut().events.push(e);
@@ -473,15 +473,15 @@ fn an_edge_dragged_past_the_media_stops_at_its_end() {
 /// drag is still in progress, at the same place the roll lands on release.
 #[test]
 fn a_cut_rolled_past_its_limit_stops_there() {
-    use filmcraft_ui_egui::panels::timeline::Drag;
+    use shotclutch_ui_egui::panels::timeline::Drag;
     let mut d = Driver::demo();
     let (city, dunes) = (d.v1_clip(CITY), d.v1_clip(DUNES));
     d.ok("ui.menu.invoke", json!({"id": "tool.rolling"}));
     let (cut, x1, y) = d.edges(dunes);
     let (_, e0) = d.span(city);
-    let far = filmcraft_time::Tick(3600 * filmcraft_time::TICKS_PER_SECOND);
-    let limit = filmcraft_engine::commands::roll_delta(&d.app().session, ClipId(city), ClipId(dunes), far).expect("limit");
-    assert!(filmcraft_time::Tick::ZERO < limit && limit < far, "the roll has a limit: {limit:?}");
+    let far = shotclutch_time::Tick(3600 * shotclutch_time::TICKS_PER_SECOND);
+    let limit = shotclutch_engine::commands::roll_delta(&d.app().session, ClipId(city), ClipId(dunes), far).expect("limit");
+    assert!(shotclutch_time::Tick::ZERO < limit && limit < far, "the roll has a limit: {limit:?}");
     let (from, to) = (pos2(cut + 3.0, y), pos2(x1 + 100.0, y));
     let push = |d: &mut Driver, e: egui::Event| d.harness.input_mut().events.push(e);
     push(&mut d, egui::Event::PointerMoved(from));
@@ -630,7 +630,7 @@ fn move_existing_clip_to_a_new_track(audio: bool, linked: bool) {
     let layout = d.app().tl.layout.as_ref().unwrap();
     let row = layout.rows.iter().find(|r| r.track == tracks[0].id).unwrap();
     let outer = layout.rows.iter().find(|r| r.track == tracks.last().unwrap().id).unwrap();
-    let from = egui::pos2(layout.x_of(original.start + filmcraft_time::Tick(original.duration.0 / 2)), row.rect.min.y + 8.0);
+    let from = egui::pos2(layout.x_of(original.start + shotclutch_time::Tick(original.duration.0 / 2)), row.rect.min.y + 8.0);
     let to = egui::pos2(from.x, if audio { outer.rect.max.y + 8.0 } else { outer.rect.min.y - 8.0 });
     assert!(layout.content.contains(to));
     assert!(layout.row_at(to.y).is_none());

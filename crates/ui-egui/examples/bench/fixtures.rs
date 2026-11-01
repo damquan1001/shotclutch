@@ -4,21 +4,23 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-/// `<repo>/target/fixtures/playback`, or `$FILMCRAFT_FIXTURES/playback` (lets worktrees share one set).
+/// `<repo>/target/fixtures/playback`, or `$SHOTCLUTCH_FIXTURES/playback` (lets worktrees share one set).
 pub fn fixtures_dir() -> PathBuf {
-    match std::env::var_os("SHOTCLUTCH_FIXTURES").or_else(|| std::env::var_os("FILMCRAFT_FIXTURES")) {
+    match shotclutch_env::var_os("SHOTCLUTCH_FIXTURES").or_else(|| shotclutch_env::var_os("SHOTCLUTCH_FIXTURES")) {
         Some(d) => PathBuf::from(d).join("playback"),
         None => Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/fixtures/playback"),
     }
 }
 
 pub fn ffmpeg() -> Option<PathBuf> {
-    if let Some(p) = std::env::var_os("SHOTCLUTCH_FFMPEG").or_else(|| std::env::var_os("FILMCRAFT_FFMPEG")) {
+    if let Some(p) = shotclutch_env::var_os("SHOTCLUTCH_FFMPEG").or_else(|| shotclutch_env::var_os("SHOTCLUTCH_FFMPEG")) {
         return Some(PathBuf::from(p));
     }
     let fixed = ["/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg", "/usr/bin/ffmpeg"].iter().map(PathBuf::from).find(|p| p.exists());
     // otherwise whatever `ffmpeg` / `ffmpeg.exe` is on PATH (Windows has no fixed location)
-    fixed.or_else(|| std::env::split_paths(&std::env::var_os("PATH")?).map(|d| d.join(format!("ffmpeg{}", std::env::consts::EXE_SUFFIX))).find(|p| p.is_file()))
+    fixed.or_else(|| {
+        std::env::split_paths(&shotclutch_env::var_os("PATH")?).map(|d| d.join(format!("ffmpeg{}", std::env::consts::EXE_SUFFIX))).find(|p| p.is_file())
+    })
 }
 
 /// A fixture: file name, lavfi video source, seconds, with audio, video encoder arguments.

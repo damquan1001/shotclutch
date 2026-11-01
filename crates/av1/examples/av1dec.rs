@@ -1,4 +1,4 @@
-//! Decode an IVF AV1 file: `cargo run --release -p filmcraft-av1 --example av1dec -- in.ivf [out.yuv]`.
+//! Decode an IVF AV1 file: `cargo run --release -p shotclutch-av1 --example av1dec -- in.ivf [out.yuv]`.
 //! Writes raw planar 16-bit little-endian output. `AV1_THREADS=n` sets the thread count,
 //! `AV1_LOOPS=k` decodes the file k times (benchmarking), `AV1_STATS=1` prints stage statistics.
 
@@ -12,15 +12,15 @@ fn main() {
     }
     let data = std::fs::read(&args[1]).expect("read input");
     let mut out = args.get(2).map(|p| std::io::BufWriter::new(std::fs::File::create(p).expect("create output")));
-    let threads = std::env::var("AV1_THREADS").ok().and_then(|s| s.parse().ok()).unwrap_or(0usize);
-    let loops = std::env::var("AV1_LOOPS").ok().and_then(|s| s.parse().ok()).unwrap_or(1usize);
+    let threads = shotclutch_env::var("AV1_THREADS").ok().and_then(|s| s.parse().ok()).unwrap_or(0usize);
+    let loops = shotclutch_env::var("AV1_LOOPS").ok().and_then(|s| s.parse().ok()).unwrap_or(1usize);
     let hl = u16::from_le_bytes([data[6], data[7]]) as usize;
     let t0 = std::time::Instant::now();
     let mut n = 0;
-    let mut dec = if threads > 0 { filmcraft_av1::Decoder::with_threads(threads) } else { filmcraft_av1::Decoder::new() };
+    let mut dec = if threads > 0 { shotclutch_av1::Decoder::with_threads(threads) } else { shotclutch_av1::Decoder::new() };
     // AV1_DRAFT=1: draft mode (non-reference frames skip the in-loop filters).
-    dec.set_draft(std::env::var_os("AV1_DRAFT").is_some());
-    let mut write = |pics: Vec<filmcraft_av1::Picture>| {
+    dec.set_draft(shotclutch_env::var_os("AV1_DRAFT").is_some());
+    let mut write = |pics: Vec<shotclutch_av1::Picture>| {
         for pic in pics {
             n += 1;
             if let Some(o) = out.as_mut() {
@@ -48,7 +48,7 @@ fn main() {
         write(dec.flush());
     }
     eprintln!("{n} pictures in {:.3}s", t0.elapsed().as_secs_f64());
-    if std::env::var_os("AV1_STATS").is_some() {
+    if shotclutch_env::var_os("AV1_STATS").is_some() {
         eprintln!("{:#?}", dec.stats());
     }
 }

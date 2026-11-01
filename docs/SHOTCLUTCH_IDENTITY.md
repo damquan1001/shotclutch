@@ -1,0 +1,15 @@
+# ShotClutch identity and project compatibility
+
+Post-M0 identity cleanup branch: codex/shotclutch-identity. Application/CLI binaries stay shotclutch and shotclutch-cli; version 0.13.0 and existing ShotClutch installer/data identities are retained. Workspace packages/imports now use shotclutch-* / shotclutch_*.
+
+New files and snapshots use .scproj and shotclutch.project; the existing payload schema remains version 15. Supported .fcproj and filmcraft.project documents still load, including historical fixtures. An opened legacy project requires Save As to a new .scproj destination. Its original stays untouched. CLI --save on a legacy project fails with instructions to use --save-as. A different existing Save As destination is never silently overwritten. No legacy project is converted merely by opening it.
+
+Canonical environment controls are SHOTCLUTCH_*. Runtime readers accept corresponding FILMCRAFT_* fallback aliases; a present canonical value, including an empty value, takes precedence. Non-Unicode canonical values are not hidden by a legacy fallback. Environment lookup is centralized in the std-only shotclutch-env leaf crate. No legacy Cargo package wrappers are introduced.
+
+Desktop automation uses --control / SHOTCLUTCH_CONTROL_PORT plus a private SHOTCLUTCH_CONTROL_TOKEN (64 random hex characters). Bindings remain localhost; new control settings override inherited aliases. Do not store tokens in reports. Browser automation uses window.shotclutch; window.filmcraft is a thin reference to the same object. MCP resources list shotclutch://document and shotclutch://commands; old scheme identifiers remain readable aliases. Command IDs do not change.
+
+Original ShotClutch icon artwork is used across platform packages, web favicon and installer background. Generate committed variants with scripts/generate-icons.py using PySide6 and Pillow; normal builds do not need those tools. On this host the bundled runtime Python works; the unrelated system Python has a Qt DLL conflict. No third-party application artwork is reattributed as ours.
+
+Required copyright/license notices, retained-asset authorship, genuine upstream source URLs, original fixtures and archived M0/upstream reports remain truthful. This is legal/provenance retention, not product branding. The original M0 baseline and reports are not regenerated or renamed. See NOTICE, LICENSE-MIT, LICENSE-APACHE and ATTRIBUTION.md for retained notices. No user data or installed application is moved or modified by this change.
+
+Validation results and the final package/CI source binding are recorded separately as they complete; this document is not a claim that pending checks passed.

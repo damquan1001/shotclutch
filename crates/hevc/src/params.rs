@@ -4,7 +4,7 @@
 use crate::error::{Result, ensure, unsupported};
 use crate::spec_tables::{DEFAULT_SCALING_INTER, DEFAULT_SCALING_INTRA};
 use crate::tables::scan_diag;
-use filmcraft_bitstream::BitReader;
+use shotclutch_bitstream::BitReader;
 
 /// HEVC picture state includes several per-pixel and per-block work buffers. This permits 8K
 /// pictures while rejecting dimensions that could exhaust memory during decode.

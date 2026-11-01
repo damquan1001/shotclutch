@@ -68,6 +68,7 @@ jobs:
           name: checks-${{ matrix.os }}-${{ github.sha }}-${{ github.run_attempt }}
           path: |
             target/ci/evidence
+            target/ci/identity-residuals.json
             target/ci/oracles/manifest.json
             target/ci/dxc/manifest.json
           retention-days: 14

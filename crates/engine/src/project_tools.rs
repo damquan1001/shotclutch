@@ -25,10 +25,10 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use filmcraft_project::{BinEntry, FindOp, FindQuery, FindRow, ItemId, ItemKind, MarkerKind, MediaRef, Project, SearchBin, TrackKind};
-use filmcraft_time::{Tick, TimeDisplay, TimeRange};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+use shotclutch_project::{BinEntry, FindOp, FindQuery, FindRow, ItemId, ItemKind, MarkerKind, MediaRef, Project, SearchBin, TrackKind};
+use shotclutch_time::{Tick, TimeDisplay, TimeRange};
 
 use crate::commands::{CommandSpec, always, bad, bool_p, has_project_selection, has_seq, str_p, u64_p};
 use crate::{EngineError, Result, Session};
@@ -372,11 +372,11 @@ fn targets(s: &Session, p: &Value) -> Vec<ItemId> {
 }
 
 /// The media clip behind an item (subclips resolve to their parent).
-fn media_of(p: &Project, id: ItemId) -> Option<(ItemId, &filmcraft_project::MediaClip)> {
+fn media_of(p: &Project, id: ItemId) -> Option<(ItemId, &shotclutch_project::MediaClip)> {
     p.resolve_media(id).map(|(root, media, _)| (root, media))
 }
 
-fn file_path(m: &filmcraft_project::MediaClip) -> Option<&str> {
+fn file_path(m: &shotclutch_project::MediaClip) -> Option<&str> {
     match &m.media {
         MediaRef::File { path } => Some(path),
         MediaRef::Generator(_) => None,
@@ -453,7 +453,7 @@ fn new_search_bin(s: &mut Session, p: &Value) -> Result<Value> {
     }
     let name = str_p(p, "name").map(str::to_string).unwrap_or_else(|| q.rows.iter().find(|r| !r.text.is_empty()).map(|r| r.text.clone()).unwrap_or_default());
     let b = s.edit("New Search Bin", |pr, _| {
-        let id = filmcraft_project::BinId(pr.alloc_id());
+        let id = shotclutch_project::BinId(pr.alloc_id());
         let b = SearchBin { id, name, query: q };
         pr.search_bins.push(b.clone());
         Ok(b)
@@ -512,8 +512,8 @@ pub struct FindState {
 /// One timeline Find hit.
 #[derive(Clone, Debug, PartialEq)]
 enum Hit {
-    Clip(filmcraft_project::ClipId, Tick),
-    Marker(filmcraft_project::MarkerId, Tick),
+    Clip(shotclutch_project::ClipId, Tick),
+    Marker(shotclutch_project::MarkerId, Tick),
 }
 
 fn timeline_hits(s: &Session, f: &FindState) -> Vec<Hit> {
@@ -634,13 +634,13 @@ fn save_as_template(s: &mut Session, p: &Value) -> Result<Value> {
         None => {
             let dir = templates_dir(s).ok_or_else(|| bad("file.saveAsTemplate", "need `path` (no data directory for templates)"))?;
             let _ = std::fs::create_dir_all(&dir);
-            dir.join(format!("{}.fcproj", sanitize(&name))).to_string_lossy().to_string()
+            dir.join(format!("{}.scproj", sanitize(&name))).to_string_lossy().to_string()
         }
     };
     let mut proj = (*s.project).clone();
     proj.name = name.clone();
     proj.root.name = name.clone();
-    s.services.write_file(&path, &filmcraft_format::encode(&proj, false)).map_err(|e| EngineError::Other(format!("{path}: {e}")))?;
+    s.services.write_file(&path, &shotclutch_format::encode(&proj, false)).map_err(|e| EngineError::Other(format!("{path}: {e}")))?;
     Ok(json!({"path": path, "name": name}))
 }
 
@@ -653,7 +653,7 @@ fn list_templates(s: &mut Session, _: &Value) -> Result<Value> {
     let mut v: Vec<Value> = std::fs::read_dir(&dir)
         .map(|rd| {
             rd.flatten()
-                .filter(|e| e.path().extension().is_some_and(|x| x == "fcproj"))
+                .filter(|e| e.path().extension().is_some_and(|x| x == "scproj"))
                 .map(|e| json!({"name": e.path().file_stem().map(|x| x.to_string_lossy().to_string()), "path": e.path().to_string_lossy()}))
                 .collect()
         })
@@ -664,13 +664,13 @@ fn list_templates(s: &mut Session, _: &Value) -> Result<Value> {
 
 fn new_from_template(s: &mut Session, p: &Value) -> Result<Value> {
     let t = str_p(p, "template").ok_or_else(|| bad("file.newProjectFromTemplate", "need `template`"))?;
-    let path = if t.ends_with(".fcproj") || t.contains('/') || t.contains('\\') {
+    let path = if t.ends_with(".scproj") || t.contains('/') || t.contains('\\') {
         t.to_string()
     } else {
-        templates_dir(s).map(|d| d.join(format!("{}.fcproj", sanitize(t))).to_string_lossy().to_string()).unwrap_or_else(|| t.to_string())
+        templates_dir(s).map(|d| d.join(format!("{}.scproj", sanitize(t))).to_string_lossy().to_string()).unwrap_or_else(|| t.to_string())
     };
     let bytes = s.services.read_file(&path).map_err(|e| EngineError::Other(format!("{path}: {e}")))?;
-    let mut proj = filmcraft_format::decode(&bytes).map_err(|e| EngineError::Other(e.to_string()))?.project;
+    let mut proj = shotclutch_format::decode(&bytes).map_err(|e| EngineError::Other(e.to_string()))?.project;
     if s.is_dirty() && !bool_p(p, "force").unwrap_or(false) {
         return Err(EngineError::Other("the project has unsaved changes: save it first, or pass {\"force\": true} to discard them".into()));
     }
@@ -772,7 +772,7 @@ pub fn closure(p: &Project, roots: &[ItemId]) -> BTreeSet<ItemId> {
 
 /// A copy of `p` with only `keep` (bins that end up empty are dropped).
 pub fn project_subset(p: &Project, keep: &BTreeSet<ItemId>) -> Project {
-    fn prune(b: &mut filmcraft_project::Bin, keep: &BTreeSet<ItemId>) {
+    fn prune(b: &mut shotclutch_project::Bin, keep: &BTreeSet<ItemId>) {
         b.children.retain_mut(|c| match c {
             BinEntry::Item(i) => keep.contains(i),
             BinEntry::Bin(x) => {
@@ -807,7 +807,7 @@ fn export_selection(s: &mut Session, p: &Value) -> Result<Value> {
     let name = std::path::Path::new(&path).file_stem().map(|x| x.to_string_lossy().to_string()).unwrap_or_else(|| sub.name.clone());
     sub.name = name.clone();
     sub.root.name = name;
-    s.services.write_file(&path, &filmcraft_format::encode(&sub, false)).map_err(|e| EngineError::Other(format!("{path}: {e}")))?;
+    s.services.write_file(&path, &shotclutch_format::encode(&sub, false)).map_err(|e| EngineError::Other(format!("{path}: {e}")))?;
     Ok(json!({"path": path, "items": keep.iter().map(|i| i.0).collect::<Vec<_>>()}))
 }
 
@@ -821,11 +821,11 @@ fn export_ale(s: &mut Session, p: &Value) -> Result<Value> {
         // the whole project, in Project panel order
         s.project.root.all_items(&mut items);
     }
-    let doc = filmcraft_interchange::ale::export_items(&s.project, &items);
+    let doc = shotclutch_interchange::ale::export_items(&s.project, &items);
     if doc.rows.is_empty() {
         return Err(EngineError::Other("none of the items is a clip that can be logged".into()));
     }
-    s.services.write_file(&path, filmcraft_interchange::ale::write(&doc).as_bytes()).map_err(|e| EngineError::Other(format!("{path}: {e}")))?;
+    s.services.write_file(&path, shotclutch_interchange::ale::write(&doc).as_bytes()).map_err(|e| EngineError::Other(format!("{path}: {e}")))?;
     Ok(json!({"path": path, "clips": doc.rows.len()}))
 }
 
@@ -834,7 +834,7 @@ fn export_ale(s: &mut Session, p: &Value) -> Result<Value> {
 // ---------------------------------------------------------------------------------------------
 
 /// File properties of a probed media file (Get Media File Properties).
-pub fn info_json(name: &str, path: Option<&str>, info: &filmcraft_media::MediaInfo) -> Value {
+pub fn info_json(name: &str, path: Option<&str>, info: &shotclutch_media::MediaInfo) -> Value {
     let rate = info.frame_rate();
     let secs = info.duration.seconds();
     let mut v = json!({
@@ -843,8 +843,8 @@ pub fn info_json(name: &str, path: Option<&str>, info: &filmcraft_media::MediaIn
         "type": format!("{:?}", info.kind),
         "container": info.container,
         "fileSize": info.file_size,
-        "duration": {"ticks": info.duration.0, "seconds": secs, "timecode": filmcraft_time::format_timecode_frames(rate.frame_at(info.duration), rate, false)},
-        "startTimecode": info.start_timecode.map(|f| filmcraft_time::format_timecode_frames(f, rate, false)),
+        "duration": {"ticks": info.duration.0, "seconds": secs, "timecode": shotclutch_time::format_timecode_frames(rate.frame_at(info.duration), rate, false)},
+        "startTimecode": info.start_timecode.map(|f| shotclutch_time::format_timecode_frames(f, rate, false)),
         "dataRateKbps": info.file_size.filter(|_| secs > 0.0).map(|b| (b as f64 * 8.0 / secs / 1000.0).round()),
     });
     if let Some(vs) = &info.video {
@@ -891,7 +891,7 @@ fn pair_p(p: &Value, k: &str) -> Option<(f64, f64)> {
 pub const RENDERER_GPU: &str = "ShotClutch GPU Acceleration (wgpu)";
 pub const RENDERER_SOFTWARE: &str = "ShotClutch Software Only (CPU)";
 
-fn general_json(st: &filmcraft_project::ProjectSettings) -> Value {
+fn general_json(st: &shotclutch_project::ProjectSettings) -> Value {
     json!({
         "renderer": st.renderer,
         "renderers": [RENDERER_GPU, RENDERER_SOFTWARE],
@@ -957,7 +957,7 @@ pub fn scratch_paths(s: &Session) -> Value {
     let same = |o: &Option<String>| o.clone().or(project_dir.clone()).unwrap_or_else(|| "(data directory until the project is saved)".into());
     let auto_save = match s.path.as_deref() {
         Some(p) => trusted_scratch(sc.auto_save.as_deref(), Some(p), &s.prefs.auto_save.scratch_folders)
-            .unwrap_or_else(|| filmcraft_format::autosave::auto_save_dir(std::path::Path::new(p)))
+            .unwrap_or_else(|| shotclutch_format::autosave::auto_save_dir(std::path::Path::new(p)))
             .to_string_lossy()
             .to_string(),
         None => same(&None),
@@ -1110,7 +1110,7 @@ pub(crate) fn openable_original(path: &str) -> std::result::Result<(), String> {
     if !real.is_file() {
         return Err(format!("“{name}” is not a file"));
     }
-    if !filmcraft_media::is_importable(std::path::Path::new(path)) || !filmcraft_media::is_importable(&real) {
+    if !shotclutch_media::is_importable(std::path::Path::new(path)) || !shotclutch_media::is_importable(&real) {
         return Err(format!("Edit Original opens media files only; “{name}” is not one"));
     }
     Ok(())
@@ -1179,7 +1179,7 @@ fn xml_escape(s: &str) -> String {
 
 /// An XMP packet (ISO 16684-1) with the item's name and log metadata (Dublin Core and the XMP
 /// Dynamic Media schema).
-pub fn xmp_packet(it: &filmcraft_project::ProjectItem) -> String {
+pub fn xmp_packet(it: &shotclutch_project::ProjectItem) -> String {
     let meta = |k: &str| it.metadata.iter().find(|(x, _)| x.eq_ignore_ascii_case(k)).map(|(_, v)| xml_escape(v));
     let mut body = format!("   <dc:title><rdf:Alt><rdf:li xml:lang=\"x-default\">{}</rdf:li></rdf:Alt></dc:title>\n", xml_escape(&it.name));
     if let Some(d) = meta("Description") {
@@ -1280,7 +1280,7 @@ fn automate_to_sequence(s: &mut Session, p: &Value) -> Result<Value> {
     let mut plan: Vec<(ItemId, TimeRange)> = Vec::new();
     for id in &items {
         let Some(mut r) = crate::clip_ops::item_range(&s.project, *id, s.prefs.timeline.still_duration(s.sequence_rate())) else { continue };
-        let is_still = s.project.item(*id).and_then(|i| i.as_media()).is_some_and(|m| matches!(m.info.kind, filmcraft_media::MediaKind::Still));
+        let is_still = s.project.item(*id).and_then(|i| i.as_media()).is_some_and(|m| matches!(m.info.kind, shotclutch_media::MediaKind::Still));
         if is_still && let Some(d) = still {
             r = TimeRange::new(r.start, d);
         }
@@ -1326,7 +1326,7 @@ fn automate_to_sequence(s: &mut Session, p: &Value) -> Result<Value> {
             let mut links = std::collections::HashMap::new();
             for t in q.video_tracks.iter_mut().chain(q.audio_tracks.iter_mut()) {
                 if !t.locked && (t.sync_lock || dests.contains(&t.id)) {
-                    filmcraft_edit::insert_track_gap(t, first, len, ctx, &mut links);
+                    shotclutch_edit::insert_track_gap(t, first, len, ctx, &mut links);
                 }
             }
             Ok(())
@@ -1381,7 +1381,7 @@ fn automate_to_sequence(s: &mut Session, p: &Value) -> Result<Value> {
     }
     crate::clip_ops::collapse_history(s, n0, "Automate to Sequence");
     let clips: Vec<u64> = placed.iter().flat_map(|(_, ids)| ids.iter().map(|c| c.0)).collect();
-    s.state.selection = clips.iter().map(|c| filmcraft_project::ClipId(*c)).collect();
+    s.state.selection = clips.iter().map(|c| shotclutch_project::ClipId(*c)).collect();
     Ok(json!({"placed": placed.len(), "clips": clips, "transitions": transitions, "starts": starts.iter().map(|t| t.0).collect::<Vec<_>>()}))
 }
 
@@ -1394,7 +1394,7 @@ fn automate_to_sequence(s: &mut Session, p: &Value) -> Result<Value> {
 pub fn system_report() -> Value {
     let cpus = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1);
     let formats: Vec<Value> =
-        filmcraft_export::Format::ALL.iter().map(|f| json!({"format": f.label(), "available": filmcraft_export::available(*f)})).collect();
+        shotclutch_export::Format::ALL.iter().map(|f| json!({"format": f.label(), "available": shotclutch_export::available(*f)})).collect();
     json!({
         "app": format!("ShotClutch {}", env!("CARGO_PKG_VERSION")),
         "os": std::env::consts::OS,

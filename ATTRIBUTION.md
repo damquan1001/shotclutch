@@ -1,25 +1,26 @@
-# Asset attribution
+# Retained asset notices
 
-Upstream attribution is retained in each sidecar. Removed upstream trademarks and screenshots are not distributed.
+This inventory records the actual authors and licenses of retained assets. Removed upstream application marks are not distributed; their removed-asset credits are omitted. Original ShotClutch icons and installer artwork have their own sidecars. Upstream code and retained fonts/test assets retain their applicable notices.
 
 | Asset | Author | Source | License |
 |---|---|---|---|
-| `apps/filmcraft-web/web/favicon.png` | Brandon Thomas (FilmCraft owner), for the FilmCraft project | original work (drawn by the owner in ArtCraft, then vectorised) | MIT OR Apache-2.0 |
-| `assets/app-icon/filmcraft-1024.png` | Brandon Thomas (FilmCraft owner), for the FilmCraft project | original work (drawn by the owner in ArtCraft, then vectorised) | MIT OR Apache-2.0 |
-| `assets/app-icon/filmcraft-macos-512.png` | Brandon Thomas (FilmCraft owner), for the FilmCraft project | original work (drawn by the owner in ArtCraft, then vectorised) | MIT OR Apache-2.0 |
-| `assets/app-icon/filmcraft-small.svg` | Brandon Thomas (FilmCraft owner), for the FilmCraft project | original work (drawn by the owner in ArtCraft, then vectorised) | MIT OR Apache-2.0 |
-| `assets/app-icon/filmcraft.icns` | Brandon Thomas (FilmCraft owner), for the FilmCraft project | original work (drawn by the owner in ArtCraft, then vectorised) | MIT OR Apache-2.0 |
-| `assets/app-icon/filmcraft.ico` | Brandon Thomas (FilmCraft owner), for the FilmCraft project | original work (drawn by the owner in ArtCraft, then vectorised) | MIT OR Apache-2.0 |
-| `assets/app-icon/filmcraft.svg` | Brandon Thomas (FilmCraft owner), for the FilmCraft project | original work (drawn by the owner in ArtCraft, then vectorised) | MIT OR Apache-2.0 |
-| `assets/app-icon/hicolor/128x128/apps/ai.storyteller.filmcraft.png` | Brandon Thomas (FilmCraft owner), for the FilmCraft project | original work (drawn by the owner in ArtCraft, then vectorised) | MIT OR Apache-2.0 |
-| `assets/app-icon/hicolor/16x16/apps/ai.storyteller.filmcraft.png` | Brandon Thomas (FilmCraft owner), for the FilmCraft project | original work (drawn by the owner in ArtCraft, then vectorised) | MIT OR Apache-2.0 |
-| `assets/app-icon/hicolor/24x24/apps/ai.storyteller.filmcraft.png` | Brandon Thomas (FilmCraft owner), for the FilmCraft project | original work (drawn by the owner in ArtCraft, then vectorised) | MIT OR Apache-2.0 |
-| `assets/app-icon/hicolor/256x256/apps/ai.storyteller.filmcraft.png` | Brandon Thomas (FilmCraft owner), for the FilmCraft project | original work (drawn by the owner in ArtCraft, then vectorised) | MIT OR Apache-2.0 |
-| `assets/app-icon/hicolor/32x32/apps/ai.storyteller.filmcraft.png` | Brandon Thomas (FilmCraft owner), for the FilmCraft project | original work (drawn by the owner in ArtCraft, then vectorised) | MIT OR Apache-2.0 |
-| `assets/app-icon/hicolor/48x48/apps/ai.storyteller.filmcraft.png` | Brandon Thomas (FilmCraft owner), for the FilmCraft project | original work (drawn by the owner in ArtCraft, then vectorised) | MIT OR Apache-2.0 |
-| `assets/app-icon/hicolor/512x512/apps/ai.storyteller.filmcraft.png` | Brandon Thomas (FilmCraft owner), for the FilmCraft project | original work (drawn by the owner in ArtCraft, then vectorised) | MIT OR Apache-2.0 |
-| `assets/app-icon/hicolor/64x64/apps/ai.storyteller.filmcraft.png` | Brandon Thomas (FilmCraft owner), for the FilmCraft project | original work (drawn by the owner in ArtCraft, then vectorised) | MIT OR Apache-2.0 |
-| `assets/app-icon/hicolor/scalable/apps/ai.storyteller.filmcraft.svg` | Brandon Thomas (FilmCraft owner), for the FilmCraft project | original work (drawn by the owner in ArtCraft, then vectorised) | MIT OR Apache-2.0 |
+| `apps/shotclutch-web/web/favicon.png` | ShotClutch contributors | original geometric artwork authored for ShotClutch M0 | MIT OR Apache-2.0 |
+| `assets/app-icon/hicolor/128x128/apps/com.shotclutch.editor.png` | ShotClutch contributors | original geometric artwork authored for ShotClutch M0 | MIT OR Apache-2.0 |
+| `assets/app-icon/hicolor/16x16/apps/com.shotclutch.editor.png` | ShotClutch contributors | original geometric artwork authored for ShotClutch M0 | MIT OR Apache-2.0 |
+| `assets/app-icon/hicolor/24x24/apps/com.shotclutch.editor.png` | ShotClutch contributors | original geometric artwork authored for ShotClutch M0 | MIT OR Apache-2.0 |
+| `assets/app-icon/hicolor/256x256/apps/com.shotclutch.editor.png` | ShotClutch contributors | original geometric artwork authored for ShotClutch M0 | MIT OR Apache-2.0 |
+| `assets/app-icon/hicolor/32x32/apps/com.shotclutch.editor.png` | ShotClutch contributors | original geometric artwork authored for ShotClutch M0 | MIT OR Apache-2.0 |
+| `assets/app-icon/hicolor/48x48/apps/com.shotclutch.editor.png` | ShotClutch contributors | original geometric artwork authored for ShotClutch M0 | MIT OR Apache-2.0 |
+| `assets/app-icon/hicolor/512x512/apps/com.shotclutch.editor.png` | ShotClutch contributors | original geometric artwork authored for ShotClutch M0 | MIT OR Apache-2.0 |
+| `assets/app-icon/hicolor/64x64/apps/com.shotclutch.editor.png` | ShotClutch contributors | original geometric artwork authored for ShotClutch M0 | MIT OR Apache-2.0 |
+| `assets/app-icon/hicolor/scalable/apps/com.shotclutch.editor.svg` | ShotClutch contributors | original geometric artwork authored for ShotClutch M0 | MIT OR Apache-2.0 |
+| `assets/app-icon/shotclutch-1024.png` | ShotClutch contributors | original geometric artwork authored for ShotClutch M0 | MIT OR Apache-2.0 |
+| `assets/app-icon/shotclutch-macos-512.png` | ShotClutch contributors | original geometric artwork authored for ShotClutch M0 | MIT OR Apache-2.0 |
+| `assets/app-icon/shotclutch-small.svg` | ShotClutch contributors | original geometric artwork authored for ShotClutch M0 | MIT OR Apache-2.0 |
+| `assets/app-icon/shotclutch.icns` | ShotClutch contributors | original geometric artwork authored for ShotClutch M0 | MIT OR Apache-2.0 |
+| `assets/app-icon/shotclutch.ico` | ShotClutch contributors | original geometric artwork authored for ShotClutch M0 | MIT OR Apache-2.0 |
+| `assets/app-icon/shotclutch.png` | ShotClutch contributors | original geometric artwork authored for ShotClutch M0 | MIT OR Apache-2.0 |
+| `assets/app-icon/shotclutch.svg` | ShotClutch contributors | original geometric artwork authored for ShotClutch M0 | MIT OR Apache-2.0 |
 | `assets/fonts/Inter-Bold.ttf` | The Inter Project Authors (Rasmus Andersson et al.) | https://github.com/rsms/inter (release v4.1, extras/ttf) | OFL-1.1 |
 | `assets/fonts/Inter-Italic.ttf` | The Inter Project Authors (Rasmus Andersson et al.) | https://github.com/rsms/inter (release v4.1, extras/ttf) | OFL-1.1 |
 | `assets/fonts/Inter-Medium.ttf` | The Inter Project Authors (Rasmus Andersson et al.) | https://github.com/rsms/inter | OFL-1.1 |
@@ -61,8 +62,5 @@ Upstream attribution is retained in each sidecar. Removed upstream trademarks an
 | `crates/ui-egui/src/i18n/pt-br.tsv` | FilmCraft contributors | original work | MIT OR Apache-2.0 |
 | `crates/ui-egui/src/i18n/ru.tsv` | FilmCraft contributors | original work | MIT OR Apache-2.0 |
 | `crates/ui-egui/src/i18n/uk.tsv` | FilmCraft contributors | original work | MIT OR Apache-2.0 |
-| `packaging/macos/dmg/background.svg` | @XusBadia | original work | MIT OR Apache-2.0 |
-| `packaging/macos/dmg/background.tiff` | @XusBadia | rendered from background.svg by generate.py | MIT OR Apache-2.0 |
-| `assets/app-icon/shotclutch.svg` | ShotClutch contributors | Original geometric artwork | MIT OR Apache-2.0 |
-| `assets/app-icon/shotclutch.png` | ShotClutch contributors | Original geometric artwork | MIT OR Apache-2.0 |
-| `assets/app-icon/shotclutch.ico` | ShotClutch contributors | Original geometric artwork | MIT OR Apache-2.0 |
+| `packaging/macos/dmg/background.svg` | ShotClutch contributors | original minimal ShotClutch installation layout; no external artwork | MIT OR Apache-2.0 |
+| `packaging/macos/dmg/background.tiff` | ShotClutch contributors | original minimal ShotClutch installation layout; no external artwork | MIT OR Apache-2.0 |

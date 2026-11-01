@@ -255,7 +255,7 @@ fn custom_presets_persist_export_and_import() {
     let win = dir.join("win.json");
     std::fs::write(
         &win,
-        serde_json::to_vec(&json!({"format": "filmcraft-keyboard-shortcuts", "version": 1, "name": "From Windows", "platform": "windows",
+        serde_json::to_vec(&json!({"format": "shotclutch-keyboard-shortcuts", "version": 1, "name": "From Windows", "platform": "windows",
             "bindings": [{"command": "edit.undo", "keys": "Ctrl+Z"}, {"command": "sequence.addEdit", "keys": "Ctrl+Alt+K"}, {"command": "no.such", "keys": "K"}]}))
         .unwrap(),
     )

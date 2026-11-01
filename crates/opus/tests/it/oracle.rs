@@ -11,7 +11,7 @@ use crate::common;
 
 use std::process::Command;
 
-use filmcraft_opus::{Decoder, Mode, OpusHead, Packet};
+use shotclutch_opus::{Decoder, Mode, OpusHead, Packet};
 
 fn has_libopus(ff: &std::path::Path) -> bool {
     Command::new(ff).args(["-hide_banner", "-encoders"]).output().map(|o| String::from_utf8_lossy(&o.stdout).contains("libopus")).unwrap_or(false)
@@ -93,7 +93,7 @@ fn run(case: &Case, rate: u32) -> (f64, f64, Vec<Mode>) {
     // Our output is in Vorbis channel order; ffmpeg reorders 5.1 to FL FR FC LFE BL BR.
     let order: Vec<usize> = if case.channels == 6 { vec![0, 2, 1, 5, 3, 4] } else { (0..case.channels).collect() };
     let ours: Vec<f32> = (0..total).flat_map(|i| order.iter().map(|&c| planar[c][i]).collect::<Vec<_>>()).collect();
-    if std::env::var("DIAG").is_ok_and(|v| v == case.name) {
+    if shotclutch_env::var("DIAG").is_ok_and(|v| v == case.name) {
         let blk = 12000 * case.channels;
         for (b, (r, o)) in reference.chunks(blk).zip(ours.chunks(blk)).enumerate() {
             let er: f32 = r.iter().map(|v| v * v).sum();

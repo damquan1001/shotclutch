@@ -52,7 +52,7 @@ fn md5_matches_rfc_1321() {
 
 #[test]
 fn libvpx_test_vectors() {
-    let dir = std::env::var_os("VP8_TEST_VECTORS")
+    let dir = shotclutch_env::var_os("VP8_TEST_VECTORS")
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|| std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/fixtures/vp8/conformance"));
     let Ok(entries) = std::fs::read_dir(&dir) else {

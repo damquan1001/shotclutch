@@ -21,8 +21,8 @@
 
 use std::collections::BTreeMap;
 
-use filmcraft_time::Tick;
 use serde::{Deserialize, Serialize};
+use shotclutch_time::Tick;
 
 use crate::keyframe::{Interpolation, Keyframe, Param, ParamValue};
 use crate::{Track, TrackId};
