@@ -38,6 +38,7 @@ const proc = spawn(chrome, [
   "--no-first-run",
   "--no-default-browser-check",
   "--enable-unsafe-webgpu",
+  "--enable-unsafe-swiftshader",
   "--autoplay-policy=no-user-gesture-required",
   "--window-size=1600,1000",
   "about:blank",
@@ -119,7 +120,12 @@ try {
   if (report.load.error) throw new Error(report.load.error);
   report.resources = await js("performance.getEntriesByType('resource').filter(e => /wasm|\\.js/.test(e.name)).map(e => ({name: e.name.split('/').pop(), kB: Math.round(e.transferSize / 1024), ms: Math.round(e.duration)}))");
   if (!(await js("window.filmcraft === window.shotclutch"))) throw new Error("Legacy API alias differs from canonical API");
+  if (!(await js("window.filmcraftLoad === window.shotclutchLoad && window.filmcraftFatal === window.shotclutchFatal"))) throw new Error("Legacy diagnostic aliases differ");
+  const commands = await js("Promise.all([window.shotclutch.commands(), window.filmcraft.commands()]).then(([a,b]) => JSON.stringify(a) === JSON.stringify(b))");
+  if (!commands) throw new Error("API aliases returned different command catalogs");
+  report.aliases = { sameApiObject: true, sameDiagnosticObjects: true, equivalentCommands: true };
   report.info = await js("shotclutch.info()");
+  if (!process.argv.includes("--identity-only")) {
   // let the UI settle (fonts, first frames)
   await sleep(1500);
   report.steps.demo = { screenshot: await shot("01-demo"), inspect: await js("shotclutch.inspect().then(i => ({window: i.window, activeSequence: i.activeSequence, fps: i.fps}))") };
@@ -178,6 +184,7 @@ try {
     },
   });
   if (!report.steps.importCollision.ok) throw new Error("import collision regression: " + JSON.stringify(report.steps.importCollision.gates));
+  }
   // still alive? (a panicked app never answers)
   await Promise.race([js("shotclutch.inspect().then(() => true)"), sleep(5000).then(() => { throw new Error("app stopped answering"); })]);
   const fatal = logs.filter((l) => /panicked at|RuntimeError|EXCEPTION/.test(l));

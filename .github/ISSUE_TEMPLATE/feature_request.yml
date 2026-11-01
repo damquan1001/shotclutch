@@ -6,7 +6,7 @@ body:
     attributes:
       value: |
         Please search existing issues and describe one feature per request.
-        For usage questions, visit the [community chat](https://discord.gg/artcraft).
+        [Historical upstream community](https://discord.gg/artcraft) is retained as a provenance reference, not a ShotClutch support channel.
   - type: textarea
     id: problem
     attributes:

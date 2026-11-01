@@ -43,6 +43,7 @@
     // "panicked at …" with console.error, then the wasm traps ("RuntimeError: unreachable") and
     // the canvas freezes or goes blank. Show what happened instead of a dead page.
     window.shotclutchLoad = {};
+    window.filmcraftLoad = window.shotclutchLoad; // Compatibility-only diagnostic alias.
     let lastPanic = null;
     const consoleError = console.error.bind(console);
     console.error = (...a) => {
@@ -59,6 +60,7 @@
       el.classList.add("on");
     };
     document.getElementById("fatal-reload").onclick = () => location.reload();
+    window.filmcraftFatal = window.shotclutchFatal; // Same handler; no duplicate implementation.
     const isFatal = (e) => e instanceof WebAssembly.RuntimeError || /panicked at|unreachable|memory access out of bounds/.test(String(e && e.message || e));
     // only after start-up: a failed start is shown in #loading below
     addEventListener("error", (ev) => { if (window.shotclutchLoad.readyMs && isFatal(ev.error || ev.message)) window.shotclutchFatal(ev.error || ev.message); });

@@ -48,8 +48,9 @@ def main():
             parser.error('--bin-dir is required')
         binary = args.bin_dir.resolve() / ('shotclutch-cli.exe' if os.name == 'nt' else 'shotclutch-cli')
         child_environment = dict(os.environ)
-        for key in ['SHOTCLUTCH_FFMPEG', 'SHOTCLUTCH_FFMPEG', 'SHOTCLUTCH_FFPROBE', 'SHOTCLUTCH_FFPROBE']:
-            child_environment.pop(key, None)
+        for prefix in ['SHOTCLUTCH_', 'FILMCRAFT_']:
+            for tool in ['FFMPEG', 'FFPROBE']:
+                child_environment.pop(prefix + tool, None)
         # Oracles remain usable by the parent verification step, but not by the application child.
         child_environment['PATH'] = os.pathsep.join([str(binary.parent), os.path.join(os.environ['SystemRoot'], 'System32')]) if os.name == 'nt' else str(binary.parent)
         records = []

@@ -18,7 +18,7 @@ $out = [IO.Path]::GetFullPath((Join-Path $Output $Label))
 New-Item -ItemType Directory -Force -Path $out | Out-Null
 # Both products read the same fixtures. Restore caller environment when finished.
 $previous = @{}
-foreach ($key in 'SHOTCLUTCH_FIXTURES','SHOTCLUTCH_FIXTURES') {
+foreach ($key in 'SHOTCLUTCH_FIXTURES','FILMCRAFT_FIXTURES') {
   $previous[$key] = [Environment]::GetEnvironmentVariable($key)
   [Environment]::SetEnvironmentVariable($key, (Join-Path $root 'target/fixtures'))
 }

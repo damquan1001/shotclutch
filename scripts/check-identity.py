@@ -5,6 +5,7 @@ ROOT=Path(__file__).resolve().parents[1]
 WORDS=re.compile('film'+'craft|art'+'craft|fc'+'proj',re.I)
 HISTORY=('docs/m0/','docs/filmcraft_original_docs/','crates/format/tests/fixtures/')
 COMPAT={
+ 'scripts/ci/package-smoke.py':'Keep both inherited and canonical media tool overrides out of standalone execution',
  'apps/shotclutch/build.rs':'Inherited Windows resource requirement environment alias',
  'packaging/windows/package.ps1':'Inherited packaging environment aliases',
  'crates/engine/src/presets.rs':'Read-only inherited effect-preset identifier',
@@ -29,6 +30,7 @@ COMPAT={
  'crates/ui-egui/src/panels/settings.rs':'Inherited diagnostic environment override',
  'apps/shotclutch/src/args.rs':'Case-insensitive legacy project recognition tests',
  'apps/shotclutch-web/src/api.rs':'Thin browser API alias',
+ 'apps/shotclutch-web/web/index.html':'Thin browser diagnostic aliases',
  'apps/shotclutch-web/tests/smoke.mjs':'Browser alias object-identity assertion',
  'apps/shotclutch-web/src/recovery.rs':'Read-only legacy OPFS snapshot fallback',
  'apps/shotclutch-web/src/import.rs':'Legacy project picker extension',

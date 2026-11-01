@@ -37,7 +37,7 @@ fn start_with_token(port: u16, ctx: egui::Context, token: Option<String>) -> Rec
     // without exposing it in command-line arguments, logs, or a shared discovery file.
     let Some(token) = token.filter(|t| t.len() == 64 && t.bytes().all(|b| b.is_ascii_hexdigit())) else {
         eprintln!(
-            "shotclutch: control server disabled: SHOTCLUTCH_CONTROL_TOKEN (legacy SHOTCLUTCH_CONTROL_TOKEN) must contain 64 random hex characters (see docs/control-protocol.md)"
+            "shotclutch: control server disabled: SHOTCLUTCH_CONTROL_TOKEN must contain 64 random hex characters (inherited aliases are accepted; see docs/control-protocol.md)"
         );
         return rx;
     };

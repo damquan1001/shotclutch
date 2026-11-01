@@ -89,6 +89,12 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y pkg-config libxkbcommon-dev libwayland-dev libx11-dev libxcb1-dev libxcursor-dev libxrandr-dev libxi-dev libfontconfig1-dev libfreetype-dev libasound2-dev mesa-vulkan-drivers
       - name: Release build and Linux browser compilation on fresh disk
         run: python scripts/ci/run-checks.py build
+      - name: Browser identity aliases in the compiled application
+        if: runner.os == 'Linux'
+        run: |
+          cargo install wasm-bindgen-cli --version 0.2.129 --locked
+          cargo xtask web --dev
+          python scripts/ci/web-identity.py
       - if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
