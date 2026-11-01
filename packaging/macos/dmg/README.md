@@ -1,44 +1,30 @@
 # macOS DMG window
 
-What Finder shows when the DMG opens: a 660 × 400 pt background with the app icon and the
-`Applications` link side by side. `package.sh` copies these files into the image; nothing here is
-generated at build time, so the DMG still builds with `hdiutil makehybrid` (no mounted device, no
-Finder scripting on CI, nothing extra installed in the signing job).
+The committed Finder layout and original ShotClutch artwork are copied into the DMG by
+`packaging/macos/package.sh`. Packaging needs no mounted image, Finder scripting or image tools.
 
-| File | What |
+| File | Purpose |
 |---|---|
-| `background.svg` | Source of the background: the app icon (`assets/app-icon/shotclutch.svg`, linked, not copied) cropped as a cover on the ShotClutch colour field (`#8b5cf6`), Ink and Paper. Its text (Inter, JetBrains Mono) is outlined, so rendering it needs no fonts. No paper grain: noise doesn't compress, and this keeps `background.tiff` small. |
-| `background.tiff` | The background at 1x (660 × 400 px, 72 dpi) and 2x (1320 × 800 px, 144 dpi) in one HiDPI TIFF (16-colour palette, Deflate, sRGB). Goes to `.background/background.tiff`. |
-| `dmg-layout.DS_Store` | Finder's view settings for the volume: window size, icon size 128, ShotClutch.app at (326, 205), `Applications` at (574, 205), and the background. Goes to `.DS_Store` in the image; named so it isn't mistaken for (or ignored like) a Finder-generated `.DS_Store`. |
-| `generate.py` | Writes `background.tiff` and `dmg-layout.DS_Store` from the SVG and the layout above. |
+| `background.svg` | Original 660 x 400 neutral background, native ShotClutch text and an installation arrow. No external application artwork. |
+| `background.tiff` | Committed RGB/Deflate representations at 660 x 400 (72 dpi) and 1320 x 800 (144 dpi). |
+| `dmg-layout.DS_Store` | Fixed Finder settings: 128 pt icons, ShotClutch.app at (180, 205), Applications at (480, 205), and the background alias on the ShotClutch volume. |
+| `generate.py` | Deterministic layout writer using ds_store and mac_alias, without reading local volume/user metadata. |
 
-## The volume name has no version
+The volume is named `ShotClutch`; the background alias uses that exact name. Finder draws black
+icon labels even with a custom background, so the icon area stays light and the arrow sits between
+the icon boxes. The original application icon comes from `assets/app-icon/shotclutch.svg`.
 
-The mounted volume is called `ShotClutch`, not `ShotClutch <version>`. The layout points at the background
-through an alias that includes the volume name, and Finder resolves it by that name: with a
-versioned name the window keeps its size and icon positions but shows no background (tested).
-The DMG file name (`shotclutch-<version>-macos-<arch>.dmg`) still carries the version.
-
-## Rules
-
-- **Finder draws the icon labels in black in light and dark mode** when a window has a background,
-  so the area under both icons stays light (Paper).
-- **Nothing goes inside the icon boxes:** artwork keeps 10 pt clear of each 128 pt icon box and of
-  the label strip under it.
-
-## Regenerate
-
-Edit `background.svg` (or the layout constants in `generate.py`), then run, on any OS:
+From the repository root, regenerate all artwork and the layout with:
 
 ```sh
-pip install 'pillow>=12' ds_store==1.3.3 mac_alias==2.2.3
-python3 packaging/macos/dmg/generate.py   # needs resvg on PATH
+python -m pip install PySide6 'Pillow>=12' ds_store==1.3.3 mac_alias==2.2.3
+python scripts/generate-icons.py
 ```
 
-Both outputs are byte-for-byte reproducible and carry nothing from the machine that ran it: the
-SVG renders without any fonts, and `dmg-layout.DS_Store` is written from scratch, its background
-alias holding only the volume name and `/.background/background.tiff`. If you add text to the SVG,
-outline it (`usvg` from resvg converts text to paths). The window is 660 × 432 with Finder's 32 pt
-title bar; the content area is 660 × 400.
+The layout alone can be regenerated with `python packaging/macos/dmg/generate.py`. It uses a fixed
+alias date and no local paths or volume UUID. Artwork variants are committed; normal builds do not
+regenerate them. Text rendering explicitly loads the retained Inter-Regular.ttf from this repository,
+whose authorship and OFL notice remain in the asset inventory and packages.
 
-This follows VectorCraft's `packaging/macos/dmg/` (storytold/vectorcraft#493).
+The inherited layout-writing approach follows VectorCraft's `packaging/macos/dmg/`
+(storytold/vectorcraft#493); retained source copyright/license notices remain applicable.

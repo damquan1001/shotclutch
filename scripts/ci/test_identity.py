@@ -7,6 +7,12 @@ guard=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(guard)
 old="film"+"craft"
 class IdentityGuardTests(unittest.TestCase):
+    def test_binary_shipping_assets_cannot_hide_legacy_names(self):
+        for encoding in ['ascii', 'utf-16-le', 'utf-16-be']:
+            self.assertTrue(guard.binary_branding('packaging/macos/dmg/dmg-layout.DS_Store', old.encode(encoding)))
+        self.assertFalse(guard.binary_branding('docs/m0/evidence/archive.bin', old.encode()))
+        self.assertFalse(guard.binary_branding('apps/shotclutch-web/web/index.html', old.encode()))
+        self.assertFalse(guard.binary_branding('assets/app-icon/shotclutch.png', b'original geometric artwork'))
     def test_product_and_cargo_names_are_rejected(self):
         self.assertIsNone(guard.category("apps/shotclutch/src/new.rs",old+" editor"))
         self.assertIsNone(guard.category("Cargo.toml",'name = "'+old+'-editor"'))

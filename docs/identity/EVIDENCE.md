@@ -7,14 +7,15 @@ The workspace version stays 0.13.0. Main promotion, installed applications, sign
 are outside this change.
 
 Implementation commits are `17af382d` (rename/assets/project compatibility), `2ed27bcd` (browser
-aliases and harnesses), and `317e9ad2` (recovery protection and source provenance). The project
+aliases and harnesses), `317e9ad2` (recovery protection and source provenance), and `8f9752c5`
+(regression repairs and first-Save dialog coverage). The project
 payload and schema version 15 are retained. See [the compatibility policy](../SHOTCLUTCH_IDENTITY.md).
 
 ## Checks and repairs
 
 - All 655 external Cargo package version/source/checksum tuples match the M0 lockfile; internal
   package identities and workspace edges changed without external dependency upgrades.
-- Formatting, dependency layers, asset attribution checks, seven CI helper/identity regression
+- Formatting, dependency layers, asset attribution checks, eight CI helper/identity regression
   guards and workspace/all-target Clippy passed locally. The format/fixture, file-save and
   autosave tests passed, including recovery of an inherited envelope under a native filename.
 - The sandboxed local automation tests could not bind localhost test servers. They were stopped
@@ -26,6 +27,12 @@ payload and schema version 15 are retained. See [the compatibility policy](../SH
   destination, and expect the pronunciation of the current product name.
 - A UI integration regression checks that Save requests a native destination for an inherited
   envelope and preserves the original bytes. The existing asynchronous dialog tests run with it.
+- Binary asset review found inherited names in the Finder layout. It was regenerated with the
+  correct volume alias/application entry and icon positions. The layout bytes repeat exactly;
+  installer TIFF pages are 660 x 400/72 dpi and 1320 x 800/144 dpi. The background was visually
+  checked after explicitly loading the retained Inter font. The checked binary-name guard covers
+  ASCII and both UTF-16 byte orders. This correction leaves all Rust/application source unchanged
+  from `8f9752c5`; the superseded CI candidate was stopped before acceptance.
 
 ## Cloud candidate record
 

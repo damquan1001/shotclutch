@@ -50,6 +50,12 @@ def category(path,line):
     if re.search(r'https?://[^\s<>"`)]*(?:filmcraft|artcraft)',line,re.I):return 'genuine external reference'
     if path in COMPAT and LEGACY_INPUT.search(line):return 'compatibility: '+COMPAT[path]
     return None
+
+def binary_branding(path, data):
+    # Finder aliases may use Pascal strings or UTF-16; icons must not hide old labels in metadata.
+    shipping = path.startswith(('assets/app-icon/','packaging/macos/dmg/','apps/shotclutch-web/web/'))
+    binary = Path(path).suffix.lower() in {'.ico','.icns','.png','.tif','.tiff','.ds_store'}
+    return shipping and binary and bool(WORDS.search(data.replace(b'\0', b'').decode('latin1')))
 def main():
     p=argparse.ArgumentParser();p.add_argument('--report',type=Path);a=p.parse_args()
     files=set(subprocess.check_output(['git','ls-files','--cached','--others','--exclude-standard','-z'],cwd=ROOT).decode().split('\0'))
@@ -57,14 +63,16 @@ def main():
     for name in sorted(files):
         path=ROOT/name
         if not name or not path.is_file():continue
-        try:text=path.read_bytes().decode('utf-8')
+        if WORDS.search(name) and not name.startswith(HISTORY):errors.append({'file':name,'error':'legacy name in active filename'})
+        data=path.read_bytes()
+        if binary_branding(name,data):errors.append({'file':name,'error':'legacy branding in binary shipping asset'})
+        try:text=data.decode('utf-8')
         except UnicodeError:continue
         for number,line in enumerate(text.splitlines(),1):
             if not WORDS.search(line):continue
             reason=category(name,line)
             entry={'file':name,'line':number,'category':reason,'text':line}
             (retained if reason else errors).append(entry)
-        if WORDS.search(name) and not name.startswith(HISTORY):errors.append({'file':name,'error':'legacy name in active filename'})
     report={'result':'passed' if not errors else 'failed','retained_references':retained,'unexpected':errors}
     if a.report:
         a.report.parent.mkdir(parents=True,exist_ok=True);a.report.write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
