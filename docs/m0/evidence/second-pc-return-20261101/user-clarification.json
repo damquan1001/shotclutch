@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-01",
+  "source": "direct user clarification in chat",
+  "original_project_opens_on_second_pc": true,
+  "original_export_opens_on_second_pc": true,
+  "network_during_test": "connected",
+  "returned_F_drive_files": "Previously verified entirely zero-filled; no replacement supplied yet",
+  "interpretation": "Original readability is manually confirmed. Damage to the returned copy/transfer path is suspected, not proven; no application save/export defect established.",
+  "next_action": "Archive the readable originals on the second PC, copy archive to this PC, provide path; compare source/destination archive SHA-256 where possible.",
+  "independent_output_verification": "pending readable returned files",
+  "offline_qualification": "not performed"
+}

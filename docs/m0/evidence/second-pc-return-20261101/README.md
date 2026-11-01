@@ -9,3 +9,7 @@ Independent checks found both returned project and video entirely zero-filled. T
 [Verification](verification.json) and [reproduction](verify-return.py) retain package bindings, file hashes and probe errors. The profile collector's profile-only result is expected; the separate observation form carries the user's manual pass report. Network state was entered as PASS rather than connected/disconnected; no offline pass is inferred. Sustained performance, frame drops, working set and physical A/V drift were not measured.
 
 Next: confirm the original saved project and export open on the second PC. If valid, archive those originals there and copy the archive here, preferably comparing source/destination SHA-256. Supply its path for another read-only verification. If originals are also unreadable, preserve them and provide reproduction details before testing a new export. The owner was asked about original readability and network state. No extra CI run is needed for this evidence issue.
+
+## User clarification
+
+The user confirms both the original project and export open correctly on the second PC, and the test was network-connected. [Direct clarification](user-clarification.json). Original readability is accepted as manual evidence; the returned F: copies remain zero-filled. A copy/transfer problem is suspected, not proven. Independent output counts still need a readable archive copied from the originals. This is not offline qualification.
