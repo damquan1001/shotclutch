@@ -5,6 +5,7 @@ ROOT=Path(__file__).resolve().parents[1]
 WORDS=re.compile('film'+'craft|art'+'craft|fc'+'proj',re.I)
 HISTORY=('docs/m0/','docs/filmcraft_original_docs/','crates/format/tests/fixtures/')
 COMPAT={
+ 'docs/identity/evidence/upstream-reader.json':'Executable compatibility evidence from the retained upstream reader',
  'packaging/linux/package.sh':'Inherited maintainer metadata environment override',
  'scripts/ci/package-smoke.py':'Keep both inherited and canonical media tool overrides out of standalone execution',
  'apps/shotclutch/build.rs':'Inherited Windows resource requirement environment alias',

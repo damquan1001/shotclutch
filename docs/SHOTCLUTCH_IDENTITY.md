@@ -2,7 +2,7 @@
 
 Post-M0 identity cleanup branch: codex/shotclutch-identity. Application/CLI binaries stay shotclutch and shotclutch-cli; version 0.13.0 and existing ShotClutch installer/data identities are retained. Workspace packages/imports now use shotclutch-* / shotclutch_*.
 
-New files and snapshots use .scproj and shotclutch.project; the existing payload schema remains version 15. Supported .fcproj and filmcraft.project documents still load, including historical fixtures. An opened legacy project requires Save As to a new .scproj destination. Its original stays untouched. CLI --save on a legacy project fails with instructions to use --save-as. A different existing Save As destination is never silently overwritten. No legacy project is converted merely by opening it.
+New files and snapshots use .scproj and shotclutch.project; the existing payload schema remains version 15. Supported .fcproj and filmcraft.project documents still load, including historical fixtures. An opened legacy project requires Save As to a new .scproj destination. Its original stays untouched. CLI --save on a legacy project fails with instructions to use --save-as. A different existing Save As destination is never silently overwritten. No legacy project is converted merely by opening it. New envelopes use a distinct identifier and are not promised to open in upstream readers.
 
 Canonical environment controls are SHOTCLUTCH_*. Runtime readers accept corresponding FILMCRAFT_* fallback aliases; a present canonical value, including an empty value, takes precedence. Non-Unicode canonical values are not hidden by a legacy fallback. Environment lookup is centralized in the std-only shotclutch-env leaf crate. No legacy Cargo package wrappers are introduced.
 

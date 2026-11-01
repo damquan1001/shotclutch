@@ -416,6 +416,7 @@ async fn cli() {
                 other => usage(format!("inspect: unknown `{other}` (project | sequence)")),
             };
             print(&a, &v);
+            b.finish(&a).await;
         }
         "import" => {
             let paths: Vec<String> = a.positionals.get(1..).unwrap_or_default().iter().map(|p| absolute(p)).collect();

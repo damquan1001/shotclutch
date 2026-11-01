@@ -37,6 +37,9 @@ def main():
     env = dict(os.environ, SHOTCLUTCH_CONTROL_TOKEN=token,
                FILMCRAFT_CONTROL_TOKEN="0" * 64,
                SHOTCLUTCH_CONTROL_PORT=str(port), FILMCRAFT_CONTROL_PORT="invalid")
+    for prefix in ['SHOTCLUTCH_', 'FILMCRAFT_']:
+        for tool in ['FFMPEG', 'FFPROBE']:
+            env.pop(prefix + tool, None)
     # Only the test harness uses media oracles; the packaged editor must stand alone.
     env["PATH"] = os.pathsep.join([str(options.bin_dir.resolve()), str(Path(os.environ["SystemRoot"]) / "System32")])
     assert shutil.which("ffmpeg", path=env["PATH"]) is None
@@ -110,7 +113,7 @@ def main():
                 raise RuntimeError("Export timed out")
             time.sleep(0.25)
         probe = json.loads(subprocess.check_output([
-            "ffprobe", "-v", "error", "-count_frames", "-show_streams", "-of", "json", str(rendered),
+            "ffprobe", "-v", "error", "-count_frames", "-show_streams", "-show_format", "-of", "json", str(rendered),
         ]))
         video = next(s for s in probe["streams"] if s["codec_type"] == "video")
         assert int(video["nb_read_frames"]) == 50, video
@@ -120,6 +123,9 @@ def main():
         evidence.append({"verification": "passed", "frames": 50, "stereo_samples": 80000,
                          "fixture_size": "1920x1080", "project_format": envelope["format"],
                          "project_sha256": hashlib.sha256(saved).hexdigest(),
+                         "fixture_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+                         "render_sha256": hashlib.sha256(rendered.read_bytes()).hexdigest(),
+                         "export_format_tags": probe.get("format", {}).get("tags", {}),
                          "desktop_sha256": hashlib.sha256((options.bin_dir / "shotclutch.exe").read_bytes()).hexdigest(),
                          "external_media_tools_on_child_path": False,
                          "environment_alias_precedence": "new port/token override invalid legacy values",

@@ -27,6 +27,12 @@ payload and schema version 15 are retained. See [the compatibility policy](../SH
   destination, and expect the pronunciation of the current product name.
 - A UI integration regression checks that Save requests a native destination for an inherited
   envelope and preserves the original bytes. The existing asynchronous dialog tests run with it.
+- All 17 CLI integration cases and all five asynchronous/native-destination dialog cases passed
+  locally. The new CLI regression found that inspect ignored explicit save flags; inspect now
+  uses the existing save-finalization path, so conversion and legacy save refusal are enforced.
+- The retained upstream executable rejected a newly written schema-15 native envelope with exit 1
+  and left its bytes unchanged. [Executable/hash evidence](evidence/upstream-reader.json) records
+  the local debug writer; the exact packaged desktop remains a separate gate.
 - Binary asset review found inherited names in the Finder layout. It was regenerated with the
   correct volume alias/application entry and icon positions. The layout bytes repeat exactly;
   installer TIFF pages are 660 x 400/72 dpi and 1320 x 800/144 dpi. The background was visually

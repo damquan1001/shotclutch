@@ -1,0 +1,12 @@
+{
+  "result": "passed",
+  "new_format": "shotclutch.project",
+  "schema_version": 15,
+  "native_project_sha256": "50a23372715be75e490e67cb40d8817c44a53237a4a706b5ac23a52b7c75e535",
+  "upstream_reader_sha256": "461ad09f9792955fc23e936d1b26ce6924ec911680c42e21a7624a5402c8ffee",
+  "writer_sha256": "3dfa09731af0b3e9e046488f83f2961b08c07d2482c63860c0f224060236e100",
+  "upstream_reader_exit_code": 1,
+  "upstream_reader_stderr": "filmcraft-cli: E:\\Development\\Projects\\shotclutch\\target\\identity-compatibility\\native.scproj: not a FilmCraft project: format is `shotclutch.project`, expected `filmcraft.project`\n",
+  "source_unchanged": true,
+  "writer_kind": "local debug CLI; packaged desktop workflow is a separate gate"
+}
