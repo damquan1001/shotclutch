@@ -1229,6 +1229,16 @@ impl Default for ProjectSettings {
     }
 }
 
+/// Opaque, versioned project extension. Unknown optional payloads travel with the project.
+/// A required extension must be understood before a project can be edited.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ProjectExtension {
+    pub version: u32,
+    #[serde(default)]
+    pub required: bool,
+    pub data: serde_json::Value,
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Project {
     pub name: String,
@@ -1261,6 +1271,9 @@ pub struct Project {
     /// instructions for whoever opens it next, frame numbers and the like. Schema v15.
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub notes: String,
+    /// Schema v16: opaque optional extension records, keyed by their owning namespace.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub extensions: BTreeMap<String, ProjectExtension>,
 }
 
 /// How a sequence is shown in the Timeline panel: its zoom, scroll position and track heights.
@@ -1365,6 +1378,7 @@ impl Project {
             source_graphics: BTreeMap::new(),
             narrations: BTreeMap::new(),
             notes: String::new(),
+            extensions: BTreeMap::new(),
         }
     }
 

@@ -53,6 +53,7 @@ pub mod shortcut_presets;
 pub mod shortcuts;
 pub mod source_monitor;
 pub mod sync;
+pub mod transactions;
 pub mod transcript;
 pub mod trim;
 pub mod voiceover;

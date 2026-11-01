@@ -1,14 +1,14 @@
 # ShotClutch — Development Tracker
 
-Baseline 0.1 · Last updated: 2026-10-27 · Authoritative living work record.
+Baseline 0.1 · Last updated: 2026-11-02 · Authoritative living work record.
 
 ## Current state
 
 The documentation baseline is committed at `b739515e04b3467ed8b681e6296f7dc5867f43dd`. M0 implementation is delivered on `codex/m0-foundation`, based on inherited source `3a5f217b348bf0c9dc1678f305c34b6c88617f37`. The initial working tree was clean. Production application revision: `3aeef47218c74067fb4998b0d14e4aacee7dad10`; subsequent commits add test, measurement and evidence refinements. See [the foundation audit](m0/FOUNDATION_AUDIT.md), [executed evidence](m0/EVIDENCE.md), [qualification procedure](m0/QUALIFICATION.md), and [upstream policy](m0/UPSTREAM_POLICY.md).
 
-Current milestone: **M0 — Foundation audit and reproducible baseline, Done (2026-11-01).** Original scope CORE-001, CORE-005 and PERF-001 is complete: standalone identity/legal/capability audit, clean-install/core-workflow acceptance, reproducible locked builds, two green same-source hosted CI runs, package validation and comparable baseline captures. The verified second-PC result is accepted. [Completion record](m0/M0_COMPLETION.md). Expanded runtime/release qualification and repository promotion remain separate work.
+Current milestone: **M1 — Reliable editing foundation, In Progress (2026-11-02).** M0 is Done (2026-11-01). Original scope CORE-001, CORE-005 and PERF-001 is complete: standalone identity/legal/capability audit, clean-install/core-workflow acceptance, reproducible locked builds, two green same-source hosted CI runs, package validation and comparable baseline captures. The verified second-PC result is accepted. [Completion record](m0/M0_COMPLETION.md). Expanded runtime/release qualification and repository promotion remain separate work.
 
-There are **48 implementation requirements: 44 in v0.1 (M0–M4) and 4 in M5**. CORE-001, CORE-005 and PERF-001 have their bounded M0 acceptance evidence and are Done. No broader feature or performance-release qualification is implied. M1–M5 remain Planned; no new feature milestone has started.
+There are **48 implementation requirements: 44 in v0.1 (M0–M4) and 4 in M5**. CORE-001, CORE-005 and PERF-001 have their bounded M0 acceptance evidence and are Done. No broader feature or performance-release qualification is implied. M1 is In Progress on `codex/m1-editing-foundation`; M2–M5 remain Planned. See [M1 implementation and acceptance](m1/IMPLEMENTATION.md).
 
 ## How to maintain this document
 
@@ -32,7 +32,7 @@ Each active item must have an owner, implementation/change reference, linked tes
 | Milestone | Scope | Status | Exit evidence |
 |---|---|---|---|
 | M0 | Audit, standalone build, baseline measurements | Done | [Completion and acceptance mapping](m0/M0_COMPLETION.md): local/clean-install/core evidence, two independent same-source green CI runs, accepted second-PC verification and paired baselines. Expanded runtime/release and promotion gates remain separately tracked. |
-| M1 | Durable project, exact commands, native media, local editing | Not started | None |
+| M1 | Durable project, exact commands, native media, local editing | In Progress | [Implementation and acceptance register](m1/IMPLEMENTATION.md); CI reduction and structural staging first |
 | M2 | Smart Rough Cut and workspace | Not started | None |
 | M3 | Semantic indexing, verified agent, MCP/CLI | Not started | None |
 | M4 | ACP/Skills, native scenes, interchange foundation, v0.1 qualification | Not started | None |
@@ -47,7 +47,7 @@ Dependencies below are completion gates, not a requirement to postpone design or
 | ID | Work item | Priority | Milestone | Status | Depends on |
 |---|---|---|---|---|---|
 | CORE-001 | Build a standalone ShotClutch fork | P0 | M0 | Done | — |
-| CORE-002 | Use one canonical project with stable IDs and versioned extensions | P0 | M1 | Planned | CORE-001 |
+| CORE-002 | Use one canonical project with stable IDs and versioned extensions | P0 | M1 | In Progress | CORE-001 |
 | CORE-003 | Use integer ticks and rational rates for edit math | P0 | M1 | Planned | CORE-002 |
 | CORE-004 | Persist changes crash-safely | P0 | M1 | Planned | CORE-002 |
 | CORE-005 | Establish reproducible build, automated checks, release packaging plan, and upstream-change policy | P0 | M0 | Done | CORE-001 |
@@ -67,8 +67,8 @@ Dependencies below are completion gates, not a requirement to postpone design or
 | AI-002 | Search local transcripts, tags, OCR, captions, and embeddings where available | P1 | M3 | Planned | AI-001 |
 | AI-003 | Support progressive visual inspection from contact sheets to bounded clips and precise frames | P1 | M3 | Planned | AI-001, MEDIA-003 |
 | AI-004 | Verify agent changes against composed timeline output and audio where relevant | P1 | M3 | Planned | AI-003, AGENT-002 |
-| AGENT-001 | Route human and automated mutations through the same typed command service | P0 | M1 | Planned | CORE-002, CORE-003, SEC-002 |
-| AGENT-002 | Support revision-checked atomic transactions with preview, commit, rollback, cancellation, and grouped undo | P0 | M1 | Planned | AGENT-001, CORE-004 |
+| AGENT-001 | Route human and automated mutations through the same typed command service | P0 | M1 | In Progress | CORE-002, CORE-003, SEC-002 |
+| AGENT-002 | Support revision-checked atomic transactions with preview, commit, rollback, cancellation, and grouped undo | P0 | M1 | In Progress | AGENT-001, CORE-004 |
 | AGENT-003 | Execute bounded understand/inspect/plan/edit/verify/report loops with progress and cancellation | P1 | M3 | Planned | AGENT-002, AI-002, AI-004, AGENT-004 |
 | AGENT-004 | Enforce Ask, Assist, and Autonomous policies independently of client transport | P0 | M3 | Planned | SEC-002, AGENT-002 |
 | AGENT-005 | Store transaction rationale and generated-asset provenance without secrets | P1 | M3 | Planned | CORE-002, AGENT-002, SEC-004 |
@@ -92,7 +92,7 @@ Dependencies below are completion gates, not a requirement to postpone design or
 | SEC-004 | Keep provider credentials outside projects/logs and support retention/deletion controls | P0 | M3 | Planned | SEC-001, SEC-002 |
 | PERF-001 | Establish reproducible performance fixtures and baseline captures with hardware, software, media, and cache conditions | P0 | M0 | Done | CORE-001 |
 | PERF-002 | Meet or explicitly renegotiate the release budgets in document 14 on declared hardware | P1 | M4 | Planned | PERF-001, MEDIA-005, MOTION-004 |
-| TEST-001 | Run invariant, command, persistence, and regression checks in CI | P0 | M1 | Planned | CORE-005, CORE-004, AGENT-002 |
+| TEST-001 | Run invariant, command, persistence, and regression checks in CI | P0 | M1 | In Progress | CORE-005, CORE-004, AGENT-002 |
 | TEST-002 | Pass the v0.1 release workflow, security, recovery, and qualification gates | P0 | M4 | Planned | TEST-001, PERF-002; all v0.1 requirements |
 
 ## Active work and evidence register
@@ -196,3 +196,7 @@ At session start, read this file, the relevant requirement, and its owning speci
 | IDENTITY-001 | Done | Codex | Branch `codex/shotclutch-identity` from completed M0 `9114bb6e`; qualified implementation `a6229303`. All 14 local checks passed; final Windows/Linux/macOS checks passed 2,644 / 2,660 / 2,614 Rust cases, zero failed and 12 existing ignored each. Eight helper/identity guards, packaging lint, release builds, browser aliases, unsigned MSI/ZIP, hosted install/uninstall and exact packaged Windows desktop passed. Installed and desktop exports verified at 50 frames / 80,000 stereo sample frames. [Final CI](https://github.com/damquan1001/shotclutch/actions/runs/41308404270) and required aggregate passed. [Validation evidence](identity/EVIDENCE.md); [behavior/compatibility](SHOTCLUTCH_IDENTITY.md). Main promotion, signing and publishing untouched. |
 
 The original M0 reports and fixtures remain unchanged. This work changes product identity and compatibility boundaries, not M1 project/transaction architecture. Retained copyright/asset provenance is not rewritten as ShotClutch authorship.
+
+## M1 active work — 2026-11-02
+
+Owner: Codex. Branch: `codex/m1-editing-foundation`. [Implementation, test scope, remaining gates and next actions](m1/IMPLEMENTATION.md). Ready-PR-only single-job hosted CI replaces routine matrix/package runs; full workflows remain manual. CORE-002, AGENT-001/002 and TEST-001 are In Progress for the initial structural staging and focused correctness gate. No M1 requirement is marked Done.

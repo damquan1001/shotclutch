@@ -1,0 +1,112 @@
+name: Full qualification (manual)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+env:
+  PYTHONUTF8: 1
+  PYTHONIOENCODING: utf-8
+  CARGO_TERM_COLOR: never
+  CARGO_BUILD_JOBS: 2
+  CARGO_INCREMENTAL: 0
+  CARGO_PROFILE_DEV_DEBUG: 0
+  CARGO_PROFILE_TEST_DEBUG: 0
+jobs:
+  checks:
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        os: [windows-2025, ubuntu-24.04, macos-15]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ matrix.os == 'windows-2025' && 180 || 120 }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Linux build dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libxkbcommon-dev libwayland-dev libx11-dev libxcb1-dev libxcursor-dev libxrandr-dev libxi-dev libfontconfig1-dev libfreetype-dev libasound2-dev mesa-vulkan-drivers
+      - name: Cargo dependencies (compiled targets are never cached)
+        id: cargo-cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: cargo-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', 'Cargo.lock') }}
+      - name: Install and verify locked media oracles
+        run: python scripts/ci/setup-oracles.py
+      - name: Install checksum-locked DXC for hosted Windows GPU tests
+        if: runner.os == 'Windows'
+        run: python scripts/ci/setup-windows-gpu.py
+      - name: Require and identify the hosted GPU adapter
+        env:
+          SHOTCLUTCH_REQUIRE_GPU: 1
+          SHOTCLUTCH_CI_GPU_BACKEND: ${{ runner.os == 'Windows' && 'dx12' || runner.os == 'Linux' && 'vulkan' || 'metal' }}
+          SHOTCLUTCH_CI_DX12_COMPILER: ${{ runner.os == 'Windows' && 'dxc' || 'auto' }}
+        run: python scripts/ci/run-checks.py gpu-probe
+      - name: Complete checks with durable command logs
+        env:
+          SHOTCLUTCH_REQUIRE_GPU: 1
+          SHOTCLUTCH_CI_GPU_BACKEND: ${{ runner.os == 'Windows' && 'dx12' || runner.os == 'Linux' && 'vulkan' || 'metal' }}
+          SHOTCLUTCH_CI_DX12_COMPILER: ${{ runner.os == 'Windows' && 'dxc' || 'auto' }}
+          CARGO_CACHE_HIT: ${{ steps.cargo-cache.outputs.cache-hit }}
+        run: python scripts/ci/run-checks.py checks
+      - name: Retain diagnostics on success or failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: checks-${{ matrix.os }}-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            target/ci/evidence
+            target/ci/identity-residuals.json
+            target/ci/oracles/manifest.json
+            target/ci/dxc/manifest.json
+          retention-days: 14
+          if-no-files-found: warn
+  release-builds:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Linux build dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libxkbcommon-dev libwayland-dev libx11-dev libxcb1-dev libxcursor-dev libxrandr-dev libxi-dev libfontconfig1-dev libfreetype-dev libasound2-dev mesa-vulkan-drivers
+      - name: Release build and Linux browser compilation on fresh disk
+        run: python scripts/ci/run-checks.py build
+      - name: Browser identity aliases in the compiled application
+        if: runner.os == 'Linux'
+        run: |
+          cargo install wasm-bindgen-cli --version 0.2.129 --locked
+          cargo xtask web --dev
+          python scripts/ci/web-identity.py
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: release-build-${{ matrix.os }}-${{ github.sha }}-${{ github.run_attempt }}
+          path: target/ci/evidence
+          retention-days: 14
+          if-no-files-found: warn
+  windows-package:
+    uses: ./.github/workflows/release.yml
+  required:
+    name: Full qualification required
+    if: always()
+    needs: [checks, release-builds, windows-package]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: All prerequisite jobs passed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: python -c 'import json,os; results=json.loads(os.environ["RESULTS"]); assert all(job["result"]=="success" for job in results.values()), results'

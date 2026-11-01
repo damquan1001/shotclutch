@@ -39,6 +39,8 @@
 //!   would drop them when saving.
 //! - **v15**: project notes (`Project::notes`, Window ▸ Project Notes). No-op step; older builds
 //!   would drop them when saving.
+//! - **v16** (ShotClutch M1): opaque versioned project extensions. Unknown optional records
+//!   round-trip; unknown required records are refused before the project reaches the editor.
 
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable))]
 
@@ -69,8 +71,10 @@ pub type Migration = fn(Value) -> Result<Value, String>;
 
 /// `MIGRATIONS[i]` upgrades schema `i + 1` to `i + 2`. Append one function per schema bump; never
 /// edit a shipped one.
-pub const MIGRATIONS: &[Migration] =
-    &[v1_to_v2, v2_to_v3, v3_to_v4, v4_to_v5, v5_to_v6, v6_to_v7, v7_to_v8, v8_to_v9, v9_to_v10, v10_to_v11, v11_to_v12, v12_to_v13, v13_to_v14, v14_to_v15];
+pub const MIGRATIONS: &[Migration] = &[
+    v1_to_v2, v2_to_v3, v3_to_v4, v4_to_v5, v5_to_v6, v6_to_v7, v7_to_v8, v8_to_v9, v9_to_v10, v10_to_v11, v11_to_v12, v12_to_v13, v13_to_v14, v14_to_v15,
+    v15_to_v16,
+];
 
 /// The schema version this build writes (and the newest it reads).
 pub const SCHEMA_VERSION: u32 = MIGRATIONS.len() as u32 + 1;
@@ -80,6 +84,8 @@ pub const OLDEST_SCHEMA: u32 = 1;
 
 #[derive(Debug, thiserror::Error)]
 pub enum FormatError {
+    #[error("CAPABILITY_UNAVAILABLE: required project extension `{name}` v{version} is not supported")]
+    UnsupportedExtension { name: String, version: u32 },
     #[error("not a ShotClutch project: {0}")]
     NotAProject(String),
     #[error(
@@ -234,6 +240,16 @@ pub fn decode(bytes: &[u8]) -> Result<Loaded, FormatError> {
 /// Refuse only values that would overflow or exhaust memory later (`Sequence::check_bounds`);
 /// structural rules such as overlaps are left to the editor, so projects that open today still open.
 fn validate_loaded(mut loaded: Loaded) -> Result<Loaded, FormatError> {
+    for (name, extension) in &loaded.project.extensions {
+        if extension.version == 0 {
+            return Err(FormatError::Corrupt(format!("extension `{name}` must have a positive version")));
+        }
+        // There are no registered required extension implementations yet. Fail closed rather
+        // than allowing an edit/save to silently invalidate a future feature's invariants.
+        if extension.required {
+            return Err(FormatError::UnsupportedExtension { name: name.clone(), version: extension.version });
+        }
+    }
     // Embedded LUT text is rendered on the hot path. Drop oversize entries at load time so a
     // hostile project cannot retain an unrenderable multi-megabyte source or repeatedly offer it
     // to renderers. Clips that refer to one simply have no LUT, like a deleted library entry.
@@ -407,13 +423,18 @@ fn v14_to_v15(doc: Value) -> Result<Value, String> {
     Ok(doc)
 }
 
+/// v15 → v16: optional versioned extension records; existing project data is unchanged.
+fn v15_to_v16(doc: Value) -> Result<Value, String> {
+    Ok(doc)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn schema_version_matches_table() {
-        assert_eq!(SCHEMA_VERSION, 15);
+        assert_eq!(SCHEMA_VERSION, 16);
     }
 
     #[test]
