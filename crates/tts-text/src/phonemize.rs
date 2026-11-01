@@ -1256,7 +1256,7 @@ PERCENT  P ER0 S EH1 N T
             ("fives", "fˈIvz"),
             // Letter-to-sound for unknown words.
             ("kokoro", "kˈɑkɑɹɑ"),
-            ("shotclutch", "fˈɪlmkɹæft"),
+            ("shotclutch", "ʃˈɑtklʌʧ"),
             ("knight", "nˈIt"),
             // Punctuation attachment, kept and dropped.
             ("hello, world.", "həlˈO, wˈɜɹld."),
@@ -1300,7 +1300,7 @@ PERCENT  P ER0 S EH1 N T
     #[test]
     fn letter_to_sound_cases() {
         let cases: [(&str, &str); 36] = [
-            ("shotclutch", "fˈɪlmkɹæft"),
+            ("shotclutch", "ʃˈɑtklʌʧ"),
             ("narration", "næɹˈæʃən"),
             ("kokoro", "kˈɑkɑɹɑ"),
             ("phone", "fˈOn"),

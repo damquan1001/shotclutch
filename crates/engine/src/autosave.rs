@@ -1091,7 +1091,13 @@ mod identity_tests {
     #[test]
     fn default_data_directory_is_separate_from_upstream() {
         let dir = data_dir_from(|k| matches!(k, "APPDATA" | "HOME" | "XDG_DATA_HOME").then(|| PathBuf::from("account")), None).unwrap();
-        assert!(dir.to_string_lossy().to_ascii_lowercase().ends_with("shotclutch"));
-        assert!(!dir.to_string_lossy().contains("ShotClutch"));
+        let suffix = if cfg!(target_os = "macos") {
+            "Library/Application Support/ShotClutch"
+        } else if cfg!(windows) {
+            "ShotClutch"
+        } else {
+            "shotclutch"
+        };
+        assert_eq!(dir, PathBuf::from("account").join(suffix));
     }
 }

@@ -173,6 +173,29 @@ fn cancelled_or_lost_dialogs_do_nothing_and_one_dialog_is_open_at_a_time() {
 }
 
 #[test]
+fn saving_an_inherited_project_requests_a_native_destination_and_preserves_its_source() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = dir.path().join("inherited.scproj");
+    let destination = dir.path().join("converted.scproj");
+    let mut d = Driver::new(true);
+    let mut envelope: Value = serde_json::from_slice(&shotclutch_format::encode(&d.app().session.project, false)).unwrap();
+    envelope["format"] = shotclutch_format::LEGACY_FORMAT_ID.into();
+    let original = serde_json::to_vec(&envelope).unwrap();
+    std::fs::write(&source, &original).unwrap();
+    d.app().session.execute("file.open", json!({"path": source.to_string_lossy()})).unwrap();
+    assert_eq!(d.ok("ui.menu.invoke", json!({"id": "file.save"})), json!({"dialog": "open"}));
+    let (dialog, answer) = d.asked();
+    assert!(matches!(dialog, FileDialog::SaveProject { name } if name.ends_with(".scproj")));
+    assert_eq!(std::fs::read(&source).unwrap(), original);
+    answer.send(vec![destination.to_string_lossy().into_owned()]).unwrap();
+    d.frames(3);
+    assert_eq!(std::fs::read(source).unwrap(), original);
+    assert_eq!(d.app().session.path.as_deref(), destination.to_str());
+    let saved: Value = serde_json::from_slice(&std::fs::read(destination).unwrap()).unwrap();
+    assert_eq!(saved["format"], shotclutch_format::FORMAT_ID);
+}
+
+#[test]
 fn a_panel_folder_arrives_in_its_open_dialog_and_nowhere_once_it_is_closed() {
     let mut d = Driver::new(true);
     // Settings ▸ Media Cache ▸ Location ▸ Browse…

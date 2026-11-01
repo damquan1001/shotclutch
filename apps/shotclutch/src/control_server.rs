@@ -6,7 +6,7 @@
 //! bounded ([`MAX_LINE`]) and so is the number of open connections ([`MAX_CONNECTIONS`]); junk
 //! never reaches the UI thread. Every request must carry the session credential from
 //! `SHOTCLUTCH_CONTROL_TOKEN`; without a configured credential the listener stays closed.
-//! See `docs/control-protocol.md`.
+//! See `docs/SHOTCLUTCH_IDENTITY.md` for canonical interfaces and compatibility.
 
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
@@ -37,7 +37,7 @@ fn start_with_token(port: u16, ctx: egui::Context, token: Option<String>) -> Rec
     // without exposing it in command-line arguments, logs, or a shared discovery file.
     let Some(token) = token.filter(|t| t.len() == 64 && t.bytes().all(|b| b.is_ascii_hexdigit())) else {
         eprintln!(
-            "shotclutch: control server disabled: SHOTCLUTCH_CONTROL_TOKEN must contain 64 random hex characters (inherited aliases are accepted; see docs/control-protocol.md)"
+            "shotclutch: control server disabled: SHOTCLUTCH_CONTROL_TOKEN must contain 64 random hex characters (inherited aliases are accepted; see docs/SHOTCLUTCH_IDENTITY.md)"
         );
         return rx;
     };

@@ -27,6 +27,7 @@ def main():
             ['cargo', 'test', '--locked', '-p', 'shotclutch-cli', '--bin', 'shotclutch-cli'],
             ['cargo', 'test', '--locked', '-p', 'shotclutch-format', '--test', 'fixtures'],
             ['cargo', 'test', '--locked', '-p', 'shotclutch-cli', '--test', 'it'],
+            ['cargo', 'test', '--locked', '-p', 'shotclutch-ui-egui', '--test', 'it', 'native_dialogs_ui'],
             ['cargo', 'test', '--locked', '-p', 'shotclutch-ui-egui', '--example', 'bench'],
             ['cargo', 'test', '--locked', '--workspace', '--doc'],
         ],

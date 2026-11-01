@@ -1,6 +1,6 @@
 //! Scripted UI tests: the real `ShotClutchApp` runs headless under `egui_kittest` (no window, no
 //! GPU) and is driven through the same JSON control channel that agents use over TCP/MCP
-//! (`docs/control-protocol.md`). Each test opens the demo project, sends control requests
+//! (`docs/SHOTCLUTCH_IDENTITY.md`). Each test opens the demo project, sends control requests
 //! (`engine.execute`, `ui.menu.invoke`, `ui.click`, `ui.inspect`, …) between frames and asserts on
 //! the replies and on `sequence.inspect` JSON.
 //!

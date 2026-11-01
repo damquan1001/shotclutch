@@ -6,7 +6,7 @@ body:
     attributes:
       value: |
         Please report one problem per issue and search existing issues first.
-        For security vulnerabilities, read this repository's SECURITY.md instead of posting sensitive details here. [Historical upstream guidance](https://github.com/storytold/filmcraft/blob/main/SECURITY.md) remains a provenance reference.
+        For security vulnerabilities, contact this repository's owner privately instead of posting sensitive details here. [Historical upstream guidance](https://github.com/storytold/filmcraft/blob/main/SECURITY.md) remains a provenance reference.
   - type: input
     id: version
     attributes:

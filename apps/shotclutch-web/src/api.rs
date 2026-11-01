@@ -1,6 +1,6 @@
 //! `window.shotclutch`: the control channel / agent API for the page.
 //!
-//! The same JSON methods as the desktop control channel (`docs/control-protocol.md`) and the
+//! The same JSON methods as the desktop control channel (`docs/SHOTCLUTCH_IDENTITY.md`) and the
 //! same engine commands as MCP, as promises:
 //!
 //! ```js

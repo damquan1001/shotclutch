@@ -236,11 +236,12 @@ fn saving_without_previews_creates_no_previews_folder() {
     assert!(!folder.join("ShotClutch Previews").exists());
     // the first render creates it
     let (mut r, _) = session("save-empty-render");
-    r.execute("file.save", json!({"path": path})).unwrap();
+    let render_path = folder.join("Rendered.scproj").to_string_lossy().to_string();
+    r.execute("file.save", json!({"path": render_path})).unwrap();
     assert!(!folder.join("ShotClutch Previews").exists());
     let v = r.execute("sequence.renderEffectsInToOut", json!({"wait": true})).unwrap();
     job_ok(&r, &v);
-    assert!(folder.join("ShotClutch Previews").join("Film").is_dir());
+    assert!(folder.join("ShotClutch Previews").join("Rendered").is_dir());
     assert_eq!(states(&r), vec!["green", "none"]);
     let _ = std::fs::remove_dir_all(&folder);
 }

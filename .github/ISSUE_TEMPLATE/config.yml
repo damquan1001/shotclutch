@@ -2,7 +2,7 @@ blank_issues_enabled: true
 contact_links:
   - name: Historical upstream security guidance
     url: https://github.com/storytold/filmcraft/blob/main/SECURITY.md
-    about: Upstream reference only; ShotClutch reporting guidance is in this repository's SECURITY.md.
+    about: Upstream reference only; contact this repository's owner privately about ShotClutch security issues.
   - name: Upstream community reference
     url: https://discord.gg/artcraft
     about: Historical upstream community; not a ShotClutch support channel.
