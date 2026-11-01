@@ -1,0 +1,11 @@
+# Second-PC results: manual pass, output verification pending
+
+The user supplied the results folder on 2026-11-01. The observation form reports portable launch, import, playback, trim/undo/redo, save/reopen, export, MSI wizard/install/uninstall PASS, with no external application required. Preserve this as direct manual evidence, distinct from independent artifact verification.
+
+Profile: Windows 10 Enterprise x64 10.0.19045; Intel Core i5-4690, four cores/four logical processors; Radeon RX 570 driver 31.0.21925.1001; 25,675,120,640 physical-memory bytes (approximately 24 GiB); 1920x1080 display. This is a separate physical machine and an observed Windows 10 profile, not a claimed Windows 11 second profile. Both package hashes and the generated fixture hash match the supplied run-40834967572 attempt-4 kit.
+
+Independent checks found both returned project and video entirely zero-filled. The original F: files and workspace copies have matching hashes. Project: 33,443 bytes, zero nonzero bytes. Video: 21,486,273 bytes, zero nonzero bytes; ffprobe reports moov atom not found. Neither project readability nor output frame/sample counts can be independently verified. No cause is assigned to the product, storage or transfer until the original files on the second PC are checked. Do not overwrite originals or infer a pass from the filenames/sizes.
+
+[Verification](verification.json) and [reproduction](verify-return.py) retain package bindings, file hashes and probe errors. The profile collector's profile-only result is expected; the separate observation form carries the user's manual pass report. Network state was entered as PASS rather than connected/disconnected; no offline pass is inferred. Sustained performance, frame drops, working set and physical A/V drift were not measured.
+
+Next: confirm the original saved project and export open on the second PC. If valid, archive those originals there and copy the archive here, preferably comparing source/destination SHA-256. Supply its path for another read-only verification. If originals are also unreadable, preserve them and provide reproduction details before testing a new export. The owner was asked about original readability and network state. No extra CI run is needed for this evidence issue.

@@ -1,0 +1,61 @@
+{
+  "source_revision": "a7fbcf2ffba3156bef1e175d30880670d7ff3bfc",
+  "run_id": 40834967572,
+  "package_attempt": 4,
+  "input_folder": "F:\\second-pc-a7fbcf2f\\second-pc-a7fbcf2f\\results",
+  "profile_sha256": "657adbb5682fd273b28c0e236e608f4c3c5651f0113cabc1f612b23a7ec5284e",
+  "observations_sha256": "9d40b58b421b0ef859b8e835057f0dd9b59dd45531d7d17ffc66e3a10e59b18d",
+  "package_hashes": [
+    {
+      "name": "shotclutch-0.13.0-windows-x64-portable.zip",
+      "expected_sha256": "ef3611a1ca14e8ac6eaa3da3c1576bdc38f949f0ea753ae58fbcece04bcaeeaa",
+      "reported_sha256": "ef3611a1ca14e8ac6eaa3da3c1576bdc38f949f0ea753ae58fbcece04bcaeeaa",
+      "matches": true
+    },
+    {
+      "name": "shotclutch-0.13.0-windows-x64.msi",
+      "expected_sha256": "34cfe7c13c873a94909ff5268d4ab99efafd9e9b762e6e0f94c6bc6d67cadf65",
+      "reported_sha256": "34cfe7c13c873a94909ff5268d4ab99efafd9e9b762e6e0f94c6bc6d67cadf65",
+      "matches": true
+    }
+  ],
+  "fixture_hash": {
+    "expected_sha256": "525bd6c2f9f5f30de38dfb081ff43e6908c450f92ddf68570bf545b2d5f5e614",
+    "reported_sha256": "525bd6c2f9f5f30de38dfb081ff43e6908c450f92ddf68570bf545b2d5f5e614",
+    "matches": true
+  },
+  "file_integrity": [
+    {
+      "name": "ShotClutch Demo.fcproj",
+      "bytes": 33443,
+      "sha256": "49b2a84baf2abeb5c0ac10cadd7b2fd571c80befe5fdd72f95e06e58b6e0c75f",
+      "nonzero_bytes": 0,
+      "all_zero": true
+    },
+    {
+      "name": "Test.mov",
+      "bytes": 21486273,
+      "sha256": "e9b1ee0fbbf91c00428612b90c3fe03088473fb404c0c5c23a2c47a98b0dbe4b",
+      "nonzero_bytes": 0,
+      "all_zero": true
+    }
+  ],
+  "project_parse": {
+    "result": "unreadable",
+    "error": "Expecting value: line 1 column 1 (char 0)"
+  },
+  "media_probe": {
+    "exit_code": 1,
+    "stderr": "[mov,mp4,m4a,3gp,3g2,mj2 @ 000001aba48f6580] moov atom not found\r\nF:\\second-pc-a7fbcf2f\\second-pc-a7fbcf2f\\results\\Test.mov: Invalid data found when processing input\r\n",
+    "result": null
+  },
+  "manual_workflow": "User observation form reports PASS; accepted as manual evidence distinct from independent output verification",
+  "network_state": "Observation says PASS, connected/disconnected unknown; clarification requested",
+  "result": "needs_original_or_recopy",
+  "os_qualification_scope": "Observed Windows 10 Enterprise x64 build 19045; not Windows 11 second-profile qualification",
+  "limitations": [
+    "No independent project or export pass from zero-filled files",
+    "No measured dropped frames, memory, physical A/V drift or sustained playback qualification",
+    "Cause of zero-filled artifacts unknown; not attributed to product or transfer without originals"
+  ]
+}
