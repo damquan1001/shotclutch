@@ -299,10 +299,19 @@ pub fn decode(bytes: &[u8]) -> Result<Loaded, FormatError> {
 /// structural rules such as overlaps are left to the editor, so projects that open today still open.
 fn validate_loaded(mut loaded: Loaded) -> Result<Loaded, FormatError> {
     if let Some(state) = &loaded.edit_state {
-        if state.version != 1 {
+        if state.version == 1 && !state.operations.is_empty() {
+            return Err(FormatError::Corrupt("operation receipts require document state version 2".into()));
+        }
+        if !(1..=2).contains(&state.version) {
             return Err(FormatError::Corrupt(format!("CAPABILITY_UNAVAILABLE: document state version {}", state.version)));
         }
-        if state.revision == 0 || state.revision == u64::MAX || state.next_id > Project::MAX_NEXT_ID || state.undo.len() > 200 || state.redo.len() > 200 {
+        if state.revision == 0
+            || state.revision == u64::MAX
+            || state.next_id > Project::MAX_NEXT_ID
+            || state.undo.len() > 200
+            || state.redo.len() > 200
+            || state.operations.len() > 128
+        {
             return Err(FormatError::Corrupt("invalid document revision, ID allocator or history length".into()));
         }
     }

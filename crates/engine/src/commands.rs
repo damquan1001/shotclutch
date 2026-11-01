@@ -1203,6 +1203,7 @@ fn build() -> Vec<CommandSpec> {
             let name = str_p(p, "name").unwrap_or("Untitled").to_string();
             s.project = std::sync::Arc::new(shotclutch_project::Project::new(&name));
             s.document_id = Default::default();
+            s.operation_records.clear();
             s.id_watermark = s.project.next_id;
             s.history = Default::default();
             s.history.limit = 200;
@@ -1221,6 +1222,7 @@ fn build() -> Vec<CommandSpec> {
             let (p, seq) = crate::demo::demo_project(&s.media);
             s.project = std::sync::Arc::new(p);
             s.document_id = Default::default();
+            s.operation_records.clear();
             s.id_watermark = s.project.next_id;
             s.history = Default::default();
             s.history.limit = 200;
@@ -3620,6 +3622,7 @@ fn build() -> Vec<CommandSpec> {
     v.extend(crate::project_panel::commands());
     v.extend(crate::media_browser::commands());
     v.extend(crate::paste_media::commands());
+    v.extend(crate::service::commands());
     // Edit ▸ Label ▸ <colour>, Paste Attributes, subclips, Video / Audio Options, Replace With Clip…
     // and their menu order
     crate::clip_ops::apply_layout(&mut v);
@@ -4694,6 +4697,7 @@ fn install_project(
     s.media.add_stored(&proj, path.as_deref());
     s.project = std::sync::Arc::new(proj);
     s.history = restored.history;
+    s.operation_records = restored.operations;
     s.document_id = restored.id;
     s.id_watermark = restored.next_id;
     s.state = crate::Session::default().state;
@@ -4776,6 +4780,7 @@ fn recover(s: &mut Session, id: Option<&str>) -> Result<Value> {
     s.document_id = recovered.document_id;
     s.id_watermark = recovered.id_watermark;
     s.history = std::mem::take(&mut recovered.history);
+    s.operation_records = std::mem::take(&mut recovered.operation_records);
     s.state = std::mem::take(&mut recovered.state);
     s.revision = recovered.revision;
     s.saved_revision = 0;

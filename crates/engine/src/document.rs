@@ -18,6 +18,7 @@ pub(crate) struct Snapshot {
     pub legacy_identity: bool,
     pub loaded_schema: u32,
     pub view: ProjectView,
+    pub operations: Vec<shotclutch_format::session::OperationRecord>,
 }
 
 impl Snapshot {
@@ -40,12 +41,13 @@ impl Snapshot {
                 .collect()
         };
         let state = DocumentState {
-            version: 1,
+            version: 2,
             project_id: self.project_id,
             revision: self.revision,
             next_id: self.next_id.max(self.project.next_id),
             undo: entries(&self.history.undo)?,
             redo: entries(&self.history.redo)?,
+            operations: self.operations.clone(),
         };
         let info = RecoveryInfo { project_path: self.path.clone(), legacy_identity: self.legacy_identity, source_schema: self.loaded_schema };
         let mut project = (*self.project).clone();
@@ -63,13 +65,20 @@ pub(crate) struct Restored {
     pub revision: u64,
     pub next_id: u64,
     pub history: History,
+    pub operations: Vec<shotclutch_format::session::OperationRecord>,
 }
 
 /// Validate every retained snapshot before changing the live session. Never recover a project
 /// while silently discarding corrupt/unsupported history or permitting recursive history files.
 pub(crate) fn restore(state: Option<DocumentState>, project: &Project) -> Result<Restored, String> {
     let Some(state) = state else {
-        return Ok(Restored { id: DocumentId::default(), revision: 1, next_id: project.next_id, history: History { limit: 200, ..Default::default() } });
+        return Ok(Restored {
+            id: DocumentId::default(),
+            revision: 1,
+            next_id: project.next_id,
+            history: History { limit: 200, ..Default::default() },
+            operations: Vec::new(),
+        });
     };
     let mut next_id = state.next_id.max(project.next_id);
     let mut entries = |snapshots: Vec<HistorySnapshot>| -> Result<Vec<(String, Arc<Project>)>, String> {
@@ -87,7 +96,14 @@ pub(crate) fn restore(state: Option<DocumentState>, project: &Project) -> Result
     };
     let undo = entries(state.undo)?;
     let redo = entries(state.redo)?;
-    Ok(Restored { id: state.project_id, revision: state.revision, next_id, history: History { undo, redo, limit: 200, merge_key: None } })
+    crate::service::validate_records(&state.operations, state.project_id)?;
+    Ok(Restored {
+        id: state.project_id,
+        revision: state.revision,
+        next_id,
+        history: History { undo, redo, limit: 200, merge_key: None },
+        operations: state.operations,
+    })
 }
 
 impl Session {
@@ -102,6 +118,7 @@ impl Session {
             legacy_identity: self.legacy_project_identity,
             loaded_schema: self.loaded_schema,
             view: self.project_view(),
+            operations: self.operation_records.clone(),
         }
     }
 }

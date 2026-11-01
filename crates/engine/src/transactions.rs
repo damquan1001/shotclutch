@@ -3,8 +3,8 @@
 //! Commands use the existing edit service; the staged session has no persistence worker. A
 //! preview is process-local and cannot be deserialized or execute file/network operations.
 //! Native durable commits acknowledge the atomic project/history snapshot before publication.
-//! Scoped grants, idempotent receipts and verification policy remain required before exposing
-//! the complete external transaction contract.
+//! The service module adds scoped grants, receipts and source revalidation for the bounded
+//! external structural contract. Rendered verification remains a separate policy.
 
 use std::sync::Arc;
 
@@ -33,8 +33,49 @@ pub enum TrimMode {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "command", rename_all = "camelCase", deny_unknown_fields)]
 pub enum TimelineEdit {
-    Trim { clip: ClipId, edge: Edge, mode: TrimMode, delta: String, linked: bool },
-    Split { clips: Vec<ClipId>, time: String },
+    Trim {
+        #[serde(with = "wire_clip")]
+        clip: ClipId,
+        edge: Edge,
+        mode: TrimMode,
+        delta: String,
+        linked: bool,
+    },
+    Split {
+        #[serde(with = "wire_clips")]
+        clips: Vec<ClipId>,
+        time: String,
+    },
+}
+
+mod wire_clip {
+    use serde::{Deserializer, Serializer};
+    use shotclutch_project::{ClipId, ItemId};
+    pub fn serialize<S: Serializer>(id: &ClipId, s: S) -> Result<S::Ok, S::Error> {
+        crate::service::item_id::serialize(&ItemId(id.0), s)
+    }
+    pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<ClipId, D::Error> {
+        crate::service::item_id::deserialize(d).map(|id| ClipId(id.0))
+    }
+}
+mod wire_clips {
+    use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error};
+    use shotclutch_project::ClipId;
+    pub fn serialize<S: Serializer>(ids: &[ClipId], s: S) -> Result<S::Ok, S::Error> {
+        ids.iter().map(|id| id.0.to_string()).collect::<Vec<_>>().serialize(s)
+    }
+    pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<Vec<ClipId>, D::Error> {
+        Vec::<String>::deserialize(d)?
+            .into_iter()
+            .map(|text| {
+                let id = text.parse::<u64>().map_err(D::Error::custom)?;
+                if text != id.to_string() {
+                    return Err(D::Error::custom("expected a canonical decimal clip ID string"));
+                }
+                Ok(ClipId(id))
+            })
+            .collect()
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -49,6 +90,10 @@ pub enum TransactionError {
     PersistenceFailed(String),
     #[error("CAPABILITY_UNAVAILABLE: {0}")]
     CapabilityUnavailable(&'static str),
+    #[error("CANCELED: transaction canceled before commit")]
+    Canceled,
+    #[error("PERMISSION_DENIED: authorization was revoked or expired")]
+    PermissionDenied,
 }
 
 /// An immutable structural preview. Drop it to abort. Its project can be rendered using the
@@ -59,9 +104,13 @@ pub struct PreparedEdit {
     project: Arc<Project>,
     label: String,
     results: Vec<Value>,
+    pub(crate) operation: Option<shotclutch_format::session::OperationRecord>,
 }
 
 impl PreparedEdit {
+    pub(crate) fn is_current(&self, session: &Session) -> bool {
+        self.revision == session.revision && Arc::ptr_eq(&self.base, &session.project)
+    }
     pub fn project(&self) -> &Arc<Project> {
         &self.project
     }
@@ -93,6 +142,18 @@ impl Session {
         label: &str,
         edits: &[TimelineEdit],
     ) -> std::result::Result<PreparedEdit, TransactionError> {
+        self.prepare_edits_guarded(expected_revision, sequence, label, edits, || Ok(()))
+    }
+
+    pub(crate) fn prepare_edits_guarded(
+        &self,
+        expected_revision: u64,
+        sequence: ItemId,
+        label: &str,
+        edits: &[TimelineEdit],
+        check: impl Fn() -> std::result::Result<(), TransactionError>,
+    ) -> std::result::Result<PreparedEdit, TransactionError> {
+        check()?;
         if self.revision != expected_revision {
             return Err(TransactionError::RevisionConflict);
         }
@@ -112,6 +173,7 @@ impl Session {
         staged.state.active_sequence = Some(sequence);
         let mut results = Vec::with_capacity(edits.len());
         for edit in edits {
+            check()?;
             let r: Result<Value> = match edit {
                 TimelineEdit::Trim { clip, edge, mode, delta, linked } => {
                     let delta = exact_tick(delta)?;
@@ -146,7 +208,7 @@ impl Session {
             };
             results.push(r.map_err(|e| TransactionError::VerificationFailed(e.to_string()))?);
         }
-        Ok(PreparedEdit { base: self.project.clone(), revision: self.revision, project: staged.project.clone(), label: label.into(), results })
+        Ok(PreparedEdit { base: self.project.clone(), revision: self.revision, project: staged.project.clone(), label: label.into(), results, operation: None })
     }
 
     /// Compare-and-swap the reviewed snapshot into this session as one undo item. An intervening
@@ -166,6 +228,13 @@ impl Session {
         }
         self.refuse_self_nesting(&prepared.project).map_err(|e| TransactionError::VerificationFailed(e.to_string()))?;
         let mut snapshot = self.document_snapshot();
+        if let Some(operation) = prepared.operation {
+            snapshot.operations.retain(|r| r.retained_until > crate::autosave::unix_now());
+            if snapshot.operations.len() >= 128 {
+                return Err(TransactionError::InvalidArgument("RESOURCE_LIMIT: retained operation receipts are full".into()));
+            }
+            snapshot.operations.push(operation);
+        }
         snapshot.project = prepared.project;
         snapshot.revision = self.revision.checked_add(1).ok_or_else(|| TransactionError::InvalidArgument("revision exhausted".into()))?;
         snapshot.next_id = snapshot.next_id.max(snapshot.project.next_id);
@@ -184,6 +253,7 @@ impl Session {
         crate::document::after_durable_commit();
         self.project = snapshot.project;
         self.history = snapshot.history;
+        self.operation_records = snapshot.operations;
         self.id_watermark = snapshot.next_id;
         self.bump();
         // Keep the user's current view/selection; staging uses an explicit sequence and targets.

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 /// Opaque identity, preserved by Save As and recovery. Historical projects adopt an identity
 /// when opened; their original files are not changed on open.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct DocumentId(uuid::Uuid);
 
@@ -38,6 +38,22 @@ pub struct DocumentState {
     pub next_id: u64,
     pub undo: Vec<HistorySnapshot>,
     pub redo: Vec<HistorySnapshot>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub operations: Vec<OperationRecord>,
+}
+
+/// A committed operation receipt. Credentials and grants never travel in project files.
+/// `request` is a digest, not a prompt or a serialized request containing private paths.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct OperationRecord {
+    pub actor: String,
+    pub operation_id: String,
+    pub idempotency_key: String,
+    pub request: String,
+    #[serde(with = "decimal_u64")]
+    pub sequence: u64,
+    pub retained_until: i64,
+    pub result: serde_json::Value,
 }
 
 /// Bind recovery location and legacy protection to the snapshot instead of a separately

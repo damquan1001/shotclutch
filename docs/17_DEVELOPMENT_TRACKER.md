@@ -87,7 +87,7 @@ Dependencies below are completion gates, not a requirement to postpone design or
 | EXPORT-005 | Qualify a CapCut adapter only after establishing a maintainable supported route | P2 | M5 | Planned | EXPORT-002 |
 | EXPORT-006 | Package/relink a project on another machine | P0 | M1 | Planned | CORE-004, MEDIA-002 |
 | SEC-001 | Complete the core offline workflow with no media or semantic data uploaded | P0 | M1 | Planned | CORE-001 |
-| SEC-002 | Enforce least-privilege grants at service boundaries | P0 | M1 | Planned | CORE-002 |
+| SEC-002 | Enforce least-privilege grants at service boundaries | P0 | M1 | In Progress | CORE-002 |
 | SEC-003 | Isolate untrusted scene code and extension execution | P0 | M4 | Planned | SEC-002 |
 | SEC-004 | Keep provider credentials outside projects/logs and support retention/deletion controls | P0 | M3 | Planned | SEC-001, SEC-002 |
 | PERF-001 | Establish reproducible performance fixtures and baseline captures with hardware, software, media, and cache conditions | P0 | M0 | Done | CORE-001 |
@@ -202,3 +202,11 @@ The original M0 reports and fixtures remain unchanged. This work changes product
 Owner: Codex. Branch: `codex/m1-editing-foundation`. [Implementation, test scope, remaining gates and next actions](m1/IMPLEMENTATION.md). Ready-PR-only single-job hosted CI replaces routine matrix/package runs; full workflows remain manual. CORE-002, AGENT-001/002 and TEST-001 are In Progress for the initial structural staging and focused correctness gate. No M1 requirement is marked Done.
 
 - 2026-11-02 — Continued M1 on `codex/m1-editing-foundation`: schema v17 document identity/history/revision and integrity, durable commit acknowledgement, recovery retry safety, migration protection, and non-rewinding allocation. CORE-004 joins the active items. [Decision and limits](m1/DEC-002_PROJECT_PERSISTENCE.md); [validation and remaining gates](m1/IMPLEMENTATION.md). No requirement is marked Done by this slice.
+
+
+- 2026-11-02 — Continued the M1 structural service: host-only expiring sequence grants,
+  exact versioned requests, original/proxy source revalidation through directory capabilities,
+  durable actor-bound idempotency receipts, cancellation, and scoped CLI/MCP adapters. SEC-002
+  joins the In Progress items. [Contract and limits](m1/SERVICE_CONTRACT.md);
+  [local validation and remaining gates](m1/IMPLEMENTATION.md). General scoped commands,
+  rendered verification, media/export/offline and portability qualification remain open.

@@ -49,6 +49,8 @@ pub mod scene_detect;
 pub mod scopes;
 pub mod sequence_extras;
 pub mod sequence_tools;
+pub mod service;
+mod service_sources;
 pub mod settings;
 pub mod shortcut_presets;
 pub mod shortcuts;
@@ -434,6 +436,9 @@ pub struct Session {
     pub document_id: shotclutch_format::session::DocumentId,
     /// Highest allocated ID, independent of undo snapshots and redo-branch deletion.
     id_watermark: u64,
+    service: service::EditorService,
+    operation_records: Vec<shotclutch_format::session::OperationRecord>,
+    owner_editor_scope: Option<service::EditorScope>,
     pub project: Arc<Project>,
     pub history: History,
     pub revision: u64,
@@ -557,6 +562,9 @@ impl Session {
             project: Arc::new(Project::new("Untitled")),
             document_id: Default::default(),
             id_watermark: 1,
+            service: Default::default(),
+            operation_records: Vec::new(),
+            owner_editor_scope: None,
             history: History { limit: 200, ..Default::default() },
             revision: 1,
             saved_revision: 1,
@@ -654,6 +662,7 @@ impl Session {
     /// Clean shutdown: flush and stop the worker. Unsaved changes stay in the journal (offered on
     /// the next launch); otherwise the session's journal directory is removed.
     pub fn shutdown(&mut self) {
+        self.close_editor_service();
         self.sync_persistence();
         if let Some(p) = self.persistence.take() {
             p.close();

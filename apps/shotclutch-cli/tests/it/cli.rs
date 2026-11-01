@@ -23,7 +23,11 @@ fn legacy_save_refuses_in_place_and_save_as_preserves_the_source() {
     json_out(&cli(&["--demo", "inspect", "project", "--save-as", current.to_str().unwrap()]));
     let mut value: Value = serde_json::from_slice(&std::fs::read(&current).unwrap()).unwrap();
     assert_eq!(value["format"], "shotclutch.project");
+    let current_schema = value["schema_version"].clone();
     value["format"] = "filmcraft.project".into();
+    value["schema_version"] = 16.into();
+    value.as_object_mut().unwrap().remove("integrity");
+    value.as_object_mut().unwrap().remove("edit_state");
     let original = serde_json::to_vec(&value).unwrap();
     let legacy = dir.join("legacy.FcPrOj");
     std::fs::write(&legacy, &original).unwrap();
@@ -35,7 +39,7 @@ fn legacy_save_refuses_in_place_and_save_as_preserves_the_source() {
     json_out(&cli(&["--project", legacy.to_str().unwrap(), "--save-as", converted.to_str().unwrap(), "inspect", "project"]));
     let native: Value = serde_json::from_slice(&std::fs::read(&converted).unwrap()).unwrap();
     assert_eq!(native["format"], "shotclutch.project");
-    assert_eq!(native["schema_version"], value["schema_version"]);
+    assert_eq!(native["schema_version"], current_schema);
     assert_eq!(std::fs::read(&legacy).unwrap(), original);
     assert!(!cli(&["--demo", "--save-as", converted.to_str().unwrap(), "inspect", "project"]).status.success());
     json_out(&cli(&["--project", converted.to_str().unwrap(), "inspect", "project"]));
@@ -407,4 +411,61 @@ fn export_with_missing_media_fails_unless_allowed() {
     assert!(render.status.success(), "{}", String::from_utf8_lossy(&render.stderr));
     assert!(String::from_utf8_lossy(&render.stderr).contains("still.png"));
     let _ = std::fs::remove_dir_all(&dir);
+}
+
+/// Actual process boundaries, native save/reopen, and explicit host finalization.
+#[test]
+fn m1_transaction_scoped_cli_replays_saved_receipts_without_reapplying() {
+    let unique = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
+    let dir = std::env::temp_dir().join(format!("sc-m1-cli-{}-{unique}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join("project.scproj");
+    let mut session = shotclutch_engine::Session::default();
+    session.execute("file.openDemoProject", json!({})).unwrap();
+    let sequence = session.state.active_sequence.unwrap();
+    let clip = session.project.sequence(sequence).unwrap().video_tracks[0].items[0].id;
+    session.execute("file.saveAs", json!({"path": path})).unwrap();
+    let original = std::fs::read(&path).unwrap();
+    let request = json!({"apiVersion": "1", "projectId": session.document_id, "operationId": "cli-op", "idempotencyKey": "cli-key", "expectedRevision": session.revision.to_string(), "sequenceId": sequence.0.to_string(), "label": "CLI trim", "edits": [{"command": "trim", "clip": clip.0.to_string(), "edge": "out", "mode": "regular", "delta": (-session.sequence_rate().tick_of(1).0).to_string(), "linked": true}]});
+    let request_path = dir.join("request.json");
+    std::fs::write(&request_path, serde_json::to_vec(&request).unwrap()).unwrap();
+    let p = path.to_str().unwrap();
+    let data = dir.to_str().unwrap();
+    let seq = sequence.0.to_string();
+    let req = request_path.to_str().unwrap();
+    for args in [
+        vec!["--project", p, "--scope-sequence", &seq, "--data-dir", data, "transaction", req, "--commit"],
+        vec!["--project", p, "--scope-sequence", &seq, "exec", "file.newProject"],
+        vec!["--project", p, "--scope-sequence", &seq, "--allow-edit", "exec", "file.saveAs", "path=outside.scproj"],
+    ] {
+        let refused = cli(&args);
+        assert!(!refused.status.success());
+        assert!(String::from_utf8_lossy(&refused.stderr).contains("PERMISSION_DENIED"), "{}", String::from_utf8_lossy(&refused.stderr));
+        assert_eq!(std::fs::read(&path).unwrap(), original);
+    }
+    let args = ["--project", p, "--scope-sequence", &seq, "--allow-edit", "--data-dir", data, "--save", "transaction", req, "--commit"];
+    let result = json_out(&cli(&args));
+    assert_eq!(result["state"], "committed");
+    assert_eq!(result["priorRevision"], request["expectedRevision"]);
+    let saved: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+    assert_eq!(saved["edit_state"]["version"], 2);
+    let retry = json_out(&cli(&args));
+    assert_eq!(retry, result);
+    let after: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+    assert_eq!(after["edit_state"]["revision"], result["revision"]);
+    let mut reopened = shotclutch_engine::Session::default();
+    reopened.execute("file.open", json!({"path": path})).unwrap();
+    assert_eq!(reopened.undo().as_deref(), Some("CLI trim"));
+    assert_eq!(reopened.project, session.project);
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn m1_incomplete_scope_options_cannot_fall_back_to_owner_access() {
+    for option in ["--scope-sequence", "--media-root", "--source-budget"] {
+        let refused = cli(&["--demo", "exec", "file.newProject", option]);
+        assert_eq!(refused.status.code(), Some(2));
+        assert!(refused.stdout.is_empty());
+        assert!(String::from_utf8_lossy(&refused.stderr).contains("requires a value"));
+    }
 }

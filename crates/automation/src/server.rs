@@ -36,6 +36,7 @@ fn join_error(e: tokio::task::JoinError) -> AutomationError {
 pub struct ShotClutchMcp {
     backend: Arc<Backend>,
     tool_router: ToolRouter<Self>,
+    access: Option<shotclutch_engine::service::EditorClient>,
 }
 
 #[derive(Debug, Default, Deserialize, JsonSchema)]
@@ -197,10 +198,15 @@ fn wrap(r: Result<Value, AutomationError>) -> Result<CallToolResult, McpError> {
 
 impl ShotClutchMcp {
     pub fn headless(session: Session) -> Self {
-        Self { backend: Arc::new(Backend::Headless(Arc::new(Mutex::new(session)))), tool_router: Self::tool_router() }
+        Self { backend: Arc::new(Backend::Headless(Arc::new(Mutex::new(session)))), tool_router: Self::tool_router(), access: None }
+    }
+    /// The trusted host issues this access before exposing stdio to an agent. No MCP tool can
+    /// issue grants or upgrade a scoped server to the owner profile.
+    pub fn scoped_headless(session: Session, access: shotclutch_engine::service::EditorClient) -> Self {
+        Self { backend: Arc::new(Backend::Headless(Arc::new(Mutex::new(session)))), tool_router: Self::tool_router(), access: Some(access) }
     }
     pub fn bridge(addr: &str) -> Result<Self, AutomationError> {
-        Ok(Self { backend: Arc::new(Backend::Bridge(Arc::new(BridgeClient::new(addr)?))), tool_router: Self::tool_router() })
+        Ok(Self { backend: Arc::new(Backend::Bridge(Arc::new(BridgeClient::new(addr)?))), tool_router: Self::tool_router(), access: None })
     }
 
     pub async fn serve_stdio(self) -> Result<(), AutomationError> {
@@ -266,10 +272,14 @@ impl ShotClutchMcp {
             Backend::Headless(s) => {
                 let s = s.clone();
                 let id = id.to_string();
+                let access = self.access.clone();
                 tokio::task::spawn_blocking(move || {
                     // A command that panicked earlier poisoned the lock; the session is still usable.
                     let mut g = s.lock().unwrap_or_else(PoisonError::into_inner);
-                    g.execute(&id, params).map_err(AutomationError::from)
+                    match access {
+                        Some(access) => g.execute_as(&access, &id, params).map_err(|e| AutomationError::Other(e.to_string())),
+                        None => g.execute(&id, params).map_err(AutomationError::from),
+                    }
                 })
                 .await
                 .map_err(join_error)?
@@ -290,9 +300,9 @@ impl ShotClutchMcp {
         let project = self.run("project.inspect", json!({})).await?;
         // `ItemId` is a u64 (`item_p` parses the `item` param with `u64_p`): read it as one too,
         // not `as_i64`, so an id above `i64::MAX` is still looked up instead of silently going null.
-        let active = project.get("activeSequence").and_then(Value::as_u64);
+        let active = project.get("activeSequence").and_then(|v| v.as_u64().or_else(|| v.as_str().and_then(|s| s.parse().ok())));
         let sequence = match active {
-            Some(id) => self.run("sequence.inspect", json!({"item": id})).await.ok(),
+            Some(id) => self.run("sequence.inspect", json!({"item": if self.access.is_some() { json!(id.to_string()) } else { json!(id) }})).await.ok(),
             None => None,
         };
         Ok(json!({"project": project, "sequence": sequence}))
@@ -306,11 +316,42 @@ impl ShotClutchMcp {
     }
 
     async fn ui(&self, method: &str, params: Value) -> Result<CallToolResult, McpError> {
+        if self.access.is_some() {
+            return Ok(fail("PERMISSION_DENIED: scoped editor access does not grant UI control"));
+        }
         match self.bridge_client() {
             Some(b) => wrap(b.call(method, params).await),
             None => Ok(fail(
                 "this tool drives the live app: run `shotclutch-cli mcp --bridge 127.0.0.1:<port>` with the app started as `shotclutch --control <port>`",
             )),
+        }
+    }
+
+    async fn run_transaction(&self, id: &str, params: Value, context: &rmcp::service::RequestContext<rmcp::RoleServer>) -> Result<Value, AutomationError> {
+        let Backend::Headless(session) = &*self.backend else {
+            return self.run(id, params).await;
+        };
+        let cancellation = shotclutch_engine::service::Cancellation::default();
+        let signal = cancellation.clone();
+        let session = session.clone();
+        let access = self.access.clone();
+        let id = id.to_string();
+        let mut task = tokio::task::spawn_blocking(move || {
+            let mut session = session.lock().unwrap_or_else(PoisonError::into_inner);
+            let result = match access {
+                Some(access) => session.execute_as_cancellable(&access, &id, params, &signal),
+                None => session.execute_transaction_owner(&id, params, &signal),
+            };
+            result.map_err(|e| AutomationError::Other(e.to_string()))
+        });
+        tokio::select! {
+            result = &mut task => result.map_err(join_error)?,
+            _ = context.ct.cancelled() => {
+                cancellation.cancel();
+                // Cancellation after the atomic marker cannot undo a committed operation.
+                // Return its receipt if committed; otherwise the engine returns CANCELED.
+                task.await.map_err(join_error)?
+            }
         }
     }
 }
@@ -347,8 +388,16 @@ impl ShotClutchMcp {
         description = "Run a command by id with JSON params, e.g. {\"id\":\"timeline.razor\",\"params\":{\"seconds\":3.5}} or {\"id\":\"effects.apply\",\"params\":{\"effect\":\"Gaussian Blur\"}}. Undoable edits land in History.",
         annotations(read_only_hint = false, destructive_hint = true, idempotent_hint = false, open_world_hint = false)
     )]
-    async fn command_run(&self, Parameters(p): Parameters<RunParams>) -> Result<CallToolResult, McpError> {
-        wrap(self.run(&p.id, p.params.unwrap_or(json!({}))).await)
+    async fn command_run(
+        &self,
+        Parameters(p): Parameters<RunParams>,
+        context: rmcp::service::RequestContext<rmcp::RoleServer>,
+    ) -> Result<CallToolResult, McpError> {
+        if p.id.starts_with("transaction.") || p.id == "operation.inspect" {
+            wrap(self.run_transaction(&p.id, p.params.unwrap_or(json!({})), &context).await)
+        } else {
+            wrap(self.run(&p.id, p.params.unwrap_or(json!({}))).await)
+        }
     }
 
     #[tool(
@@ -356,11 +405,20 @@ impl ShotClutchMcp {
         description = "Run several commands in order: {steps: [{id, params?}], stop_on_error?: true}. Returns {completed, failed, results: [{ok, result | error}]}; each edit is its own undo step.",
         annotations(read_only_hint = false, destructive_hint = true, idempotent_hint = false, open_world_hint = false)
     )]
-    async fn command_batch(&self, Parameters(p): Parameters<BatchParams>) -> Result<CallToolResult, McpError> {
+    async fn command_batch(
+        &self,
+        Parameters(p): Parameters<BatchParams>,
+        context: rmcp::service::RequestContext<rmcp::RoleServer>,
+    ) -> Result<CallToolResult, McpError> {
         let stop = p.stop_on_error.unwrap_or(true);
         let (mut completed, mut failed, mut results) = (0u32, 0u32, Vec::new());
         for st in p.steps {
-            match self.run(&st.id, st.params.unwrap_or(json!({}))).await {
+            let result = if st.id.starts_with("transaction.") || st.id == "operation.inspect" {
+                self.run_transaction(&st.id, st.params.unwrap_or(json!({})), &context).await
+            } else {
+                self.run(&st.id, st.params.unwrap_or(json!({}))).await
+            };
+            match result {
                 Ok(v) => {
                     completed += 1;
                     results.push(json!({"ok": true, "result": v}));
@@ -429,6 +487,9 @@ impl ShotClutchMcp {
         annotations(read_only_hint = true, destructive_hint = false, idempotent_hint = true, open_world_hint = false)
     )]
     async fn render_frame(&self, Parameters(p): Parameters<RenderParams>) -> Result<CallToolResult, McpError> {
+        if self.access.is_some() {
+            return Ok(fail("PERMISSION_DENIED: scoped editor access does not grant frame rendering"));
+        }
         let max = p.max_side.unwrap_or(960);
         match &*self.backend {
             Backend::Headless(s) => {
@@ -624,7 +685,11 @@ impl ServerHandler for ShotClutchMcp {
     fn get_info(&self) -> rmcp::model::ServerConfig {
         rmcp::model::ServerConfig::new(rmcp::model::ServerCapabilities::builder().enable_tools().enable_resources().build())
             .with_server_info(rmcp::model::Implementation::new("shotclutch", env!("CARGO_PKG_VERSION")))
-            .with_instructions(INSTRUCTIONS.to_string())
+            .with_instructions(if self.access.is_some() {
+                "Scoped ShotClutch structural editor. Use doc_inspect and command_list to inspect the authorized sequence and effective permissions. Edits use versioned transaction.preview/commit/abort/inspect through command_run, with exact decimal-string IDs, revisions and ticks. Inspect operation receipts before retrying. Raw commands, file operations, rendering and UI control are not granted. Read-only is the default; only the trusted host can issue or change a grant.".to_string()
+            } else {
+                INSTRUCTIONS.to_string()
+            })
     }
 
     /// Strict arguments and long exports in front of the tool router.
@@ -753,10 +818,13 @@ mod tests {
 
     impl Client {
         fn start(s: Session) -> Self {
+            Self::start_server(ShotClutchMcp::headless(s))
+        }
+        fn start_server(server: ShotClutchMcp) -> Self {
             use tokio::io::AsyncBufReadExt;
             let (tx, server_in) = tokio::io::duplex(1 << 22);
             let (server_out, rx) = tokio::io::duplex(1 << 22);
-            tokio::spawn(ShotClutchMcp::headless(s).serve_io(server_in, server_out));
+            tokio::spawn(server.serve_io(server_in, server_out));
             Self { tx, rx: tokio::io::BufReader::new(rx).lines() }
         }
         async fn send(&mut self, line: &str) {
@@ -777,6 +845,81 @@ mod tests {
         }
         async fn call(&mut self, id: u64, name: &str, arguments: Value) -> Value {
             self.ask(json!({"jsonrpc":"2.0","id":id,"method":"tools/call","params":{"name":name,"arguments":arguments}})).await
+        }
+    }
+
+    fn tool_value(response: &Value) -> Value {
+        assert_ne!(response["result"]["isError"], true, "{response}");
+        serde_json::from_str(response["result"]["content"][0]["text"].as_str().unwrap()).unwrap()
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn m1_scoped_protocol_denies_raw_commands_files_ui_and_rendering() {
+        let mut session = demo();
+        let sequence = session.state.active_sequence.unwrap();
+        let access = session.authorize_editor("protocol-reader", shotclutch_engine::service::EditorScope::sequence(sequence)).unwrap();
+        let mut client = Client::start_server(ShotClutchMcp::scoped_headless(session, access));
+        client.init().await;
+        let doc = tool_value(&client.call(1, "doc_inspect", json!({})).await);
+        assert_eq!(doc["project"]["activeSequence"], sequence.0.to_string());
+        for (id, name, args) in [
+            (2, "command_run", json!({"id": "file.newProject"})),
+            (3, "media_import", json!({"paths": ["outside.wav"]})),
+            (4, "ui_control", json!({"method": "command.run", "params": {"id": "file.newProject"}})),
+            (5, "render_frame", json!({"seconds": 0.0})),
+            (6, "command_run", json!({"id": "file.exportMedia", "params": {"path": "outside.wav", "wait": true}})),
+            (7, "command_run", json!({"id": "transaction.preview", "params": {}})),
+        ] {
+            let response = client.call(id, name, args).await;
+            assert_eq!(response["result"]["isError"], true, "{response}");
+            // A malformed edit request is rejected as INVALID_ARGUMENT; valid read-only edits
+            // are separately rejected by the engine and CLI tests.
+            let message = response["result"]["content"][0]["text"].as_str().unwrap();
+            assert!(message.contains(if id == 7 { "INVALID_ARGUMENT" } else { "PERMISSION_DENIED" }), "{response}");
+        }
+        let unchanged = tool_value(&client.call(8, "doc_inspect", json!({})).await);
+        assert_eq!(unchanged, doc);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn m1_scoped_protocol_commits_once_and_reports_the_same_receipt() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut session = demo();
+        let sequence = session.state.active_sequence.unwrap();
+        let clip = session.project.sequence(sequence).unwrap().video_tracks[0].items[0].id;
+        let params = json!({"apiVersion": "1", "projectId": session.document_id, "operationId": "protocol-op", "idempotencyKey": "protocol-key", "expectedRevision": session.revision.to_string(), "sequenceId": sequence.0.to_string(), "label": "Protocol trim", "edits": [{"command": "trim", "clip": clip.0.to_string(), "edge": "out", "mode": "regular", "delta": (-session.sequence_rate().tick_of(1).0).to_string(), "linked": true}]});
+        session.start_autosave(shotclutch_engine::autosave::AutosaveConfig::new(dir.path())).unwrap();
+        let mut scope = shotclutch_engine::service::EditorScope::sequence(sequence);
+        scope.allow_edits = true;
+        let access = session.authorize_editor("protocol-editor", scope).unwrap();
+        let server = ShotClutchMcp::scoped_headless(session, access);
+        let backend = server.backend.clone();
+        let mut client = Client::start_server(server);
+        client.init().await;
+        let preview = tool_value(&client.call(1, "command_run", json!({"id": "transaction.preview", "params": params})).await);
+        assert_eq!(preview["state"], "preview_ready");
+        let reference = json!({"apiVersion": "1", "projectId": preview["projectId"], "transactionId": preview["transactionId"]});
+        let result = tool_value(&client.call(2, "command_run", json!({"id": "transaction.commit", "params": reference})).await);
+        assert_eq!(result["state"], "committed");
+        let retry = tool_value(&client.call(3, "command_run", json!({"id": "transaction.commit", "params": reference})).await);
+        assert_eq!(retry, result);
+        let replay = tool_value(&client.call(4, "command_run", json!({"id": "transaction.preview", "params": params})).await);
+        assert_eq!(replay, result);
+        let inspection = tool_value(
+            &client
+                .call(
+                    5,
+                    "command_run",
+                    json!({"id": "operation.inspect", "params": {"apiVersion": "1", "projectId": result["projectId"], "operationId": "protocol-op"}}),
+                )
+                .await,
+        );
+        assert_eq!(inspection["result"], result);
+        if let Backend::Headless(session) = &*backend {
+            let mut session = session.lock().unwrap();
+            assert_eq!(session.revision.to_string(), result["revision"]);
+            assert_eq!(session.undo().as_deref(), Some("Protocol trim"));
+            session.shutdown();
         }
     }
 

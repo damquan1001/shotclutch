@@ -6,7 +6,15 @@ use shotclutch_format::{
 use shotclutch_project::Project;
 
 fn state() -> DocumentState {
-    DocumentState { version: 1, project_id: DocumentId::default(), revision: 9_007_199_254_740_993, next_id: 9_007_199_254_740_993, undo: vec![], redo: vec![] }
+    DocumentState {
+        version: 1,
+        project_id: DocumentId::default(),
+        revision: 9_007_199_254_740_993,
+        next_id: 9_007_199_254_740_993,
+        undo: vec![],
+        redo: vec![],
+        operations: vec![],
+    }
 }
 
 #[test]
@@ -36,7 +44,7 @@ fn invalid_document_state_is_not_silently_dropped_like_optional_view_state() {
         assert!(decode(&serde_json::to_vec(&wire).unwrap()).is_err());
     }
     let mut future = state();
-    future.version = 2;
+    future.version = 3;
     let bytes = encode_document(&Project::default(), None, Some(&future), None, false);
     assert!(decode(&bytes).unwrap_err().to_string().contains("CAPABILITY_UNAVAILABLE"));
 }
@@ -82,4 +90,26 @@ fn checksum_tracks_wire_floats_without_widening_f32_or_rounding_f64() {
         let wire: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
         assert!(decode(&serde_json::to_vec_pretty(&wire).unwrap()).is_ok());
     }
+}
+
+#[test]
+fn receipt_state_requires_version_two_and_retains_exact_sequence_ids() {
+    let mut state = state();
+    state.operations.push(shotclutch_format::session::OperationRecord {
+        actor: "host-actor".into(),
+        operation_id: "op-1".into(),
+        idempotency_key: "key-1".into(),
+        request: "0".repeat(64),
+        sequence: 9_007_199_254_740_993,
+        retained_until: 2_000_000_000,
+        result: json!({"state": "committed"}),
+    });
+    let encode_state = |state: &DocumentState| encode_document(&Project::default(), None, Some(state), None, false);
+    assert!(decode(&encode_state(&state)).is_err(), "v1 readers must not silently drop new receipts");
+    state.version = 2;
+    let loaded = decode(&encode_state(&state)).unwrap().edit_state.unwrap();
+    assert_eq!(loaded.operations[0].sequence, 9_007_199_254_740_993);
+    assert_eq!(loaded.operations[0].request, "0".repeat(64));
+    state.operations = vec![state.operations[0].clone(); 129];
+    assert!(decode(&encode_state(&state)).is_err());
 }

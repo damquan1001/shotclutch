@@ -691,6 +691,7 @@ fn new_from_template(s: &mut Session, p: &Value) -> Result<Value> {
     s.media.clear_stored();
     s.media.add_stored(&s.project, Some(path.as_str()));
     s.document_id = Default::default();
+    s.operation_records.clear();
     s.id_watermark = s.project.next_id;
     s.revision += 1;
     s.saved_revision = s.revision;

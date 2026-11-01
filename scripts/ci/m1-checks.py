@@ -12,7 +12,8 @@ def main():
         ['cargo', 'fmt', '--all', '--', '--check'],
         ['cargo', 'test', '--locked', '-p', 'shotclutch-time', '-p', 'shotclutch-project',
          '-p', 'shotclutch-edit', '-p', 'shotclutch-format'],
-        ['cargo', 'test', '--locked', '-p', 'shotclutch-engine', '--lib', 'm1_'],
+        ['cargo', 'test', '--locked', '-p', 'shotclutch-engine',
+         '-p', 'shotclutch-automation', '--lib', 'm1_'],
     ]
     started = time.monotonic()
     for command in commands:

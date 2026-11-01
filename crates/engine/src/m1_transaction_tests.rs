@@ -116,7 +116,8 @@ fn exact_time_wire_values_do_not_pass_through_floating_point() {
         assert!(exact_tick(invalid).is_err());
     }
     let command: TimelineEdit =
-        serde_json::from_value(json!({"command": "trim", "clip": 12, "edge": "out", "mode": "regular", "delta": "9007199254740993", "linked": true})).unwrap();
+        serde_json::from_value(json!({"command": "trim", "clip": "12", "edge": "out", "mode": "regular", "delta": "9007199254740993", "linked": true}))
+            .unwrap();
     let wire = serde_json::to_value(command).unwrap();
     assert_eq!(wire["delta"], "9007199254740993");
     assert!(serde_json::from_value::<TimelineEdit>(json!({"command": "file.save", "path": "outside.scproj"})).is_err());

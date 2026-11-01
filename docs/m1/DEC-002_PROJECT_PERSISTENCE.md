@@ -68,3 +68,14 @@ Large-project latency, storage budgets, physical power-loss behavior and non-Win
 qualification remain open. Worker serialization runs off the UI thread; the initial internal
 durable API waits synchronously for acknowledgement and needs asynchronous host integration
 before a responsive external transaction workflow is advertised.
+
+
+## Receipt extension — 2026-11-02
+
+The same schema-v17 envelope now writes `edit_state.version = 2` with bounded retained
+operation receipts (actor/project-bound request digests and committed results). Version 1
+remains readable; future versions fail closed. This makes project, inverse/history, revision
+and receipt one atomic recovery marker, so retries after restart do not reapply committed
+edits. Authorizations, root capabilities and uncommitted previews remain process-local.
+Receipt fields are validated during restoration before replacing the live project. Retention,
+wire shapes and current limits are specified in [SERVICE_CONTRACT](SERVICE_CONTRACT.md).

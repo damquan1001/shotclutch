@@ -23,6 +23,9 @@ const VALUED: &[&str] = &[
     "--data-dir",
     "--settings",
     "--gpu-rendering",
+    "--scope-sequence",
+    "--media-root",
+    "--source-budget",
 ];
 
 #[derive(Debug, Default)]
@@ -62,6 +65,10 @@ impl Args {
 
     pub fn flag(&self, k: &str) -> bool {
         self.opts.iter().any(|(n, _)| n == k)
+    }
+
+    pub fn values<'a>(&'a self, k: &'a str) -> impl Iterator<Item = &'a str> {
+        self.opts.iter().filter(move |(name, _)| name == k).filter_map(|(_, value)| value.as_deref())
     }
 
     /// A version query: `--version` anywhere, or `-V` in the subcommand position, so global

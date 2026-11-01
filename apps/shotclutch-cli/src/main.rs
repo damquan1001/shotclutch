@@ -68,6 +68,7 @@ USAGE
 
 SUBCOMMANDS
   exec <id> [key=value ...]     run one command; prints its result as JSON
+  transaction <request.json>   preview a versioned edit request; --commit applies it once
   exec <id> '<json params>'     same, params as one JSON object
   run <script.jsonl | ->        run commands, one {\"id\",\"params\"} per line (# comments ok), in
                                 order: file.exportMedia waits for its file before the next line
@@ -110,6 +111,11 @@ OPTIONS
   --data-dir <dir>              ShotClutch data directory for user export presets (headless;
                                 default: the app's data directory)
   --keep-going                  `run`: report failing lines and continue
+  --transactions                enable durable transaction commands in a headless session
+  --scope-sequence <id>          restrict headless CLI/MCP access to one sequence (read-only)
+  --allow-edit                  allow scoped structural edits, with a local recovery journal
+  --media-root <dir>             authorize a source folder for transactions (repeatable)
+  --source-budget <bytes>        source bytes per verification phase (default 536870912)
   --compact                     one-line JSON output
 
 VALUES
@@ -164,18 +170,35 @@ fn fail(msg: impl std::fmt::Display) -> ! {
 /// Where commands go: an in-process session, or the desktop app's control channel.
 enum Backend {
     Local(Box<Session>),
+    Scoped(Box<Session>, shotclutch_engine::service::EditorClient),
     Bridge(BridgeClient),
 }
 
 impl Backend {
     fn open(a: &Args) -> Self {
+        for option in ["--scope-sequence", "--media-root", "--source-budget"] {
+            if a.flag(option) && a.opt(option).is_none() {
+                usage(format!("{option} requires a value"));
+            }
+        }
         if let Some(addr) = a.opt("--bridge") {
+            if a.flag("--scope-sequence") || a.flag("--allow-edit") {
+                usage("scoped access currently requires a headless session");
+            }
             if a.opt("--project").is_some() || a.flag("--demo") {
                 usage("--bridge drives the running app; open projects there (exec file.open path=…)");
             }
             return Backend::Bridge(BridgeClient::new(addr).unwrap_or_else(|e| usage(e)));
         }
         let mut s = Session::default();
+        if a.flag("--allow-edit") && a.opt("--scope-sequence").is_none() {
+            usage("--allow-edit requires --scope-sequence");
+        }
+        if a.opt("--scope-sequence").is_some()
+            && (a.opt("--save-as").is_some() || (a.flag("--save") && (!a.flag("--allow-edit") || a.opt("--project").is_none())))
+        {
+            usage("PERMISSION_DENIED: scoped finalization requires --allow-edit and the startup --project; Save As is not granted");
+        }
         // user export presets (and other per-user libraries) from the data directory
         if let Some(dir) = a.opt("--data-dir").map(std::path::PathBuf::from).or_else(shotclutch_engine::autosave::default_data_dir) {
             s.export_presets.set_dir(&dir);
@@ -187,7 +210,50 @@ impl Backend {
         } else if a.flag("--demo") {
             let _ = s.execute("file.openDemoProject", json!({}));
         }
-        Backend::Local(Box::new(s))
+        let mut roots: Vec<std::path::PathBuf> = a.values("--media-root").map(std::path::PathBuf::from).collect();
+        if let Some(root) = a.opt("--project").and_then(|path| std::path::absolute(path).ok()).and_then(|path| path.parent().map(std::path::PathBuf::from)) {
+            roots.push(root);
+        }
+        let budget = a
+            .opt("--source-budget")
+            .map(|value| value.parse::<u64>().unwrap_or_else(|_| usage("--source-budget must be a positive integer")))
+            .unwrap_or(512 * 1024 * 1024);
+        if budget == 0 {
+            usage("--source-budget must be a positive integer");
+        }
+        if a.flag("--transactions") || a.flag("--allow-edit") || a.pos(0) == Some("transaction") {
+            let dir = a
+                .opt("--data-dir")
+                .map(std::path::PathBuf::from)
+                .or_else(shotclutch_engine::autosave::default_data_dir)
+                .unwrap_or_else(|| usage("durable transactions require --data-dir"));
+            s.start_autosave(shotclutch_engine::autosave::AutosaveConfig::new(dir)).unwrap_or_else(|e| fail(e));
+            // The launch flag explicitly enables recovery for this process; do not rewrite
+            // the user's saved preferences to authorize a headless transaction session.
+            s.prefs.auto_save.recovery_journal = true;
+            if let Some(worker) = &s.persistence {
+                worker.set_prefs(s.prefs.auto_save.clone());
+            }
+        }
+        if let Some(id) = a.opt("--scope-sequence") {
+            let id = id.parse::<u64>().unwrap_or_else(|_| usage("--scope-sequence must be a decimal ID"));
+            let sequence = serde_json::from_value(json!(id)).unwrap_or_else(|_| usage("invalid sequence ID"));
+            let mut scope = shotclutch_engine::service::EditorScope::sequence(sequence);
+            scope.allow_edits = a.flag("--allow-edit");
+            scope.media_roots = roots;
+            scope.max_source_bytes = budget;
+            let access = s.authorize_editor("local-scoped", scope).unwrap_or_else(|e| fail(e));
+            Backend::Scoped(Box::new(s), access)
+        } else {
+            s.configure_owner_editor(shotclutch_engine::service::EditorScope {
+                sequences: None,
+                allow_edits: true,
+                media_roots: roots,
+                lifetime: std::time::Duration::from_secs(3600),
+                max_source_bytes: budget,
+            });
+            Backend::Local(Box::new(s))
+        }
     }
 
     async fn exec(&mut self, id: &str, mut params: Value) -> Result<Value, String> {
@@ -207,6 +273,7 @@ impl Backend {
             }
             // a blocking export runs as an app job polled by the client (#91, #92)
             Backend::Bridge(b) => b.execute(id, params).await.map_err(|e| e.to_string()),
+            Backend::Scoped(s, access) => s.execute_as(access, id, params).map_err(|e| e.to_string()),
         }
     }
 
@@ -215,15 +282,24 @@ impl Backend {
         let r = if let Some(p) = a.opt("--save-as") {
             Some(self.exec("file.saveAs", json!({"path": p})).await)
         } else if a.flag("--save") {
-            match a.opt("--project") {
-                Some(p) => Some(self.exec("file.save", json!({"path": p})).await),
-                None => Some(self.exec("file.save", json!({})).await),
+            match self {
+                // This destination is an explicit, trusted launch option, never an agent
+                // request field. Scoped commands cannot change the startup document path.
+                Backend::Scoped(s, _) => Some(s.execute("file.save", json!({"path": a.opt("--project")})).map_err(|e| e.to_string())),
+                _ => match a.opt("--project") {
+                    Some(p) => Some(self.exec("file.save", json!({"path": p})).await),
+                    None => Some(self.exec("file.save", json!({})).await),
+                },
             }
         } else {
             None
         };
         if let Some(Err(e)) = r {
             fail(format!("saving: {e}"));
+        }
+        match self {
+            Backend::Local(s) | Backend::Scoped(s, _) => s.shutdown(),
+            Backend::Bridge(_) => {}
         }
     }
 }
@@ -366,6 +442,27 @@ async fn cli() {
                     outln!("{:<32} {:<34} {:<14} {}", s("id"), s("label"), s("shortcut"), s("params"));
                 }
             }
+        }
+        "transaction" => {
+            let path = a.pos(1).unwrap_or_else(|| usage("transaction <request.json> [--commit]"));
+            let text = if path == "-" {
+                std::io::read_to_string(std::io::stdin()).unwrap_or_else(|e| fail(e))
+            } else {
+                read_text(path).await.unwrap_or_else(|e| fail(e))
+            };
+            let request: Value = serde_json::from_str(&text).unwrap_or_else(|e| usage(format!("invalid transaction JSON: {e}")));
+            let mut backend = Backend::open(&a);
+            let preview = backend.exec("transaction.preview", request).await.unwrap_or_else(|e| fail(e));
+            let result = if a.flag("--commit") && preview["state"] != "committed" {
+                backend
+                    .exec("transaction.commit", json!({"apiVersion": "1", "projectId": preview["projectId"], "transactionId": preview["transactionId"]}))
+                    .await
+                    .unwrap_or_else(|e| fail(e))
+            } else {
+                preview
+            };
+            print(&a, &result);
+            backend.finish(&a).await;
         }
         "exec" => {
             let id = a.pos(1).unwrap_or_else(|| usage("exec <id> [key=value ...]"));
@@ -513,13 +610,29 @@ async fn cli() {
             diag(format_args!("rendered {}x{} in {:.1} ms → {out}", img.w, img.h, dt.as_secs_f64() * 1000.0));
         }
         "mcp" => {
-            if let Some(opt) = a.unknown_opt(&["--bridge", "--project", "--demo", "--data-dir"]) {
+            if let Some(opt) = a.unknown_opt(&[
+                "--bridge",
+                "--project",
+                "--demo",
+                "--data-dir",
+                "--scope-sequence",
+                "--allow-edit",
+                "--transactions",
+                "--media-root",
+                "--source-budget",
+            ]) {
                 usage(format!("unknown mcp option `{opt}`"));
             }
             let server = match a.opt("--bridge") {
-                Some(addr) => shotclutch_automation::ShotClutchMcp::bridge(addr).unwrap_or_else(|e| usage(e)),
+                Some(addr) => {
+                    if a.opt("--scope-sequence").is_some() {
+                        usage("scoped access currently requires a headless session");
+                    }
+                    shotclutch_automation::ShotClutchMcp::bridge(addr).unwrap_or_else(|e| usage(e))
+                }
                 None => match Backend::open(&a) {
                     Backend::Local(s) => shotclutch_automation::ShotClutchMcp::headless(*s),
+                    Backend::Scoped(s, access) => shotclutch_automation::ShotClutchMcp::scoped_headless(*s, access),
                     Backend::Bridge(_) => usage("mcp: use --bridge ADDR to drive a running app"),
                 },
             };

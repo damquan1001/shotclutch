@@ -13,7 +13,7 @@ There is no duplicate main-push run. A newer run cancels the previous PR run. Do
 PRs still receive the gate so future required-check configuration cannot leave them pending.
 
 `scripts/ci/m1-checks.py` runs formatting, the time/project/edit/format tests (including historical
-format fixtures and property tests), and the headless engine `m1_` tests. Downloads are cached;
+format fixtures and property tests), and the headless engine/MCP `m1_` tests in one Cargo invocation. Downloads are cached;
 compiled artifacts are not uploaded. Routine CI installs no GPU, oracle, browser or installer tools.
 
 The old CI matrix is retained as `Full qualification (manual)` in `qualification.yml`; Windows
@@ -39,11 +39,13 @@ GitHub's branch-protection API reported `Branch not protected` for main on 2026-
 
 `Session::prepare_edits` stages explicit structural edits. `commit_edits_durable` now requires
 an enabled recovery worker and acknowledges a complete atomic snapshot before live publication.
-The in-memory `commit_edits` remains available for hosts without persistence. This is still an
-internal Rust API: external grants, idempotent receipts, source revalidation, expiry and visual
-verification remain outstanding. Schema v17 adds document identity, revision, retained history,
-allocator high-water mark, recovery source metadata and integrity verification to the v16
-extension support. See [DEC-002](DEC-002_PROJECT_PERSISTENCE.md).
+The in-memory `commit_edits` remains available for hosts without persistence. The bounded
+versioned structural service now adds scoped host grants, retained idempotent receipts,
+expiry/cancellation, strong source revalidation and CLI/MCP adapters. Rendered verification and
+general scoped mutations remain outstanding. Schema v17 adds document identity, revision,
+retained history, allocator high-water mark, recovery source metadata and integrity verification
+to v16 extension support; edit-state v2 retains receipts. See [DEC-002](DEC-002_PROJECT_PERSISTENCE.md)
+and the [implemented service contract](SERVICE_CONTRACT.md).
 
 ## Acceptance register
 
@@ -52,12 +54,12 @@ extension support. See [DEC-002](DEC-002_PROJECT_PERSISTENCE.md).
 | CORE-002 | Schema v17 identity and retained history; ID allocation survives undo/history deletion/save/reopen; optional extensions round-trip and unknown required extensions fail closed | In Progress |
 | CORE-003 | Retained timebase and exact boundary strings; mixed-rate/VFR/nesting/retiming qualification remains | Planned |
 | CORE-004 | Atomic project/history/revision snapshots, checked recovery, migration backups and injected write/publication failures; broader fault/platform/storage-budget qualification remains | In Progress |
-| AGENT-001–002 | Engine structural staging and tests in `m1_transaction_tests.rs`; durable commit/recovery implemented internally; finish grants, retries, expiry, source revalidation and adapter parity | In Progress |
+| AGENT-001–002 | Bounded structural service: host grants, exact wire values, source SHA-256, durable retries and CLI/MCP parity; rendered evidence/general permissions remain | In Progress |
 | TEST-001 | Focused gate and local checks; extend with persistence faults and new schema invariants as implemented | In Progress |
 | UI-001 | Inherited editing foundation; execute complete keyboard/manual workflow against M1 candidate | Planned |
 | MEDIA-001–004 | Close DEC-006 with measured fallback/proxy/render/audio corpus on Windows x64 | Planned |
 | EXPORT-001, EXPORT-006 | Verify pinned originals, atomic completed output and collection/relink on another machine | Planned |
-| SEC-001–002 | Offline journey and scoped-service boundary tests remain required | Planned |
+| SEC-001–002 | Scoped-service denial, private grants, source confinement and cancellation tests; complete offline journey/worker isolation remain | In Progress |
 
 Tests cover private staging, command equivalence, linked trim, explicit split, abort, grouped
 undo/redo, failed later commands, locked targets, stale revision/project replacement, exact wide
@@ -129,3 +131,64 @@ The runtime remains Windows-qualified only for executed local tests. Browser/oth
 physical power loss, large-history file size/latency, complete service permissions/idempotency,
 media qualification and the full offline journey are still outstanding. No new hosted workflow,
 GitHub Actions dispatch, push or settings change is needed for this slice.
+
+
+## Scoped service continuation — 2026-11-02
+
+The [implemented contract](SERVICE_CONTRACT.md) now exposes a versioned structural subset
+through the native command registry, CLI and scoped headless MCP. Host-only authorizations
+bind actor/project/sequence, expire, and support atomic revocation. Read-only is the scoped
+launch default. Agent JSON cannot issue grants, impersonate an actor, run raw engine commands,
+choose output destinations, import/export, render sources or control the UI.
+
+Preview stages exact-string trim/split requests privately. Original/proxy sources, including
+nested references, receive full SHA-256 checks through bounded directory capabilities during
+preview and commit. Changed content, traversal/junction escapes, denied scope, cancellation,
+stale revisions and expired grants prevent publication. Permission and cancellation checks run
+between staged commands and source chunks. The existing owner interface remains trusted.
+
+Actor/project-bound request digests and operation receipts share the project's atomic recovery
+snapshot. Retry after commit, undo, native save/reopen or recovered crash returns the prior
+receipt without applying the edit again. The 128-receipt/seven-day retention policy fails closed
+at capacity; expired entries prune on the next commit. Edit-state v2 adds receipts while reading
+v1; unknown versions and malformed recovered identities/revisions fail before project replacement.
+
+The CLI `transaction request.json --commit` runs preview/commit within one process. Scoped
+`--save` is explicit host finalization to the startup `--project`, not wire-level file authority.
+MCP line-protocol tests exercise tool routing, resources, denial and repeated commits.
+
+Final local validation of this continuation:
+
+- `python scripts/ci/m1-checks.py`: 255 Rust tests passed, including 19 scoped-service tests,
+  18 transaction/recovery tests, 2 MCP protocol tests and 6 document-state tests. Formatting and
+  the helper failure-propagation test passed. Final local duration: 158.9 seconds, including an
+  engine/MCP rebuild. This is not a hosted runtime estimate.
+- `cargo test --locked --offline -p shotclutch-engine -p shotclutch-automation --lib`: 759 engine
+  tests and 25 MCP/automation tests passed; 3 existing engine performance tests ignored. Zero
+  failures. Runtime after compilation: 48.14 seconds engine, 1.34 seconds automation.
+- `cargo test --locked --offline -p shotclutch-cli --test it cli::`: all 17 CLI integration tests
+  passed, including scoped save/reopen/retry, malformed scope option denial and historical
+  project migration. The other 2 workflow-group tests were filtered by this local command.
+- Clippy passed with `--all-targets -- -D warnings` for engine, format, automation and CLI.
+  All 9 CI helper tests and normal `git diff --check` passed.
+- Local untracked evidence: `target/m1/checks-service-final.log`, `clippy-service-final.log`,
+  `service-regression-final.log` and `cli-service.log`.
+
+An initial adapter compilation exhausted the E: drive. Clearing only the verified workspace's
+`target/debug/incremental` cache recovered approximately 10 GB. Subsequent validation disabled
+incremental caching for those processes; no repository build profile or global setting changed.
+The final suites passed without suppressing tests. An explicit `core.autocrlf=false` diagnostic
+made CRLF lines appear as whitespace changes; normal repository diff validation passed.
+
+No GitHub Actions run or settings change is part of this continuation. The single ready-PR CI
+job adds only the headless M1 MCP tests alongside the engine tests in one Cargo invocation;
+CLI/platform/full checks stay local. Dependency changes are pinned `cap-std` and its required
+lockfile additions, plus the workspace's existing SHA-256 dependency; existing locked versions
+were not upgraded.
+
+Next: qualify exact mixed-rate/VFR/nested/retimed mappings and the bounded Windows SDR corpus,
+then bind export jobs to originals for their entire lifetime and verify atomic output promotion.
+Run the complete offline journey and prepare the updated project-collection portability fixture.
+Physical A/V and second-machine results require actual hardware evidence. General scoped
+mutations, a grant/review UI and rendered verification remain open; structural previews do not
+claim those capabilities. M1 is still In Progress.
