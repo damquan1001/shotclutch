@@ -1,0 +1,57 @@
+{
+  "revision": "a7fbcf2ffba3156bef1e175d30880670d7ff3bfc",
+  "os": "Windows-2025Server-10.0.26100-SP0",
+  "architecture": "AMD64",
+  "cpu": "Intel64 Family 6 Model 106 Stepping 6, GenuineIntel",
+  "logical_cores": 2,
+  "physical_memory_bytes": null,
+  "image_version": "20261021.278.1",
+  "image_os": "win25-vs2026",
+  "run_id": "40860747696",
+  "attempt": "2",
+  "dependency_cache_hit": null,
+  "compiled_target_cache": "disabled",
+  "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "cargo_lock_sha256": "3a05488c275f867f2f9845258428e7ef6eb25f297a67c104d6ad09322c733013",
+  "min_free_disk_bytes": 75680190464,
+  "profile_overrides": {
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0"
+  },
+  "gpu_required": false,
+  "gpu_test_profile": {
+    "SHOTCLUTCH_CI_GPU_BACKEND": null,
+    "SHOTCLUTCH_CI_DX12_COMPILER": null
+  },
+  "commands": [
+    {
+      "command": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "packaging/windows/package.ps1",
+        "-Arch",
+        "x64"
+      ],
+      "log": "01.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 2146.859
+    },
+    {
+      "command": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "scripts/m0/validate-package.ps1",
+        "-Dist",
+        "dist/release"
+      ],
+      "log": "02.log",
+      "exit_code": 0,
+      "gpu_environment": {},
+      "wall_seconds": 1.875
+    }
+  ],
+  "result": "passed"
+}

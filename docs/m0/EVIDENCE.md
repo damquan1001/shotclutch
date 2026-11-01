@@ -89,3 +89,7 @@ Clean Windows installation and the core editing/export workflow passed by user c
 M1–M5 features and the performance release budgets in document 14 are not completed by these M0 checks.
 
 CLI integration qualification initially stopped at the renamed MCP display-name assertion. The assertion now expects `shotclutch`; resource URIs remain compatible. The MPEG probe test now uses the shared Windows-capable oracle finder, so required FFmpeg discovery cannot silently skip that test on Windows. Both real-media workflows and all 16 integration tests pass. Combined targeted checks total **1,383 passing tests**, plus the three explicitly ignored performance tests above.
+
+## Hosted CI repeatability accepted (2026-11-01)
+
+Two independent workflow runs at repaired source `a7fbcf2f` now pass, including all three OS check/build lanes and recovered Windows package/install/export/uninstall jobs. CI-002 is Done. Each run retains its own cold attempt-1 checks and package/install recovery evidence; failed historical attempts remain recorded. [Final CI acceptance and artifact bindings](CI_RUNTIME_EXECUTION.md#two-run-ci-acceptance-retained-2026-11-01) supersede earlier pending CI status above. This does not close the separate runtime/performance/consumer-environment/review gates or authorize promotion.

@@ -1,0 +1,582 @@
+==> WiX UI extension 5.0.2
+ShotClutch 0.13.0 for Windows x64 (x86_64-pc-windows-msvc)
+==> cargo build (x86_64-pc-windows-msvc)
+    Updating crates.io index
+    Updating git repository `https://github.com/storytold/craft-libs`
+ Downloading crates ...
+  Downloaded cpufeatures v0.2.17
+  Downloaded profiling v1.0.18
+  Downloaded sys-locale v0.3.2
+  Downloaded tokio-macros v2.7.2
+  Downloaded type-map v0.5.1
+  Downloaded winapi-util v0.1.11
+  Downloaded weezl v0.1.12
+  Downloaded windows-threading v0.2.1
+  Downloaded tokio-util v0.7.19
+  Downloaded xml-rs v0.8.29
+  Downloaded windows-core v0.54.0
+  Downloaded mio v1.2.3
+  Downloaded wgpu-types v30.0.1
+  Downloaded zune-core v0.5.3
+  Downloaded unicode-segmentation v1.13.3
+  Downloaded vello_cpu v0.1.0
+  Downloaded winresource v0.1.31
+  Downloaded syn v3.0.6
+  Downloaded wgpu v30.0.1
+  Downloaded tracing v0.1.44
+  Downloaded zerocopy-derive v0.8.59
+  Downloaded epaint_default_fonts v0.36.2
+  Downloaded winnow v1.0.4
+  Downloaded wgpu-core v30.0.1
+  Downloaded unicode-width v0.2.2
+  Downloaded syn v2.0.119
+  Downloaded skrifa v0.44.0
+  Downloaded encoding_rs v0.8.42
+  Downloaded zerocopy v0.8.59
+  Downloaded wgpu-hal v30.0.1
+  Downloaded vello_common v0.1.0
+  Downloaded ash v0.38.0+1.3.281
+  Downloaded read-fonts v0.41.0
+  Downloaded rmcp v3.5.0
+  Downloaded khronos_api v3.1.0
+  Downloaded egui v0.36.2
+  Downloaded zmij v1.0.23
+  Downloaded rayon v1.12.0
+  Downloaded moxcms v0.8.1
+  Downloaded kurbo v0.13.1
+  Downloaded uuid v1.26.1
+  Downloaded serde_json v1.0.151
+  Downloaded winit v0.30.13
+  Downloaded png v0.18.1
+  Downloaded libm v0.2.16
+  Downloaded typenum v1.20.1
+  Downloaded pxfm v0.1.30
+  Downloaded libc v0.2.189
+  Downloaded naga v30.0.1
+  Downloaded memchr v2.8.3
+  Downloaded image v0.25.10
+  Downloaded tokio v1.53.1
+  Downloaded harfrust v0.12.0
+  Downloaded chrono v0.4.45
+  Downloaded windows-strings v0.5.1
+  Downloaded windows-result v0.4.1
+  Downloaded windows_x86_64_msvc v0.52.6
+  Downloaded windows-result v0.1.2
+  Downloaded windows-numerics v0.3.1
+  Downloaded windows_x86_64_msvc v0.53.1
+  Downloaded windows-link v0.2.1
+  Downloaded windows-interface v0.59.3
+  Downloaded windows-implement v0.60.2
+  Downloaded windows-future v0.3.2
+  Downloaded windows-core v0.62.2
+  Downloaded windows-collections v0.3.2
+  Downloaded tiff v0.11.3
+  Downloaded symphonia-core v0.5.5
+  Downloaded winapi v0.3.9
+  Downloaded schemars v1.2.2
+  Downloaded miniz_oxide v0.8.9
+  Downloaded fearless_simd v0.4.1
+  Downloaded symphonia-bundle-mp3 v0.5.5
+  Downloaded serde v1.0.229
+  Downloaded roxmltree v0.21.1
+  Downloaded rayon-core v1.13.0
+  Downloaded miniz_oxide v0.9.1
+  Downloaded log v0.4.34
+  Downloaded itertools v0.15.0
+  Downloaded hashbrown v0.17.1
+  Downloaded hashbrown v0.16.1
+  Downloaded glow v0.17.0
+  Downloaded futures-util v0.3.34
+  Downloaded eframe v0.36.2
+  Downloaded windows-targets v0.53.5
+  Downloaded windows-targets v0.52.6
+  Downloaded unicode-bidi v0.3.18
+  Downloaded tracing-core v0.1.36
+  Downloaded tempfile v3.27.0
+  Downloaded symphonia-format-isomp4 v0.5.5
+  Downloaded socket2 v0.6.5
+  Downloaded serde_derive v1.0.229
+  Downloaded serde_core v1.0.229
+  Downloaded rfd v0.17.2
+  Downloaded proc-macro2 v1.0.107
+  Downloaded open v5.4.4
+  Downloaded once_cell v1.21.4
+  Downloaded num-traits v0.2.19
+  Downloaded indexmap v2.14.2
+  Downloaded epaint v0.36.2
+  Downloaded cpal v0.16.0
+  Downloaded web-time v1.1.0
+  Downloaded unicode-linebreak v0.1.5
+  Downloaded unicode-ident v1.0.26
+  Downloaded unicode-general-category v1.1.0
+  Downloaded tracing-attributes v0.1.31
+  Downloaded symphonia-format-ogg v0.5.5
+  Downloaded spirv v0.4.0+sdk-1.4.341.0
+  Downloaded smallvec v1.16.2
+  Downloaded parking_lot_core v0.9.12
+  Downloaded parking_lot v0.12.5
+  Downloaded ordered-float v5.5.0
+  Downloaded litrs v1.0.0
+  Downloaded image-webp v0.2.4
+  Downloaded glutin v0.32.3
+  Downloaded glifo v0.2.0
+  Downloaded futures v0.3.34
+  Downloaded flate2 v1.1.10
+  Downloaded euclid v0.22.14
+  Downloaded darling_core v0.24.1
+  Downloaded windows-sys v0.61.2
+  Downloaded windows-sys v0.60.2
+  Downloaded windows-sys v0.52.0
+  Downloaded color v0.3.3
+  Downloaded codespan-reporting v0.13.1
+  Downloaded zune-jpeg v0.5.15
+  Downloaded bytes v1.12.1
+  Downloaded base64 v0.22.1
+  Downloaded accesskit_windows v0.32.1
+  Downloaded wgpu-naga-bridge v30.0.1
+  Downloaded zlib-rs v0.6.8
+  Downloaded wgpu-core-deps-windows-linux-android v30.0.1
+  Downloaded version_check v0.9.5
+  Downloaded toml_writer v1.1.2+spec-1.1.0
+  Downloaded toml_parser v1.1.3+spec-1.1.0
+  Downloaded toml v1.1.6+spec-1.1.0
+  Downloaded termcolor v1.4.1
+  Downloaded symphonia-format-riff v0.5.5
+  Downloaded symphonia-codec-vorbis v0.5.5
+  Downloaded symphonia-codec-aac v0.5.5
+  Downloaded symphonia-bundle-flac v0.5.5
+  Downloaded static_assertions v1.1.0
+  Downloaded slab v0.4.12
+  Downloaded simdutf8 v0.1.5
+  Downloaded simd-adler32 v0.3.10
+  Downloaded sha2 v0.10.9
+  Downloaded self_cell v1.3.0
+  Downloaded rmcp-macros v3.5.0
+  Downloaded raw-window-handle v0.6.2
+  Downloaded pollster v1.0.1
+  Downloaded pin-project-lite v0.2.17
+  Downloaded peniko v0.6.1
+  Downloaded lock_api v0.4.14
+  Downloaded libloading v0.8.9
+  Downloaded half v2.7.1
+  Downloaded gpu-allocator v0.28.0
+  Downloaded gl_generator v0.14.0
+  Downloaded getrandom v0.4.3
+  Downloaded getrandom v0.3.4
+  Downloaded emath v0.36.2
+  Downloaded egui_glow v0.36.2
+  Downloaded egui-winit v0.36.2
+  Downloaded egui-wgpu v0.36.2
+  Downloaded darling v0.24.1
+  Downloaded crossbeam-utils v0.8.23
+  Downloaded crossbeam-epoch v0.9.21
+  Downloaded crc32fast v1.5.2
+  Downloaded bytemuck v1.25.2
+  Downloaded bitflags v2.13.2
+  Downloaded arboard v3.6.1
+  Downloaded allocator-api2 v0.2.21
+  Downloaded accesskit_winit v0.32.2
+  Downloaded accesskit_consumer v0.35.0
+  Downloaded accesskit v0.24.1
+  Downloaded toml_datetime v1.1.1+spec-1.1.0
+  Downloaded thiserror-impl v2.0.21
+  Downloaded thiserror v2.0.21
+  Downloaded symphonia-metadata v0.5.5
+  Downloaded symphonia-codec-pcm v0.5.5
+  Downloaded symphonia v0.5.5
+  Downloaded strsim v0.11.1
+  Downloaded serde_spanned v1.1.1
+  Downloaded serde_derive_internals v0.30.0
+  Downloaded schemars_derive v1.2.2
+  Downloaded rustversion v1.0.23
+  Downloaded range-alloc v0.1.5
+  Downloaded quote v1.0.47
+  Downloaded polycool v0.4.0
+  Downloaded pkg-config v0.3.34
+  Downloaded gif v0.14.2
+  Downloaded futures-executor v0.3.34
+  Downloaded futures-channel v0.3.34
+  Downloaded font-types v0.12.5
+  Downloaded foldhash v0.2.0
+  Downloaded fax v0.2.7
+  Downloaded fastrand v2.5.0
+  Downloaded either v1.18.0
+  Downloaded ecolor v0.36.2
+  Downloaded digest v0.10.7
+  Downloaded crossbeam-deque v0.8.8
+  Downloaded clipboard-win v5.4.1
+  Downloaded cfg-if v1.0.5
+  Downloaded bytemuck_derive v1.12.1
+  Downloaded bit-vec v0.9.1
+  Downloaded bit-set v0.10.0
+  Downloaded autocfg v1.5.1
+  Downloaded symphonia-utils-xiph v0.5.5
+  Downloaded symphonia-codec-alac v0.5.5
+  Downloaded subtle v2.6.1
+  Downloaded smol_str v0.2.2
+  Downloaded rustc-hash v2.1.3
+  Downloaded renderdoc-sys v1.1.0
+  Downloaded ref-cast v1.0.27
+  Downloaded quick-error v2.0.1
+  Downloaded nohash-hasher v0.2.0
+  Downloaded multiversion_no_op v1.0.0
+  Downloaded ident_case v1.0.1
+  Downloaded guillotiere v0.7.0
+  Downloaded glutin_egl_sys v0.7.1
+  Downloaded generic-array v0.14.7
+  Downloaded futures-task v0.3.34
+  Downloaded futures-sink v0.3.34
+  Downloaded futures-macro v0.3.34
+  Downloaded futures-io v0.3.34
+  Downloaded fdeflate v0.3.7
+  Downloaded error-code v3.4.0
+  Downloaded dpi v0.1.2
+  Downloaded dasp_sample v0.11.0
+  Downloaded core_detect v1.0.0
+  Downloaded byteorder-lite v0.1.0
+  Downloaded bitflags v1.3.2
+  Downloaded scopeguard v1.2.0
+  Downloaded rustc-hash v1.1.0
+  Downloaded ref-cast-impl v1.0.27
+  Downloaded pollster v0.4.0
+  Downloaded lazy_static v1.5.0
+  Downloaded khronos-egl v6.0.0
+  Downloaded itoa v1.0.18
+  Downloaded glutin_wgl_sys v0.6.1
+  Downloaded glutin-winit v0.5.0
+  Downloaded futures-core v0.3.34
+  Downloaded extended v0.1.0
+  Downloaded equivalent v1.0.2
+  Downloaded document-features v0.2.12
+  Downloaded darling_macro v0.24.1
+  Downloaded crypto-common v0.1.7
+  Downloaded cpu-time v1.0.0
+  Downloaded color_quant v1.1.0
+  Downloaded cfg_aliases v0.2.2
+  Downloaded adler2 v2.0.1
+  Downloaded presser v0.3.1
+  Downloaded pastey v0.2.3
+  Downloaded naga-types v30.0.1
+  Downloaded linebender_resource_handle v0.1.1
+  Downloaded dyn-clone v1.0.20
+  Downloaded cursor-icon v1.2.0
+  Downloaded arrayvec v0.7.8
+  Downloaded ahash v0.8.12
+  Downloaded block-buffer v0.10.4
+  Downloaded windows v0.62.2
+  Downloaded windows v0.54.0
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.26
+   Compiling thiserror v2.0.21
+   Compiling cfg-if v1.0.5
+   Compiling syn v3.0.6
+   Compiling syn v2.0.119
+   Compiling thiserror-impl v2.0.21
+   Compiling bytemuck_derive v1.12.1
+   Compiling windows-link v0.2.1
+   Compiling bytemuck v1.25.2
+   Compiling libm v0.2.16
+   Compiling autocfg v1.5.1
+   Compiling num-traits v0.2.19
+   Compiling serde_core v1.0.229
+   Compiling log v0.4.34
+   Compiling arrayvec v0.7.8
+   Compiling bitflags v2.13.2
+   Compiling zerocopy v0.8.59
+   Compiling zerocopy-derive v0.8.59
+   Compiling either v1.18.0
+   Compiling crossbeam-utils v0.8.23
+   Compiling once_cell v1.21.4
+   Compiling crossbeam-epoch v0.9.21
+   Compiling crossbeam-deque v0.8.8
+   Compiling serde v1.0.229
+   Compiling rayon-core v1.13.0
+   Compiling serde_derive v1.0.229
+   Compiling scopeguard v1.2.0
+   Compiling half v2.7.1
+   Compiling smallvec v1.16.2
+   Compiling rayon v1.12.0
+   Compiling foldhash v0.2.0
+   Compiling simd-adler32 v0.3.10
+   Compiling crc32fast v1.5.2
+   Compiling zmij v1.0.23
+   Compiling adler2 v2.0.1
+   Compiling version_check v0.9.5
+   Compiling cfg_aliases v0.2.2
+   Compiling miniz_oxide v0.9.1
+   Compiling flate2 v1.1.10
+   Compiling quick-error v2.0.1
+   Compiling weezl v0.1.12
+   Compiling equivalent v1.0.2
+   Compiling zune-core v0.5.3
+   Compiling zune-jpeg v0.5.15
+   Compiling miniz_oxide v0.8.9
+   Compiling fdeflate v0.3.7
+   Compiling hashbrown v0.17.1
+   Compiling craft-media v0.1.0 (https://github.com/storytold/craft-libs?rev=f0ad6c1e1d297908915f4be315b0fcfc9be7b5d4#f0ad6c1e)
+   Compiling color_quant v1.1.0
+   Compiling byteorder-lite v0.1.0
+   Compiling memchr v2.8.3
+   Compiling fax v0.2.7
+   Compiling pxfm v0.1.30
+   Compiling moxcms v0.8.1
+   Compiling tiff v0.11.3
+   Compiling image-webp v0.2.4
+   Compiling gif v0.14.2
+   Compiling png v0.18.1
+   Compiling rustversion v1.0.23
+   Compiling image v0.25.10
+   Compiling filmcraft-color v0.13.0 (D:\a\shotclutch\shotclutch\crates\color)
+   Compiling font-types v0.12.5
+   Compiling windows-strings v0.5.1
+   Compiling windows-result v0.4.1
+   Compiling windows-interface v0.59.3
+   Compiling windows-implement v0.60.2
+   Compiling lazy_static v1.5.0
+   Compiling getrandom v0.4.3
+   Compiling bitflags v1.3.2
+   Compiling symphonia-core v0.5.5
+   Compiling windows-core v0.62.2
+   Compiling read-fonts v0.41.0
+   Compiling filmcraft-bitstream v0.13.0 (D:\a\shotclutch\shotclutch\crates\bitstream)
+   Compiling serde_json v1.0.151
+   Compiling unicode-segmentation v1.13.3
+   Compiling encoding_rs v0.8.42
+   Compiling filmcraft-time v0.13.0 (D:\a\shotclutch\shotclutch\crates\time)
+   Compiling itoa v1.0.18
+   Compiling filmcraft-frame v0.13.0 (D:\a\shotclutch\shotclutch\crates\frame)
+   Compiling harfrust v0.12.0
+   Compiling skrifa v0.44.0
+   Compiling filmcraft-dng v0.13.0 (D:\a\shotclutch\shotclutch\crates\dng)
+   Compiling windows-threading v0.2.1
+   Compiling multiversion_no_op v1.0.0
+   Compiling parking_lot_core v0.9.12
+   Compiling simdutf8 v0.1.5
+   Compiling core_detect v1.0.0
+   Compiling windows-future v0.3.2
+   Compiling filmcraft-media v0.13.0 (D:\a\shotclutch\shotclutch\crates\media)
+   Compiling windows-collections v0.3.2
+   Compiling windows-numerics v0.3.1
+   Compiling indexmap v2.14.2
+   Compiling raw-window-handle v0.6.2
+   Compiling khronos_api v3.1.0
+   Compiling pin-project-lite v0.2.17
+   Compiling allocator-api2 v0.2.21
+   Compiling hashbrown v0.16.1
+   Compiling windows v0.62.2
+   Compiling symphonia-metadata v0.5.5
+   Compiling filmcraft-geom v0.13.0 (D:\a\shotclutch\shotclutch\crates\geom)
+   Compiling lock_api v0.4.14
+   Compiling static_assertions v1.1.0
+   Compiling windows_x86_64_msvc v0.52.6
+   Compiling parking_lot v0.12.5
+   Compiling filmcraft-project v0.13.0 (D:\a\shotclutch\shotclutch\crates\project)
+   Compiling uuid v1.26.1
+   Compiling windows-sys v0.61.2
+   Compiling xml-rs v0.8.29
+   Compiling rustc-hash v1.1.0
+   Compiling profiling v1.0.18
+   Compiling gl_generator v0.14.0
+   Compiling naga-types v30.0.1
+   Compiling naga v30.0.1
+   Compiling libloading v0.8.9
+   Compiling unicode-width v0.2.2
+   Compiling bit-vec v0.9.1
+   Compiling ash v0.38.0+1.3.281
+   Compiling libc v0.2.189
+   Compiling bit-set v0.10.0
+   Compiling codespan-reporting v0.13.1
+   Compiling windows-targets v0.52.6
+   Compiling glutin_wgl_sys v0.6.1
+   Compiling symphonia-utils-xiph v0.5.5
+   Compiling generic-array v0.14.7
+   Compiling chrono v0.4.45
+   Compiling spirv v0.4.0+sdk-1.4.341.0
+   Compiling polycool v0.4.0
+   Compiling filmcraft-text v0.13.0 (D:\a\shotclutch\shotclutch\crates\text)
+   Compiling khronos-egl v6.0.0
+   Compiling kurbo v0.13.1
+   Compiling wgpu-types v30.0.1
+   Compiling roxmltree v0.21.1
+   Compiling wgpu-hal v30.0.1
+   Compiling tracing-core v0.1.36
+   Compiling euclid v0.22.14
+   Compiling color v0.3.3
+   Compiling tracing-attributes v0.1.31
+   Compiling presser v0.3.1
+   Compiling linebender_resource_handle v0.1.1
+   Compiling web-time v1.1.0
+   Compiling typenum v1.20.1
+   Compiling unicode-bidi v0.3.18
+   Compiling unicode-linebreak v0.1.5
+   Compiling peniko v0.6.1
+   Compiling gpu-allocator v0.28.0
+   Compiling tracing v0.1.44
+   Compiling guillotiere v0.7.0
+   Compiling wgpu-naga-bridge v30.0.1
+   Compiling accesskit v0.24.1
+   Compiling ahash v0.8.12
+   Compiling ordered-float v5.5.0
+   Compiling unicode-general-category v1.1.0
+   Compiling renderdoc-sys v1.1.0
+   Compiling fearless_simd v0.4.1
+   Compiling glow v0.17.0
+   Compiling range-alloc v0.1.5
+   Compiling vello_common v0.1.0
+   Compiling filmcraft-captions v0.13.0 (D:\a\shotclutch\shotclutch\crates\captions)
+   Compiling wgpu-core v30.0.1
+   Compiling emath v0.36.2
+   Compiling extended v0.1.0
+   Compiling windows_x86_64_msvc v0.53.1
+   Compiling litrs v1.0.0
+   Compiling filmcraft-audio-dsp v0.13.0 (D:\a\shotclutch\shotclutch\crates\audio-dsp)
+   Compiling winnow v1.0.4
+   Compiling toml_parser v1.1.3+spec-1.1.0
+   Compiling filmcraft-render v0.13.0 (D:\a\shotclutch\shotclutch\crates\render)
+   Compiling document-features v0.2.12
+   Compiling symphonia-format-riff v0.5.5
+   Compiling ecolor v0.36.2
+   Compiling wgpu-core-deps-windows-linux-android v30.0.1
+   Compiling vello_cpu v0.1.0
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling filmcraft-mxf v0.13.0 (D:\a\shotclutch\shotclutch\crates\mxf)
+   Compiling symphonia-bundle-flac v0.5.5
+   Compiling symphonia-format-ogg v0.5.5
+   Compiling symphonia-codec-vorbis v0.5.5
+   Compiling symphonia-format-isomp4 v0.5.5
+   Compiling serde_spanned v1.1.1
+   Compiling toml_datetime v1.1.1+spec-1.1.0
+   Compiling symphonia-bundle-mp3 v0.5.5
+   Compiling filmcraft-dnx v0.13.0 (D:\a\shotclutch\shotclutch\crates\dnx)
+   Compiling filmcraft-apv v0.13.0 (D:\a\shotclutch\shotclutch\crates\apv)
+   Compiling filmcraft-prores v0.13.0 (D:\a\shotclutch\shotclutch\crates\prores)
+   Compiling filmcraft-aac v0.13.0 (D:\a\shotclutch\shotclutch\crates\aac)
+   Compiling symphonia-codec-alac v0.5.5
+   Compiling symphonia-codec-aac v0.5.5
+   Compiling symphonia-codec-pcm v0.5.5
+   Compiling filmcraft-isobmff v0.13.0 (D:\a\shotclutch\shotclutch\crates\isobmff)
+   Compiling winit v0.30.13
+   Compiling wgpu v30.0.1
+   Compiling nohash-hasher v0.2.0
+   Compiling futures-core v0.3.34
+   Compiling epaint_default_fonts v0.36.2
+   Compiling futures-sink v0.3.34
+   Compiling toml_writer v1.1.2+spec-1.1.0
+   Compiling self_cell v1.3.0
+   Compiling epaint v0.36.2
+   Compiling toml v1.1.6+spec-1.1.0
+   Compiling symphonia v0.5.5
+   Compiling digest v0.10.7
+   Compiling windows-sys v0.52.0
+   Compiling filmcraft-hevc v0.13.0 (D:\a\shotclutch\shotclutch\crates\hevc)
+   Compiling filmcraft-av1 v0.13.0 (D:\a\shotclutch\shotclutch\crates\av1)
+   Compiling filmcraft-h264enc v0.13.0 (D:\a\shotclutch\shotclutch\crates\h264enc)
+   Compiling filmcraft-vp9 v0.13.0 (D:\a\shotclutch\shotclutch\crates\vp9)
+   Compiling filmcraft-flac v0.13.0 (D:\a\shotclutch\shotclutch\crates\flac)
+   Compiling filmcraft-h264 v0.13.0 (D:\a\shotclutch\shotclutch\crates\h264)
+   Compiling filmcraft-mpa v0.13.0 (D:\a\shotclutch\shotclutch\crates\mpa)
+   Compiling filmcraft-matroska v0.13.0 (D:\a\shotclutch\shotclutch\crates\matroska)
+   Compiling filmcraft-mpeg2v v0.13.0 (D:\a\shotclutch\shotclutch\crates\mpeg2v)
+   Compiling itertools v0.15.0
+   Compiling filmcraft-mpegts v0.13.0 (D:\a\shotclutch\shotclutch\crates\mpegts)
+   Compiling filmcraft-vp8 v0.13.0 (D:\a\shotclutch\shotclutch\crates\vp8)
+   Compiling filmcraft-ac3 v0.13.0 (D:\a\shotclutch\shotclutch\crates\ac3)
+   Compiling cursor-icon v1.2.0
+   Compiling fastrand v2.5.0
+   Compiling dpi v0.1.2
+   Compiling strsim v0.11.1
+   Compiling filmcraft-avi v0.13.0 (D:\a\shotclutch\shotclutch\crates\avi)
+   Compiling smol_str v0.2.2
+   Compiling filmcraft-opus v0.13.0 (D:\a\shotclutch\shotclutch\crates\opus)
+   Compiling cpufeatures v0.2.17
+   Compiling ident_case v1.0.1
+   Compiling filmcraft-ogg v0.13.0 (D:\a\shotclutch\shotclutch\crates\ogg)
+   Compiling darling_core v0.24.1
+   Compiling filmcraft-codecs v0.13.0 (D:\a\shotclutch\shotclutch\crates\codecs)
+   Compiling sha2 v0.10.9
+   Compiling tempfile v3.27.0
+   Compiling egui v0.36.2
+   Compiling filmcraft-export v0.13.0 (D:\a\shotclutch\shotclutch\crates\export)
+   Compiling windows-targets v0.53.5
+   Compiling futures-channel v0.3.34
+   Compiling accesskit_consumer v0.35.0
+   Compiling futures-macro v0.3.34
+   Compiling ref-cast v1.0.27
+   Compiling filmcraft-cfb v0.13.0 (D:\a\shotclutch\shotclutch\crates\cfb)
+   Compiling error-code v3.4.0
+   Compiling slab v0.4.12
+   Compiling futures-io v0.3.34
+   Compiling futures-task v0.3.34
+   Compiling futures-util v0.3.34
+   Compiling filmcraft-interchange v0.13.0 (D:\a\shotclutch\shotclutch\crates\interchange)
+   Compiling clipboard-win v5.4.1
+   Compiling accesskit_windows v0.32.1
+   Compiling windows-sys v0.60.2
+   Compiling filmcraft-format v0.13.0 (D:\a\shotclutch\shotclutch\crates\format)
+   Compiling filmcraft-speech v0.13.0 (D:\a\shotclutch\shotclutch\crates\speech)
+   Compiling darling_macro v0.24.1
+   Compiling mio v1.2.3
+   Compiling socket2 v0.6.5
+   Compiling filmcraft-edit v0.13.0 (D:\a\shotclutch\shotclutch\crates\edit)
+   Compiling filmcraft-scopes v0.13.0 (D:\a\shotclutch\shotclutch\crates\scopes)
+   Compiling filmcraft-tts v0.13.0 (D:\a\shotclutch\shotclutch\crates\tts)
+   Compiling ref-cast-impl v1.0.27
+   Compiling tokio-macros v2.7.2
+   Compiling serde_derive_internals v0.30.0
+   Compiling winapi v0.3.9
+   Compiling craft-docpath v0.1.0 (https://github.com/storytold/craft-libs?rev=82a24b006eefa036b43c09a67fb9a3fbd17ffe63#82a24b00)
+   Compiling bytes v1.12.1
+   Compiling rustc-hash v2.1.3
+   Compiling type-map v0.5.1
+   Compiling tokio v1.53.1
+   Compiling filmcraft-engine v0.13.0 (D:\a\shotclutch\shotclutch\crates\engine)
+   Compiling schemars_derive v1.2.2
+   Compiling darling v0.24.1
+   Compiling arboard v3.6.1
+   Compiling accesskit_winit v0.32.2
+   Compiling futures-executor v0.3.34
+   Compiling windows-result v0.1.2
+   Compiling dyn-clone v1.0.20
+   Compiling pollster v0.4.0
+   Compiling rmcp v3.5.0
+   Compiling filmcraft-gpu v0.13.0 (D:\a\shotclutch\shotclutch\crates\gpu)
+   Compiling schemars v1.2.2
+   Compiling windows-core v0.54.0
+   Compiling futures v0.3.34
+   Compiling egui-winit v0.36.2
+   Compiling rmcp-macros v3.5.0
+   Compiling tokio-util v0.7.19
+   Compiling egui-wgpu v0.36.2
+   Compiling filmcraft-ui-egui v0.13.0 (D:\a\shotclutch\shotclutch\crates\ui-egui)
+   Compiling winresource v0.1.31
+   Compiling pollster v1.0.1
+   Compiling cpal v0.16.0
+   Compiling pastey v0.2.3
+   Compiling rfd v0.17.2
+   Compiling eframe v0.36.2
+   Compiling filmcraft v0.13.0 (D:\a\shotclutch\shotclutch\apps\filmcraft)
+   Compiling cpu-time v1.0.0
+   Compiling windows v0.54.0
+   Compiling filmcraft-platform v0.13.0 (D:\a\shotclutch\shotclutch\crates\platform)
+   Compiling craft-ui v0.1.0 (https://github.com/storytold/craft-libs?rev=5c874d51eeb3de70e735c8ce87a59a7dedd47675#5c874d51)
+   Compiling dasp_sample v0.11.0
+   Compiling base64 v0.22.1
+   Compiling filmcraft-automation v0.13.0 (D:\a\shotclutch\shotclutch\crates\automation)
+   Compiling subtle v2.6.1
+   Compiling sys-locale v0.3.2
+   Compiling open v5.4.4
+   Compiling filmcraft-cli v0.13.0 (D:\a\shotclutch\shotclutch\apps\filmcraft-cli)
+    Finished `release` profile [optimized] target(s) in 34m 44s
+ok shotclutch.exe: x64, PE subsystem 2
+ok shotclutch-cli.exe: x64, PE subsystem 3
+==> wix build
+==> shotclutch-cli --version
+shotclutch-cli 0.13.0
+
+[32;1mName                                      [0m[32;1m   Length[0m
+[32;1m----                                      [0m [32;1m  ------[0m
+shotclutch-0.13.0-windows-x64.msi          32231424
+shotclutch-0.13.0-windows-x64-portable.zip 42120039
+

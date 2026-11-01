@@ -1,0 +1,8 @@
+{
+  "source_sha256": "c08b0ba43f68778e17bff04cc86c19610155b931483d23965a3e4a5734930610",
+  "source_frames": 60,
+  "expected_trimmed_frames": 50,
+  "expected_stereo_sample_frames": 80000,
+  "sample_rate": 48000,
+  "fixture": "generated testsrc2 and sine; no third-party media"
+}

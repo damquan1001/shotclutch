@@ -5,13 +5,13 @@
     40834967572,
     40860747696
   ],
-  "result": "running",
+  "result": "two_complete_CI_runs_passed",
   "no_promotion": true,
-  "updated_utc": "2026-10-29T12:53:28.049076+00:00",
+  "updated_utc": "2026-11-01T07:26:30.978123+00:00",
   "active_run": 40860747696,
   "jobs": [
     [
-      "checks (ubuntu-24.04)",
+      "windows-package / package",
       "completed",
       "success"
     ],
@@ -21,12 +21,7 @@
       "success"
     ],
     [
-      "release-builds (ubuntu-24.04)",
-      "completed",
-      "success"
-    ],
-    [
-      "windows-package / package",
+      "release-builds (macos-15)",
       "completed",
       "success"
     ],
@@ -36,24 +31,31 @@
       "success"
     ],
     [
-      "release-builds (macos-15)",
+      "checks (ubuntu-24.04)",
+      "completed",
+      "success"
+    ],
+    [
+      "release-builds (ubuntu-24.04)",
       "completed",
       "success"
     ],
     [
       "windows-package / install",
       "completed",
-      "failure"
+      "success"
     ],
     [
       "CI required",
       "completed",
-      "failure"
+      "success"
     ]
   ],
   "recovery_attempt": 4,
   "passed_runs": [
-    40834967572
+    40834967572,
+    40860747696
   ],
-  "second_recovery_attempt": 2
+  "second_recovery_attempt": 2,
+  "acceptance_basis": "Two independent run IDs at identical source; cold checks in each attempt 1, package/install recovery in attempts 4 and 2. No claim of two all-jobs-fresh green attempts."
 }
