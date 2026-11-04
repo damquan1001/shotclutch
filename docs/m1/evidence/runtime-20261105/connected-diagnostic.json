@@ -1,0 +1,74 @@
+{
+    "version":  1,
+    "startedUtc":  "2026-11-04T22:00:42.3648550Z",
+    "mode":  "connectedDiagnostic",
+    "status":  "passed-connected-diagnostic",
+    "secondPc":  "excluded from M1 by user decision 2026-11-04",
+    "networkEvidence":  "non-loopback interface state before and after; no packet-capture or OS sandbox claim",
+    "activeInterfacesBefore":  [
+                                   "Ethernet",
+                                   "Ethernet",
+                                   "Ethernet",
+                                   "Ethernet",
+                                   "Wireless80211"
+                               ],
+    "sourceRevision":  "610a6cdd49f526c61b053b26f647144f70a59fe9",
+    "dirty":  false,
+    "oracles":  {
+                    "ffprobe":  {
+                                    "version":  "ffprobe version 8.1.1-full_build-www.gyan.dev Copyright (c) 2007-2026 the FFmpeg developers",
+                                    "sha256":  "a6618e99bb58869ded3c6f37b53aa1a8d701c3591dbb7b5b317d47369c112be2"
+                                },
+                    "ffmpeg":  {
+                                   "version":  "ffmpeg version 8.1.1-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers",
+                                   "sha256":  "09948d4cdd0650da6ff5a87577469f2a218dc2615ae379f8f734d24c49de0f73"
+                               }
+                },
+    "cargoLockSha256":  "a8ad0d8e27f76a5968e3ea98b0a47009deb1f03a5a444404bbdd49eef033b35f",
+    "command":  [
+                    "cargo",
+                    "test",
+                    "--locked",
+                    "--offline",
+                    "-p",
+                    "shotclutch-cli",
+                    "--test",
+                    "it",
+                    "workflows::m1_mixed_rate_nested_proxy_persistence_and_local_collection_journey",
+                    "--",
+                    "--exact",
+                    "--nocapture"
+                ],
+    "testExitCode":  0,
+    "activeInterfacesAfter":  [
+                                  "Ethernet",
+                                  "Ethernet",
+                                  "Ethernet",
+                                  "Ethernet",
+                                  "Wireless80211"
+                              ],
+    "logSha256":  "9940d00b3c0e852455612d09ebe85883670e327fe73741afea76718e4d03b854",
+    "buildLogSha256":  "36d6e0301cdd0466a0bb4a543109fcb563efe36b12facdd67d59813c9c499761",
+    "cliSha256":  "eeca76573865ea2d3c3d2410780dc424de294bfaf644c49e4afed503ef2917e5",
+    "processing":  {
+                       "apiVersion":  1,
+                       "builtInCloudProcessingAvailable":  false,
+                       "enforcesOsNetworkIsolation":  false,
+                       "localOnly":  true,
+                       "mode":  "localOnly",
+                       "modelDownloadsRequireExplicitRequest":  true
+                   },
+    "fixtures":  {
+                     "phone_vfr_h264_aac.mp4":  {
+                                                    "bytes":  150693,
+                                                    "sha256":  "043cd92ecdf4889e336eb98c267ebcedcbd9377725495477fbf5ea129bf7e553"
+                                                },
+                     "camera_long_gop_2audio.mkv":  {
+                                                        "bytes":  449125,
+                                                        "sha256":  "245f8d82fafd03ead84241df0336cdcd6a5d9da6cf4dc6f3a7f47e65a411bbbb"
+                                                    }
+                 },
+    "sourceChanged":  false,
+    "testsPassed":  1,
+    "finishedUtc":  "2026-11-04T22:00:53.4625625Z"
+}

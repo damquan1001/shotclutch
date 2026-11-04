@@ -156,11 +156,16 @@ line-protocol tests exercise the adapter boundaries. These checks join the focus
 where headless; CLI/platform and full regression checks run locally. See
 [implementation evidence](IMPLEMENTATION.md).
 
-Outstanding: general scoped mutations, an interactive grant/review UI, rendered verification,
-export grants and non-native job qualification, storage/latency limits for large histories,
-hostile-media worker isolation, all-platform filesystem qualification, complete offline
-mixed-media workflow and physical A/V sync. Physical second-PC collection qualification is
-deferred beyond M1 by user decision (2026-11-04).
+The current M1 boundary review is recorded in [IMPLEMENTATION](IMPLEMENTATION.md): raw mutations
+and ungranted export/file/UI/render access remain denied to scoped clients across CLI/MCP.
+General scoped mutations, interactive grant/review UI, rendered agent verification and export
+grants remain future extensions, not implied capabilities of this structural subset. The M3
+protocol/policy/verification program must preserve these denials until it adds explicit grants.
+
+The disconnected mixed-media workflow, full manual editing qualification and physical A/V sync
+remain open M1 acceptance. Non-native jobs, large-history storage/latency promises, hostile-media
+worker isolation and all-platform filesystem behavior retain their qualification limits.
+Physical second-PC collection qualification is deferred beyond M1 by user decision (2026-11-04).
 
 
 Native owner export jobs now implement original binding and staged publication in the

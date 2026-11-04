@@ -247,3 +247,11 @@ Owner: Codex. Branch: `codex/m1-editing-foundation`. [Implementation, test scope
   same-PC offline wrapper and thirty-minute timing fixture; the connected diagnostic is not an
   offline pass. [Procedure and evidence limits](m1/OFFLINE_AND_AV_QUALIFICATION.md);
   [current results and boundary review](m1/IMPLEMENTATION.md). No hosted Actions or second-PC run.
+
+- 2026-11-05 — Current desktop completed the 600-second real-device-clock audio observation:
+  56,145 callbacks, zero underruns/missing frames, 119 samples. Video recorded 24 dropped pictures
+  (0.134%), above the proposed <0.1% budget; no performance pass is claimed. Physical drift remains
+  unverified. The connected mixed-media diagnostic also passed from clean commit `610a6cdd` with
+  source unchanged. [Retained runtime evidence and limitations](m1/evidence/runtime-20261105/README.md).
+  M1 remains In Progress for disconnected operation, full manual keyboard acceptance and physical
+  thirty-minute A/V measurement. Physical second-PC qualification remains excluded.

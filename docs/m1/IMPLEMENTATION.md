@@ -433,8 +433,8 @@ and audio onsets, which occur two 48 kHz samples after the intended video-frame 
 synthetic timing fixture, not a representative decode/effects workload. A three-second native
 desktop smoke completed using the real audio-device clock: 312 callbacks, zero missing samples,
 zero underruns and zero dropped pictures. It validates the runner and current binary, not the
-ten-minute underrun or thirty-minute physical drift criteria. A separate ten-minute run is being
-evaluated below. Physical screen/speaker measurement still needs an external recording.
+ten-minute underrun or thirty-minute physical drift criteria. The separate ten-minute result
+is recorded below. Physical screen/speaker measurement still needs an external recording.
 
 Current-source local checks:
 
@@ -480,4 +480,25 @@ limitations is converted into a passing result by the new status UI or qualifica
 
 The next M1 acceptance actions are the actual disconnected journey, completing the manual
 editing/keyboard-accessibility reference workflow, and the long-form physical A/V measurement.
-The ten-minute device-clock result is recorded separately when complete. M1 remains In Progress.
+M1 remains In Progress.
+
+### Completed ten-minute device-clock observation
+
+The current desktop completed **600.094 seconds**, with 119 samples and the real device audio
+clock active throughout. All **56,145 callbacks** were monotonic, with **zero underruns and zero
+missing audio frames**; minimum observed retained lead was 72.54 ms. The native Media Foundation
+path decoded the simple 1080p30 flash/beep fixture at Full preview resolution. The owned editor
+stopped and exited normally. This passes the ten-minute audio-counter criterion for this profile.
+
+Video recorded 17,943 shown and **24 dropped pictures (0.134%)**, exceeding the proposed <0.1%
+drop budget. Do not call this a performance-target pass. Ordinary desktop/agent activity included
+the six-second CLI journey diagnostic during playback, so this is not an isolated regression
+benchmark or representative effects-load qualification. Clock progress minus wall time ended at
+**-1.327 seconds**; that counter does not measure physical speaker/display offset and cannot
+establish thirty-minute A/V sync. No external recording was made.
+
+[Retained reports, raw samples, source/runner digests and evaluation](evidence/runtime-20261105/README.md)
+include the connected diagnostic rerun from clean commit `610a6cdd` (one journey passed, zero
+ignored, 6.83 seconds, source unchanged). The connected diagnostic and ten-minute runtime result
+do not close the disconnected, full manual keyboard or physical drift gates. No hosted run was
+used and physical second-PC qualification remains excluded.

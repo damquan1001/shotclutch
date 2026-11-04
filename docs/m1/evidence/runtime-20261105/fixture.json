@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "status": "prepared-only",
+  "createdUtc": "2026-11-04T21:51:47.443154+00:00",
+  "requestedObservationSeconds": 1800,
+  "sourceSeconds": 1802,
+  "width": 1920,
+  "height": 1080,
+  "frameRate": "30/1",
+  "sampleRate": 48000,
+  "channels": 2,
+  "flash": "three white frames every 300 frames after a quiet first ten seconds",
+  "tone": "50 ms 1 kHz pulse every 480000 samples, amplitude 0.15 before stereo conversion",
+  "physicalAvSync": "unverified; this is only a generated timing fixture",
+  "scope": "A/V timing and callback underruns, not representative decoder/render throughput",
+  "generatorSha256": "13f7e8cc26abca8804303acdd52dd0454d006863b8ca395b009cdfd38a7e99b3",
+  "media": "sync-1800.mp4",
+  "mediaSha256": "2ce62a8f73f5d1b0f1ca6594c9894aaa033b5deff62e9c6ee86f64de15faba02",
+  "mediaBytes": 10217319,
+  "verifiedVideoFrames": [
+    0,
+    299,
+    300,
+    302,
+    303,
+    599,
+    600,
+    602,
+    603
+  ],
+  "decodedGray": [
+    0,
+    0,
+    255,
+    255,
+    0,
+    0,
+    255,
+    255,
+    0
+  ],
+  "referenceAudioOnsetsSeconds": [
+    10.000041666666668,
+    20.000041666666668
+  ],
+  "ffmpeg": "ffmpeg version 8.1.1-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers",
+  "ffprobe": "ffprobe version 8.1.1-full_build-www.gyan.dev Copyright (c) 2007-2026 the FFmpeg developers"
+}

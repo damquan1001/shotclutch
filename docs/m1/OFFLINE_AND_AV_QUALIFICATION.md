@@ -90,6 +90,34 @@ minutes. If capture uncertainty cannot resolve that budget, report unverified an
 Application clock-minus-wall and matching monitor/playhead counters do not measure speaker/display
 latency. The runner deliberately leaves `physical_av_drift:null` without external measurement.
 
+## Manual editing and keyboard acceptance worksheet
+
 The full manual reference editing/keyboard-accessibility journey remains a separate UI-001 gate.
-Automated UI regression coverage and the bounded native split/save/undo/redo smoke are evidence
-for their tested actions, not a substitute for completing that journey.
+Use private generated fixtures and a fresh project/data directory; leave ordinary projects alone.
+The existing native smoke and 498 automated UI regressions cover their tested actions, not the
+completed operator journey below.
+
+1. Open a fresh native editor using `--empty --no-recover --data-dir target/m1/manual-data-new`.
+   Record the executable hash, Windows/display settings and whether networking is disconnected.
+2. Import the generated phone VFR and 25 fps camera fixtures from `target/fixtures/cli/workflows/`.
+   Create a multitrack sequence, place both sources and linked audio, and seek known source frames
+   in the monitor. Record sequence rates and exact clip boundaries before editing.
+3. Trim and split linked A/V, move a selection, adjust audio gain/fades, and nest the sequence in
+   another rate. Check the monitor, meters and source offsets. Undo/redo must restore the intended
+   edits without moving unrelated clips or losing links. Record actual rates/ranges and failures.
+4. Generate proxies, wait for confirmed completion, and switch proxy/original. Verify cut positions
+   and nesting are unchanged. Save, reopen, verify history and relink a private moved source.
+5. Export an explicit range using originals, wait for confirmed completion, and independently
+   inspect output frame/sample counts and timing. Collect/verify the project and locally relocate
+   it with original paths unavailable. Save As outside the package and reopen the working copy.
+   The original package and source hashes must still verify. No second PC is required.
+6. Repeat representative trim/split/move, seeking, save/undo/redo, dialog accept/cancel and focus
+   changes using the keyboard. Check visible focus, Tab/Shift+Tab navigation, Enter/Escape and
+   documented shortcuts. Record any control without an accessible keyboard path; a successful
+   mouse action does not count as its keyboard check. Global shortcuts intercepted by another
+   application remain a recorded environment limitation until the editor action is checked.
+
+Retain a small acceptance note with actual actions, observed results, ranges/counts, source and
+output hashes, any screenshots needed to explain failures, and the native save/reopen artifacts.
+Fault-injected durable save/recovery remains separately backed by the M1 engine tests; do not
+interrupt unrelated user work or infer a physical power-loss guarantee from these manual actions.

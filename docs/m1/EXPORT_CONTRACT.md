@@ -115,10 +115,14 @@ The real MCP line-protocol cancellation test preserves an existing approved deli
 headless `m1_` regressions join the existing single-job gate; full engine/export/MCP and CLI
 regressions run locally. Actual results are recorded in [IMPLEMENTATION](IMPLEMENTATION.md).
 
-Still required: measured Windows SDR decoder/fallback corpus, full mixed-rate/VFR/retimed and
-nested qualification, rendered/audio agreement, offline journey, long-form physical A/V sync,
-local collection/relink, storage/performance budgets, physical interruption and
-multi-file restart recovery. No M1 requirement is marked Done by this implementation alone.
+The bounded Windows SDR decoder/fallback corpus, mixed-rate/VFR/retimed/nested journey,
+independent frame/sample agreement and same-PC collection/relocation now have local evidence in
+[DEC-006](DEC-006_NATIVE_MEDIA.md) and [IMPLEMENTATION](IMPLEMENTATION.md). Those results apply
+to their declared synthetic/native profile, not every export format or platform.
+
+Still open: disconnected acceptance, long-form physical A/V sync and full manual editing
+qualification. Wider storage/performance promises, physical interruption and multi-file restart
+recovery remain unqualified. No M1 requirement is marked Done by this implementation alone.
 
 Physical second-PC collection/relink is excluded from M1 by user decision (2026-11-04),
 not recorded as passed; see the current scope note in IMPLEMENTATION.

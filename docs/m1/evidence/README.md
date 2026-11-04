@@ -4,6 +4,11 @@ These reports cover this Windows x64 development PC (NT build 10.0.26200). The p
 check is excluded from M1 by the user's 2026-11-04 decision. Remaining acceptance and exact test
 commands/counts are in [IMPLEMENTATION](../IMPLEMENTATION.md).
 
+[Runtime and acceptance-preparation reports](runtime-20261105/README.md) record native processing
+status, the clean-source connected journey diagnostic, generated timing fixture and device-clock
+observation separately from the decoder and interactive smoke evidence below. They do not claim
+disconnected operation or physical A/V synchronization.
+
 ## Native media
 
 [qualification.json](native-media-20261105/qualification.json) records the bounded corpus,
@@ -51,7 +56,8 @@ and linked groups. A global shortcut intercepted Ctrl+Shift+K, so the split was 
 the editor menu instead. The test editor exited normally after saving.
 
 This smoke does not complete the whole manual editing/accessibility workflow. The PC remained
-network connected. Neither these reports nor headless frame/sample checks establish a disconnected
-no-egress run, physical device-clock A/V timing, long-form underruns/drift, storage-crash behavior,
-or wider performance/format promises. No hosted Actions, push, release or GitHub settings change
-was used for this continuation.
+network connected. The decoder/interactive smoke reports and headless frame/sample checks do not
+establish a disconnected no-egress run, physical A/V drift, storage-crash behavior or wider
+performance/format promises. The separate runtime reports above qualify the ten-minute
+audio-counter criterion for their simple native fixture. No hosted Actions, push, release or
+GitHub settings change was used for this continuation.
