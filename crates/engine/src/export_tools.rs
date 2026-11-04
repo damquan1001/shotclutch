@@ -447,7 +447,7 @@ fn output_path(s: &Session, p: &Value, seq: ItemId, settings: &ExportSettings, s
 }
 
 /// Write the caption sidecar (`settings.caption_sidecar`) next to `path` for `range` of `seq`.
-fn write_sidecar(s: &Session, project: &Project, seq: ItemId, settings: &ExportSettings) -> Result<Option<String>> {
+pub(crate) fn caption_sidecar(project: &Project, seq: ItemId, settings: &ExportSettings) -> Result<Option<(String, Vec<u8>)>> {
     let Some(kind) = settings.caption_sidecar.as_deref() else { return Ok(None) };
     let q = project.sequence(seq).ok_or(EngineError::NoSequence)?;
     let Some(track) = q.caption_tracks.first() else { return Ok(None) };
@@ -461,13 +461,41 @@ fn write_sidecar(s: &Session, project: &Project, seq: ItemId, settings: &ExportS
     let bytes =
         shotclutch_captions::write(&doc, format, shotclutch_captions::WriteOptions { drop_frame: q.settings.drop_frame, rate: Some(q.settings.frame_rate) });
     let ext = if format == shotclutch_captions::Format::WebVtt { "vtt" } else { kind };
-    let path = format!("{}.{ext}", settings.path.rsplit_once('.').map_or(settings.path.as_str(), |x| x.0));
-    s.services.write_file(&path, &bytes).map_err(|e| EngineError::Other(format!("{path}: {e}")))?;
-    Ok(Some(path))
+    let path = Path::new(&settings.path).with_extension(ext).to_string_lossy().into_owned();
+    Ok(Some((path, bytes)))
 }
 
 /// Run an export of `seq` in `project` as a background job (or now, with `wait`); returns the job id.
-pub fn spawn_export(s: &mut Session, project: Arc<Project>, seq: ItemId, mut settings: ExportSettings, label: String, wait: bool) -> Result<u64> {
+pub fn spawn_export(s: &mut Session, project: Arc<Project>, seq: ItemId, settings: ExportSettings, label: String, wait: bool) -> Result<u64> {
+    let origin = ExportOrigin::capture(s);
+    spawn_export_bound(s, project, seq, settings, label, wait, origin)
+}
+
+#[derive(Clone)]
+struct ExportOrigin {
+    project_id: shotclutch_format::session::DocumentId,
+    revision: u64,
+    pool: Arc<crate::MediaPool>,
+}
+impl ExportOrigin {
+    fn capture(s: &Session) -> Self {
+        #[cfg(not(target_arch = "wasm32"))]
+        let pool = s.media.export_snapshot();
+        #[cfg(target_arch = "wasm32")]
+        let pool = s.media.clone();
+        Self { project_id: s.document_id, revision: s.revision, pool }
+    }
+}
+
+fn spawn_export_bound(
+    s: &mut Session,
+    project: Arc<Project>,
+    seq: ItemId,
+    mut settings: ExportSettings,
+    label: String,
+    wait: bool,
+    origin: ExportOrigin,
+) -> Result<u64> {
     let format = settings.format;
     if !shotclutch_export::available(format) {
         return Err(EngineError::Other(format!("{} export is not available (no encoder registered)", format.label())));
@@ -476,16 +504,19 @@ pub fn spawn_export(s: &mut Session, project: Arc<Project>, seq: ItemId, mut set
         let services = s.services.clone();
         settings.sink = Some(shotclutch_export::OutputSink(Arc::new(move |path: &str, data: Vec<u8>| services.write_file(path, &data))));
     }
-    if let Some(dir) = Path::new(&settings.path).parent().filter(|d| !d.as_os_str().is_empty() && !s.services.export_in_memory()) {
-        let _ = std::fs::create_dir_all(dir);
+    if (s.services.export_in_memory() || cfg!(target_arch = "wasm32"))
+        && let Some((path, bytes)) = caption_sidecar(&project, seq, &settings)?
+    {
+        s.services.write_file(&path, &bytes).map_err(|e| EngineError::Other(format!("{path}: {e}")))?;
     }
-    write_sidecar(s, &project, seq, &settings)?;
     let id = s.jobs.iter().map(|j| j.id).max().unwrap_or(0) + 1;
     let job = crate::Job { id, label, progress: Default::default(), result: Default::default() };
     // Export always renders full-resolution media, whatever the proxy toggle says.
-    let provider = s.media.full_res_provider(project.clone(), s.services.clone()).recording();
+    let provider = origin.pool.full_res_provider(project.clone(), s.services.clone()).recording();
     let (prog, res) = (job.progress.clone(), job.result.clone());
     let offline = s.export_offline.entry(id).or_default().clone();
+    #[cfg(not(target_arch = "wasm32"))]
+    let binding = s.export_bindings.entry(id).or_default().clone();
     if cfg!(target_arch = "wasm32") && !wait && shotclutch_export::stepped(format) {
         // No threads: the host advances the export between UI frames (`Session::pump_jobs`).
         let mut exporter = shotclutch_export::Exporter::new(project, seq, &settings, &prog).map_err(|e| EngineError::Other(e.to_string()))?;
@@ -494,14 +525,38 @@ pub fn spawn_export(s: &mut Session, project: Arc<Project>, seq: ItemId, mut set
         s.stepped.push(crate::SteppedJob { job: id, exporter, provider, progress: prog, result: res });
         return Ok(id);
     }
+    let services = s.services.clone();
     let run = move || {
-        let r = shotclutch_export::export(&project, seq, &settings, &provider, &prog).map_err(|e| e.to_string());
-        *offline.lock().unwrap_or_else(|x| x.into_inner()) = provider.offline_used();
+        #[cfg(not(target_arch = "wasm32"))]
+        let r = if !services.export_in_memory() {
+            crate::export_delivery::run(
+                &project,
+                seq,
+                &settings,
+                origin.pool.export_snapshot(),
+                services,
+                &prog,
+                (origin.project_id, origin.revision),
+                &offline,
+                &binding,
+            )
+        } else {
+            let r = shotclutch_export::export(&project, seq, &settings, &provider, &prog).map_err(|e| e.to_string());
+            *offline.lock().unwrap_or_else(|x| x.into_inner()) = provider.offline_used();
+            r
+        };
+        #[cfg(target_arch = "wasm32")]
+        let r = {
+            let _ = (origin.project_id, origin.revision, services);
+            let r = shotclutch_export::export(&project, seq, &settings, &provider, &prog).map_err(|e| e.to_string());
+            *offline.lock().unwrap_or_else(|x| x.into_inner()) = provider.offline_used();
+            r
+        };
         if let Err(e) = &r {
             *prog.error.lock().unwrap_or_else(|x| x.into_inner()) = Some(e.clone());
-            prog.finished.store(true, Ordering::Relaxed);
         }
         *res.lock().unwrap_or_else(|x| x.into_inner()) = Some(r);
+        prog.finished.store(true, Ordering::Release);
     };
     let run = crate::export_tools::guard_job(job.progress.clone(), job.result.clone(), run);
     s.jobs.push(job);
@@ -525,8 +580,8 @@ pub(crate) fn guard_job(
         if std::panic::catch_unwind(std::panic::AssertUnwindSafe(run)).is_err() {
             let msg = "internal error (see the crash log); the job was stopped".to_string();
             *progress.error.lock().unwrap_or_else(|x| x.into_inner()) = Some(msg.clone());
-            progress.finished.store(true, Ordering::Relaxed);
             *result.lock().unwrap_or_else(|x| x.into_inner()) = Some(Err(msg));
+            progress.finished.store(true, Ordering::Release);
         }
     }
 }
@@ -560,12 +615,15 @@ pub fn export_media(s: &mut Session, p: &Value) -> Result<Value> {
         out["cancel"] = json!("jobs.cancel");
     }
     if wait && let Some(j) = s.jobs.iter().find(|j| j.id == id) {
-        let v = j.to_json();
+        let v = job_json(s, j);
         if let Some(e) = v["result"]["error"].as_str() {
             return Err(EngineError::Other(format!("export failed: {e}")));
         }
         out["result"] = v["result"].clone();
         out["offlineMedia"] = offline_media_json(s, id);
+        if let Some(binding) = v.get("binding") {
+            out["binding"] = binding.clone();
+        }
     }
     Ok(out)
 }
@@ -601,6 +659,8 @@ pub struct QueueItem {
     /// The project as it was when the item was queued.
     #[serde(skip)]
     pub project: Arc<Project>,
+    #[serde(skip)]
+    origin: ExportOrigin,
 }
 
 /// The export queue (session state).
@@ -626,6 +686,9 @@ pub(crate) fn job_json(s: &Session, j: &crate::Job) -> Value {
     let mut v = j.to_json();
     if s.export_offline.contains_key(&j.id) {
         v["offlineMedia"] = offline_media_json(s, j.id);
+    }
+    if let Some(binding) = s.export_bindings.get(&j.id).and_then(|b| b.lock().unwrap_or_else(|e| e.into_inner()).clone()) {
+        v["binding"] = binding;
     }
     v
 }
@@ -677,7 +740,7 @@ pub fn pump_queue(s: &mut Session, wait: bool) {
             let it = &mut s.export_queue.items[i];
             match r {
                 Ok(_) => it.status = QueueStatus::Done,
-                Err(e) if e == "cancelled" => it.status = QueueStatus::Cancelled,
+                Err(e) if e == "cancelled" || e.starts_with("CANCELED:") => it.status = QueueStatus::Cancelled,
                 Err(e) => {
                     it.status = QueueStatus::Failed;
                     it.error = Some(e);
@@ -699,7 +762,7 @@ pub fn pump_queue(s: &mut Session, wait: bool) {
         };
         let it = s.export_queue.items[i].clone();
         let label = format!("Queue: {} → {}", it.sequence_name, file_name(&it.settings.path));
-        match spawn_export(s, it.project.clone(), it.sequence, it.settings.clone(), label, wait) {
+        match spawn_export_bound(s, it.project.clone(), it.sequence, it.settings.clone(), label, wait, it.origin.clone()) {
             Ok(job) => {
                 let x = &mut s.export_queue.items[i];
                 x.status = QueueStatus::Encoding;
@@ -776,6 +839,7 @@ fn queue_add(s: &mut Session, p: &Value) -> Result<Value> {
             job: None,
             error: None,
             project: project.clone(),
+            origin: ExportOrigin::capture(s),
         });
         ids.push(id);
     }

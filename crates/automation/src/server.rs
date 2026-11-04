@@ -1061,7 +1061,7 @@ mod tests {
 
     /// docs/agents.md § Long exports: a blocking export reports `notifications/progress` for its
     /// token (none without one), answers `ping` meanwhile, and `notifications/cancelled` stops
-    /// it, deletes the partial file and sends no response.
+    /// it, preserves an existing destination, cleans staging and sends no response.
     #[tokio::test(flavor = "multi_thread")]
     async fn export_progress_and_cancel() {
         let dir = std::env::temp_dir().join(format!("shotclutch-mcp-progress-{}", std::process::id()));
@@ -1122,7 +1122,8 @@ mod tests {
             pong = false;
         }
         assert!(notes >= 2 && pong, "{notes} notifications, ping answered during the export: {pong}");
-        // cancel after the first notification: no response, no partial file
+        // Cancellation must preserve a delivery that already occupied the destination.
+        std::fs::write(dir.join("b.mp4"), b"previous approved delivery").unwrap();
         c.send(&export(4, "b.mp4", Some(json!(7)), 20.0)).await;
         loop {
             let m = c.next().await;
@@ -1133,22 +1134,27 @@ mod tests {
         }
         c.send(r#"{"jsonrpc":"2.0","method":"notifications/cancelled","params":{"requestId":4}}"#).await;
         let t0 = std::time::Instant::now();
-        while dir.join("b.mp4").exists() || t0.elapsed() < std::time::Duration::from_millis(500) {
-            assert!(t0.elapsed().as_secs() < 30, "partial file still there");
+        loop {
+            assert!(t0.elapsed().as_secs() < 30, "export cancellation did not finish");
+            c.send(r#"{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"command_run","arguments":{"id":"jobs.list"}}}"#).await;
+            let m = loop {
+                let m = c.next().await;
+                assert_ne!(m["id"], 4, "no response for a cancelled request: {m}");
+                if m["id"] == 5 {
+                    break m;
+                }
+            };
+            let jobs: Value = serde_json::from_str(m["result"]["content"][0]["text"].as_str().unwrap()).unwrap();
+            let last = jobs.as_array().and_then(|a| a.last()).cloned().unwrap_or_default();
+            if last["finished"] == true {
+                let error = last["result"]["error"].as_str().unwrap_or_default();
+                assert!(error == "cancelled" || error.starts_with("CANCELED:"), "{jobs}");
+                break;
+            }
             tokio::time::sleep(std::time::Duration::from_millis(50)).await;
         }
-        c.send(r#"{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"command_run","arguments":{"id":"jobs.list"}}}"#).await;
-        let m = loop {
-            let m = c.next().await;
-            assert_ne!(m["id"], 4, "no response for a cancelled request: {m}");
-            if m["id"] == 5 {
-                break m;
-            }
-        };
-        let jobs: Value = serde_json::from_str(m["result"]["content"][0]["text"].as_str().unwrap()).unwrap();
-        let last = jobs.as_array().and_then(|a| a.last()).cloned().unwrap_or_default();
-        assert_eq!(last["result"]["error"], "cancelled", "{jobs}");
-        assert!(!dir.join("b.mp4").exists());
+        assert_eq!(std::fs::read(dir.join("b.mp4")).unwrap(), b"previous approved delivery");
+        assert!(!std::fs::read_dir(&dir).unwrap().any(|e| e.unwrap().file_name().to_string_lossy().starts_with(".shotclutch-export-")));
         let _ = std::fs::remove_dir_all(&dir);
     }
 

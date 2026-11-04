@@ -46,9 +46,20 @@ pub struct OfflineMedia {
     pub error: String,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+#[derive(Clone)]
+struct OwnedOriginal {
+    path: String,
+    bytes: Arc<[u8]>,
+    sha256: String,
+}
+
 pub struct MediaPool {
     /// item → (reference key, source)
     sources: RwLock<HashMap<ItemId, (String, SharedSource)>>,
+    /// Originals explicitly imported as immutable bytes, rather than reopened filesystem data.
+    #[cfg(not(target_arch = "wasm32"))]
+    owned: RwLock<HashMap<ItemId, OwnedOriginal>>,
     proxies: RwLock<HashMap<ItemId, (String, SharedSource)>>,
     offline: Arc<RwLock<HashMap<ItemId, OfflineStatus>>>,
     use_proxies: AtomicBool,
@@ -66,6 +77,8 @@ impl Default for MediaPool {
     fn default() -> Self {
         Self {
             sources: RwLock::new(HashMap::new()),
+            #[cfg(not(target_arch = "wasm32"))]
+            owned: RwLock::new(HashMap::new()),
             proxies: RwLock::new(HashMap::new()),
             offline: Arc::new(RwLock::new(HashMap::new())),
             use_proxies: AtomicBool::new(false),
@@ -146,22 +159,65 @@ fn file_name(path: &str) -> String {
 }
 
 impl MediaPool {
+    /// Snapshot host registrations/path resolution, excluding mutable preview file caches.
+    /// Explicit host-injected sources are already supplied as owned source handles.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn export_snapshot(&self) -> Arc<Self> {
+        let pool = Self::default();
+        *pool.openers.write().unwrap_or_else(|e| e.into_inner()) = self.openers.read().unwrap_or_else(|e| e.into_inner()).clone();
+        *pool.stored.write().unwrap_or_else(|e| e.into_inner()) = self.stored.read().unwrap_or_else(|e| e.into_inner()).clone();
+        *pool.sources.write().unwrap_or_else(|e| e.into_inner()) = self
+            .sources
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .iter()
+            .filter(|(_, (key, _))| key.is_empty())
+            .map(|(id, entry)| (*id, entry.clone()))
+            .collect();
+        let owned = self.owned.read().unwrap_or_else(|e| e.into_inner()).clone();
+        *pool.owned.write().unwrap_or_else(|e| e.into_inner()) = owned;
+        Arc::new(pool)
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn owned_binding(&self, item: ItemId, media: &MediaClip) -> Option<(Arc<[u8]>, String)> {
+        let MediaRef::File { path } = &media.media else { return None };
+        let owned = self.owned.read().unwrap_or_else(|e| e.into_inner());
+        let original = owned.get(&item)?;
+        (!media.offline && original.path == *path).then(|| (original.bytes.clone(), original.sha256.clone()))
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn insert_owned_bytes(&self, item: ItemId, path: &str, bytes: Arc<[u8]>) {
+        use sha2::{Digest, Sha256};
+        let sha256 = format!("{:x}", Sha256::digest(&bytes));
+        self.owned.write().unwrap_or_else(|e| e.into_inner()).insert(item, OwnedOriginal { path: path.into(), bytes, sha256 });
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn host_supplied(&self, item: ItemId) -> bool {
+        self.sources.read().unwrap_or_else(|e| e.into_inner()).get(&item).is_some_and(|(key, _)| key.is_empty())
+    }
+
     pub fn register_opener(&self, o: Opener) {
         self.openers.write().unwrap_or_else(|e| e.into_inner()).push(o);
     }
 
     /// Cache a source for an item, valid whatever the item's reference (generators).
     pub fn insert(&self, item: ItemId, src: SharedSource) {
+        #[cfg(not(target_arch = "wasm32"))]
+        self.owned.write().unwrap_or_else(|e| e.into_inner()).remove(&item);
         self.sources.write().unwrap_or_else(|e| e.into_inner()).insert(item, (String::new(), src));
     }
 
     /// Cache a source for an item under its [`media_key`].
     pub fn insert_keyed(&self, item: ItemId, key: String, src: SharedSource) {
+        #[cfg(not(target_arch = "wasm32"))]
+        self.owned.write().unwrap_or_else(|e| e.into_inner()).remove(&item);
         self.sources.write().unwrap_or_else(|e| e.into_inner()).insert(item, (key, src));
     }
 
     /// Cache a source opened from `path` for an item.
     pub fn insert_file(&self, item: ItemId, path: &str, src: SharedSource) {
+        #[cfg(not(target_arch = "wasm32"))]
+        self.owned.write().unwrap_or_else(|e| e.into_inner()).remove(&item);
         self.offline.write().unwrap_or_else(|e| e.into_inner()).remove(&item);
         let src = self.unsupported_as_slate(item, path, src);
         self.sources.write().unwrap_or_else(|e| e.into_inner()).insert(item, (format!("file:{path}"), src));
@@ -175,6 +231,8 @@ impl MediaPool {
     }
 
     pub fn remove(&self, item: ItemId) {
+        #[cfg(not(target_arch = "wasm32"))]
+        self.owned.write().unwrap_or_else(|e| e.into_inner()).remove(&item);
         self.sources.write().unwrap_or_else(|e| e.into_inner()).remove(&item);
         self.proxies.write().unwrap_or_else(|e| e.into_inner()).remove(&item);
         self.offline.write().unwrap_or_else(|e| e.into_inner()).remove(&item);
@@ -230,6 +288,8 @@ impl MediaPool {
 
     /// Forget every opened source (files are re-read on next use).
     pub fn clear(&self) {
+        #[cfg(not(target_arch = "wasm32"))]
+        self.owned.write().unwrap_or_else(|e| e.into_inner()).clear();
         self.sources.write().unwrap_or_else(|e| e.into_inner()).clear();
         self.proxies.write().unwrap_or_else(|e| e.into_inner()).clear();
         self.offline.write().unwrap_or_else(|e| e.into_inner()).clear();

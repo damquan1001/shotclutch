@@ -710,8 +710,11 @@ pub(crate) fn default_seq_settings_for(media: &MediaClip) -> SequenceSettings {
 pub fn import_bytes(s: &mut Session, path: &str, bytes: std::sync::Arc<[u8]>, bin: Option<shotclutch_project::BinId>) -> Result<ItemId> {
     let name = std::path::Path::new(path).file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| path.to_string());
     let identity = crate::relink::identity_of_bytes(&bytes);
-    let src = s.media.open_bytes(&name, bytes)?;
-    import_source(s, path, name, src, identity, bin)
+    let src = s.media.open_bytes(&name, bytes.clone())?;
+    let id = import_source(s, path, name, src, identity, bin)?;
+    #[cfg(not(target_arch = "wasm32"))]
+    s.media.insert_owned_bytes(id, path, bytes);
+    Ok(id)
 }
 
 /// Import a media file through the host's random-access reader ([`crate::Services::reader`]):

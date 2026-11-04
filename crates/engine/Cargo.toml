@@ -57,3 +57,4 @@ image = { version = "0.25", default-features = false, features = ["png", "gif"] 
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 cap-std = "=4.0.3"
+tempfile = "3.27"

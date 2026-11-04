@@ -48,7 +48,7 @@ Dependencies below are completion gates, not a requirement to postpone design or
 |---|---|---|---|---|---|
 | CORE-001 | Build a standalone ShotClutch fork | P0 | M0 | Done | — |
 | CORE-002 | Use one canonical project with stable IDs and versioned extensions | P0 | M1 | In Progress | CORE-001 |
-| CORE-003 | Use integer ticks and rational rates for edit math | P0 | M1 | Planned | CORE-002 |
+| CORE-003 | Use integer ticks and rational rates for edit math | P0 | M1 | In Progress | CORE-002 |
 | CORE-004 | Persist changes crash-safely | P0 | M1 | In Progress | CORE-002 |
 | CORE-005 | Establish reproducible build, automated checks, release packaging plan, and upstream-change policy | P0 | M0 | Done | CORE-001 |
 | UI-001 | Provide usable multitrack editing, exact trim/split/move, linked A/V, nesting, monitor seeking, audio levels, save, relink, and undo | P0 | M1 | Planned | CORE-003, AGENT-001, MEDIA-003, MEDIA-004 |
@@ -80,7 +80,7 @@ Dependencies below are completion gates, not a requirement to postpone design or
 | MOTION-002 | Render a declared native subset including groups, text, shapes, images, transforms, opacity, clipping, and keyframe/easing animation | P1 | M4 | Planned | MOTION-001, MEDIA-003 |
 | MOTION-003 | Render explicit web scenes in an isolated runtime into timestamped RGBA surfaces | P2 | M5 | Planned | MOTION-002, MOTION-004, SEC-003 |
 | MOTION-004 | Cache scenes by all observable inputs and preserve provenance | P1 | M4 | Planned | MOTION-002, MEDIA-005 |
-| EXPORT-001 | Render a selected range from a pinned project revision with exact duration, audio, and declared output settings | P0 | M1 | Planned | MEDIA-002, MEDIA-003, MEDIA-004, SEC-002 |
+| EXPORT-001 | Render a selected range from a pinned project revision with exact duration, audio, and declared output settings | P0 | M1 | In Progress | MEDIA-002, MEDIA-003, MEDIA-004, SEC-002 |
 | EXPORT-002 | Build a transient interchange representation and per-object fidelity report | P1 | M4 | Planned | CORE-003, AGENT-005, EXPORT-001, MOTION-002 |
 | EXPORT-003 | Qualify a Premiere destination adapter using an appropriate interchange route and pinned target version | P2 | M5 | Planned | EXPORT-002 |
 | EXPORT-004 | Qualify a DaVinci Resolve destination adapter with the same evidence standards; destination-specific mappings remain isolated from canonical project data | P2 | M5 | Planned | EXPORT-002 |
@@ -210,3 +210,11 @@ Owner: Codex. Branch: `codex/m1-editing-foundation`. [Implementation, test scope
   joins the In Progress items. [Contract and limits](m1/SERVICE_CONTRACT.md);
   [local validation and remaining gates](m1/IMPLEMENTATION.md). General scoped commands,
   rendered verification, media/export/offline and portability qualification remain open.
+
+
+- 2026-11-04 — Continued M1 native exports: job-local original readers with full/block SHA-256,
+  retained queue identity/path context, frozen image membership, staged and synced outputs,
+  cancellation-aware publication and ordinary file-set rollback/recovery backups. Exact fractional
+  audio export boundaries are tested. [Contract/limits](m1/EXPORT_CONTRACT.md) and
+  [local evidence](m1/IMPLEMENTATION.md). CORE-003 and EXPORT-001 are In Progress; the complete
+  offline/media/physical A/V/portability gates remain open. No hosted workflow or settings change.

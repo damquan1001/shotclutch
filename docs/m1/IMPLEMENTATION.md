@@ -52,13 +52,14 @@ and the [implemented service contract](SERVICE_CONTRACT.md).
 | Requirements | Current evidence / next action | Status |
 |---|---|---|
 | CORE-002 | Schema v17 identity and retained history; ID allocation survives undo/history deletion/save/reopen; optional extensions round-trip and unknown required extensions fail closed | In Progress |
-| CORE-003 | Retained timebase and exact boundary strings; mixed-rate/VFR/nesting/retiming qualification remains | Planned |
+| CORE-003 | Exact boundary strings and fractional-rate export sample endpoints; full mixed-rate/VFR/nesting/retiming qualification remains | In Progress |
 | CORE-004 | Atomic project/history/revision snapshots, checked recovery, migration backups and injected write/publication failures; broader fault/platform/storage-budget qualification remains | In Progress |
 | AGENT-001–002 | Bounded structural service: host grants, exact wire values, source SHA-256, durable retries and CLI/MCP parity; rendered evidence/general permissions remain | In Progress |
 | TEST-001 | Focused gate and local checks; extend with persistence faults and new schema invariants as implemented | In Progress |
 | UI-001 | Inherited editing foundation; execute complete keyboard/manual workflow against M1 candidate | Planned |
 | MEDIA-001–004 | Close DEC-006 with measured fallback/proxy/render/audio corpus on Windows x64 | Planned |
-| EXPORT-001, EXPORT-006 | Verify pinned originals, atomic completed output and collection/relink on another machine | Planned |
+| EXPORT-001 | Native original binding, verified output staging and publication implemented; full media/export qualification remains | In Progress |
+| EXPORT-006 | Package/collect and relink on another machine with explicit essential/cache distinctions | Planned |
 | SEC-001–002 | Scoped-service denial, private grants, source confinement and cancellation tests; complete offline journey/worker isolation remain | In Progress |
 
 Tests cover private staging, command equivalence, linked trim, explicit split, abort, grouped
@@ -192,3 +193,59 @@ Run the complete offline journey and prepare the updated project-collection port
 Physical A/V and second-machine results require actual hardware evidence. General scoped
 mutations, a grant/review UI and rendered verification remain open; structural previews do not
 claim those capabilities. M1 is still In Progress.
+
+
+## Native export continuation — 2026-11-04
+
+Native owner exports now retain job-specific source readers and path context, verify original
+bytes throughout decoding, revalidate complete hashes before delivery, and stage output privately.
+A single file is published atomically after it is complete and synced. Queued relative paths and
+document identity survive a live project switch. A preview's cached file or enabled proxy cannot
+supply a different original to this job. Missing/intentional-offline reports remain explicit.
+
+The binding report includes project/revision/range, settings hash, original hashes and numbered
+frame identities, and completed output hashes. Image membership and holes stay frozen. Ordinary
+multi-file promotion failures roll back; failed rollback retains prior files for manual recovery.
+MCP no longer infers ownership from timestamps or deletes final files during cancellation.
+
+See [EXPORT_CONTRACT](EXPORT_CONTRACT.md) for the implemented boundary, budgets, host distinctions,
+file-set crash/restart limits and remaining qualification. This does not mark an M1 requirement
+Done. Full native media, physical A/V, offline and second-machine qualification remain required.
+
+
+Final local evidence for the native export continuation:
+
+- `cargo test --locked --offline -p shotclutch-engine -p shotclutch-export -p shotclutch-automation --lib`:
+  925 passed (775 engine, 127 export, 23 automation), zero failures; 3 existing engine performance
+  tests ignored. After compilation: engine 60.59 s, export 7.42 s, automation 1.46 s.
+- `cargo test --locked --offline -p shotclutch-cli --test it`: all 19 passed, including the phone VFR
+  extract/gain/title-to-H.264 workflow and camera long-GOP/two-audio-track trim/dissolve-to-ProRes
+  workflow. No CLI workflow test was filtered out. Runtime after compilation: 7.65 s.
+- `python scripts/ci/m1-checks.py`: 273 Rust cases passed, including all 16 new native export
+  tests and 2 new MCP completion tests. Formatting and the gate helper test passed. Local time
+  78.5 s, including an engine/MCP rebuild; this is not a hosted duration estimate.
+- Clippy with `--all-targets -- -D warnings` passed for engine, export, automation and CLI.
+  `cargo check --locked --offline -p shotclutch -p shotclutch-ui-egui` passed. This is build
+  compatibility evidence, not a new interactive desktop acceptance run. `git diff --check` passed.
+- Untracked local logs: `target/m1/export-regression-verified.log`, `export-cli.log`,
+  `export-gate.log`, `export-clippy-final.log`, and `export-desktop-check.log`.
+
+The first local tests exposed Windows sync through a read-only handle; finished files now sync
+through writable handles before destination permissions are applied. Broad regression caught
+byte-imported originals being dropped with preview file caches; the job now retains their
+immutable encoded buffers and opens fresh decoders, preserving the existing audio render/export
+parity test. The existing queue retry's I/O error contract is retained. All final checks passed
+without suppressing failures or adding ignored tests. Four obsolete timestamp-deletion helper
+tests were replaced by two confirmed-result tests and a stronger real MCP cancellation test that
+preserves an existing approved delivery.
+
+No workflow triggers, GitHub settings, hosted runs, pushes or releases were used. The single
+ready-PR gate automatically discovers the new headless `m1_` cases. Full local qualification
+commands remain available. No existing locked dependency version was upgraded; native engine
+staging uses the already-locked `tempfile` dependency.
+
+Next: complete the bounded Windows SDR/fallback and mixed-rate/VFR/nesting/retiming qualification,
+run the offline mixed-media journey, and implement/qualify collected-project portability with
+explicit essential assets. Native single-file delivery is implemented; durable whole-file-set
+restart recovery, physical interruption, storage/performance budgets, physical A/V sync and the
+updated second-PC fixture remain open. M1 remains In Progress.

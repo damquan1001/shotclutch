@@ -20,6 +20,10 @@ pub mod demo;
 pub mod doc_path;
 mod document;
 pub mod essential_sound;
+#[cfg(not(target_arch = "wasm32"))]
+mod export_delivery;
+#[cfg(not(target_arch = "wasm32"))]
+mod export_inputs;
 pub mod export_tools;
 pub mod graphic_templates;
 pub mod graphics;
@@ -455,6 +459,7 @@ pub struct Session {
     /// Export job → the offline items it drew the slate for, filled when the export finishes
     /// (#1054; `offlineMedia` in `file.exportMedia` and queue results).
     pub export_offline: std::collections::HashMap<u64, Arc<std::sync::Mutex<Vec<media_pool::OfflineMedia>>>>,
+    pub export_bindings: std::collections::HashMap<u64, Arc<std::sync::Mutex<Option<serde_json::Value>>>>,
     /// User preferences (`prefs.*` commands) and where they persist (None = not persisted).
     pub prefs: autosave::Preferences,
     pub prefs_path: Option<std::path::PathBuf>,
@@ -582,6 +587,7 @@ impl Session {
             journal: Vec::new(),
             jobs: Vec::new(),
             export_offline: Default::default(),
+            export_bindings: Default::default(),
             prefs: Default::default(),
             prefs_path: None,
             persistence: None,

@@ -417,6 +417,9 @@ pub struct ExportSettings {
     /// reservation made while choosing an output name, rather than reopening that path later.
     #[serde(skip)]
     pub output_file: Option<Arc<std::fs::File>>,
+    /// The native host still has source verification/publication to perform after encoding.
+    #[serde(skip)]
+    pub defer_completion: bool,
 }
 
 /// Receives in-memory export output: `(path, bytes)` per finished file.
@@ -611,6 +614,7 @@ impl Default for ExportSettings {
             signal: ColorSignal::default(),
             sink: None,
             output_file: None,
+            defer_completion: false,
         }
     }
 }
@@ -2037,7 +2041,9 @@ fn export_here(project: &Arc<Project>, seq: ItemId, settings: &ExportSettings, s
     };
     let secs = t0.elapsed().as_secs_f64();
     if !settings.part_of_batch {
-        progress.finished.store(true, Ordering::Relaxed);
+        if !settings.defer_completion {
+            progress.finished.store(true, Ordering::Relaxed);
+        }
         progress.set_status(format!("Done in {secs:.1}s"));
     }
     Ok(Report { path: settings.path.clone(), frames: nframes, seconds: secs, bytes, render_fps: nframes as f64 / secs.max(1e-6), extra_files: Vec::new() })
