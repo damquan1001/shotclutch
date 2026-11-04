@@ -17,6 +17,7 @@
 use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
+use std::sync::Arc;
 
 use serde_json::{Value, json};
 
@@ -70,8 +71,17 @@ struct Scratch(PathBuf);
 
 impl Scratch {
     fn new(name: &str) -> Self {
-        let d = shotclutch_testkit::workspace_root().join("target").join("workflow-tests").join(format!("{name}-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&d);
+        let workspace = shotclutch_testkit::workspace_root().canonicalize().unwrap();
+        let parent = workspace.join("target/workflow-tests");
+        std::fs::create_dir_all(&parent).unwrap();
+        let parent = parent.canonicalize().unwrap();
+        assert!(parent.starts_with(&workspace));
+        let d = parent.join(format!("{name}-{}", std::process::id()));
+        assert_eq!(d.parent(), Some(parent.as_path()));
+        if d.exists() {
+            assert_eq!(d.canonicalize().unwrap(), d, "never recursively remove a linked fixture root");
+            std::fs::remove_dir_all(&d).unwrap();
+        }
         std::fs::create_dir_all(&d).unwrap();
         Scratch(d)
     }
@@ -82,7 +92,12 @@ impl Scratch {
 
 impl Drop for Scratch {
     fn drop(&mut self) {
-        let _ = std::fs::remove_dir_all(&self.0);
+        if let (Ok(workspace), Ok(target)) = (shotclutch_testkit::workspace_root().canonicalize(), self.0.canonicalize())
+            && target == self.0
+            && target.starts_with(workspace.join("target/workflow-tests"))
+        {
+            let _ = std::fs::remove_dir_all(&target);
+        }
     }
 }
 
@@ -485,4 +500,133 @@ fn end_frame_of(project: &str) -> Option<u64> {
     let o = Command::new(env!("CARGO_BIN_EXE_shotclutch-cli")).args(["--project", project, "inspect", "sequence"]).output().ok()?;
     let v: Value = serde_json::from_slice(&o.stdout).ok()?;
     v["video"][0]["items"][0]["endFrame"].as_u64()
+}
+
+/// Local qualification, deliberately outside the small hosted M1 gate. Real MCP processes,
+/// independent frame/PCM decoding, VFR+25fps sources, 24->29.97 nesting, linked 2x speed/trim,
+/// proxies, native persistence, collected relocation with original directories unavailable.
+#[test]
+fn m1_mixed_rate_nested_proxy_persistence_and_local_collection_journey() {
+    use shotclutch_project::ItemId;
+    use shotclutch_time::{FrameRate, TICKS_PER_SECOND};
+    fn saved(path: &str) -> Arc<shotclutch_project::Project> {
+        let mut session = shotclutch_engine::Session::default();
+        assert_eq!(session.execute("file.open", json!({"path": path})).unwrap()["missingMedia"], 0);
+        session.project.clone()
+    }
+    fn move_owned(root: &Path, from: &str, to: &str) {
+        let from = root.join(from);
+        let to = root.join(to);
+        let root = root.canonicalize().unwrap();
+        assert!(from.canonicalize().unwrap().starts_with(&root));
+        assert_eq!(to.parent().unwrap().canonicalize().unwrap(), root);
+        assert!(!to.exists());
+        std::fs::rename(from, to).unwrap();
+    }
+    let Some(ffmpeg) = shotclutch_testkit::ffmpeg_or_skip("M1 local mixed-media journey") else { return };
+    let ffprobe = shotclutch_testkit::ffprobe().expect("ffprobe is required for M1 qualification");
+    let phone = phone_vfr_mp4(&ffmpeg).expect("required phone VFR fixture");
+    let camera = camera_long_gop_mkv(&ffmpeg).expect("required camera 25 fps fixture");
+    let dir = Scratch::new("m1-local-mixed");
+    let originals = dir.0.join("Originals");
+    std::fs::create_dir(&originals).unwrap();
+    let phone_copy = originals.join("phone.mp4");
+    let camera_copy = originals.join("camera.mkv");
+    std::fs::copy(phone, &phone_copy).unwrap();
+    std::fs::copy(camera, &camera_copy).unwrap();
+    let source_bytes = [std::fs::read(&phone_copy).unwrap(), std::fs::read(&camera_copy).unwrap()];
+    let project = dir.path("edit.scproj");
+    let outer = {
+        let mut m = Mcp::start(&dir.path("data"));
+        let items = m.run("file.import", json!({"paths": [phone_copy, camera_copy]}))["items"].as_array().unwrap().clone();
+        let inner = m.run("file.newSequence", json!({"name": "Inner 24", "width": 320, "height": 240, "fps": 24, "video": 2, "audio": 2}))["sequence"]
+            .as_u64()
+            .unwrap();
+        m.run("timeline.place", json!({"item": items[0], "track": "V1", "time": 0, "duration": 2 * TICKS_PER_SECOND}));
+        let placed = m.run("timeline.place", json!({"item": items[1], "track": "V1", "time": 2 * TICKS_PER_SECOND, "duration": TICKS_PER_SECOND}));
+        assert!(placed["clips"].as_array().unwrap().len() >= 2, "linked camera tracks: {placed}");
+        let inner_state = m.tool("sequence_inspect", json!({}));
+        let phone_clip = clips_on(&inner_state, "video", 0)[0]["clip"].as_u64().unwrap();
+        m.run("clip.speedDuration", json!({"clips": [phone_clip], "speed": 200, "ripple": true, "interpolation": "frameSampling"}));
+        let outer =
+            m.run("file.newSequence", json!({"name": "Outer NTSC", "width": 320, "height": 240, "fps": 30000.0 / 1001.0, "video": 1, "audio": 1}))["sequence"]
+                .as_u64()
+                .unwrap();
+        m.run("timeline.place", json!({"item": inner, "time": 0, "duration": 2 * TICKS_PER_SECOND}));
+        m.run("file.save", json!({"path": project}));
+        let before = saved(&project);
+        assert_eq!(before.sequence(ItemId(outer)).unwrap().settings.frame_rate, FrameRate::FPS_29_97);
+        let clip = before.sequence(ItemId(outer)).unwrap().video_tracks[0].items[0].id;
+        let step = FrameRate::FPS_29_97.tick_of(1);
+        m.run("timeline.trim", json!({"clip": clip.0, "edge": "out", "mode": "regular", "delta": -step.0, "linked": true}));
+        m.run("file.save", json!({}));
+        let after = saved(&project);
+        let q = after.sequence(ItemId(outer)).unwrap();
+        let v = &q.video_tracks[0].items[0];
+        let a = &q.audio_tracks[0].items[0];
+        assert_eq!(v.duration, a.duration);
+        assert_eq!(v.source_in, a.source_in);
+        assert_eq!(v.duration, before.sequence(ItemId(outer)).unwrap().video_tracks[0].items[0].duration - step);
+        m.run("edit.undo", json!({}));
+        m.run("file.save", json!({}));
+        assert_eq!(saved(&project), before);
+        m.run("edit.redo", json!({}));
+        m.run("file.save", json!({}));
+        assert_eq!(saved(&project), after);
+        let export = |m: &mut Mcp, name: &str| {
+            let out = dir.path(name);
+            let result = m.run("file.exportMedia", json!({"path": out, "format": "prores", "width": 80, "height": 60, "fps": "30000/1001", "range": "custom", "startTime": step.0, "endTime": FrameRate::FPS_29_97.tick_of(57).0, "gpuRendering": "off", "wait": true}));
+            assert_eq!(result["result"]["frames"], 56, "{result}");
+            assert_eq!(result["offlineMedia"], json!([]));
+        };
+        export(&mut m, "reference.mov");
+        let proxy =
+            m.run("media.createProxies", json!({"items": [items[0]], "destination": dir.path("Proxies"), "preset": "prores_proxy_quarter", "wait": true}));
+        assert!(Path::new(proxy["outputs"][0]["path"].as_str().unwrap()).is_file());
+        m.run("media.toggleProxies", json!({"enabled": true}));
+        m.run("file.save", json!({}));
+        let with_proxy = saved(&project);
+        assert_eq!(with_proxy.sequence(ItemId(inner)), after.sequence(ItemId(inner)));
+        assert_eq!(with_proxy.sequence(ItemId(outer)), after.sequence(ItemId(outer)));
+        export(&mut m, "proxy-enabled.mov");
+        m.run("file.open", json!({"path": project}));
+        export(&mut m, "reopened.mov");
+        let args = json!({"destination": dir.path("Collected"), "excludeUnused": false, "operationId": "34dc91bf-599e-4db3-bb52-ac99922a0406", "wait": true});
+        let result = m.run("file.projectManager", args.clone());
+        assert_eq!(result["state"], "committed");
+        assert_eq!(m.run("file.projectManager", args)["replayed"], true, "MCP retry returns a receipt without requiring a new job");
+        assert_eq!(m.run("file.verifyCollection", json!({"path": dir.path("Collected")}))["verified"], true);
+        outer
+    };
+    assert_eq!(std::fs::read(&phone_copy).unwrap(), source_bytes[0]);
+    assert_eq!(std::fs::read(&camera_copy).unwrap(), source_bytes[1]);
+    move_owned(&dir.0, "Originals", "Originals-hidden");
+    move_owned(&dir.0, "Proxies", "Proxies-hidden");
+    move_owned(&dir.0, "Collected", "Relocated");
+    let collected = dir.0.join("Relocated/edit.scproj");
+    let mut m = Mcp::start(&dir.path("relocated-data"));
+    assert_eq!(m.run("file.open", json!({"path": collected}))["missingMedia"], 0);
+    assert_eq!(m.run("file.verifyCollection", json!({"path": dir.path("Relocated")}))["verified"], true);
+    let output = dir.path("collected.mov");
+    m.run("file.exportMedia", json!({"path": output, "format": "prores", "width": 80, "height": 60, "fps": "30000/1001", "range": "custom", "startTime": FrameRate::FPS_29_97.tick_of(1).0, "endTime": FrameRate::FPS_29_97.tick_of(57).0, "gpuRendering": "off", "wait": true}));
+    assert_eq!(saved(collected.to_str().unwrap()).sequence(ItemId(outer)).unwrap().settings.frame_rate, FrameRate::FPS_29_97);
+    let reference = frames(&ffmpeg, &dir.path("reference.mov"), None, "rgb24");
+    let sound = pcm(&ffmpeg, &dir.path("reference.mov"), 0);
+    let expected_samples = FrameRate::FPS_29_97.tick_of(57).to_units_floor(48000) - FrameRate::FPS_29_97.tick_of(1).to_units_floor(48000);
+    assert_eq!(sound.len(), expected_samples as usize);
+    assert_eq!(reference.len(), 56);
+    let beep = onsets(&sound);
+    assert!(beep.iter().any(|t| (*t - (0.5 - FrameRate::FPS_29_97.tick_of(1).seconds())).abs() < 1.0 / 29.97), "retimed flash/beep timing: {beep:?}");
+    for name in ["proxy-enabled.mov", "reopened.mov", "collected.mov"] {
+        assert_eq!(frames(&ffmpeg, &dir.path(name), None, "rgb24"), reference, "same source frames through {name}");
+        assert_eq!(pcm(&ffmpeg, &dir.path(name), 0), sound, "same absolute sample windows through {name}");
+        let info = probe(&ffprobe, &dir.path(name));
+        assert_eq!(streams(&info, "video")[0]["nb_read_frames"], "56");
+    }
+    // A working copy outside the received package must retain its media context on reopen.
+    let working = dir.path("Working/working.scproj");
+    std::fs::create_dir(dir.0.join("Working")).unwrap();
+    m.run("file.saveAs", json!({"path": working}));
+    assert_eq!(m.run("file.open", json!({"path": working}))["missingMedia"], 0, "Save As must rebase portable relative references");
+    assert_eq!(m.run("file.verifyCollection", json!({"path": dir.path("Relocated")}))["verified"], true);
 }

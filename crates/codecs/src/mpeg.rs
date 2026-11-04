@@ -282,6 +282,8 @@ impl MpegSource {
             src.info.kind = MediaKind::AudioOnly;
             src.setup_audio(file, None);
         }
+        let rate = src.info.frame_rate();
+        src.gop = src.gop.with_clock(rate.den as i64, rate.num as i64, 0);
         Ok(src)
     }
 
@@ -338,6 +340,8 @@ impl MpegSource {
             let fps = src.info.frame_rate().as_f64().round().max(1.0) as i64;
             src.info.start_timecode = Some(((tc.hours as i64 * 60 + tc.minutes as i64) * 60 + tc.seconds as i64) * fps + tc.pictures as i64);
         }
+        let rate = src.info.frame_rate();
+        src.gop = src.gop.with_clock(rate.den as i64, rate.num as i64, 0);
         Ok(src)
     }
 

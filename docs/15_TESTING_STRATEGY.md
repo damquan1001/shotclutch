@@ -26,7 +26,7 @@ Each requirement maps to a test family below and a tracker row. Evidence records
 | Requirements | Test family / minimum evidence |
 |---|---|
 | CORE-001, CORE-005 | Clean build/install and standalone launch; dependency and legal-notice audit |
-| CORE-002, CORE-004, EXPORT-006 | Save/reopen, migrations, unknown extensions, crash recovery, package/relink on second machine |
+| CORE-002, CORE-004, EXPORT-006 | Save/reopen, migrations, unknown extensions, crash recovery, package/relink through local relocation for M1; physical second-machine run deferred beyond M1 by user decision (2026-11-04) |
 | CORE-003 | Exact-time property tests and mixed-rate/VFR/retiming/nesting fixtures |
 | UI-001, MEDIA-001–MEDIA-004, EXPORT-001 | Manual/automated edit workflow, media corpus, audio sync, preview/export equivalence |
 | UI-002, PRE-001–PRE-005 | Trigger policy, workspace review, map arithmetic, take overrides, application/reapplication, undo |

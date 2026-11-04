@@ -22,6 +22,71 @@ pub(crate) struct Snapshot {
 }
 
 impl Snapshot {
+    /// Preserve semantic file references when saving into another folder. Prepare only:
+    /// the caller publishes this snapshot and adopts paths/caches after the write succeeds.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn for_destination(&mut self, destination: &str, pool: &crate::MediaPool) -> Result<std::collections::BTreeSet<String>, String> {
+        use shotclutch_project::{ItemId, MediaRef};
+        use std::collections::BTreeSet;
+        use std::path::Path;
+        let old_document = self.path.as_deref().map(Path::new);
+        let mut paths = BTreeSet::new();
+        let mut rebase = |project: &Arc<Project>, historical: bool| -> Result<Arc<Project>, String> {
+            let mut changes: Vec<(ItemId, bool, String)> = Vec::new();
+            for item in project.items.values() {
+                let Some(media) = item.as_media() else { continue };
+                for (reference, proxy) in std::iter::once((&media.media, false)).chain(media.proxy.as_ref().map(|r| (r, true))) {
+                    let MediaRef::File { path } = reference else { continue };
+                    // Absolute paths/URLs are already location independent. Do not reinterpret
+                    // opaque URL/blob names or refused schemes as local filesystem paths.
+                    if !craft_docpath::resolve(path, None).is_ok_and(|p| p.is_relative()) {
+                        continue;
+                    }
+                    // A first save gives an unbound authored relative reference its document
+                    // folder. Only an actual user-picked binding has a CWD meaning to preserve.
+                    if old_document.is_none() && !pool.is_stored(path) && !pool.has_bound_file(item.id, path, proxy) {
+                        continue;
+                    }
+                    let actual = if historical && old_document.is_some() && !pool.is_stored(path) {
+                        crate::doc_path::resolve(path, old_document)
+                    } else {
+                        pool.follow(path)
+                    }
+                    .map_err(|e| format!("cannot preserve media reference `{path}`: {e}; relink before saving"))?;
+                    let actual = if Path::new(&actual).is_relative() {
+                        std::path::absolute(actual).map_err(|e| e.to_string())?.into_os_string().into_string().map_err(|_| "source path is not UTF-8")?
+                    } else {
+                        actual
+                    };
+                    let at_destination = crate::doc_path::resolve(path, Some(Path::new(destination)));
+                    if at_destination.as_ref().is_ok_and(|p| Path::new(p) == Path::new(&actual)) {
+                        continue;
+                    }
+                    paths.insert(actual.clone());
+                    changes.push((item.id, proxy, actual));
+                }
+            }
+            if changes.is_empty() {
+                return Ok(project.clone());
+            }
+            let mut project = (**project).clone();
+            for (id, proxy, path) in changes {
+                let media = project.item_mut(id).and_then(|i| i.as_media_mut()).ok_or("media disappeared while preparing save")?;
+                if proxy {
+                    media.proxy = Some(MediaRef::File { path });
+                } else {
+                    media.media = MediaRef::File { path };
+                }
+            }
+            Ok(Arc::new(project))
+        };
+        self.project = rebase(&self.project, false)?;
+        for (_, project) in self.history.undo.iter_mut().chain(&mut self.history.redo) {
+            *project = rebase(project, true)?;
+        }
+        Ok(paths)
+    }
+
     pub fn encode(&self, view: Option<&ProjectView>, recovery: bool) -> Result<Vec<u8>, String> {
         if self.revision == 0 || self.revision == u64::MAX {
             return Err("RESOURCE_LIMIT: document revision cannot be persisted".into());

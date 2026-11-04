@@ -5,6 +5,14 @@ Started 2026-11-02 on `codex/m1-editing-foundation`. Owner: Codex.
 M0 and the subsequent identity work are the starting baseline. M1 is In Progress. No M1
 requirement is Done solely because an inherited feature exists or a new unit test passes.
 
+## Current scope adjustment — 2026-11-04
+
+The user excluded the physical second-PC check from M1. Local collection, integrity, relinking
+and relocation remain required. Physical cross-machine qualification is deferred beyond M1 and
+is not a current exit blocker. This decision supersedes second-PC obligations in the historical
+continuation records below; it does not assert that a second-machine run passed. M0 evidence
+remains unchanged. All other M1 acceptance criteria and the minimal hosted CI policy remain.
+
 ## Hosted CI policy
 
 The user selected ready-for-review PRs only. `CI required` is one Ubuntu job, triggered for
@@ -34,8 +42,8 @@ GitHub's branch-protection API reported `Branch not protected` for main on 2026-
    transaction contract through UI, CLI or protocol adapters.
 4. Qualify inherited manual editing, bounded Windows SDR media/fallback, source identity,
    proxy/original mapping, render/audio behavior, export promotion and project collection.
-5. Run the offline journey, fault boundaries, long-form audio checks and second-machine
-   portability. Record actual evidence and limitations against the requirements below.
+5. Run the offline journey, fault boundaries, long-form audio checks and local project
+   relocation/integrity (physical second-PC qualification is deferred beyond M1). Record actual evidence and limitations against the requirements below.
 
 `Session::prepare_edits` stages explicit structural edits. `commit_edits_durable` now requires
 an enabled recovery worker and acknowledges a complete atomic snapshot before live publication.
@@ -53,14 +61,14 @@ and [collected-project portability](COLLECTION_CONTRACT.md) are implemented with
 | Requirements | Current evidence / next action | Status |
 |---|---|---|
 | CORE-002 | Schema v17 identity and retained history; ID allocation survives undo/history deletion/save/reopen; optional extensions round-trip and unknown required extensions fail closed | In Progress |
-| CORE-003 | Exact boundary strings and fractional-rate export sample endpoints; full mixed-rate/VFR/nesting/retiming qualification remains | In Progress |
+| CORE-003 | Exact boundary strings, source PTS/half-open VFR seeks, fractional-rate export endpoints and mixed-rate/nested/retimed local journey qualified; wider runtime qualification remains | In Progress |
 | CORE-004 | Atomic project/history/revision snapshots, checked recovery, migration backups and injected write/publication failures; broader fault/platform/storage-budget qualification remains | In Progress |
 | AGENT-001–002 | Bounded structural service: host grants, exact wire values, source SHA-256, durable retries and CLI/MCP parity; rendered evidence/general permissions remain | In Progress |
 | TEST-001 | Focused gate and local checks; extend with persistence faults and new schema invariants as implemented | In Progress |
-| UI-001 | Inherited editing foundation; execute complete keyboard/manual workflow against M1 candidate | Planned |
-| MEDIA-001–004 | Close DEC-006 with measured fallback/proxy/render/audio corpus on Windows x64 | Planned |
+| UI-001 | Candidate desktop smoke passed for real VFR seeking, menu split, keyboard save/undo/redo and independently reopened linked cuts; complete manual/accessibility workflow remains | In Progress |
+| MEDIA-001–004 | [DEC-006](DEC-006_NATIVE_MEDIA.md) native/software/fault-fallback SDR corpus and mixed-rate proxy/render/audio journey qualified on this Windows PC; physical/runtime checks remain | In Progress |
 | EXPORT-001 | Native original binding, verified output staging and publication implemented; full media/export qualification remains | In Progress |
-| EXPORT-006 | Verified relative-path collection, full history or explicit derived copy, and local relocation; updated physical second-PC check remains | In Progress |
+| EXPORT-006 | Verified relative-path collection, full history or explicit derived copy, and local relocation; physical second-PC check excluded from M1 by user decision | In Progress |
 | SEC-001–002 | Scoped-service denial, private grants, source confinement and cancellation tests; complete offline journey/worker isolation remain | In Progress |
 
 Tests cover private staging, command equivalence, linked trim, explicit split, abort, grouped
@@ -70,8 +78,8 @@ establish decoder, physical audio-clock, crash recovery or second-machine qualif
 
 Local runtime gates remain those in documents 14–16: independent frame/sample verification,
 preview/export composition agreement, no underruns in the 10-minute fixture, and A/V sync within
-one frame without cumulative drift over 30 minutes. Unavailable hardware or second-PC evidence
-keeps its criterion outstanding. No repeated full hosted M0 qualification is required for M1.
+one frame without cumulative drift over 30 minutes. Unavailable hardware evidence keeps its applicable criterion outstanding. The physical second-PC
+check is excluded from M1 by the user scope decision above. No repeated full hosted M0 qualification is required for M1.
 
 ## Local validation — 2026-11-02
 
@@ -307,3 +315,95 @@ mixed-media offline journey, storage/performance and durable file-set restart re
 A/V checks, and the updated physical second-PC package check. Collection is implemented and
 locally qualified; EXPORT-006 and M1 remain In Progress until the remaining acceptance evidence
 exists. The second-PC procedure is in COLLECTION_CONTRACT, not recorded as a completed run.
+
+## Native media and local mixed-media journey — 2026-11-04
+
+The user's current scope decision excludes physical second-PC checks. Local collection/relink,
+integrity and relocation remain required and are exercised below. Historical next-action lists
+above are superseded by this section and the scope adjustment at the top of this document.
+
+[DEC-006](DEC-006_NATIVE_MEDIA.md) selects the inherited OS Media Foundation/DXVA path with the
+in-process native codec registry as fallback. A strict local-only qualifier generates nine bounded
+SDR/video/image/PCM/error cases and compares the native stack against independent ffprobe/FFmpeg
+oracles in software, real hardware Auto and simulated-failure modes. All 27 case/mode outcomes
+passed. This adds no FFmpeg runtime dependency, downloads or routine hosted qualification jobs.
+
+The corpus exposed zero presentation timestamps on decoded movie frames. Container clocks now
+reach the shared GOP publication boundary, including MP4 edit offsets and MXF origins. Arbitrary
+MP4/MKV seeks respect actual half-open presentation intervals; exact nominal-grid requests retain
+the existing coarse-clock muxer policy. A small in-process real-container regression covers VFR,
+fractional timing, edit offsets, frame identity, boundaries and cold/warm seeks without an oracle
+tool in CI. The legacy decode benchmark now records partial failures and returns a failure status
+instead of claiming nominal complete-frame throughput.
+
+The real CLI/MCP mixed-media journey passed using generated phone VFR H.264/AAC and long-GOP
+25 fps camera media with two audio tracks. It covers 24 fps editing nested into 30000/1001 fps,
+linked 2x retiming and trim, exact fractional export endpoints, save/undo/redo/reopen, generated
+proxy attachment, full-history collect/verify/retry, relocation with original/proxy directories
+unavailable, and Save As outside the package. All four 56-frame ProRes outputs have identical
+independently decoded RGBA frames and PCM samples. The retimed beep and exact sample count pass.
+The sources remain byte-identical and the delivered package still verifies.
+
+That journey exposed a Save As defect: relative collected references were interpreted beside the
+new document. Native save now prepares equivalent references in current and retained history,
+then adopts paths/history/cache keys only after publication succeeds. Save a Copy leaves the live
+document unchanged; failed writes preserve it too. Same-folder paths remain relative where their
+meaning is unchanged. Three focused regressions additionally cover history-only originals,
+proxies, owned encoded buffers, failed saves and original package immutability.
+The broader stored-path regression also preserves first-save behavior: an unbound authored
+relative reference takes the destination folder as its base, while known user-picked bindings
+retain their previous meaning. The failure regression reaches a real publication error after
+snapshot preparation, as well as rejecting an occupied destination.
+
+The complete local CLI integration suite passed: **21 tests**, no failures, ignores or filters,
+with required installed oracle tools enabled. Runtime after compilation: 8.49 seconds. Evidence:
+`target/m1/media-cli-final.log`; initial Save As failure: `target/m1/media-journey.log`.
+
+Current remaining M1 acceptance: complete interactive editing/accessibility qualification beyond
+the bounded desktop smoke below; a genuinely
+disconnected/no-egress mixed-media run; physical device-clock A/V and long-form underrun/drift
+checks; wider fault/storage and complete file-set restart qualification; remaining service
+permission/rendered-verification coverage. The declared native SDR subset and same-PC workflow
+do not establish those results. Broader release performance/format promises remain bounded by
+documents 14–16. Physical second-PC testing is outside this milestone. M1 remains In Progress.
+
+Final current-candidate checks continued on 2026-11-05:
+
+- Focused M1 gate: **301 Rust tests passed**, formatting and the helper test passed; 259.3 seconds
+  locally including compilation. No hosted run was dispatched. Log: `target/m1/media-gate-final.log`.
+- Full engine/automation libraries: **826 passed** (802 engine, 24 automation), zero failures;
+  3 existing engine performance tests ignored. Engine runtime: 72.35 seconds.
+  Log: `target/m1/media-engine-final.log`.
+- Codecs: **133 passed**; platform: **50 passed**. Their inherited conditional oracle helpers
+  can return early when a backend/tool is unavailable (the legacy codec helper uses Unix paths),
+  so these counts are regression-function results, not additional format qualification. Strict
+  Windows corpus evidence is provided separately by DEC-006's fail-closed native qualifier.
+  Logs: `target/m1/media-codecs-final.log`, `target/m1/media-platform-final.log`.
+- Full CLI suite repeated on the final source: **21 passed**, no failures, ignores or filters,
+  required oracle tools enabled; 20.53 seconds after compilation. This supersedes the earlier
+  timing above. Log: `target/m1/media-cli-final.log`.
+- Clippy with `--all-targets -- -D warnings` passed for engine, codecs, platform, automation,
+  CLI and egui UI (46.85 seconds). `git diff --cached --check` passed for the complete staged
+  patch, including new files. Log: `target/m1/media-clippy-final.log`.
+- Desktop candidate built successfully with locked/offline Cargo (6m 21s). Strict native
+  qualification regenerated all inputs and passed all **27 case/mode outcomes** on this final
+  source. All verified video hashes match across software, real Auto and injected-failure modes.
+  [Compact reports and scope](evidence/README.md); local inputs/logs: `target/m1/media-final/`,
+  `media-desktop-build.log`, `media-native-final.log`.
+- The revised benchmark was built and given a private malformed MP4 through its normal decode
+  section. It returned exit **1**, `status:failed`, `decoded_frames:0` and an explicit open error,
+  without a nominal FPS. Logs: `target/m1/media-bench-build.log`, `media-bench-failure.log`;
+  result: `target/m1/benchmark-failure/report.json`. Shared fixtures were untouched.
+- The isolated desktop candidate opened a private copy of the real generated VFR phone source.
+  Shift+Right displayed source frame 5 at sequence timecode `00:00:00:05`; Sequence > Add Edit
+  to All Tracks split linked video/audio into `[0,5)` and `[5,120)`. Ctrl+S saved it. Independent
+  CLI opens verified both cut boundaries, source offsets `0` / `42336000000`, and matching link
+  groups. Ctrl+Z / save restored one 120-frame clip per track; Ctrl+Shift+Z / save restored exactly
+  the split tracks. The editor then exited normally. [Summary and clean screenshot](evidence/README.md).
+  Ctrl+Shift+K was intercepted by another application's global shortcut on this PC, so its
+  editor effect is not claimed; the visible menu command was verified instead. This is bounded
+  UI smoke evidence, not the full manual/accessibility, physical A/V or disconnected acceptance.
+
+No hosted workflow, trigger, settings, push or release was used. Routine CI remains the existing
+single headless gate; only four small in-process regressions join it automatically. Synthetic
+oracle generation, hardware modes, full workflows, benchmark checks and UI smoke remain local.

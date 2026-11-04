@@ -123,6 +123,17 @@ pub trait VideoSamples: Sync {
     fn make_decoder(&self) -> crate::Result<Box<dyn VideoDecoder>>;
 }
 
+/// Last track unit whose presentation time, floored into canonical ticks, is at or before
+/// `time`. This is the inverse needed for half-open intervals; ordinary floor division can
+/// return the preceding unit when the original rational PTS lost a fraction of one tick.
+pub(crate) fn presentation_units(time: shotclutch_time::Tick, num: i64, den: i64) -> i64 {
+    if num <= 0 || den <= 0 {
+        return 0;
+    }
+    let units = ((i128::from(time.0) + 1) * i128::from(den) - 1).div_euclid(i128::from(num) * i128::from(shotclutch_time::TICKS_PER_SECOND));
+    i64::try_from(units).unwrap_or(if units < 0 { i64::MIN } else { i64::MAX })
+}
+
 /// A container's sync sample for `i` when leading pictures need the GOP before: `sync` is the
 /// index's own sync sample, `leads(i, key)` says `i` is shown before `key`. One step per GOP, so a
 /// loop: a crafted index can chain tens of thousands of GOPs (#2803). A `sync` past `i` stops the
@@ -444,6 +455,8 @@ pub struct GopCache {
     /// The container's clean aperture, cut from every frame before the rotation.
     crop: Option<Region>,
     budget: usize,
+    /// Container PTS units in seconds, plus the first presented unit (e.g. MXF origin).
+    clock: Option<(i64, i64, i64)>,
 }
 
 /// The cache reserves room for this many small frames: a frame-threaded decoder runs up to ~2x
@@ -535,7 +548,15 @@ impl GopCache {
             pool: pool.clone(),
         });
         pool.register(&shared);
-        Self { shared, explicit_color, rotation: 0, crop: None, budget: FRAME_CACHE_CEILING }
+        Self { shared, explicit_color, rotation: 0, crop: None, budget: FRAME_CACHE_CEILING, clock: None }
+    }
+
+    /// Attach the container clock so every published frame carries its actual source PTS.
+    /// Cache keys stay in track units; this conversion happens once, after crop/rotation, for
+    /// serial and parallel decode, replay, cold seeks and cache hits alike.
+    pub fn with_clock(mut self, num: i64, den: i64, origin: i64) -> Self {
+        self.clock = Some((num, den, origin));
+        self
     }
 
     /// Turn every decoded frame clockwise by `quarter_turns` × 90° (the container's display
@@ -577,7 +598,10 @@ impl GopCache {
     }
 
     /// Cache a frame [`Self::finish`] has been applied to.
-    fn store_finished(&self, st: &mut State, pts: i64, f: VideoFrame, draft: bool) {
+    fn store_finished(&self, st: &mut State, pts: i64, mut f: VideoFrame, draft: bool) {
+        if let Some((num, den, origin)) = self.clock {
+            f.pts = shotclutch_time::Tick::from_rational(pts.saturating_sub(origin), num, den);
+        }
         st.last_used = Instant::now();
         if draft {
             st.drafts.insert(pts);

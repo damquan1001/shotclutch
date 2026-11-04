@@ -117,5 +117,8 @@ regressions run locally. Actual results are recorded in [IMPLEMENTATION](IMPLEME
 
 Still required: measured Windows SDR decoder/fallback corpus, full mixed-rate/VFR/retimed and
 nested qualification, rendered/audio agreement, offline journey, long-form physical A/V sync,
-second-machine collection/relink, storage/performance budgets, physical interruption and
+local collection/relink, storage/performance budgets, physical interruption and
 multi-file restart recovery. No M1 requirement is marked Done by this implementation alone.
+
+Physical second-PC collection/relink is excluded from M1 by user decision (2026-11-04),
+not recorded as passed; see the current scope note in IMPLEMENTATION.

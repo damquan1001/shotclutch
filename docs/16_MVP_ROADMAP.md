@@ -40,6 +40,9 @@ Extend canonical schemas, exact time, stable IDs, durable persistence, source fi
 
 Exit: the offline mixed-media editing journey passes on a declared platform; save/recovery and grouped undo survive fault injection; proxy/original swaps preserve cuts; a command produces equivalent behavior across service clients; final render has correct frame/sample counts and source bindings.
 
+Scope adjustment (user, 2026-11-04): qualify project collection/relink through local relocation
+and integrity checks. A physical second-PC run is deferred beyond M1 and does not block its exit.
+
 Risk: codec edge cases, GPU/CPU mismatches, and persistence changes. Mitigation: bounded media qualification and failure fixtures before broader AI work depends on them.
 
 ## M2 — Smart Rough Cut

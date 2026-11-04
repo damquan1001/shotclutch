@@ -64,3 +64,6 @@ shotclutch-media = { workspace = true }
 shotclutch-frame = { workspace = true }
 shotclutch-project = { workspace = true }
 shotclutch-render = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }

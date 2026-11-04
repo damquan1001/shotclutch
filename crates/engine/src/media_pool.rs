@@ -263,6 +263,52 @@ impl MediaPool {
         }
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn is_stored(&self, path: &str) -> bool {
+        self.stored.read().unwrap_or_else(|e| e.into_inner()).contains_key(path)
+    }
+
+    /// A relative user-picked locator has a working-directory meaning only when it
+    /// actually names the cached file/owned bytes, not a newly authored document reference.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn has_bound_file(&self, item: ItemId, path: &str, proxy: bool) -> bool {
+        if proxy {
+            return self.proxies.read().unwrap_or_else(|e| e.into_inner()).get(&item).is_some_and(|(key, _)| *key == format!("proxy:{path}"));
+        }
+        self.sources.read().unwrap_or_else(|e| e.into_inner()).get(&item).is_some_and(|(key, _)| *key == format!("file:{path}"))
+            || self.owned.read().unwrap_or_else(|e| e.into_inner()).get(&item).is_some_and(|owned| owned.path == path)
+    }
+
+    /// Adopt equivalent file locators after a durable Save As. Retain decoded/owned originals
+    /// and proxies under their new keys; never perform this during fallible save preparation.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn adopt_rebased_refs(&self, before: &Project, after: &Project, paths: std::collections::BTreeSet<String>, document: Option<&str>) {
+        for item in before.items.values() {
+            let (Some(old), Some(new)) = (item.as_media(), after.item(item.id).and_then(|i| i.as_media())) else { continue };
+            if old.media != new.media {
+                if let Some((key, _)) = self.sources.write().unwrap_or_else(|e| e.into_inner()).get_mut(&item.id)
+                    && *key == media_key(old)
+                {
+                    *key = media_key(new);
+                }
+                if let (MediaRef::File { path: old }, MediaRef::File { path: new }) = (&old.media, &new.media)
+                    && let Some(owned) = self.owned.write().unwrap_or_else(|e| e.into_inner()).get_mut(&item.id)
+                    && owned.path == *old
+                {
+                    owned.path.clone_from(new);
+                }
+            }
+            if let (Some(MediaRef::File { path: old }), Some(MediaRef::File { path: new })) = (&old.proxy, &new.proxy)
+                && old != new
+                && let Some((key, _)) = self.proxies.write().unwrap_or_else(|e| e.into_inner()).get_mut(&item.id)
+                && *key == format!("proxy:{old}")
+            {
+                *key = format!("proxy:{new}");
+            }
+        }
+        self.add_stored_paths(paths, document);
+    }
+
     /// Forget the stored paths (a new project).
     pub fn clear_stored(&self) {
         self.stored.write().unwrap_or_else(|e| e.into_inner()).clear();

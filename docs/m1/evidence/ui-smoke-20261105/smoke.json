@@ -1,0 +1,157 @@
+{
+  "version": 1,
+  "status": "passed-bounded-smoke",
+  "date": "2026-11-05",
+  "appSha256": "117131efb27a13dd5fe1adbba520637271edfaa68178ac480724c8c30a4eebad",
+  "sourceSha256": "043cd92ecdf4889e336eb98c267ebcedcbd9377725495477fbf5ea129bf7e553",
+  "projectSha256": "f76d569f51aa3b0e6ab6077296224daa2ccf99da55d5ed8d5a913e326edd97b1",
+  "screenshotSha256": "b222d52941bca9f5b293c497edf23d4a252e6631f59efabf779d8e8bb0a174aa",
+  "sequenceRate": {
+    "num": 30,
+    "den": 1
+  },
+  "seekFrames": 5,
+  "split": "Sequence > Add Edit to All Tracks; normal shortcut intercepted by another application",
+  "keyboard": [
+    "Shift+Right: seek 5",
+    "Ctrl+S: save",
+    "Ctrl+Z: undo",
+    "Ctrl+Shift+Z: redo"
+  ],
+  "independentSavedInspections": {
+    "split": {
+      "inspectionSha256": "446608d89034e22d82fc871b63651a7249d3b29d81f63e82acf4d51e8ab850b1",
+      "tracks": {
+        "video": [
+          [
+            {
+              "clip": 6,
+              "item": 1,
+              "startFrame": 0,
+              "endFrame": 5,
+              "durationFrames": 5,
+              "sourceIn": 0,
+              "link": 5
+            },
+            {
+              "clip": 8,
+              "item": 1,
+              "startFrame": 5,
+              "endFrame": 120,
+              "durationFrames": 115,
+              "sourceIn": 42336000000,
+              "link": 9
+            }
+          ]
+        ],
+        "audio": [
+          [
+            {
+              "clip": 7,
+              "item": 1,
+              "startFrame": 0,
+              "endFrame": 5,
+              "durationFrames": 5,
+              "sourceIn": 0,
+              "link": 5
+            },
+            {
+              "clip": 10,
+              "item": 1,
+              "startFrame": 5,
+              "endFrame": 120,
+              "durationFrames": 115,
+              "sourceIn": 42336000000,
+              "link": 9
+            }
+          ]
+        ]
+      }
+    },
+    "undo": {
+      "inspectionSha256": "0f1e96fb6808085f6439e7ceac45fd7c8fd7f11eb2658c31e70f13758db348fb",
+      "tracks": {
+        "video": [
+          [
+            {
+              "clip": 6,
+              "item": 1,
+              "startFrame": 0,
+              "endFrame": 120,
+              "durationFrames": 120,
+              "sourceIn": 0,
+              "link": 5
+            }
+          ]
+        ],
+        "audio": [
+          [
+            {
+              "clip": 7,
+              "item": 1,
+              "startFrame": 0,
+              "endFrame": 120,
+              "durationFrames": 120,
+              "sourceIn": 0,
+              "link": 5
+            }
+          ]
+        ]
+      }
+    },
+    "redo": {
+      "inspectionSha256": "446608d89034e22d82fc871b63651a7249d3b29d81f63e82acf4d51e8ab850b1",
+      "tracks": {
+        "video": [
+          [
+            {
+              "clip": 6,
+              "item": 1,
+              "startFrame": 0,
+              "endFrame": 5,
+              "durationFrames": 5,
+              "sourceIn": 0,
+              "link": 5
+            },
+            {
+              "clip": 8,
+              "item": 1,
+              "startFrame": 5,
+              "endFrame": 120,
+              "durationFrames": 115,
+              "sourceIn": 42336000000,
+              "link": 9
+            }
+          ]
+        ],
+        "audio": [
+          [
+            {
+              "clip": 7,
+              "item": 1,
+              "startFrame": 0,
+              "endFrame": 5,
+              "durationFrames": 5,
+              "sourceIn": 0,
+              "link": 5
+            },
+            {
+              "clip": 10,
+              "item": 1,
+              "startFrame": 5,
+              "endFrame": 120,
+              "durationFrames": 115,
+              "sourceIn": 42336000000,
+              "link": 9
+            }
+          ]
+        ]
+      }
+    }
+  },
+  "limits": [
+    "bounded smoke, not complete manual workflow or accessibility qualification",
+    "network connected; no disconnected/no-egress claim",
+    "no physical A/V timing or sustained performance claim"
+  ]
+}

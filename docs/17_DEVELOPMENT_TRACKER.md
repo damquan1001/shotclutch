@@ -51,12 +51,12 @@ Dependencies below are completion gates, not a requirement to postpone design or
 | CORE-003 | Use integer ticks and rational rates for edit math | P0 | M1 | In Progress | CORE-002 |
 | CORE-004 | Persist changes crash-safely | P0 | M1 | In Progress | CORE-002 |
 | CORE-005 | Establish reproducible build, automated checks, release packaging plan, and upstream-change policy | P0 | M0 | Done | CORE-001 |
-| UI-001 | Provide usable multitrack editing, exact trim/split/move, linked A/V, nesting, monitor seeking, audio levels, save, relink, and undo | P0 | M1 | Planned | CORE-003, AGENT-001, MEDIA-003, MEDIA-004 |
+| UI-001 | Provide usable multitrack editing, exact trim/split/move, linked A/V, nesting, monitor seeking, audio levels, save, relink, and undo | P0 | M1 | In Progress | CORE-003, AGENT-001, MEDIA-003, MEDIA-004 |
 | UI-002 | Provide a dedicated Smart Rough Cut workspace with transcript, waveform, source and result preview, take comparison, reasons, and apply/restore controls | P0 | M2 | Planned | PRE-002, PRE-003 |
-| MEDIA-001 | Select a usable hardware, native, or fallback decoder through one source interface | P0 | M1 | Planned | CORE-001, CORE-003 |
-| MEDIA-002 | Generate/use proxies while preserving source identity | P0 | M1 | Planned | MEDIA-001 |
-| MEDIA-003 | Evaluate tracks, effects, transitions, and nested sequences through a shared render graph | P0 | M1 | Planned | MEDIA-001, CORE-003 |
-| MEDIA-004 | Mix audio with sample-accurate ranges, linked edits, gain, fades, and device-clock playback | P0 | M1 | Planned | MEDIA-001, CORE-003 |
+| MEDIA-001 | Select a usable hardware, native, or fallback decoder through one source interface | P0 | M1 | In Progress | CORE-001, CORE-003 |
+| MEDIA-002 | Generate/use proxies while preserving source identity | P0 | M1 | In Progress | MEDIA-001 |
+| MEDIA-003 | Evaluate tracks, effects, transitions, and nested sequences through a shared render graph | P0 | M1 | In Progress | MEDIA-001, CORE-003 |
+| MEDIA-004 | Mix audio with sample-accurate ranges, linked edits, gain, fades, and device-clock playback | P0 | M1 | In Progress | MEDIA-001, CORE-003 |
 | MEDIA-005 | Keep interaction responsive under load using bounded caches, prioritized work, cancellation, and adaptive preview | P1 | M4 | Planned | MEDIA-002, MEDIA-003, MEDIA-004, PERF-001 |
 | PRE-001 | Start Smart Rough Cut only by explicit invocation with selected sources and settings | P0 | M2 | Planned | AGENT-001, SEC-002 |
 | PRE-002 | Persist versioned PreEditAnalysis and PreEditMap data with source mapping and confidence | P0 | M2 | Planned | CORE-002, CORE-003, CORE-004 |
@@ -85,7 +85,7 @@ Dependencies below are completion gates, not a requirement to postpone design or
 | EXPORT-003 | Qualify a Premiere destination adapter using an appropriate interchange route and pinned target version | P2 | M5 | Planned | EXPORT-002 |
 | EXPORT-004 | Qualify a DaVinci Resolve destination adapter with the same evidence standards; destination-specific mappings remain isolated from canonical project data | P2 | M5 | Planned | EXPORT-002 |
 | EXPORT-005 | Qualify a CapCut adapter only after establishing a maintainable supported route | P2 | M5 | Planned | EXPORT-002 |
-| EXPORT-006 | Package/relink a project on another machine | P0 | M1 | In Progress | CORE-004, MEDIA-002 |
+| EXPORT-006 | Collect/relink a relocatable project (M1 local qualification; physical second-PC check deferred) | P0 | M1 | In Progress | CORE-004, MEDIA-002 |
 | SEC-001 | Complete the core offline workflow with no media or semantic data uploaded | P0 | M1 | Planned | CORE-001 |
 | SEC-002 | Enforce least-privilege grants at service boundaries | P0 | M1 | In Progress | CORE-002 |
 | SEC-003 | Isolate untrusted scene code and extension execution | P0 | M4 | Planned | SEC-002 |
@@ -128,7 +128,7 @@ These are implementation details or proposed baseline choices. They do not reope
 | DEC-003 | MotionScene JS runtime and TS/JSX compiler | Compare deterministic evaluation, embedding, sandboxing, startup, memory, licensing, and debugging | M4 | Unassigned / Open |
 | DEC-004 | Web runtime embedding/distribution | Chromium worker strategy, headless rendering, GPU sharing, isolation, readiness, platform packaging | M5 | Unassigned / Open |
 | DEC-005 | Local ASR, embeddings, and visual model profiles | Evaluate quality/language, hardware cost, licenses, installation size, offline operation; no mandatory cloud fallback | M2 for ASR; M3 for others | Unassigned / Open |
-| DEC-006 | Codec fallback distribution and capability matrix | Qualified hardware/native/fallback paths; decide packaging and license obligations from actual dependencies | M1 | Unassigned / Open |
+| DEC-006 | Codec fallback distribution and capability matrix | Native OS decoder plus pure-Rust fallback selected; 27 bounded Windows SDR case/mode checks pass; [decision, measured profile and limits](m1/DEC-006_NATIVE_MEDIA.md) | M1 | Codex / Implemented bounded profile; broader qualification In Progress |
 | DEC-007 | ACP/MCP revisions, transports, tested pairings | Pin official specifications and SDKs; define optional capability and authentication support | M3 for MCP; M4 for ACP | Unassigned / Open |
 | DEC-008 | Destination versions and interchange routes | Qualify each destination separately; establish CapCut route feasibility before editable-export commitment | M4 planning; M5 qualification | Unassigned / Open |
 | DEC-009 | Specialized workspace UI implementation | Retain native shell baseline; compare native panel versus bounded embedded surface only if necessary | M2 | Unassigned / Open |
@@ -218,3 +218,23 @@ Owner: Codex. Branch: `codex/m1-editing-foundation`. [Implementation, test scope
   audio export boundaries are tested. [Contract/limits](m1/EXPORT_CONTRACT.md) and
   [local evidence](m1/IMPLEMENTATION.md). CORE-003 and EXPORT-001 are In Progress; the complete
   offline/media/physical A/V/portability gates remain open. No hosted workflow or settings change.
+
+- 2026-11-04 — User scope adjustment: skip the physical second-PC check in M1. Retain local
+  collection, integrity, relinking and relocation checks for EXPORT-006; physical cross-machine
+  qualification is deferred beyond M1 and is not a current blocker. Existing M0 second-PC
+  acceptance remains unchanged. No new second-machine pass is claimed.
+
+- 2026-11-04 — Qualified the bounded native Windows SDR corpus in software, real hardware Auto
+  and simulated-fallback modes (27 case/mode results), fixed source presentation clocks and
+  half-open VFR seeks, and passed the real CLI/MCP mixed-rate/nested/retimed proxy and locally
+  relocated collection journey. Save As/Copy now preserve relative media semantics through
+  current and retained history; failed writes preserve live state. MEDIA-002–004 join the active
+  items. [DEC-006 and limits](m1/DEC-006_NATIVE_MEDIA.md);
+  [actual checks and remaining acceptance](m1/IMPLEMENTATION.md). No hosted Actions were used.
+
+- 2026-11-05 — Final local candidate: 301 focused-gate tests, 826 engine/automation tests,
+  133 codec and 50 platform regression functions, 21 CLI integration tests, strict 27-result
+  native corpus, all-target Clippy and desktop build passed. Bounded desktop seeking/menu split/
+  keyboard save/undo/redo was independently checked through native saves and CLI reopens.
+  [Retained compact evidence](m1/evidence/README.md). UI-001 joins In Progress; complete manual,
+  disconnected/physical runtime and remaining fault/service qualification are still open.

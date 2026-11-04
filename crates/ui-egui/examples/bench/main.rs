@@ -74,6 +74,9 @@ fn main() {
             Some(p) => std::fs::write(&p, text).unwrap_or_else(|e| panic!("{p}: {e}")),
             None => println!("{text}"),
         }
+        if v["rows"].as_array().is_some_and(|rows| rows.iter().any(|r| r["status"] == "failed")) {
+            std::process::exit(1);
+        }
         return;
     }
     orchestrate(&args, &opts);

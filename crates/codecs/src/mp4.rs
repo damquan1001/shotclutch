@@ -53,6 +53,8 @@ pub struct Mp4Source {
     file: Mp4File,
     vtrack: Option<usize>,
     video: GopCache,
+    /// Grid validated across the full sample table, rather than the metadata's median rate.
+    lookup_rate: Option<FrameRate>,
     /// The playable audio tracks in file order: `info.audio_streams[k]` describes `audios[k]`.
     audios: Vec<Mp4Audio>,
 }
@@ -368,9 +370,18 @@ impl Mp4Source {
                 Some(Mp4Audio { track: i, state, starts, offset, preroll })
             })
             .collect();
-        snap_to_frame_grid(&mut file, vtrack);
+        let lookup_rate = snap_to_frame_grid(&mut file, vtrack);
         rebase_unedited_video(&mut file, vtrack, &mut audios);
-        Ok(Self { info, bytes, file, vtrack, video: GopCache::new(explicit_color).with_rotation(rotation).with_crop(aperture), audios })
+        let (timebase, origin) = vtrack.and_then(|i| file.tracks.get(i)).map_or((1, 0), |t| (t.timescale as i64, t.edit_offset.saturating_neg()));
+        Ok(Self {
+            info,
+            bytes,
+            file,
+            vtrack,
+            video: GopCache::new(explicit_color).with_rotation(rotation).with_crop(aperture).with_clock(1, timebase, origin),
+            lookup_rate,
+            audios,
+        })
     }
 
     fn read(&self, track: usize, i: usize) -> crate::Result<Vec<u8>> {
@@ -380,10 +391,17 @@ impl Mp4Source {
     fn video_at(&self, t: Tick) -> crate::Result<Arc<VideoFrame>> {
         let ti = self.vtrack.ok_or_else(|| CodecError::Unsupported("no video".into()))?;
         let ts = self.file.tracks[ti].timescale as i64;
-        // Nearest, not floor: with a coarse timescale (1000) sample times are rounded, and a
-        // floored lookup lands one unit short of every frame whose time was rounded up.
-        let late = shotclutch_media::cancel::catch_up().map(|m| (t - m).to_rational_round(1, ts));
-        self.video.frame_late(&Mp4Video { src: self, track: ti }, t.to_rational_round(1, ts), late)
+        // Preserve declared nominal-grid quantization for coarse CFR muxers. Arbitrary seeks
+        // use actual half-open presentation intervals instead of rounding into the next frame.
+        let units = |time: Tick| {
+            if self.lookup_rate.is_some_and(|rate| rate.snap(time) == time) {
+                time.to_rational_round(1, ts)
+            } else {
+                crate::gop::presentation_units(time, 1, ts)
+            }
+        };
+        let late = shotclutch_media::cancel::catch_up().map(|m| units(t - m));
+        self.video.frame_late(&Mp4Video { src: self, track: ti }, units(t), late)
     }
 
     /// Decoded packet `i` of audio stream `a` (`ainfo` is its `AudioStreamInfo`; `st` its decoder state).
@@ -732,26 +750,34 @@ pub fn opener(name: &str, bytes: Arc<[u8]>) -> Option<Result<SharedSource, Media
 /// be told from the timescale's rounding. Snapping keeps the samples' presentation order. Only the video samples move: the first picture, which the audio and
 /// `rebase_unedited_video` go by, is the grid's origin, and the clip's duration comes from the
 /// track header.
-fn snap_to_frame_grid(file: &mut Mp4File, vtrack: Option<usize>) {
-    let Some(t) = vtrack.and_then(|i| file.tracks.get_mut(i)) else { return };
-    let Some(first) = t.samples.iter().map(|s| s.pts).min() else { return };
+fn snap_to_frame_grid(file: &mut Mp4File, vtrack: Option<usize>) -> Option<FrameRate> {
+    let t = vtrack.and_then(|i| file.tracks.get_mut(i))?;
+    let first = t.samples.iter().map(|s| s.pts).min()?;
     // The nominal duration: the median sample duration, averaged with the durations one unit from
     // it. Those are the same duration rounded to the timescale (1501 and 1502 at 59.94 fps over
     // 90 kHz): the median alone drifts half a unit a frame, enough to snap a short clip onto the
     // wrong points.
     let mut durs: Vec<u32> = t.samples.iter().map(|s| s.duration).collect();
     durs.sort_unstable();
-    let Some(&median) = durs.get(durs.len() / 2) else { return };
+    let &median = durs.get(durs.len() / 2)?;
     let near: Vec<f64> = durs.iter().filter(|&&d| d.abs_diff(median) <= 1).map(|&d| f64::from(d)).collect();
     let mean = near.iter().sum::<f64>() / near.len().max(1) as f64;
     if mean <= 0.0 {
-        return;
+        return None;
     }
-    let rate = FrameRate::from_f64(f64::from(t.timescale) / mean);
+    // A short, millisecond-clock clip can bias even the average beyond from_f64's
+    // fixed tolerance (59.94 fps over 179 samples). Prefer the nearest standard grid
+    // only when its accumulated difference fits one track unit of quantization.
+    // Every presentation timestamp still has to pass the full-table check below.
+    let step = |rate: FrameRate| f64::from(t.timescale) * rate.den as f64 / rate.num as f64;
+    let standard = FrameRate::COMMON.into_iter().min_by(|&a, &b| (step(a) - mean).abs().total_cmp(&(step(b) - mean).abs()));
+    let rate = standard
+        .filter(|&r| (step(r) - mean).abs() * t.samples.len().saturating_sub(1) as f64 <= 1.0)
+        .unwrap_or_else(|| FrameRate::from_f64(f64::from(t.timescale) / mean));
     // one frame lasts `step_num / step_den` track units
     let (step_num, step_den) = (i128::from(t.timescale) * i128::from(rate.den), i128::from(rate.num));
     if step_num <= 0 || step_den <= 0 {
-        return;
+        return None;
     }
     // a sample's grid index and its new time
     let snap = |pts: i64| -> Option<(i128, i64)> {
@@ -765,7 +791,7 @@ fn snap_to_frame_grid(file: &mut Mp4File, vtrack: Option<usize>) {
         }
         Some((n, if off_grid <= 1 { pts } else { i64::try_from(at).ok()? }))
     };
-    let Some(snapped) = t.samples.iter().map(|s| snap(s.pts)).collect::<Option<Vec<_>>>() else { return };
+    let snapped = t.samples.iter().map(|s| snap(s.pts)).collect::<Option<Vec<_>>>()?;
     // Two pictures by one grid point: not a constant rate. Checked on the index, not the new time:
     // one picture kept a unit after the point and another moved onto it would be distinct times in
     // the wrong order.
@@ -773,11 +799,12 @@ fn snap_to_frame_grid(file: &mut Mp4File, vtrack: Option<usize>) {
     points.sort_unstable();
     points.dedup();
     if points.len() != snapped.len() {
-        return;
+        return None;
     }
     for (s, (_, p)) in t.samples.iter_mut().zip(snapped) {
         s.pts = p;
     }
+    Some(rate)
 }
 
 /// Start the file at its first picture when its video track has no edit list (#714). Without an

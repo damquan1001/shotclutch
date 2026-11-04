@@ -367,6 +367,7 @@ impl MxfSource {
             file_size: Some(bytes.0.len()),
         };
         info.start_timecode = file.timecode.as_ref().map(|tc| start_frames(tc, info.frame_rate()));
+        let rate = info.frame_rate();
         Ok(Self {
             info,
             bytes,
@@ -375,7 +376,7 @@ impl MxfSource {
             vorder,
             vfirst,
             vcount,
-            video: GopCache::new(explicit_color),
+            video: GopCache::new(explicit_color).with_clock(rate.den as i64, rate.num as i64, vfirst),
             unsupported,
             mpeg2_header,
             atracks: combined,

@@ -159,7 +159,8 @@ where headless; CLI/platform and full regression checks run locally. See
 Outstanding: general scoped mutations, an interactive grant/review UI, rendered verification,
 export grants and non-native job qualification, storage/latency limits for large histories,
 hostile-media worker isolation, all-platform filesystem qualification, complete offline
-mixed-media workflow, physical A/V sync and second-machine project collection qualification.
+mixed-media workflow and physical A/V sync. Physical second-PC collection qualification is
+deferred beyond M1 by user decision (2026-11-04).
 
 
 Native owner export jobs now implement original binding and staged publication in the

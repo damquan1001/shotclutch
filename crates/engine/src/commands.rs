@@ -4646,9 +4646,10 @@ fn write_project(s: &mut Session, path: &str, adopt: bool) -> Result<Value> {
         None
     };
     let view = s.project_view();
-    let project = renamed.as_ref().unwrap_or(&s.project);
     let mut snapshot = s.document_snapshot();
-    snapshot.project = std::sync::Arc::new(project.clone());
+    snapshot.project = renamed.map(std::sync::Arc::new).unwrap_or_else(|| s.project.clone());
+    #[cfg(not(target_arch = "wasm32"))]
+    let rebased = snapshot.for_destination(path, &s.media).map_err(EngineError::Other)?;
     let bytes = snapshot.encode(Some(&view), false).map_err(EngineError::Other)?;
     let mut backup = None;
     if adopt && s.path.as_deref() == Some(path) && s.loaded_schema < shotclutch_format::SCHEMA_VERSION {
@@ -4663,9 +4664,12 @@ fn write_project(s: &mut Session, path: &str, adopt: bool) -> Result<Value> {
     if adopt && s.path.as_deref() == Some(path) { s.services.write_file(path, &bytes) } else { s.services.write_file_new(path, &bytes) }
         .map_err(|e| EngineError::Other(format!("{path}: {e}")))?;
     if adopt {
-        if let Some(project) = renamed {
-            s.project = std::sync::Arc::new(project);
-        }
+        #[cfg(not(target_arch = "wasm32"))]
+        s.media.adopt_rebased_refs(&s.project, &snapshot.project, rebased, s.path.as_deref());
+        // The whole native snapshot (including rebased undo/redo) becomes live together,
+        // after exclusive/atomic publication. Save a Copy never adopts it.
+        s.project = snapshot.project;
+        s.history = snapshot.history;
         s.path = Some(path.to_string());
         s.previews_follow_path();
         s.note_recent_project();

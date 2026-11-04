@@ -73,12 +73,14 @@ pub fn decode(o: &Opts) -> Vec<Value> {
         let mut first = Vec::new();
         let mut frames = 0;
         let mut rate = FrameRate::FPS_23_976;
+        let mut failure = None;
+        let mut completed = 0i64;
         let hw0 = shotclutch_codecs::hw::hw_stats();
         for _ in 0..o.repeat {
             let src = match shotclutch_codecs::open_bytes(name, bytes.clone()) {
                 Ok(s) => s,
                 Err(e) => {
-                    eprintln!("decode {name}: {e}");
+                    failure = Some(format!("open: {e}"));
                     break;
                 }
             };
@@ -86,19 +88,29 @@ pub fn decode(o: &Opts) -> Vec<Value> {
             let n = rate.frame_at(src.info().duration).max(1);
             let n = if o.quick { n.min(48) } else { n };
             frames = n;
+            completed = 0;
             let (t0, c0) = (Instant::now(), cpu_now());
             for f in 0..n {
                 if let Err(e) = src.video_frame(shotclutch_media::FrameRequest::full(rate.tick_of(f))) {
-                    eprintln!("decode {name} frame {f}: {e}");
+                    failure = Some(format!("frame {f}: {e}"));
                     break;
                 }
+                completed += 1;
                 if f == 0 {
                     first.push(ms(t0.elapsed()));
                 }
             }
+            if failure.is_some() {
+                break;
+            }
             let dt = t0.elapsed().as_secs_f64();
-            fps.push(n as f64 / dt);
+            fps.push(completed as f64 / dt);
             cpu.push(ms(cpu_now() - c0) / n as f64);
+        }
+        if let Some(error) = failure {
+            eprintln!("decode {name}: {error}");
+            rows.push(json!({"fixture": name, "codec": codec, "size": size, "status": "failed", "requested_frames": frames, "decoded_frames": completed, "error": error}));
+            continue;
         }
         if fps.is_empty() {
             continue;

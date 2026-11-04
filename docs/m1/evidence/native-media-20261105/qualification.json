@@ -1,0 +1,144 @@
+{
+  "version": 1,
+  "status": "passed",
+  "requestedModes": [
+    "software",
+    "auto",
+    "forced-fallback"
+  ],
+  "machine": {
+    "os": "Windows-10-10.0.26200-SP0",
+    "cpu": "AMD64 Family 23 Model 96 Stepping 1, AuthenticAMD",
+    "logicalCpus": 16,
+    "gpu": [
+      {
+        "Name": "Meta Virtual Monitor",
+        "DriverVersion": "15.52.32.370"
+      },
+      {
+        "Name": "AMD Radeon(TM) Graphics",
+        "DriverVersion": "31.0.21923.1000"
+      },
+      {
+        "Name": "NVIDIA GeForce RTX 3060 Laptop GPU",
+        "DriverVersion": "32.0.15.5597"
+      }
+    ]
+  },
+  "secondPc": "excluded from M1 by user decision 2026-11-04",
+  "binarySha256": "c0bf7c8ef90326852061d49635be2870ead3d4de5b784079b4db2594e660b3f2",
+  "cargoLockSha256": "a8ad0d8e27f76a5968e3ea98b0a47009deb1f03a5a444404bbdd49eef033b35f",
+  "sourceSha256": {
+    "crates/codecs/src/gop.rs": "19ab83223b849e9e63626ef10e7f8c9e850c1ee24090e2cc287baf0a08ab2c3e",
+    "crates/codecs/src/mp4.rs": "cbbf3cb8eec2536f9d3c13dd3c9380df08ae59b02048ed323171303309f1e464",
+    "crates/codecs/src/mkv.rs": "f4a8da834dccc085db88f949bf4c4ef5f62c9724b3decbf7beeb8b8cb8cf46d8",
+    "crates/codecs/src/mxf.rs": "32fb068cb92118f3301eb95bb717bba8aa02388684221cd0b376728be6c09627",
+    "crates/codecs/src/mpeg.rs": "f5ef03b281b70bf2b984761409f70192dfc2ca7c1687f02cf0451cb1c8a0008c",
+    "crates/codecs/src/avi.rs": "51d399c3697069c48ce2285a7710c7283e2b031c831eee4e60639db1174df1cd",
+    "crates/codecs/src/apv.rs": "9fadde6b548690f2eeab6b1ac9538596cff4bb3aa066fd6b97f9622be333232c",
+    "crates/platform/examples/m1_media.rs": "6466eda1a05dfe78a2da44a6e62c6762478914d6e41b22078d13822f28230c93",
+    "scripts/m1/qualify-media.py": "56f16105c959ebb26ba48e86383c40dadfe13a3d3d7cf74b5b68d4cb54aff751"
+  },
+  "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "baseRevision": "df44e9e5198fd39837ec82b130a69153ef50f649",
+  "dirty": true,
+  "casesRequested": 9,
+  "oracles": {
+    "ffmpeg": "ffmpeg version 8.1.1-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers",
+    "ffprobe": "ffprobe version 8.1.1-full_build-www.gyan.dev Copyright (c) 2007-2026 the FFmpeg developers"
+  },
+  "files": {
+    "alpha.png": {
+      "bytes": 1669,
+      "sha256": "10c0c01c5b9a8b11f8dc09d3ce60e674104bdf0916bc81e55068f184d4c79ded"
+    },
+    "corpus.json": {
+      "bytes": 4340,
+      "sha256": "8ae37e5f1c3b0216d19741ac09cf4a4079ba8f239d43e8c2e552b3995d7906e7"
+    },
+    "h264_1080_ntsc.mp4": {
+      "bytes": 1979597,
+      "sha256": "edd76d5cf1efc33f247cd3ed6eb405a99ad9d050237701f9ac94f68cb6ee0d97"
+    },
+    "h264_1080_ntsc.rgba": {
+      "bytes": 199065600,
+      "sha256": "b7fee0a381dd025afcb6351cf589bb3874e714d298ded2642d7da5c52c2a36e2"
+    },
+    "h264_vfr.mp4": {
+      "bytes": 98793,
+      "sha256": "5ba8e5cda3eb1d184a11556fd3b386b00670739d0217e06cf32b7f54bda8807c"
+    },
+    "h264_vfr.rgba": {
+      "bytes": 8985600,
+      "sha256": "0e4853493e727818e742f5f24abf6e9d253046428cb25ef62ef5ed591a78564e"
+    },
+    "hevc_1080_ntsc.mp4": {
+      "bytes": 1747679,
+      "sha256": "c55d8486da307d591635b86157c9a1c2ee43924f2e55ee2f66ed702814511fdf"
+    },
+    "hevc_1080_ntsc.rgba": {
+      "bytes": 248832000,
+      "sha256": "15a060b6dcd5de55f24afcae0bf2b3a64a21193ec0ea3f7577955bf7d6b5cd8e"
+    },
+    "malformed_mp4.mp4": {
+      "bytes": 88,
+      "sha256": "a4c055d6d2cc0aca48fec57ee135c23d2c449bf95c23596a442d8b527701cc4e"
+    },
+    "pcm_44100_1ch.f32": {
+      "bytes": 176400,
+      "sha256": "f7769d72f262b769621766cc1d6638d9482df32c10fc9876ced66c6e4aa850a6"
+    },
+    "pcm_44100_1ch.wav": {
+      "bytes": 88278,
+      "sha256": "ee529a03067e2e56fdbea362aab61fbc45e5bd601ad538439298a2a9255ded31"
+    },
+    "pcm_48000_2ch.f32": {
+      "bytes": 384000,
+      "sha256": "eb77039d293f6667d2531710444d9929dd319ad461868f02b8aa97ed6b5b8f6b"
+    },
+    "pcm_48000_2ch.wav": {
+      "bytes": 192078,
+      "sha256": "a21939c0cbb78cc73eb3b9a93a119fee7ebfbaa3a8e61a85c313e5e2ce8e6243"
+    },
+    "png_alpha.rgba": {
+      "bytes": 2048,
+      "sha256": "1d94bf5d99b02623bc4d0a1083f79c85aa4458c1c3b51180eb652835f673d676"
+    },
+    "prores_sdr_422.mov": {
+      "bytes": 1694975,
+      "sha256": "5840ba960b6ab31e45fd5f467a196cda0e33086ba80f18c0b29f52a9bca467b4"
+    },
+    "prores_sdr_422.rgba": {
+      "bytes": 23040000,
+      "sha256": "70842fa7b35b44e70d570214598e1edc3ab5d954455f51c3f2b2b9cbca8388f9"
+    },
+    "truncated_hevc.mp4": {
+      "bytes": 64,
+      "sha256": "628d790654d1a2e7272bbebd2bb378e93a4244521f58ee64994e66611bd83bc3"
+    }
+  },
+  "runs": [
+    {
+      "mode": "software",
+      "status": "passed",
+      "exitCode": 0,
+      "report": "software.json",
+      "sha256": "a8d8f204bef3a0a19d8cf2cecfccc5f0f7cd7b1f97c4cc41da7defe6352704d3"
+    },
+    {
+      "mode": "auto",
+      "status": "passed",
+      "exitCode": 0,
+      "report": "auto.json",
+      "sha256": "d46900f0e4821ea0ff81887c7bd7ae2548f6d00de92f977cc899aecab050b135"
+    },
+    {
+      "mode": "forced-fallback",
+      "status": "passed",
+      "exitCode": 0,
+      "report": "forced-fallback.json",
+      "sha256": "d61dd1abdfc563650e1bf2264d4df0d6e423b0bd585ee96962d0c6af11b31cc4"
+    }
+  ],
+  "wallSeconds": 39.14100000000326
+}

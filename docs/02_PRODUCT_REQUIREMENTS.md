@@ -8,6 +8,13 @@ IDs remain stable after creation. Each ID has one authoritative definition in th
 
 Requirements describe the desired ShotClutch behavior. An inherited implementation can satisfy a requirement only after the same acceptance checks as new code. Performance thresholds in [14](14_PERFORMANCE_AND_BENCHMARKS.md) are proposed qualification targets, not measured results.
 
+### M1 scope adjustment — 2026-11-04
+
+The user explicitly excluded a physical second-PC check from M1. EXPORT-006 retains native
+collection, integrity verification, identity-checked relinking and same-PC relocation acceptance
+in M1. A physical second-machine run is deferred beyond this milestone and is not an M1 blocker;
+no second-machine pass is claimed. This supersedes earlier M1 testing references to that check.
+
 ## Foundation and editing
 
 | ID | Priority / milestone | Required behavior and acceptance evidence |
@@ -81,7 +88,7 @@ Requirements describe the desired ShotClutch behavior. An inherited implementati
 | EXPORT-003 | P2 / M5 | Qualify a Premiere destination adapter using an appropriate interchange route and pinned target version. Imported timing, relinks, audio, and fidelity report match the qualification fixtures. |
 | EXPORT-004 | P2 / M5 | Qualify a DaVinci Resolve destination adapter with the same evidence standards; destination-specific mappings remain isolated from canonical project data. |
 | EXPORT-005 | P2 / M5 | Qualify a CapCut adapter only after establishing a maintainable supported route. Otherwise expose rendered/stem delivery with explicit loss of editability and leave editable-adapter acceptance unmet. |
-| EXPORT-006 | P0 / M1 | Package/relink a project on another machine. Essential project data and generated sources are distinguished from rebuildable caches; missing resources are reported, never guessed. |
+| EXPORT-006 | P0 / M1 | Package/relink a relocatable project, qualified through local relocation and integrity checks in M1; physical second-machine qualification is deferred. Essential project data and generated sources are distinguished from rebuildable caches; missing resources are reported, never guessed. |
 
 ## Security, performance, and quality
 

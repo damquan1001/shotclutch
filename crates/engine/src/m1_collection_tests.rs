@@ -579,3 +579,107 @@ fn m1_collection_intentional_offline_byte_source_retains_its_encoded_original() 
     let loaded = shotclutch_format::decode(&fs::read(out["project"].as_str().unwrap()).unwrap()).unwrap();
     assert!(loaded.project.item(item).unwrap().as_media().unwrap().offline);
 }
+
+#[test]
+fn m1_save_as_rebases_current_proxy_and_history_only_media_without_changing_package() {
+    let mut f = Fixture::new();
+    let historical = f.dir.path().join("historical.wav");
+    let bytes = shotclutch_media::wav::write_wav16(&vec![0.25; 48_000], 1, 48_000);
+    fs::write(&historical, &bytes).unwrap();
+    let mut old = (*f.s.project).clone();
+    let ItemKind::Media(media) = &mut old.items.get_mut(&f.item).unwrap().kind else { panic!() };
+    media.media = MediaRef::File { path: historical.to_string_lossy().into_owned() };
+    media.identity = Some(crate::relink::identity_of_bytes(&bytes));
+    f.s.history.undo.push(("Historical source".into(), Arc::new(old)));
+    let mut current = (*f.s.project).clone();
+    let ItemKind::Media(media) = &mut current.items.get_mut(&f.item).unwrap().kind else { panic!() };
+    media.proxy = Some(MediaRef::File { path: f.source.to_string_lossy().into_owned() });
+    f.s.project = Arc::new(current);
+    let out = f.collect(json!({"excludeUnused": false})).unwrap();
+    let package = f.dest();
+    let manifest_before = fs::read(package.join(MANIFEST)).unwrap();
+    let mut session = Session::default();
+    session.execute("file.open", json!({"path": out["project"]})).unwrap();
+    let identity = (session.document_id, session.revision);
+    let original = fs::read(out["project"].as_str().unwrap()).unwrap();
+    let working = f.dir.path().join("Working");
+    fs::create_dir(&working).unwrap();
+    let work = working.join("working.scproj");
+    session.execute("file.saveAs", json!({"path": work})).unwrap();
+    assert_eq!((session.document_id, session.revision), identity);
+    for project in std::iter::once(&session.project).chain(session.history.undo.iter().chain(&session.history.redo).map(|(_, p)| p)) {
+        for media in project.items.values().filter_map(|i| i.as_media()) {
+            for reference in std::iter::once(&media.media).chain(media.proxy.as_ref()) {
+                if let MediaRef::File { path } = reference {
+                    assert!(Path::new(path).is_absolute(), "{path}");
+                    assert!(Path::new(path).is_file());
+                }
+            }
+        }
+    }
+    let mut reopened = Session::default();
+    assert_eq!(reopened.execute("file.open", json!({"path": work})).unwrap()["missingMedia"], 0);
+    assert_eq!((reopened.document_id, reopened.revision), identity);
+    assert_eq!(reopened.undo().as_deref(), Some("Historical source"));
+    let source = reopened.media.full_res_source(&reopened.project, f.item, &*reopened.services).unwrap();
+    assert!((source.audio(0, 100, 48_000).unwrap().peaks()[0] - 0.25).abs() < 0.001);
+    assert_eq!(original, fs::read(out["project"].as_str().unwrap()).unwrap());
+    assert_eq!(manifest_before, fs::read(package.join(MANIFEST)).unwrap());
+    verify(&package, &Progress::default()).unwrap();
+}
+
+#[test]
+fn m1_save_copy_and_failed_save_as_leave_live_references_history_and_package_untouched() {
+    let mut f = Fixture::new();
+    let out = f.collect(json!({"excludeUnused": false})).unwrap();
+    let mut session = Session::default();
+    session.execute("file.open", json!({"path": out["project"]})).unwrap();
+    let before = session.project.clone();
+    let history = session.history.clone();
+    let path = session.path.clone();
+    let work = f.dir.path().join("Working");
+    fs::create_dir(&work).unwrap();
+    let occupied = work.join("occupied.scproj");
+    fs::write(&occupied, b"unrelated owner file").unwrap();
+    assert!(session.execute("file.saveAs", json!({"path": occupied})).is_err());
+    assert_eq!(fs::read(&occupied).unwrap(), b"unrelated owner file");
+    // This target passes destination-existence checks and reaches the actual write after
+    // snapshot rebasing. Publication must fail without adopting the prepared references.
+    let blocked_parent = work.join("file-as-parent");
+    fs::write(&blocked_parent, b"owner file, not a directory").unwrap();
+    assert!(session.execute("file.saveAs", json!({"path": blocked_parent.join("working.scproj")})).is_err());
+    assert_eq!(fs::read(&blocked_parent).unwrap(), b"owner file, not a directory");
+    assert!(Arc::ptr_eq(&session.project, &before));
+    assert_eq!(session.path, path);
+    assert_eq!(session.history.undo, history.undo);
+    assert_eq!(session.history.redo, history.redo);
+    let copy = work.join("copy.scproj");
+    session.execute("file.saveCopy", json!({"path": copy})).unwrap();
+    assert!(Arc::ptr_eq(&session.project, &before));
+    assert_eq!(session.path, path);
+    assert_eq!(session.history.undo, history.undo);
+    assert_eq!(session.history.redo, history.redo);
+    let mut opened = Session::default();
+    assert_eq!(opened.execute("file.open", json!({"path": copy})).unwrap()["missingMedia"], 0);
+    assert_eq!(opened.document_id, session.document_id);
+    verify(&f.dest(), &Progress::default()).unwrap();
+}
+
+#[test]
+fn m1_save_as_retains_live_owned_byte_binding_when_its_relative_locator_is_rebased() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut session = Session::default();
+    let bytes: Arc<[u8]> = shotclutch_media::wav::write_wav16(&vec![0.375; 48_000], 1, 48_000).into();
+    let name = format!("m1-owned-{}.wav", DocumentId::default());
+    let item = crate::commands::import_bytes(&mut session, &name, bytes.clone(), None).unwrap();
+    session.execute("file.saveAs", json!({"path": dir.path().join("owned.scproj")})).unwrap();
+    let media = session.project.item(item).unwrap().as_media().unwrap();
+    let MediaRef::File { path } = &media.media else { panic!() };
+    assert!(Path::new(path).is_absolute());
+    let (retained, sha) = session.media.owned_binding(item, media).unwrap();
+    assert!(Arc::ptr_eq(&retained, &bytes));
+    assert_eq!(sha, digest(&bytes));
+    assert!(!Path::new(path).exists(), "encoded bytes must not be silently materialized in the working directory");
+    let source = session.media.full_res_source(&session.project, item, &*session.services).unwrap();
+    assert!((source.audio(0, 100, 48_000).unwrap().peaks()[0] - 0.375).abs() < 0.001);
+}

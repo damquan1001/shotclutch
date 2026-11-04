@@ -410,7 +410,21 @@ impl AviSource {
         let mut vorder: Vec<usize> = (0..vframes.len()).collect();
         vorder.sort_by_key(|&i| vframes.get(i).map_or(0, |f| f.pts));
         let vorder_pts = vorder.iter().map(|&i| vframes.get(i).map_or(0, |f| f.pts)).collect();
-        Ok(Self { info, bytes, file, vstream, vcodec, vframes, vorder, vorder_pts, vslots, rate, bottom_up, video: GopCache::new(None), audios })
+        Ok(Self {
+            info,
+            bytes,
+            file,
+            vstream,
+            vcodec,
+            vframes,
+            vorder,
+            vorder_pts,
+            vslots,
+            rate,
+            bottom_up,
+            video: GopCache::new(None).with_clock(rate.den, rate.num, 0),
+            audios,
+        })
     }
 
     fn read(&self, stream: usize, chunk: usize) -> crate::Result<Vec<u8>> {

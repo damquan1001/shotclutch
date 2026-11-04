@@ -205,12 +205,12 @@ fn to_tick(t: &shotclutch_matroska::Track, pts: i64) -> Tick {
     Tick::from_rational(pts, n, d)
 }
 
-/// A time as the track timestamp to look a frame up by: rounded to the nearest tick, as muxers
-/// round frame times to `TimestampScale` (usually 1 ms). Flooring skipped every frame whose
-/// timestamp was rounded up (every third frame at 30 fps).
-fn from_tick(t: &shotclutch_matroska::Track, time: Tick) -> i64 {
+/// Exact nominal-grid requests retain muxer rounding to `TimestampScale` (usually 1 ms).
+/// Arbitrary requests select the last presentation unit at or before the canonical tick,
+/// preserving half-open frame intervals even when the clock conversion loses a fraction.
+fn from_tick(t: &shotclutch_matroska::Track, time: Tick, rate: FrameRate) -> i64 {
     let (n, d) = tb(t);
-    time.to_rational_round(n, d)
+    if rate.snap(time) == time { time.to_rational_round(n, d) } else { crate::gop::presentation_units(time, n, d) }
 }
 
 /// VP9 configuration from the Matroska `CodecPrivate` feature list (ID / length / value triples:
@@ -457,7 +457,8 @@ impl MkvSource {
                 && t.samples.iter().any(|s| s.addition.is_some())
         });
         let alpha = alpha.map(|t| Arc::new(crate::webm_alpha::AlphaLayer::new(bytes.clone(), t.samples.iter().map(|s| (s.pts, s.addition)))));
-        Ok(Self { info, bytes, file, vtrack, ventry, video: GopCache::new(explicit_color).with_rotation(rotation), alpha, audios })
+        let (num, den) = vtrack.and_then(|i| file.tracks.get(i)).map_or((1, 1), tb);
+        Ok(Self { info, bytes, file, vtrack, ventry, video: GopCache::new(explicit_color).with_rotation(rotation).with_clock(num, den, 0), alpha, audios })
     }
 
     fn read(&self, track: usize, i: usize) -> crate::Result<Vec<u8>> {
@@ -613,8 +614,8 @@ impl MediaSource for MkvSource {
     fn video_frame(&self, req: FrameRequest) -> Result<Arc<VideoFrame>, MediaError> {
         let ti = self.vtrack.ok_or(MediaError::NoStream("video"))?;
         let t = req.time.max(Tick::ZERO);
-        let target = from_tick(&self.file.tracks[ti], t);
-        let late = shotclutch_media::cancel::catch_up().map(|m| from_tick(&self.file.tracks[ti], t - m));
+        let target = from_tick(&self.file.tracks[ti], t, self.info.frame_rate());
+        let late = shotclutch_media::cancel::catch_up().map(|m| from_tick(&self.file.tracks[ti], t - m, self.info.frame_rate()));
         Ok(self.video.frame_late(&MkvVideo { src: self, track: ti }, target, late)?)
     }
 

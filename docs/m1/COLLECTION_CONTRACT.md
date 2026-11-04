@@ -1,8 +1,9 @@
 # M1 native collected-project contract
 
-Implemented on `codex/m1-editing-foundation`, 2026-11-04. Owner: Codex. EXPORT-006 remains
-In Progress until the updated package is qualified on another physical machine. Local relocation
-and byte verification do not establish decoder, font, physical A/V or storage-crash qualification.
+Implemented on `codex/m1-editing-foundation`, 2026-11-04. Owner: Codex. The user excluded a physical second-PC check from M1 on 2026-11-04. Local relocation and integrity
+checks qualify M1 portability; physical cross-machine checks are deferred beyond this milestone
+and do not block M1 exit. Local byte verification does not establish decoder, font, physical A/V
+or storage-crash qualification.
 
 ## Commands and document modes
 
@@ -109,6 +110,16 @@ verification then truthfully rejects the changed delivery. Keep the received pac
 Save As to a working copy. Normal `file.open` remains an editable native project workflow and
 does not automatically rehash the original delivery manifest on every save/open.
 
+Native Save As and Save a Copy preserve the original resolution of relative file/proxy references
+in the current project and retained undo/redo. References that would resolve differently beside
+the destination become absolute; same-folder references can remain relative. Save As adopts the
+prepared paths/history and retains live decoded/byte-owned sources only after a successful write.
+Save a Copy and a failed write leave live state untouched. This creates a working document linked
+to its existing media, not another collected package; use collect again to make it self-contained.
+For a first save, an unbound authored relative reference still takes its meaning from the new
+document's folder. An actual user-picked/cached file or owned byte binding retains its existing
+working-directory meaning. No missing file is guessed or materialized by saving.
+
 ## Retry and resource boundaries
 
 Supply and retain an `operationId` UUID to retry the same request at the same destination. If the
@@ -130,7 +141,7 @@ platform runtimes require further qualification. Verification is a snapshot chec
 or a defense against an author who replaces both data and hashes. Legacy `consolidate`/`transcode`
 keeps its separate workflow and does not claim this package transaction or portability contract.
 
-## Local and second-machine acceptance
+## Local M1 acceptance and deferred cross-machine procedure
 
 Local acceptance covers relocation with originals hidden/deleted, identical rendered movie frames
 and timeline audio, history-only sources and working undo/redo, saved operation receipts without
@@ -138,7 +149,8 @@ authority, byte imports, image holes, proxy/generated/embedded data, corruption/
 rejection, cancellation, source changes and publication collisions. CLI tests cross real process
 boundaries. These run without new hosted workflows, network services or oracle tools.
 
-For the updated physical second-PC check:
+The following physical second-PC procedure is retained for future qualification outside M1. It
+is not required by this milestone (user decision, 2026-11-04):
 
 1. Use the same M1 candidate build on both PCs. Keep build ID, OS, decoder and font inventory.
 2. Collect the mixed-media qualification project with `excludeUnused:false`, `wait:true`, a fresh

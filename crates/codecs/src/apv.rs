@@ -119,7 +119,7 @@ impl ApvSource {
             start_timecode: None,
             file_size: Some(len),
         };
-        Ok(Self { info, bytes: crate::Src(reader), samples, rate, video: GopCache::new(explicit_color) })
+        Ok(Self { info, bytes: crate::Src(reader), samples, rate, video: GopCache::new(explicit_color).with_clock(rate.den, rate.num, 0) })
     }
 }
 
