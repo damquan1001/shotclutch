@@ -180,10 +180,15 @@ impl MediaPool {
     }
     #[cfg(not(target_arch = "wasm32"))]
     pub(crate) fn owned_binding(&self, item: ItemId, media: &MediaClip) -> Option<(Arc<[u8]>, String)> {
+        if media.offline { None } else { self.owned_original(item, media) }
+    }
+    /// Collection retains encoded originals even for an intentional-offline editorial state.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn owned_original(&self, item: ItemId, media: &MediaClip) -> Option<(Arc<[u8]>, String)> {
         let MediaRef::File { path } = &media.media else { return None };
         let owned = self.owned.read().unwrap_or_else(|e| e.into_inner());
         let original = owned.get(&item)?;
-        (!media.offline && original.path == *path).then(|| (original.bytes.clone(), original.sha256.clone()))
+        (original.path == *path).then(|| (original.bytes.clone(), original.sha256.clone()))
     }
     #[cfg(not(target_arch = "wasm32"))]
     pub(crate) fn insert_owned_bytes(&self, item: ItemId, path: &str, bytes: Arc<[u8]>) {

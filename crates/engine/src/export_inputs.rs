@@ -27,14 +27,14 @@ pub(crate) fn check_cancel(progress: &shotclutch_export::Progress) -> Result<(),
     if progress.cancel.load(Ordering::Acquire) { Err("CANCELED: export stopped before publication".into()) } else { Ok(()) }
 }
 
-struct BoundReader {
+pub(crate) struct BoundReader {
     raw: SharedReader,
     hashes: Vec<[u8; 32]>,
-    digest: String,
+    pub(crate) digest: String,
     invalid: AtomicBool,
 }
 impl BoundReader {
-    fn bind(raw: SharedReader, progress: &shotclutch_export::Progress) -> Result<Self, String> {
+    pub(crate) fn bind(raw: SharedReader, progress: &shotclutch_export::Progress) -> Result<Self, String> {
         let mut hashes = Vec::new();
         let mut whole = Sha256::new();
         let mut buffer = vec![0; BLOCK];
@@ -79,7 +79,7 @@ impl ByteReader for BoundReader {
     }
 }
 
-fn reader(services: &dyn Services, path: &str, remaining: u64) -> io::Result<SharedReader> {
+pub(crate) fn reader(services: &dyn Services, path: &str, remaining: u64) -> io::Result<SharedReader> {
     let size = services.file_size(path)?;
     if size > remaining {
         return Err(io::Error::other("RESOURCE_LIMIT: export originals exceed 64 GiB"));

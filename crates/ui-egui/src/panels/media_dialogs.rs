@@ -486,7 +486,7 @@ fn pm_params(d: &ProjectManagerDraft, dry: bool) -> Value {
         "handles": d.handles,
         "preset": d.preset,
         "includeProxies": d.include_proxies,
-        "includePreviews": d.include_previews,
+        "includePreviews": d.mode != "collect" && d.include_previews,
         "dryRun": dry,
     })
 }
@@ -554,8 +554,18 @@ fn project_manager(app: &mut ShotClutchApp, ctx: &egui::Context) {
                 let r = ui.checkbox(&mut d.include_proxies, tl!("Include Proxies"));
                 push(&mut elems, "pm.includeProxies", &r, "Include Proxies");
             });
-            let r = ui.checkbox(&mut d.include_previews, tl!("Include Preview Files"));
-            push(&mut elems, "pm.includePreviews", &r, "Include Preview Files");
+            ui.add_enabled_ui(d.mode != "collect", |ui| {
+                let r = ui.checkbox(&mut d.include_previews, tl!("Include Preview Files"));
+                push(&mut elems, "pm.includePreviews", &r, "Include Preview Files");
+            });
+            if d.mode == "collect" {
+                if d.exclude_unused {
+                    ui.label(tl!("Selected clips become a new project; undo history is omitted."));
+                } else {
+                    ui.label(tl!("Select every sequence to preserve the document and undo history."));
+                }
+                ui.label(tl!("Previews are rebuilt. Choose a new collection folder; existing folders are preserved."));
+            }
             ui.separator();
             ui.label(RichText::new(tl!("Destination Path")).strong());
             ui.horizontal(|ui| {
@@ -597,7 +607,7 @@ fn project_manager(app: &mut ShotClutchApp, ctx: &egui::Context) {
     if browse {
         app.pick_ui(FileDialog::Folder { at: None }, |app, paths| {
             if let (Some(f), Some(d)) = (paths.into_iter().next(), app.ui.project_manager.as_mut()) {
-                d.destination = f;
+                d.destination = if d.mode == "collect" { std::path::Path::new(&f).join("CollectedProject").to_string_lossy().into_owned() } else { f };
             }
         });
     }
@@ -606,7 +616,9 @@ fn project_manager(app: &mut ShotClutchApp, ctx: &egui::Context) {
         || d.sequences != before.sequences
         || d.exclude_unused != before.exclude_unused
         || d.handles != before.handles
-        || d.preset != before.preset)
+        || d.preset != before.preset
+        || d.include_proxies != before.include_proxies
+        || d.include_previews != before.include_previews)
         && !calc
     {
         d.estimate = None;

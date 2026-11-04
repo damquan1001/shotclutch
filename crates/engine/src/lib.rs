@@ -43,6 +43,8 @@ pub mod paste_media;
 pub mod perf;
 pub mod presets;
 pub mod previews;
+#[cfg(not(target_arch = "wasm32"))]
+mod project_collect;
 pub mod project_manager;
 pub mod project_panel;
 pub mod project_tools;

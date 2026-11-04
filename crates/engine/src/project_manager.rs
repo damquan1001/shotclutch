@@ -1,14 +1,14 @@
 //! File ▸ Project Manager…: make a self-contained copy of a project.
 //!
 //! - **Collect Files and Copy to New Location** copies every media file the chosen sequences use
-//!   (optionally their proxies and render previews) into one folder, and writes the project there
-//!   with its paths pointing at the copies.
+//!   (optionally their proxies) into a verified native package with relative paths and a manifest.
+//!   Full copies retain document history; selected/pruned copies receive a new document identity.
 //! - **Consolidate and Transcode** writes only the used part of each clip (plus handles) with a
 //!   transcode preset, and re-bases the clips' media time so every edit, keyframe and marker stays
 //!   where it was.
 //!
-//! Both can exclude unused clips. A dry run reports the disk space before and after. The copy
-//! runs as a background job; the project file is written last, with the outputs' fingerprints.
+//! Both can exclude unused clips and estimate space. Native collection stages the entire package
+//! before exclusive publication; consolidation retains its separate legacy transcode workflow.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
@@ -87,6 +87,10 @@ pub fn run(s: &mut Session, p: &Value) -> Result<Value> {
         "consolidate" | "transcode" => true,
         m => return Err(bad("file.projectManager", format!("unknown mode `{m}` (collect | consolidate)"))),
     };
+    #[cfg(not(target_arch = "wasm32"))]
+    if !consolidate {
+        return crate::project_collect::run(s, p);
+    }
     let exclude_unused = bool_p(p, "excludeUnused").unwrap_or(true);
     let handles = u64_p(p, "handles").unwrap_or(30) as i64;
     let include_proxies = bool_p(p, "includeProxies").unwrap_or(!consolidate) && !consolidate;
@@ -101,10 +105,13 @@ pub fn run(s: &mut Session, p: &Value) -> Result<Value> {
         return Err(bad("file.projectManager", "`sequences` must list sequence ids"));
     }
     let (ranges, used) = used_ranges(&s.project, &seqs);
+    #[cfg(target_arch = "wasm32")]
     let name = str_p(p, "projectName")
         .map(str::to_string)
         .or_else(|| s.path.as_deref().and_then(|x| Path::new(x).file_stem()).map(|n| n.to_string_lossy().into_owned()))
         .unwrap_or_else(|| s.project.name.clone());
+    #[cfg(not(target_arch = "wasm32"))]
+    let name = crate::project_collect::project_name(s, p)?;
     let dest_dir = PathBuf::from(&dest);
     let project_path = dest_dir.join(format!("{name}.scproj")).to_string_lossy().into_owned();
 
@@ -359,14 +366,24 @@ fn copy_dir(from: &Path, to: &Path) -> std::io::Result<u64> {
 }
 
 pub fn commands() -> Vec<CommandSpec> {
-    vec![CommandSpec {
+    let commands = vec![CommandSpec {
         id: "file.projectManager",
         label: "Project Manager…",
         menu: &["File"],
         shortcut: None,
-        params: r#"{"destination":str,"mode":"collect|consolidate","sequences":[id]?,"excludeUnused":bool=true,"handles":frames=30,"preset":"prores_lt|prores_hq|h264|…","includeProxies":bool,"includePreviews":bool=false,"projectName":str?,"dryRun":bool=false,"overwrite":bool=false,"wait":bool=false}"#,
+        params: r#"{"destination":str,"mode":"collect|consolidate","sequences":[id]?,"excludeUnused":bool=true,"includeHistory":bool?,"operationId":UUID?,"handles":frames=30,"preset":"prores_lt|prores_hq|h264|…","includeProxies":bool,"includePreviews":bool=false,"projectName":str?,"dryRun":bool=false,"overwrite":bool=false,"wait":bool=false}"#,
         enabled: |s| if s.project.sequences().next().is_some() { Ok(()) } else { Err("the project has no sequences".into()) },
         run,
         journal: false,
-    }]
+    }];
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let mut commands = commands;
+        commands.extend(crate::project_collect::commands());
+        commands
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        commands
+    }
 }

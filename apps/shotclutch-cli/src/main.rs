@@ -71,7 +71,7 @@ SUBCOMMANDS
   transaction <request.json>   preview a versioned edit request; --commit applies it once
   exec <id> '<json params>'     same, params as one JSON object
   run <script.jsonl | ->        run commands, one {\"id\",\"params\"} per line (# comments ok), in
-                                order: file.exportMedia waits for its file before the next line
+                                order: exports and project collection wait before the next line
                                 (and before exit) unless its params say \"wait\": false
   commands [filter] [--json]    list commands (id, label, shortcut, params)
   describe <id>                 one command as JSON (menu, shortcut, params, enabled now)

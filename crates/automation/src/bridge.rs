@@ -69,7 +69,13 @@ impl BridgeClient {
         if let Some(e) = result.get("error").and_then(Value::as_str) {
             return Err(AutomationError::App(format!("export failed: {e}")));
         }
+        if !result.is_object() {
+            return Err(AutomationError::App("job has no confirmed result; inspect jobs.list".into()));
+        }
         if let Some(o) = start.as_object_mut() {
+            if o.get("state").is_some_and(|s| s == "queued") {
+                o.insert("state".into(), json!("committed"));
+            }
             o.insert("result".into(), result);
             if let Some(off) = offline {
                 o.insert("offlineMedia".into(), off);

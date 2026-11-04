@@ -45,7 +45,8 @@ expiry/cancellation, strong source revalidation and CLI/MCP adapters. Rendered v
 general scoped mutations remain outstanding. Schema v17 adds document identity, revision,
 retained history, allocator high-water mark, recovery source metadata and integrity verification
 to v16 extension support; edit-state v2 retains receipts. See [DEC-002](DEC-002_PROJECT_PERSISTENCE.md)
-and the [implemented service contract](SERVICE_CONTRACT.md).
+and the [implemented service contract](SERVICE_CONTRACT.md). Native [export delivery](EXPORT_CONTRACT.md)
+and [collected-project portability](COLLECTION_CONTRACT.md) are implemented with explicit qualification limits.
 
 ## Acceptance register
 
@@ -59,7 +60,7 @@ and the [implemented service contract](SERVICE_CONTRACT.md).
 | UI-001 | Inherited editing foundation; execute complete keyboard/manual workflow against M1 candidate | Planned |
 | MEDIA-001–004 | Close DEC-006 with measured fallback/proxy/render/audio corpus on Windows x64 | Planned |
 | EXPORT-001 | Native original binding, verified output staging and publication implemented; full media/export qualification remains | In Progress |
-| EXPORT-006 | Package/collect and relink on another machine with explicit essential/cache distinctions | Planned |
+| EXPORT-006 | Verified relative-path collection, full history or explicit derived copy, and local relocation; updated physical second-PC check remains | In Progress |
 | SEC-001–002 | Scoped-service denial, private grants, source confinement and cancellation tests; complete offline journey/worker isolation remain | In Progress |
 
 Tests cover private staging, command equivalence, linked trim, explicit split, abort, grouped
@@ -249,3 +250,60 @@ run the offline mixed-media journey, and implement/qualify collected-project por
 explicit essential assets. Native single-file delivery is implemented; durable whole-file-set
 restart recovery, physical interruption, storage/performance budgets, physical A/V sync and the
 updated second-PC fixture remain open. M1 remains In Progress.
+
+
+## Collected-project portability continuation — 2026-11-04
+
+Native collect now produces a staged, verified package with relative references and a versioned
+SHA-256 manifest. Full-document copies preserve identity/revision, retained undo/redo and operation
+receipts, including historical-only source dependencies. Selected/pruned copies explicitly receive
+new identities and omit history. Immutable byte originals and complete numbered images are
+collected; generated narration and originals are essential, attached proxies are optional caches.
+Embedded LUT/authored data remain. External scratch/ingest/LUT import paths are removed from copies.
+
+`file.verifyCollection` checks files, native integrity/history and dependency mappings through a
+retained directory capability. Existing destinations, traversal, links, unknown extension dependencies,
+changed originals and corruption fail explicitly. Operation UUIDs support verified destination-scoped
+retries. CLI waits for collection by default; MCP/bridge use existing progress/cancellation polling.
+The desktop dialog explains history and new-folder behavior and disables preview-cache collection.
+
+See [COLLECTION_CONTRACT](COLLECTION_CONTRACT.md) for exact modes, failure behavior, budgets,
+font/decoder requirements, platform limits and the updated physical second-PC acceptance procedure.
+Consolidation remains a separate legacy transcode workflow. M1 remains In Progress.
+
+
+Final local evidence for the collection continuation:
+
+- `cargo test --locked --offline -p shotclutch-engine -p shotclutch-automation --lib`:
+  **822 passed** (798 engine, 24 automation), zero failures; 3 existing engine performance tests
+  ignored. Engine runtime after compilation: 50.58 s. All 23 new native collection cases passed.
+- `cargo test --locked --offline -p shotclutch-cli --test it`: **20 passed**, including the new
+  process-boundary collect/wait/verify/relocate/retry test and both existing VFR/H.264 and
+  long-GOP/two-audio-track/ProRes workflows. Runtime after compilation: 4.67 s.
+- `python scripts/ci/m1-checks.py`: **297 Rust cases passed**, formatting and helper checks passed,
+  in 168.2 s locally including compilation. This is not a hosted runtime estimate. The gate
+  discovers the new headless cases automatically; the Windows junction case stays local.
+- Clippy passed with `--all-targets -- -D warnings` for engine, automation, CLI and egui UI
+  (39.34 s). `cargo check --locked --offline -p shotclutch -p shotclutch-ui-egui` passed (20.20 s).
+  This verifies desktop build compatibility, not a new interactive UI acceptance run.
+  `git diff --check` passed.
+- Local untracked logs: `target/m1/collection-regression-final.log`, `collection-cli-final.log`,
+  `collection-gate.log`, `collection-clippy-current.log` and `collection-desktop-current.log`.
+
+The first collision test demonstrated that the standard Windows rename could replace an empty
+existing directory. Publication now uses an explicitly exclusive Windows API, with both empty
+and nonempty concurrent targets covered. Fixture placement and Windows junction argument issues
+were corrected before the final pass. No tests were suppressed or newly ignored. Final review
+also added stored-path policy for history-only references before host I/O and retention of encoded
+byte originals when their editorial state is intentionally offline. Every numbered frame must map
+to the correct essential source, not an optional proxy/cache.
+
+The only new locked package is pinned Windows-only `atomicwrites` 0.4.4; Unix publication uses
+already-locked `rustix` 1.1.5. No existing dependency version was upgraded. No hosted workflow,
+trigger, settings, push, Actions dispatch or release was used. The minimal CI policy is retained.
+
+Next: bounded Windows SDR/fallback and mixed-rate/VFR/nesting/retiming qualification, the full
+mixed-media offline journey, storage/performance and durable file-set restart recovery, physical
+A/V checks, and the updated physical second-PC package check. Collection is implemented and
+locally qualified; EXPORT-006 and M1 remain In Progress until the remaining acceptance evidence
+exists. The second-PC procedure is in COLLECTION_CONTRACT, not recorded as a completed run.

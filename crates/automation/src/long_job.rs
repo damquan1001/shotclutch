@@ -14,14 +14,14 @@ use serde_json::{Value, json};
 use crate::server::ShotClutchMcp;
 
 /// Engine commands that block until a render is written when called with `wait: true`.
-pub const LONG_COMMANDS: &[&str] = &["file.exportMedia"];
+pub const LONG_COMMANDS: &[&str] = &["file.exportMedia", "file.projectManager"];
 
 /// How often the job is polled (and at most how often progress is reported).
 const POLL: Duration = Duration::from_millis(100);
 
 /// Whether `command_run {id, params}` is a long call this module runs.
 pub fn is_long(id: &str, params: &Value) -> bool {
-    LONG_COMMANDS.contains(&id) && params.get("wait").and_then(Value::as_bool) == Some(true)
+    LONG_COMMANDS.contains(&id) && params.get("wait").and_then(Value::as_bool) == Some(true) && params.get("dryRun").and_then(Value::as_bool) != Some(true)
 }
 
 /// Sends `notifications/progress` for one request; progress only ever increases.
@@ -57,6 +57,9 @@ impl ShotClutchMcp {
             Ok(v) => v,
             Err(e) => return CallToolResult::error(vec![Content::text(e.to_string())]),
         };
+        if id == "file.projectManager" && start["state"] == "committed" && start["replayed"] == true {
+            return CallToolResult::success(vec![Content::text(serde_json::to_string_pretty(&start).unwrap_or_default())]);
+        }
         let Some(job) = start.get("job").and_then(Value::as_u64) else {
             return CallToolResult::error(vec![Content::text(format!("{id} started no job: {start}"))]);
         };
@@ -110,6 +113,9 @@ fn completed(mut start: Value, state: Option<Value>) -> CallToolResult {
     if !result.is_object() {
         return CallToolResult::error(vec![Content::text("INTERNAL_ERROR: export has no confirmed result; inspect jobs.list")]);
     }
+    if start["state"] == "queued" {
+        start["state"] = json!("committed");
+    }
     start["result"] = result;
     for field in ["offlineMedia", "binding"] {
         if let Some(value) = state.get(field) {
@@ -133,6 +139,16 @@ mod tests {
         let receipt: Value = serde_json::from_str(wire["content"][0]["text"].as_str().unwrap()).unwrap();
         assert_eq!(receipt["binding"]["publication"], "atomicFile");
         assert_eq!(receipt["result"]["frames"], 12);
+    }
+    #[test]
+    fn m1_collection_is_a_cancelable_long_job_except_for_dry_runs() {
+        assert!(is_long("file.projectManager", &json!({"wait": true})));
+        assert!(!is_long("file.projectManager", &json!({"wait": true, "dryRun": true})));
+        assert!(!is_long("file.projectManager", &json!({"wait": false})));
+        let result = completed(json!({"job": 1, "state": "queued"}), Some(json!({"finished": true, "result": {"path": "p.scproj"}})));
+        let wire = serde_json::to_value(result).unwrap();
+        let receipt: Value = serde_json::from_str(wire["content"][0]["text"].as_str().unwrap()).unwrap();
+        assert_eq!(receipt["state"], "committed");
     }
     #[test]
     fn m1_missing_or_incomplete_jobs_cannot_claim_export_success() {

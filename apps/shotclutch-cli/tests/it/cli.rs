@@ -469,3 +469,33 @@ fn m1_incomplete_scope_options_cannot_fall_back_to_owner_access() {
         assert!(String::from_utf8_lossy(&refused.stderr).contains("requires a value"));
     }
 }
+
+#[test]
+fn m1_collection_cli_waits_verifies_relocates_and_replays_a_durable_receipt() {
+    let unique = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
+    let dir = std::env::temp_dir().join(format!("sc-m1-collection-{}-{unique}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let source = dir.join("source.scproj");
+    // A self-contained authored generator keeps this process test independent of external tools.
+    json_out(&cli(&["--demo", "--save-as", source.to_str().unwrap(), "inspect", "project"]));
+    let original = std::fs::read(&source).unwrap();
+    let collected = dir.join("Collected");
+    let params = json!({"destination": collected, "excludeUnused": false, "operationId": "00112233-4455-4677-8899-aabbccddeeff"}).to_string();
+    let result = json_out(&cli(&["--project", source.to_str().unwrap(), "exec", "file.projectManager", &params]));
+    assert_eq!(result["state"], "committed", "CLI waits without an explicit wait parameter");
+    assert_eq!(result["documentMode"], "fullDocument");
+    assert!(collected.join("collection.json").exists());
+    let retry = json_out(&cli(&["--project", source.to_str().unwrap(), "exec", "file.projectManager", &params]));
+    assert_eq!(retry["replayed"], true);
+    assert_eq!(original, std::fs::read(&source).unwrap());
+    let moved = dir.join("Moved");
+    std::fs::rename(&collected, &moved).unwrap();
+    let verified = json_out(&cli(&["exec", "file.verifyCollection", &json!({"path": moved}).to_string()]));
+    assert_eq!(verified["verified"], true);
+    json_out(&cli(&["--project", verified["project"].as_str().unwrap(), "inspect", "sequence"]));
+    let mut manifest: Value = serde_json::from_slice(&std::fs::read(moved.join("collection.json")).unwrap()).unwrap();
+    manifest["project"] = json!("../source.scproj");
+    std::fs::write(moved.join("collection.json"), serde_json::to_vec(&manifest).unwrap()).unwrap();
+    assert!(!cli(&["exec", "file.verifyCollection", &json!({"path": moved}).to_string()]).status.success());
+    std::fs::remove_dir_all(dir).unwrap();
+}

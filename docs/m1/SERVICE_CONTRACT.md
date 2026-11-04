@@ -164,3 +164,7 @@ mixed-media workflow, physical A/V sync and second-machine project collection qu
 
 Native owner export jobs now implement original binding and staged publication in the
 [export contract](EXPORT_CONTRACT.md). This does not broaden scoped editor grants.
+
+Native owner project collection and read-only package verification are described in
+[COLLECTION_CONTRACT](COLLECTION_CONTRACT.md). Scoped structural clients cannot invoke them;
+collected operation receipts preserve results without carrying host grants.

@@ -64,7 +64,8 @@ fn collect_files_copies_used_media_and_opens() {
     let mut t = opened(r["project"].as_str().unwrap());
     for it in t.project.items.values().filter_map(|i| i.as_media()) {
         let MediaRef::File { path } = &it.media else { panic!() };
-        assert!(std::path::Path::new(path).starts_with(&dest), "{path}");
+        assert!(std::path::Path::new(path).is_relative(), "{path}");
+        assert!(dest.join(path).is_file(), "{path}");
         assert!(it.identity.is_some());
     }
     let after: Vec<Vec<u8>> = (0..36).step_by(5).map(|f| frame_rgba(&mut t, f, 1.0).2).collect();

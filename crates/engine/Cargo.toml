@@ -58,3 +58,9 @@ image = { version = "0.25", default-features = false, features = ["png", "gif"] 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 cap-std = "=4.0.3"
 tempfile = "3.27"
+
+[target.'cfg(any(target_os = "linux", target_os = "android", target_vendor = "apple"))'.dependencies]
+rustix = { version = "=1.1.5", features = ["fs"] }
+
+[target.'cfg(windows)'.dependencies]
+atomicwrites = "=0.4.4"

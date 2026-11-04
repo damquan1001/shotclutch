@@ -32,7 +32,7 @@ Each active item must have an owner, implementation/change reference, linked tes
 | Milestone | Scope | Status | Exit evidence |
 |---|---|---|---|
 | M0 | Audit, standalone build, baseline measurements | Done | [Completion and acceptance mapping](m0/M0_COMPLETION.md): local/clean-install/core evidence, two independent same-source green CI runs, accepted second-PC verification and paired baselines. Expanded runtime/release and promotion gates remain separately tracked. |
-| M1 | Durable project, exact commands, native media, local editing | In Progress | [Implementation and acceptance register](m1/IMPLEMENTATION.md); CI reduction and structural staging first |
+| M1 | Durable project, exact commands, native media, local editing | In Progress | [Implementation and acceptance register](m1/IMPLEMENTATION.md); durable documents, scoped transactions and verified export/collection implemented; qualification remains |
 | M2 | Smart Rough Cut and workspace | Not started | None |
 | M3 | Semantic indexing, verified agent, MCP/CLI | Not started | None |
 | M4 | ACP/Skills, native scenes, interchange foundation, v0.1 qualification | Not started | None |
@@ -85,7 +85,7 @@ Dependencies below are completion gates, not a requirement to postpone design or
 | EXPORT-003 | Qualify a Premiere destination adapter using an appropriate interchange route and pinned target version | P2 | M5 | Planned | EXPORT-002 |
 | EXPORT-004 | Qualify a DaVinci Resolve destination adapter with the same evidence standards; destination-specific mappings remain isolated from canonical project data | P2 | M5 | Planned | EXPORT-002 |
 | EXPORT-005 | Qualify a CapCut adapter only after establishing a maintainable supported route | P2 | M5 | Planned | EXPORT-002 |
-| EXPORT-006 | Package/relink a project on another machine | P0 | M1 | Planned | CORE-004, MEDIA-002 |
+| EXPORT-006 | Package/relink a project on another machine | P0 | M1 | In Progress | CORE-004, MEDIA-002 |
 | SEC-001 | Complete the core offline workflow with no media or semantic data uploaded | P0 | M1 | Planned | CORE-001 |
 | SEC-002 | Enforce least-privilege grants at service boundaries | P0 | M1 | In Progress | CORE-002 |
 | SEC-003 | Isolate untrusted scene code and extension execution | P0 | M4 | Planned | SEC-002 |
