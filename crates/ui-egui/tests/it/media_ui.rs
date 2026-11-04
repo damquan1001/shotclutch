@@ -102,6 +102,25 @@ struct Driver {
 }
 
 impl Driver {
+    fn wait_jobs(&mut self) {
+        use std::sync::atomic::Ordering;
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(60);
+        loop {
+            self.frames(2);
+            let session = &self.harness.state().session;
+            for job in &session.jobs {
+                if let Some(Err(error)) = &*job.result.lock().unwrap() {
+                    panic!("media job {} failed: {error}", job.id);
+                }
+            }
+            if session.jobs.iter().all(|j| j.progress.finished.load(Ordering::Acquire) && j.result.lock().unwrap().is_some()) {
+                return;
+            }
+            assert!(std::time::Instant::now() < deadline, "media jobs timed out: {}", self.exec("jobs.list", json!({})));
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        }
+    }
+
     fn new(session: Session) -> Self {
         let (tx, rx) = channel();
         let app = ShotClutchApp::new(session).with_control(rx);
@@ -442,14 +461,9 @@ fn offline_badges_proxy_toggle_and_dialogs() {
     d.snapshot("media-create-proxies");
     d.click("proxies.preset.prores_proxy_quarter");
     d.click("proxies.ok");
-    for _ in 0..400 {
-        d.frames(1);
-        let attached = d.app().session.project.items.values().filter(|i| i.as_media().is_some_and(|m| m.proxy.is_some())).count();
-        if attached == 2 {
-            break;
-        }
-        std::thread::sleep(std::time::Duration::from_millis(20));
-    }
+    // Observe confirmed job results instead of an eight-second frame-loop allowance,
+    // which could expire while the parallel UI suite was encoding other media.
+    d.wait_jobs();
     assert_eq!(d.app().session.project.items.values().filter(|i| i.as_media().is_some_and(|m| m.proxy.is_some())).count(), 2, "proxies attached");
     d.click("program.transport.media.toggleProxies");
     assert!(d.app().session.prefs.media.enable_proxies);
@@ -462,11 +476,17 @@ fn offline_badges_proxy_toggle_and_dialogs() {
     d.app().ui.project_manager.as_mut().unwrap().destination = root.join("Collected").to_string_lossy().into_owned();
     d.click("pm.calculate");
     let est = d.app().ui.project_manager.as_ref().unwrap().estimate;
-    assert!(est.is_some_and(|(a, b, n)| a > 0 && b == a && n == 2), "{est:?}");
+    // Native collection includes both originals and the two attached proxy caches.
+    assert!(est.is_some_and(|(a, b, n)| a > 0 && b == a && n == 4), "{est:?}");
     d.snapshot("media-project-manager");
     d.click("pm.ok");
     assert!(d.app().ui.project_manager.is_none());
-    let _ = std::fs::remove_dir_all(&root);
+    d.wait_jobs();
+    assert_eq!(d.exec("file.verifyCollection", json!({"path": root.join("Collected")}))["verified"], true);
+    drop(d); // Close source handles and finish publication before removing owned fixtures.
+    let owned = root.canonicalize().unwrap();
+    assert_eq!(owned.parent(), Some(std::env::temp_dir().canonicalize().unwrap().as_path()));
+    std::fs::remove_dir_all(owned).unwrap();
 }
 
 /// #111: Link Media ▸ Locate… relinks the selected clip to the chosen file instead of importing it,

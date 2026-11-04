@@ -63,13 +63,13 @@ and [collected-project portability](COLLECTION_CONTRACT.md) are implemented with
 | CORE-002 | Schema v17 identity and retained history; ID allocation survives undo/history deletion/save/reopen; optional extensions round-trip and unknown required extensions fail closed | In Progress |
 | CORE-003 | Exact boundary strings, source PTS/half-open VFR seeks, fractional-rate export endpoints and mixed-rate/nested/retimed local journey qualified; wider runtime qualification remains | In Progress |
 | CORE-004 | Atomic project/history/revision snapshots, checked recovery, migration backups and injected write/publication failures; broader fault/platform/storage-budget qualification remains | In Progress |
-| AGENT-001–002 | Bounded structural service: host grants, exact wire values, source SHA-256, durable retries and CLI/MCP parity; rendered evidence/general permissions remain | In Progress |
+| AGENT-001–002 | Bounded structural service: host grants, exact wire values, source SHA-256, durable retries and CLI/MCP parity; final M1 acceptance review remains; general agent verification is M3 | In Progress |
 | TEST-001 | Focused gate and local checks; extend with persistence faults and new schema invariants as implemented | In Progress |
 | UI-001 | Candidate desktop smoke passed for real VFR seeking, menu split, keyboard save/undo/redo and independently reopened linked cuts; complete manual/accessibility workflow remains | In Progress |
 | MEDIA-001–004 | [DEC-006](DEC-006_NATIVE_MEDIA.md) native/software/fault-fallback SDR corpus and mixed-rate proxy/render/audio journey qualified on this Windows PC; physical/runtime checks remain | In Progress |
 | EXPORT-001 | Native original binding, verified output staging and publication implemented; full media/export qualification remains | In Progress |
 | EXPORT-006 | Verified relative-path collection, full history or explicit derived copy, and local relocation; physical second-PC check excluded from M1 by user decision | In Progress |
-| SEC-001–002 | Scoped-service denial, private grants, source confinement and cancellation tests; complete offline journey/worker isolation remain | In Progress |
+| SEC-001–002 | Scoped-service denial, private grants, source confinement and cancellation tests; visible native local-only status; disconnected journey and final permission coverage review remain | In Progress |
 
 Tests cover private staging, command equivalence, linked trim, explicit split, abort, grouped
 undo/redo, failed later commands, locked targets, stale revision/project replacement, exact wide
@@ -360,12 +360,13 @@ with required installed oracle tools enabled. Runtime after compilation: 8.49 se
 `target/m1/media-cli-final.log`; initial Save As failure: `target/m1/media-journey.log`.
 
 Current remaining M1 acceptance: complete interactive editing/accessibility qualification beyond
-the bounded desktop smoke below; a genuinely
-disconnected/no-egress mixed-media run; physical device-clock A/V and long-form underrun/drift
-checks; wider fault/storage and complete file-set restart qualification; remaining service
-permission/rendered-verification coverage. The declared native SDR subset and same-PC workflow
-do not establish those results. Broader release performance/format promises remain bounded by
-documents 14–16. Physical second-PC testing is outside this milestone. M1 remains In Progress.
+the bounded desktop smoke below; a genuinely disconnected mixed-media run; long-form device-clock
+underrun and physical A/V drift checks; and final review of the M1 fault/service permission coverage.
+The declared native SDR subset and connected same-PC workflow do not establish those results.
+Agent composed-output verification is AI-004/M3; hostile scene isolation and full release performance
+are SEC-003/PERF-002/M4. Wider format/platform and file-set restart guarantees remain explicitly
+unqualified; they are not inferred from the bounded native profile. Physical second-PC testing is
+outside this milestone. M1 remains In Progress.
 
 Final current-candidate checks continued on 2026-11-05:
 
@@ -407,3 +408,76 @@ Final current-candidate checks continued on 2026-11-05:
 No hosted workflow, trigger, settings, push or release was used. Routine CI remains the existing
 single headless gate; only four small in-process regressions join it automatically. Synthetic
 oracle generation, hardware modes, full workflows, benchmark checks and UI smoke remain local.
+
+## Native processing status and same-PC acceptance preparation — 2026-11-05
+
+General Settings now visibly reports **Local-only processing** for the native built-in profile.
+It is a read-only status: there is no built-in cloud inference transport to enable. Optional model
+downloads remain explicit owner actions. `privacy.status` exposes the same information without
+changing preferences, project, history or revision. A host-injected recognizer (or browser host)
+is opaque, so its status is `hostControlled` with `localOnly:null`; the UI does not certify it as
+local. This status is neither a provider authorization nor an OS network-isolation control.
+Provider-specific payload grants must precede any future cloud processing implementation.
+
+The new [same-PC qualification procedure](OFFLINE_AND_AV_QUALIFICATION.md) reuses the existing
+CLI mixed-media journey and unchanged M0 desktop runtime runner. The offline wrapper requires a
+clean committed checkout, installed oracles, and no active non-loopback network adapter, including
+virtual adapters, before and after the journey. It never changes adapters/firewall rules. Its
+connected diagnostic passed the exact required journey with no skips; the ordinary invocation
+correctly returned exit 2 while network adapters were active. **Neither is an offline pass.**
+Adapter snapshots also do not claim packet capture or continuous OS network isolation.
+
+A 30-minute 1080p30 flash/beep fixture is prepared locally (1,802 seconds of source with an
+initial quiet ten seconds). Independent FFmpeg decoding checked the first two flash boundaries
+and audio onsets, which occur two 48 kHz samples after the intended video-frame onset. This is a
+synthetic timing fixture, not a representative decode/effects workload. A three-second native
+desktop smoke completed using the real audio-device clock: 312 callbacks, zero missing samples,
+zero underruns and zero dropped pictures. It validates the runner and current binary, not the
+ten-minute underrun or thirty-minute physical drift criteria. A separate ten-minute run is being
+evaluated below. Physical screen/speaker measurement still needs an external recording.
+
+Current-source local checks:
+
+- Focused M1 gate: **302 tests passed**, formatting/helper check passed, 188.2 seconds including
+  compilation. The one added small privacy-status engine regression joins the existing gate;
+  there is no new hosted job. Log: `target/m1/privacy-gate.log`.
+- Settings tests: **31 engine** and **16 UI** passed. Read-only status cannot change preferences,
+  and an injected host backend cannot receive a false local-only assertion.
+- Complete egui integration suite: **498 passed, zero failed, five existing ignored**, 112.18
+  seconds. The ignores are four screenshot helpers and one manual transcript benchmark, not new
+  suppressions. Log: `target/m1/privacy-ui-full-final.log`.
+- The first full UI run found two stale tests. The inherited-project fixture now represents an
+  actual pre-integrity v16 file instead of corrupting a protected v17 header; production checksum
+  validation is unchanged. Proxy/collection UI checks wait for confirmed job outcomes, count
+  originals plus attached proxies, verify the resulting package, and close owned handles before
+  cleanup. Both targeted cases and the complete suite then passed.
+- Engine/UI all-target Clippy with warnings denied passed (final incremental check 12.42 seconds);
+  the desktop built with locked/offline Cargo (2m 01s). Logs: `target/m1/privacy-clippy-final.log`
+  and `target/m1/privacy-desktop-build.log`. Earlier native decoder, full engine and CLI evidence
+  remains recorded above; those results are not relabeled as a repeat after this settings change.
+
+No hosted Actions, network configuration, provider grant, release or remote repository state
+was changed. SEC-001 remains In Progress pending actual disconnected acceptance.
+
+### M1 boundary review
+
+The structural service suites exercise readonly/mutation denial, actor spoofing, stale revision,
+cross-project/sequence access, expiry/revocation, cancellation, source-root traversal/junctions,
+bounded reads, durable receipts and commit-marker recovery. Native save tests cover failure before
+publication, recovery after the durable marker, failed metadata, retry and protected migrations.
+The CLI rejects incomplete scope options rather than falling back to owner access; actual scoped
+CLI and MCP tests verify replay and denial of raw commands, file/UI access and frame rendering.
+The 302-case gate includes the engine/MCP cases; the separately recorded 21-case CLI suite includes
+the real CLI boundaries. These qualify the bounded native profile, not arbitrary future commands.
+
+Unsupported scoped operations remain denied. General scoped mutation families, interactive grant
+review and agent composed-output verification are not implemented by the structural subset; the
+M3 protocol/policy/verification program must retain those limits until it broadens the grants.
+Hostile scene execution isolation and the full platform/performance release matrix belong to M4.
+The native multi-file export contract also retains its explicit physical-interruption/restart
+limitation; ordinary rollback is tested and single-file publication is atomic. None of these
+limitations is converted into a passing result by the new status UI or qualification scripts.
+
+The next M1 acceptance actions are the actual disconnected journey, completing the manual
+editing/keyboard-accessibility reference workflow, and the long-form physical A/V measurement.
+The ten-minute device-clock result is recorded separately when complete. M1 remains In Progress.

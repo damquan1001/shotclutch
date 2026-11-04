@@ -180,6 +180,10 @@ fn saving_an_inherited_project_requests_a_native_destination_and_preserves_its_s
     let mut d = Driver::new(true);
     let mut envelope: Value = serde_json::from_slice(&shotclutch_format::encode(&d.app().session.project, false)).unwrap();
     envelope["format"] = shotclutch_format::LEGACY_FORMAT_ID.into();
+    // A historical v16 fixture predates the v17 integrity envelope. Altering a current
+    // protected header must remain a checksum error, rather than bypassing validation.
+    envelope["schema_version"] = 16.into();
+    envelope.as_object_mut().unwrap().remove("integrity");
     let original = serde_json::to_vec(&envelope).unwrap();
     std::fs::write(&source, &original).unwrap();
     d.app().session.execute("file.open", json!({"path": source.to_string_lossy()})).unwrap();

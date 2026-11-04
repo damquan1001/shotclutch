@@ -996,6 +996,7 @@ static CATEGORIES: &[Category] = &[
         id: "general",
         title: "General",
         rows: &[
+            Row::Custom("processingStatus"),
             f(
                 "general.interfaceLanguage",
                 "Interface Language",
@@ -1749,6 +1750,28 @@ impl Session {
 
 // ------------------------------------------------------------------ commands
 
+/// Status of this build's processing paths, not a grant or an OS network sandbox.
+/// Native built-ins have no cloud inference transport. An embedding host's recognizer
+/// is opaque to the engine, so never assert that it processes audio locally.
+pub fn processing_status(s: &Session) -> Value {
+    let local = !cfg!(target_arch = "wasm32") && s.transcriber.is_none();
+    json!({
+        "apiVersion": 1,
+        "mode": if local { "localOnly" } else { "hostControlled" },
+        "localOnly": if local { Some(true) } else { None },
+        "builtInCloudProcessingAvailable": false,
+        "modelDownloadsRequireExplicitRequest": true,
+        "enforcesOsNetworkIsolation": false,
+    })
+}
+
+fn processing_info(s: &mut Session, p: &Value) -> Result<Value> {
+    if !p.as_object().is_some_and(|m| m.is_empty()) {
+        return Err(bad("privacy.status", "takes no parameters; processing status is read-only"));
+    }
+    Ok(processing_status(s))
+}
+
 fn spec(id: &'static str, label: &'static str, params: &'static str, run: fn(&mut Session, &Value) -> Result<Value>, journal: bool) -> CommandSpec {
     CommandSpec { id, label, menu: &[], shortcut: None, params, enabled: always, run, journal }
 }
@@ -1839,6 +1862,7 @@ fn delete_label_preset(s: &mut Session, p: &Value) -> Result<Value> {
 
 pub fn commands() -> Vec<CommandSpec> {
     vec![
+        spec("privacy.status", "Processing Privacy Status", "{}", processing_info, false),
         spec("prefs.schema", "Settings Schema", r#"{"category":str?}"#, schema, false),
         spec("mediaCache.info", "Media Cache Info", "{}", cache_info, false),
         spec("mediaCache.clean", "Delete Media Cache Files", r#"{"all":bool?}"#, cache_clean, true),

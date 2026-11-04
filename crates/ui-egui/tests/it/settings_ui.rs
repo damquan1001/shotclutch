@@ -173,6 +173,20 @@ fn every_category_opens_from_its_command_and_menu() {
 }
 
 #[test]
+#[cfg(not(target_arch = "wasm32"))]
+fn native_processing_status_is_visible_read_only_and_keeps_preferences_unchanged() {
+    let mut d = Driver::demo();
+    let before = d.exec("prefs.get", json!({}));
+    assert_eq!(d.exec("privacy.status", json!({}))["localOnly"], true);
+    d.menu("app.settings.general");
+    assert!(d.has("settings.privacy.localOnly"));
+    d.click("settings.privacy.localOnly");
+    d.click("settings.ok");
+    assert_eq!(d.exec("prefs.get", json!({})), before);
+    assert_eq!(d.exec("privacy.status", json!({}))["localOnly"], true);
+}
+
+#[test]
 fn cmd_comma_opens_general_and_the_list_switches_pages() {
     let mut d = Driver::demo();
     d.ok("ui.key", json!({"key": "Cmd+,"}));

@@ -23,6 +23,29 @@ fn set(s: &mut Session, key: &str, value: Value) {
 }
 
 #[test]
+#[cfg(not(target_arch = "wasm32"))]
+fn m1_privacy_status_is_read_only_and_does_not_certify_host_backends() {
+    let mut s = Session::default();
+    let project = s.project.clone();
+    let prefs = s.prefs.clone();
+    let revision = s.revision;
+    let status = s.execute("privacy.status", json!({})).unwrap();
+    assert_eq!(status["mode"], "localOnly");
+    assert_eq!(status["localOnly"], true);
+    assert_eq!(status["builtInCloudProcessingAvailable"], false);
+    assert_eq!(status["enforcesOsNetworkIsolation"], false);
+    assert!(s.execute("privacy.status", json!({"localOnly": false})).is_err());
+    assert!(s.execute("prefs.set", json!({"key": "privacy.localOnly", "value": false})).is_err());
+    assert_eq!(s.prefs, prefs);
+    assert_eq!(s.revision, revision);
+    assert!(std::sync::Arc::ptr_eq(&s.project, &project));
+    s.transcriber = Some(std::sync::Arc::new(shotclutch_speech::FixedTranscriber { transcript: Default::default(), id: "opaque-host".into() }));
+    let status = s.execute("privacy.status", json!({})).unwrap();
+    assert_eq!(status["mode"], "hostControlled");
+    assert!(status["localOnly"].is_null());
+}
+
+#[test]
 fn interface_language_persists_and_rejects_hostile_values() {
     let dir = tmp_dir("interface-language");
     let path = dir.join("preferences.json");

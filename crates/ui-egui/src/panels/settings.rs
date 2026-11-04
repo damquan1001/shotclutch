@@ -722,6 +722,18 @@ fn mb(bytes: u64) -> String {
 fn custom(app: &mut ShotClutchApp, ui: &mut Ui, d: &mut SettingsDraft, name: &str) {
     let t = app.tokens;
     match name {
+        "processingStatus" => {
+            let status = settings::processing_status(&app.session);
+            if status["localOnly"] == true {
+                let mut local = true;
+                let response = ui.add_enabled(false, egui::Checkbox::new(&mut local, tl!("Local-only processing")));
+                app.auto.add("settings.privacy.localOnly", response.rect, "Local-only processing (read-only)");
+                note(ui, &t, tl!("Cloud processing is unavailable. Model downloads use the internet only when you request them."));
+            } else {
+                note(ui, &t, tl!("Processing is controlled by the host. Local-only processing has not been verified for its speech backend."));
+            }
+            ui.add_space(8.0);
+        }
         "labelColors" => {
             let tt = t;
             group(ui, &tt, tl!("Label Colors"), |ui| {

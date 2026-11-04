@@ -1,6 +1,6 @@
 # ShotClutch — Development Tracker
 
-Baseline 0.1 · Last updated: 2026-11-02 · Authoritative living work record.
+Baseline 0.1 · Last updated: 2026-11-05 · Authoritative living work record.
 
 ## Current state
 
@@ -86,7 +86,7 @@ Dependencies below are completion gates, not a requirement to postpone design or
 | EXPORT-004 | Qualify a DaVinci Resolve destination adapter with the same evidence standards; destination-specific mappings remain isolated from canonical project data | P2 | M5 | Planned | EXPORT-002 |
 | EXPORT-005 | Qualify a CapCut adapter only after establishing a maintainable supported route | P2 | M5 | Planned | EXPORT-002 |
 | EXPORT-006 | Collect/relink a relocatable project (M1 local qualification; physical second-PC check deferred) | P0 | M1 | In Progress | CORE-004, MEDIA-002 |
-| SEC-001 | Complete the core offline workflow with no media or semantic data uploaded | P0 | M1 | Planned | CORE-001 |
+| SEC-001 | Complete the core offline workflow with no media or semantic data uploaded | P0 | M1 | In Progress | CORE-001 |
 | SEC-002 | Enforce least-privilege grants at service boundaries | P0 | M1 | In Progress | CORE-002 |
 | SEC-003 | Isolate untrusted scene code and extension execution | P0 | M4 | Planned | SEC-002 |
 | SEC-004 | Keep provider credentials outside projects/logs and support retention/deletion controls | P0 | M3 | Planned | SEC-001, SEC-002 |
@@ -238,3 +238,12 @@ Owner: Codex. Branch: `codex/m1-editing-foundation`. [Implementation, test scope
   keyboard save/undo/redo was independently checked through native saves and CLI reopens.
   [Retained compact evidence](m1/evidence/README.md). UI-001 joins In Progress; complete manual,
   disconnected/physical runtime and remaining fault/service qualification are still open.
+
+- 2026-11-05 — Added visible read-only native local-only processing status and `privacy.status`;
+  opaque host speech backends remain explicitly unverified. SEC-001 joins In Progress. The focused
+  gate now passes 302 cases; all 498 active egui integration tests pass (five existing ignored),
+  settings checks, all-target engine/UI Clippy and the desktop build pass. Corrected two stale UI
+  fixtures/waits without weakening production integrity checks. Prepared and tested the fail-closed
+  same-PC offline wrapper and thirty-minute timing fixture; the connected diagnostic is not an
+  offline pass. [Procedure and evidence limits](m1/OFFLINE_AND_AV_QUALIFICATION.md);
+  [current results and boundary review](m1/IMPLEMENTATION.md). No hosted Actions or second-PC run.
