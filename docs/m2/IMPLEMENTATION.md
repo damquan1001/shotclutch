@@ -7,7 +7,7 @@ Branch `codex/m2-smart-rough-cut` starts from the M1 closeout `b15c6439`. M2 cov
 ## Decisions
 
 - **DEC-005, local ASR.** The native desktop build enables the existing CPU Whisper backend. M2 uses the pinned multilingual Whisper base package for English acceptance. The model lives in the local data directory, is verified against the catalogue, and can be installed from the workspace after the user confirms the download. The installer receives model artifacts only. Speech inference reads local audio. Silence-only mode is an explicit choice and does not create transcript words.
-- **DEC-009, workspace.** Smart Rough Cut is an egui workspace with a dedicated review and result panel alongside the existing Source monitor. Audition and result preview reuse the desktop frame and audio workers.
+- **DEC-009, workspace.** Smart Rough Cut is a unified egui workspace following the Gling/OpenGling layout: a left script pane, a large right viewer, and a full-width source waveform and transport below. Script, Suggestions, and Files & analysis tabs separate reading, detailed decisions, and setup. Original and Result modes share the viewer; Result skips removed ranges using the same assembly as Apply. Audition and result preview reuse the desktop frame and audio workers.
 
 ## Project and service contracts
 
@@ -42,3 +42,9 @@ cargo test --locked -p shotclutch-engine --features whisper --lib m2_private_whi
 The native worksheet is to import the original, audition all four streams, explicitly start analysis, preserve an intentional pause, compare repeated attempts, remove and restore a phrase, and listen across the joins. Review the result and apply to a new sequence. Save/reopen and verify the map, linked clips, captions, and undo. Make a manual edit and verify replacement fails while a fresh sequence remains available. Reanalyze and verify that the earlier decisions survive.
 
 Measure analysis time and peak memory, coverage, removal precision and restoration rate, take agreement, and review time. Use export frame/sample checks and listen to representative joins. Store only redacted summaries and commands in the evidence index. The private original, transcripts, labels, and revealing screenshots belong in local qualification storage.
+
+## Script-led review layout
+
+The Script tab displays the full transcript as readable paragraphs. Click a word or timestamp to seek the original; right-click a word to remove or restore its range. Removed words are struck through and can be hidden with Show cuts. Find in script filters paragraphs. Suggestions retains candidate filters, keyboard review, take comparison, boundary edits, restoration, and reset controls. Files & analysis retains explicit model installation, stream audition, settings, analysis, and resume.
+
+The lower waveform always uses source time. Clicking or dragging seeks the original in Original mode. In Result mode it maps to the retained output; a removed range seeks to the next retained interval. The result transport keeps preview playback and application together. Mark reviewed remains available below both viewer modes. The native theme supplies the surrounding surfaces and typography; no OpenGling runtime or code is embedded.

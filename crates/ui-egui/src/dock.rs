@@ -317,7 +317,7 @@ pub fn workspace(name: &str) -> DockNode {
     use SplitSize::*;
     let bottom_editing = || hsplit(FixedA(64.0), tabs(&[Tools], 0), hsplit(FixedB(116.0), tabs(&[Timeline], 0), tabs(&[AudioMeters], 0)));
     match name {
-        "Smart Rough Cut" => hsplit(Ratio(0.65), tabs(&[SmartRoughCut], 0), vsplit(Ratio(0.65), tabs(&[Source], 0), tabs(&[Project, Events], 0))),
+        "Smart Rough Cut" => tabs(&[SmartRoughCut], 0),
         "Assembly" => vsplit(
             Ratio(0.52),
             hsplit(
