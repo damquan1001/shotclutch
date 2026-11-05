@@ -161,7 +161,11 @@ fn quiet_intervals(range: TimeRange, levels: &[f32]) -> Vec<TimeRange> {
     quiet
 }
 
-pub(super) fn propose(analysis_id: u64, analysis: &PreEditAnalysis) -> PreEditMap {
+pub(super) fn is_filler(word: &str) -> bool {
+    matches!(word, "um" | "uh" | "erm" | "hmm" | "uhm" | "umm" | "uhh" | "er")
+}
+
+pub(super) fn propose(analysis_id: u64, analysis: &PreEditAnalysis, cleanup: Option<CleanupSettings>) -> PreEditMap {
     let mut candidates = Vec::new();
     let mut takes = Vec::new();
     let mut quiet: Vec<TimeRange> = Vec::new();
@@ -175,25 +179,32 @@ pub(super) fn propose(analysis_id: u64, analysis: &PreEditAnalysis) -> PreEditMa
             quiet.push(r);
         }
     }
-    let handle = analysis.settings.handle;
-    for r in quiet {
-        if r.duration < analysis.settings.min_pause || r.duration.0 <= 2 * handle.0 {
-            continue;
-        }
-        let range = TimeRange::from_bounds(r.start + handle, r.end() - handle);
-        let i = words.partition_point(|w| w.end <= range.start);
-        if words.get(i).is_none_or(|w| w.start >= range.end()) {
+    let settings = cleanup.unwrap_or_default();
+    let handle = settings.handle_ms.map_or(analysis.settings.handle, |ms| Tick::from_units(i64::from(ms), 1000));
+    let threshold = settings.min_pause_ms.map_or(analysis.settings.min_pause, |ms| Tick::from_units(i64::from(ms), 1000));
+    let mut add_pause = |start: Tick, end: Tick| {
+        let duration = end - start;
+        if duration >= threshold && duration.0 > 2 * handle.0 {
             candidates.push(Candidate {
-                range,
+                range: TimeRange::from_bounds(start + handle, end - handle),
                 kind: CandidateKind::Pause,
-                reason: "Low audio energy; listen for quiet speech or an intentional pause".into(),
+                reason: "Quiet audio outside the timed speech".into(),
                 confidence: None,
             });
         }
+    };
+    for range in quiet {
+        let first = words.partition_point(|word| word.end <= range.start);
+        let mut start = range.start;
+        for word in words[first..].iter().take_while(|word| word.start < range.end()) {
+            add_pause(start, word.start);
+            start = start.max(word.end);
+        }
+        add_pause(start, range.end());
     }
     if analysis.settings.language == "en" {
         for word in &words {
-            if matches!(word.normalized().as_str(), "um" | "uh" | "erm" | "hmm") {
+            if is_filler(&word.normalized()) {
                 candidates.push(Candidate {
                     range: word.range(),
                     kind: CandidateKind::Filler,
@@ -202,7 +213,7 @@ pub(super) fn propose(analysis_id: u64, analysis: &PreEditAnalysis) -> PreEditMa
                 });
             }
         }
-        let gap = Tick(shotclutch_time::TICKS_PER_SECOND / 2);
+        let gap = Tick::from_units(1, 2);
         let mut phrases = Vec::new();
         let mut begin = 0;
         for i in 1..=words.len() {
@@ -211,17 +222,37 @@ pub(super) fn propose(analysis_id: u64, analysis: &PreEditAnalysis) -> PreEditMa
                 begin = i;
             }
         }
+        // Match a repeated opening inside one utterance as well as between paused attempts.
+        for phrase in &phrases {
+            let text: Vec<_> = phrase.iter().map(|w| w.normalized()).collect();
+            if let Some(index) =
+                (3..=12.min(text.len() / 2)).find(|&i| text[..i] == text[i..2 * i] && text[..i].iter().collect::<std::collections::BTreeSet<_>>().len() >= 3)
+            {
+                candidates.push(Candidate {
+                    range: TimeRange::from_bounds(phrase[0].start, phrase[index - 1].end),
+                    kind: CandidateKind::Restart,
+                    reason: "The speaker repeats the opening within the same phrase".into(),
+                    confidence: None,
+                });
+            }
+        }
         let mut grouped = vec![false; phrases.len()];
         for i in 0..phrases.len() {
             let a = phrases[i];
             if a.len() < 2 || grouped[i] {
                 continue;
             }
-            let left: Vec<_> = a.iter().map(|w| w.normalized()).collect();
+            let left: Vec<_> = a.iter().map(|w| w.normalized()).filter(|w| !is_filler(w)).collect();
+            if left.len() < 2 {
+                continue;
+            }
             let mut similar = Vec::new();
             for j in i + 1..phrases.len().min(i + 5) {
                 let b = phrases[j];
-                let right: Vec<_> = b.iter().map(|w| w.normalized()).collect();
+                if b[0].start - a[a.len() - 1].end > Tick::from_units(20, 1) {
+                    break;
+                }
+                let right: Vec<_> = b.iter().map(|w| w.normalized()).filter(|w| !is_filler(w)).collect();
                 let common = left.iter().zip(&right).take_while(|(a, b)| a == b).count();
                 if common >= 3 && common * 4 >= 3 * left.len().max(right.len()) && !grouped[j] {
                     similar.push(j);
@@ -261,6 +292,7 @@ pub(super) fn propose(analysis_id: u64, analysis: &PreEditAnalysis) -> PreEditMa
         candidates: Arc::new(candidates),
         takes: Arc::new(takes),
         automatic: None,
+        cleanup,
         overrides: Vec::new(),
         conflicts: Vec::new(),
     }

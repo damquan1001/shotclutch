@@ -72,6 +72,7 @@ fn m2_map_restores_nested_ranges_and_maps_half_open_joins() {
         takes: Arc::default(),
         conflicts: Vec::new(),
         automatic: None,
+        cleanup: None,
         overrides: vec![Override { range: range(1, 5), decision: Decision::Remove }, Override { range: range(2, 3), decision: Decision::Keep }],
     };
     let segments = map.segments(range(0, 6)).unwrap();
@@ -387,4 +388,64 @@ fn m2_auto_cut_opens_without_review_and_restoration_survives_reanalysis() {
     let (_, recut) = session.project.preedit.maps.last_key_value().unwrap();
     assert_eq!(recut.automatic.as_ref().unwrap().len(), 1);
     assert_eq!(recut.segments(range(0, 4)).unwrap()[0].source, range(0, 4));
+}
+
+#[test]
+fn m2_cleanup_switches_reuse_completed_analysis() {
+    let (_dir, _, mut session, item) = fixture();
+    session
+        .execute(
+            "preedit.analyze",
+            json!({
+                "item": item.0.to_string(), "audioStream": 0, "autoCut": true,
+                "cleanup": {"cutBadTakes": false, "cutFillers": false, "cutPauses": false}
+            }),
+        )
+        .unwrap();
+    wait(&mut session);
+    let (&initial, map) = session.project.preedit.maps.last_key_value().unwrap();
+    let analysis = map.analysis;
+    assert!(map.automatic.as_ref().unwrap().is_empty());
+    let recut = review_action(
+        &mut session,
+        initial,
+        json!({
+            "kind": "cleanUp", "options": {"cutBadTakes": false, "cutFillers": false, "cutPauses": true, "minPauseMs": 1000}
+        }),
+    );
+    let map = &session.project.preedit.maps[&recut];
+    assert_eq!(map.analysis, analysis);
+    assert_eq!(map.automatic.as_ref().unwrap().len(), 1);
+    let no_cuts = review_action(
+        &mut session,
+        recut,
+        json!({
+            "kind": "cleanUp", "options": {"cutPauses": true, "minPauseMs": 3000}
+        }),
+    );
+    let map = &session.project.preedit.maps[&no_cuts];
+    assert_eq!(map.analysis, analysis);
+    assert!(map.automatic.as_ref().unwrap().is_empty());
+    assert_eq!(session.project.preedit.analyses.len(), 1);
+}
+
+#[test]
+fn m2_cleanup_finds_repeated_opening_and_protects_timed_speech_in_quiet_audio() {
+    let (_dir, _, mut session, item) = fixture();
+    let map_id = analyze(&mut session, item, None);
+    let map = &session.project.preedit.maps[&map_id];
+    let mut saved = (*session.project.preedit.analyses[&map.analysis]).clone();
+    let time = |ms| Tick::from_units(ms, 1000);
+    let mut words: Vec<_> = ["here", "we", "go", "here", "we", "go", "uhm"]
+        .into_iter()
+        .enumerate()
+        .map(|(i, text)| shotclutch_project::Word::new(text, time(i as i64 * 120), time(i as i64 * 120 + 80)))
+        .collect();
+    words.push(shotclutch_project::Word::new("hello", time(2100), time(2200)));
+    Arc::make_mut(&mut saved.chunks[0]).transcript = Some(shotclutch_project::Transcript { words, ..Default::default() });
+    let proposed = analysis::propose(map.analysis, &saved, None);
+    assert!(proposed.candidates.iter().any(|c| c.kind == CandidateKind::Restart && c.range.end() == time(320)));
+    assert!(proposed.candidates.iter().any(|c| c.kind == CandidateKind::Filler && c.range.start == time(720)));
+    assert!(proposed.candidates.iter().any(|c| c.kind == CandidateKind::Pause && c.range.end() < time(2100)));
+    assert!(!proposed.candidates.iter().any(|c| c.kind == CandidateKind::Pause && c.range.contains(time(2150))));
 }

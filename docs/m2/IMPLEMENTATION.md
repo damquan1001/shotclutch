@@ -48,3 +48,9 @@ Measure analysis time and peak memory, coverage, removal precision and restorati
 The Script tab displays the full transcript as readable paragraphs. Click a word or timestamp to seek the original; right-click a word to remove or restore its range. Removed words are struck through and can be hidden with Show cuts. Find in script filters paragraphs. Files & analysis retains model installation, stream audition, settings, processing, and resume. Saved analysis from an earlier build can generate a cut from its existing transcript.
 
 The lower waveform always uses source time. Clicking or dragging seeks the original in Original mode. In Result mode it maps to the retained output; a removed range seeks to the next retained interval. The transport offers play and pause, frame stepping, cut visibility, zoom, and range marks. Right-click a removed waveform interval to restore it. Open in editor creates the editable sequence directly from the reviewed preview, and Undo and Redo are available in the workspace. The native theme supplies the surrounding surfaces and typography; no OpenGling runtime or code is embedded.
+
+### Speech cleanup controls
+
+Files & analysis offers Transcribe only, Transcribe & cut, and Clean up saved analysis. The last action uses the existing timed words and quiet audio measurements, so you can change the cleanup options without rerunning Whisper. Bad takes, fillers, and silence can be enabled independently. The pause threshold and padding control how much quiet material is retained. Manual decisions still take precedence when regenerating the cut.
+
+Cleanup keeps the later matching attempt, detects repeated openings within an utterance, and uses both the transcript and audio levels to find pauses. Word-based cleanup is tuned for English.

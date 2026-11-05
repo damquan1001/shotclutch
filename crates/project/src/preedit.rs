@@ -98,6 +98,28 @@ pub struct Override {
     pub decision: Decision,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase", deny_unknown_fields)]
+pub struct CleanupSettings {
+    pub cut_bad_takes: bool,
+    pub cut_fillers: bool,
+    pub cut_pauses: bool,
+    pub min_pause_ms: Option<u32>,
+    pub handle_ms: Option<u32>,
+}
+
+impl Default for CleanupSettings {
+    fn default() -> Self {
+        Self { cut_bad_takes: true, cut_fillers: true, cut_pauses: true, min_pause_ms: None, handle_ms: None }
+    }
+}
+
+impl CleanupSettings {
+    pub fn valid(self) -> bool {
+        self.min_pause_ms.is_none_or(|ms| (200..=10_000).contains(&ms)) && self.handle_ms.is_none_or(|ms| ms <= 1000)
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PreEditMap {
     pub analysis: u64,
@@ -108,6 +130,8 @@ pub struct PreEditMap {
     /// Frame-aligned automatic cleanup, followed by manual edits. None denotes a legacy map.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub automatic: Option<Arc<Vec<Override>>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cleanup: Option<CleanupSettings>,
     /// Ordered user actions. The most recent decision wins where ranges overlap.
     pub overrides: Vec<Override>,
     pub conflicts: Vec<Override>,
@@ -264,6 +288,7 @@ impl PreEdit {
         for (id, map) in &self.maps {
             let source = self.analyses.get(&map.analysis).ok_or("rough-cut map references missing analysis")?.source.range;
             if map.previous.is_some_and(|old| old >= *id || !self.maps.contains_key(&old))
+                || map.cleanup.is_some_and(|settings| !settings.valid())
                 || map.overrides.len() > 4096
                 || map
                     .automatic

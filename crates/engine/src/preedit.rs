@@ -27,6 +27,7 @@ pub struct PendingAnalysis {
     analysis: Option<u64>,
     previous_map: Option<u64>,
     auto_cut: bool,
+    cleanup: Option<CleanupSettings>,
     receiver: mpsc::Receiver<Message>,
     cancel: Cancellation,
 }
@@ -96,6 +97,7 @@ struct Start {
     resume: Option<u64>,
     #[serde(default)]
     auto_cut: bool,
+    cleanup: Option<CleanupSettings>,
     min_pause_ms: Option<u32>,
     handle_ms: Option<u32>,
 }
@@ -165,6 +167,9 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
         return Err(fail("RESOURCE_LIMIT: a rough-cut analysis is already running"));
     }
     let req: Start = typed(value)?;
+    if req.cleanup.is_some_and(|settings| !settings.valid()) {
+        return Err(fail("INVALID_ARGUMENT: cleanup pause threshold or padding is out of bounds"));
+    }
     let (media, path) = original(s, req.item)?;
     let audio = media.info.audio_streams.get(req.audio_stream).ok_or_else(|| fail("INVALID_ARGUMENT: select an available audio stream"))?;
     if req.channel.is_some_and(|i| u32::from(i) >= audio.channels) || audio.channels > 32 {
@@ -242,7 +247,7 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
                 send.send(Message::Started(analysis.clone())).map_err(|_| "CANCELED: project closed")?;
                 analysis::run(decoded.clone(), &mut analysis, &signal, &send)?;
                 let cuts = req.auto_cut.then(|| {
-                    let map = analysis::propose(0, &analysis);
+                    let map = analysis::propose(0, &analysis, req.cleanup);
                     automatic_cuts(&map, &analysis, &*decoded)
                 });
                 let after = verify_original(worker_path, identity, &signal)?;
@@ -261,6 +266,7 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
         analysis: req.resume,
         previous_map: req.previous_map,
         auto_cut: req.auto_cut,
+        cleanup: req.cleanup,
         receiver,
         cancel,
     });
@@ -317,7 +323,7 @@ fn publish(s: &mut Session, job: &mut PendingAnalysis, message: Message) -> Resu
                     AnalysisStatus::Failed
                 };
                 if !changed && !saved.chunks.is_empty() && (!job.auto_cut || saved.status == AnalysisStatus::Complete) {
-                    let mut map = analysis::propose(id, saved);
+                    let mut map = analysis::propose(id, saved, job.cleanup);
                     if !was_canceled && let Ok(Some(cuts)) = &result {
                         map.automatic = Some(cuts.clone());
                     }
@@ -386,6 +392,7 @@ enum Action {
     DismissConflict { index: usize },
     MarkReviewed,
     AutoCut,
+    CleanUp { options: CleanupSettings },
     ClearConflicts,
 }
 
@@ -445,7 +452,7 @@ fn review(s: &mut Session, value: &Value) -> Result<Value> {
             }
         }
         Action::ResetSuggestions => {
-            let proposed = analysis::propose(map.analysis, analysis);
+            let proposed = analysis::propose(map.analysis, analysis, map.cleanup);
             map.candidates = proposed.candidates;
             map.takes = proposed.takes;
         }
@@ -459,7 +466,16 @@ fn review(s: &mut Session, value: &Value) -> Result<Value> {
             }
             map.conflicts.remove(index);
         }
-        Action::AutoCut => {
+        action @ (Action::AutoCut | Action::CleanUp { .. }) => {
+            if let Action::CleanUp { options } = action {
+                if !options.valid() {
+                    return Err(fail("INVALID_ARGUMENT: cleanup pause threshold or padding is out of bounds"));
+                }
+                let proposed = analysis::propose(map.analysis, analysis, Some(options));
+                map.candidates = proposed.candidates;
+                map.takes = proposed.takes;
+                map.cleanup = proposed.cleanup;
+            }
             if analysis.status != AnalysisStatus::Complete {
                 return Err(fail("Finish processing the source before generating automatic cuts"));
             }
@@ -489,6 +505,7 @@ fn review(s: &mut Session, value: &Value) -> Result<Value> {
 }
 
 fn automatic_cuts(map: &PreEditMap, analysis: &PreEditAnalysis, source: &dyn shotclutch_media::MediaSource) -> Arc<Vec<Override>> {
+    let settings = map.cleanup.unwrap_or_default();
     let video = source.info().has_video().then_some(source);
     let Some(audio) = source.info().audio_streams.get(analysis.source.audio_stream) else { return Arc::default() };
     let rate = audio.sample_rate;
@@ -496,7 +513,7 @@ fn automatic_cuts(map: &PreEditMap, analysis: &PreEditAnalysis, source: &dyn sho
     let words: Vec<_> = analysis.chunks.iter().filter_map(|c| c.transcript.as_ref()).flat_map(|t| &t.words).collect();
     let phrase = |range: TimeRange| {
         let start = words.partition_point(|w| w.start < range.start);
-        words[start..].iter().take_while(|w| w.end <= range.end()).map(|w| w.normalized()).collect::<Vec<_>>()
+        words[start..].iter().take_while(|w| w.end <= range.end()).map(|w| w.normalized()).filter(|word| !analysis::is_filler(word)).collect::<Vec<_>>()
     };
     // Keep the last matching take. Similar openings with different endings are left in place.
     let mut duplicates = std::collections::BTreeSet::new();
@@ -511,6 +528,14 @@ fn automatic_cuts(map: &PreEditMap, analysis: &PreEditAnalysis, source: &dyn sho
         .iter()
         .enumerate()
         .filter_map(|(index, candidate)| {
+            let enabled = match candidate.kind {
+                CandidateKind::Pause => settings.cut_pauses,
+                CandidateKind::Filler => settings.cut_fillers,
+                CandidateKind::Take | CandidateKind::Restart => settings.cut_bad_takes,
+            };
+            if !enabled {
+                return None;
+            }
             if candidate.kind == CandidateKind::Restart {
                 let next = words.partition_point(|w| w.start < candidate.range.end());
                 if words.get(next).is_none_or(|w| w.start - candidate.range.end() > Tick::from_units(2, 1)) {

@@ -4,7 +4,7 @@ use std::sync::{Arc, atomic::Ordering, mpsc};
 
 use egui::{Rect, Ui, pos2, vec2};
 use serde_json::{Value, json};
-use shotclutch_project::preedit::{AnalysisStatus, PreEditAnalysis, Segment};
+use shotclutch_project::preedit::{AnalysisStatus, CleanupSettings, PreEditAnalysis, Segment};
 use shotclutch_project::{ItemId, Project};
 use shotclutch_time::{TICKS_PER_SECOND, Tick, TimeRange};
 
@@ -22,6 +22,8 @@ pub struct Workspace {
     stream: usize,
     channel: Option<u16>,
     silence_only: bool,
+    cleanup: CleanupSettings,
+    cleanup_initialized: bool,
     language: String,
     selection_start: String,
     selection_end: String,
@@ -114,7 +116,17 @@ impl Workspace {
         }
     }
 
-    fn start(&mut self, app: &mut ShotClutchApp, resume: Option<u64>) {
+    fn cleanup_options(&self, cut: bool) -> CleanupSettings {
+        CleanupSettings {
+            cut_bad_takes: cut && !self.silence_only && self.cleanup.cut_bad_takes,
+            cut_fillers: cut && !self.silence_only && self.cleanup.cut_fillers,
+            cut_pauses: cut && self.cleanup.cut_pauses,
+            min_pause_ms: Some(self.pause_ms),
+            handle_ms: Some(self.handle_ms),
+        }
+    }
+
+    fn start(&mut self, app: &mut ShotClutchApp, resume: Option<u64>, cut: bool) {
         let Some(item) = self.source else { return };
         let model = (!self.silence_only).then_some("whisper-base");
         let range = if self.selection_start.trim().is_empty() && self.selection_end.trim().is_empty() {
@@ -133,12 +145,13 @@ impl Workspace {
                 "preedit.analyze",
                 json!({
                     "item":item.0.to_string(),"audioStream":self.stream,"channel":self.channel,"model":model,"language":self.language,"range":range,
-                    "minPauseMs":self.pause_ms,"handleMs":self.handle_ms,"autoCut":true,
+                    "minPauseMs":self.pause_ms,"handleMs":self.handle_ms,"autoCut":true,"cleanup":self.cleanup_options(cut),
                     "previousMap":self.map.map(|id| id.to_string()),"resume":resume.map(|id| id.to_string())
                 }),
             )
             .is_some()
         {
+            self.cleanup_initialized = true;
             self.tab = ReviewTab::Script;
         }
     }
@@ -179,6 +192,7 @@ impl Workspace {
             self.selection_start.clear();
             self.selection_end.clear();
             self.map = None;
+            self.cleanup_initialized = false;
             self.cursor = Tick::ZERO;
             self.window_start = Tick::ZERO;
             self.mark_in = None;
@@ -204,8 +218,6 @@ impl Workspace {
                     ui.label("Blank uses the full source");
                 });
                 ui.horizontal_wrapped(|ui| {
-                    ui.add(egui::DragValue::new(&mut self.pause_ms).range(200..=10_000).prefix("Minimum pause ").suffix(" ms"));
-                    ui.add(egui::DragValue::new(&mut self.handle_ms).range(0..=1000).prefix("Retained handles ").suffix(" ms"));
                     let channels = streams.get(self.stream).map_or(0, |s| s.channels.min(32));
                     if self.channel.is_some_and(|c| u32::from(c) >= channels) {
                         self.channel = None;
@@ -239,13 +251,58 @@ impl Workspace {
                     }
                 }
             });
+        });
+        ui.add_space(8.0);
+        ui.label(egui::RichText::new("Speech cleanup").strong());
+        ui.add_enabled_ui(!running, |ui| {
+            ui.horizontal_wrapped(|ui| {
+                ui.add_enabled(!self.silence_only, egui::Checkbox::new(&mut self.cleanup.cut_bad_takes, "Bad takes"));
+                ui.add_enabled(!self.silence_only, egui::Checkbox::new(&mut self.cleanup.cut_fillers, "Fillers"));
+                ui.checkbox(&mut self.cleanup.cut_pauses, "Silence and pauses");
+            });
+            ui.horizontal_wrapped(|ui| {
+                ui.add(egui::DragValue::new(&mut self.pause_ms).range(200..=10_000).prefix("Minimum pause ").suffix(" ms"));
+                ui.add(egui::DragValue::new(&mut self.handle_ms).range(0..=1000).prefix("Pause padding ").suffix(" ms"));
+            });
+        });
+        ui.horizontal_wrapped(|ui| {
             if running {
                 if ui.button("Cancel analysis").clicked() {
                     self.command(app, "preedit.cancel", json!({}));
                 }
             } else {
-                if ui.button(if self.map.is_some() { "Run cleanup again" } else { "Generate smart cut" }).clicked() {
-                    self.start(app, None);
+                let label = if self.silence_only { "Analyze & cut pauses" } else { "Transcribe & cut" };
+                let cut = ui.button(label);
+                app.auto.add_response("roughCut.transcribeAndCut", &cut, label);
+                if cut.clicked() {
+                    self.start(app, None, true);
+                }
+                if !self.silence_only {
+                    let transcribe = ui.button("Transcribe only").on_hover_text("Create a timed script without automatic cuts");
+                    app.auto.add_response("roughCut.transcribeOnly", &transcribe, "Transcribe only");
+                    if transcribe.clicked() {
+                        self.start(app, None, false);
+                    }
+                }
+                if let Some(id) = self.map
+                    && app
+                        .session
+                        .project
+                        .preedit
+                        .maps
+                        .get(&id)
+                        .and_then(|map| app.session.project.preedit.analyses.get(&map.analysis))
+                        .is_some_and(|analysis| analysis.status == AnalysisStatus::Complete)
+                {
+                    let recut = ui.button("Clean up saved analysis").on_hover_text("Apply these cleanup settings to the saved source range and audio stream");
+                    app.auto.add_response("roughCut.cleanUpSaved", &recut, "Clean up saved analysis");
+                    if recut.clicked() {
+                        self.review(app, id, json!({"kind":"cleanUp","options":self.cleanup_options(true)}));
+                        if self.map != Some(id) {
+                            self.original = false;
+                            self.tab = ReviewTab::Script;
+                        }
+                    }
                 }
                 if let Some((&id, record)) = app
                     .session
@@ -262,8 +319,12 @@ impl Workspace {
                             && !a.chunks.is_empty()
                     })
                     .map(|(id, analysis)| (id, analysis.clone()))
-                    && ui.button("Resume").clicked()
                 {
+                    let cut = ui.button("Resume & cut").clicked();
+                    let transcribe = !self.silence_only && ui.button("Resume transcription only").clicked();
+                    if !cut && !transcribe {
+                        return;
+                    }
                     self.channel = record.source.channel;
                     self.language.clone_from(&record.settings.language);
                     self.pause_ms = record.settings.min_pause.to_units_floor(1000) as u32;
@@ -271,7 +332,7 @@ impl Workspace {
                     let range = record.source.range;
                     self.selection_start = (range.start.0 as f64 / TICKS_PER_SECOND as f64).to_string();
                     self.selection_end = (range.end().0 as f64 / TICKS_PER_SECOND as f64).to_string();
-                    self.start(app, Some(id));
+                    self.start(app, Some(id), cut);
                 }
             }
         });
@@ -279,7 +340,7 @@ impl Workspace {
             ui.label(if self.language == "en" {
                 "English · Whisper base on this device"
             } else {
-                "Whisper base on this device · editorial suggestions qualified for English"
+                "Whisper base on this device · word-based cleanup is tuned for English"
             });
             self.model_install.show(app, ui);
         }
@@ -725,6 +786,14 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
         workspace.map = Some(id);
         let analysis_mode = (map.analysis, map.automatic.is_some());
         if workspace.seen_analysis != Some(analysis_mode) {
+            if !workspace.cleanup_initialized
+                && let Some(settings) = map.cleanup
+            {
+                workspace.cleanup = settings;
+                workspace.pause_ms = settings.min_pause_ms.unwrap_or(workspace.pause_ms);
+                workspace.handle_ms = settings.handle_ms.unwrap_or(workspace.handle_ms);
+            }
+            workspace.cleanup_initialized = true;
             workspace.seen_analysis = Some(analysis_mode);
             workspace.original = duration == Tick::ZERO || map.automatic.is_none();
             workspace.cursor = analysis.unwrap().source.range.start;
@@ -749,6 +818,9 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
             if workspace.map != Some(id) {
                 workspace.original = false;
             }
+        }
+        if left_ui.small_button("Cleanup settings…").clicked() {
+            workspace.tab = ReviewTab::Files;
         }
         workspace.script(app, &mut left_ui, id, analysis, &segments);
     } else {
