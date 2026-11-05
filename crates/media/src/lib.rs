@@ -157,6 +157,11 @@ impl FrameRequest {
 
 pub trait MediaSource: Send + Sync {
     fn info(&self) -> &MediaInfo;
+    /// The indexed presentation boundary at or before/after this media time.
+    /// None means the reader cannot certify a boundary in the requested direction.
+    fn video_edit_boundary(&self, _time: Tick, _after: bool) -> Option<Tick> {
+        None
+    }
     /// The frame displayed at media time `req.time`.
     fn video_frame(&self, req: FrameRequest) -> Result<Arc<VideoFrame>>;
     /// `frames` audio frames starting at sample index `start` (at `sample_rate`, media time).

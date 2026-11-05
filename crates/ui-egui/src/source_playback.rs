@@ -16,6 +16,7 @@ pub struct SourcePlayback {
     item: Option<ItemId>,
     shown: Tick,
     range_start: Option<Tick>,
+    audio_stream: Option<usize>,
     failure: Arc<Mutex<Option<String>>>,
 }
 
@@ -30,7 +31,15 @@ impl ShotClutchApp {
     }
 
     pub fn play_source(&mut self) -> Result<(), String> {
+        self.source_playback.audio_stream = None;
         self.start_source_playback(None, None, 1.0)
+    }
+
+    pub(crate) fn audition_rough_cut_source(&mut self, item: ItemId, stream: usize, start: Tick, end: Tick) -> Result<(), String> {
+        self.session.execute("source.open", json!({"item":item.0})).map_err(|e| e.to_string())?;
+        self.source_playback.clock.looping = false;
+        self.source_playback.audio_stream = Some(stream);
+        self.start_source_playback(Some(start), Some(end), 1.0)
     }
 
     /// J / K / L in the Source monitor: play at `speed` × real time (negative = backward) from the
@@ -39,10 +48,12 @@ impl ShotClutchApp {
         if !speed.is_finite() || speed == 0.0 {
             return Err("Source shuttle speed must be a non-zero number".into());
         }
+        self.source_playback.audio_stream = None;
         self.start_source_playback(None, None, speed.clamp(-8.0, 8.0))
     }
 
     pub fn play_source_range(&mut self, from_playhead: bool, preroll: bool) -> Result<(), String> {
+        self.source_playback.audio_stream = None;
         let item = self.session.state.source_item.ok_or("Open a Source clip first")?;
         let view = source_view(&self.session, item).ok_or("Source item is unavailable")?;
         let range = view.selected_range();
@@ -66,6 +77,7 @@ impl ShotClutchApp {
     }
 
     fn start_source_playback(&mut self, start: Option<Tick>, stop: Option<Tick>, speed: f64) -> Result<(), String> {
+        self.rough_cut.stop(self.audio.as_deref_mut());
         let item = self.session.state.source_item.ok_or("Open a media file in the Source monitor first")?;
         let view = source_view(&self.session, item).ok_or("Source item is unavailable")?;
         let media = self.session.project.item(view.media).and_then(|i| i.as_media()).ok_or("Source playback currently supports media files and subclips")?;
@@ -130,7 +142,12 @@ impl ShotClutchApp {
             return;
         }
         let project = self.session.project.clone();
-        let provider = self.session.media.provider(project, self.session.services.clone());
+        let stream = self.source_playback.audio_stream;
+        let provider = if stream.is_some() {
+            self.session.media.full_res_provider(project, self.session.services.clone())
+        } else {
+            self.session.media.provider(project, self.session.services.clone())
+        };
         let Some(source) = provider.source(view.media) else {
             self.ui.status = "Source audio is unavailable: check Link Media".into();
             return;
@@ -143,7 +160,9 @@ impl ShotClutchApp {
         }
         let map = [self.session.prefs.audio_hardware.map_left, self.session.prefs.audio_hardware.map_right];
         let mixdown = shotclutch_audio_dsp::channels::Mixdown::from_id(&self.session.prefs.audio.mixdown_type).unwrap_or_default();
-        let channels = media.interpret.audio_channels.as_ref().and_then(|m| m.clips.first()).cloned().unwrap_or_default();
+        let channels =
+            if stream.is_some() { Vec::new() } else { media.interpret.audio_channels.as_ref().and_then(|m| m.clips.first()).cloned().unwrap_or_default() };
+        let stream = stream.unwrap_or(0);
         // A seek gets its own failure slot: a late callback from the old stream cannot stop it.
         self.source_playback.failure = Arc::new(Mutex::new(None));
         let failure = self.source_playback.failure.clone();
@@ -159,7 +178,7 @@ impl ShotClutchApp {
                 return;
             }
             let frames = (buf.len() / ch).min(usize::try_from(end.saturating_sub(cursor)).unwrap_or(0));
-            match source.audio(cursor, frames, sr) {
+            match source.audio_stream(stream, cursor, frames, sr) {
                 Ok(mut sound) => {
                     if !channels.is_empty() {
                         sound.channels = channels.iter().filter_map(|c| sound.channels.get(usize::from(*c)).cloned()).collect();

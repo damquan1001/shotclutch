@@ -8,7 +8,7 @@ The documentation baseline is committed at `b739515e04b3467ed8b681e6296f7dc5867f
 
 Current milestone: **M1 — Reliable editing foundation, Done under revised scope (2026-11-05).** M0 is Done (2026-11-01). Original scope CORE-001, CORE-005 and PERF-001 is complete: standalone identity/legal/capability audit, clean-install/core-workflow acceptance, reproducible locked builds, two green same-source hosted CI runs, package validation and comparable baseline captures. The verified second-PC result is accepted. [Completion record](m0/M0_COMPLETION.md). Expanded runtime/release qualification and repository promotion remain separate work.
 
-There are **48 implementation requirements: 44 in v0.1 (M0–M4) and 4 in M5**. CORE-001, CORE-005 and PERF-001 have their bounded M0 acceptance evidence and are Done. No broader feature or performance-release qualification is implied. M1 is Done under revised scope on `codex/m1-editing-foundation`. M2–M5 remain Planned. See [M1 implementation and acceptance](m1/IMPLEMENTATION.md).
+There are **48 implementation requirements: 44 in v0.1 (M0–M4) and 4 in M5**. CORE-001, CORE-005 and PERF-001 have their bounded M0 acceptance evidence and are Done. No broader feature or performance-release qualification is implied. M1 is Done under revised scope on `codex/m1-editing-foundation`. M2 is in progress on `codex/m2-smart-rough-cut`; M3–M5 remain Planned. See [M1 implementation and acceptance](m1/IMPLEMENTATION.md) and [M2 implementation and qualification](m2/IMPLEMENTATION.md).
 
 ## How to maintain this document
 
@@ -33,7 +33,7 @@ Each active item must have an owner, implementation/change reference, linked tes
 |---|---|---|---|
 | M0 | Audit, standalone build, baseline measurements | Done | [Completion and acceptance mapping](m0/M0_COMPLETION.md): local/clean-install/core evidence, two independent same-source green CI runs, accepted second-PC verification and paired baselines. Expanded runtime/release and promotion gates remain separately tracked. |
 | M1 | Durable project, exact commands, native media, local editing | Done | [Scoped closeout and evidence](m1/IMPLEMENTATION.md#m1-closeout--2026-11-05) |
-| M2 | Smart Rough Cut and workspace | Not started | None |
+| M2 | Smart Rough Cut and workspace | In Progress | [Implementation and qualification](m2/IMPLEMENTATION.md) |
 | M3 | Semantic indexing, verified agent, MCP/CLI | Not started | None |
 | M4 | ACP/Skills, native scenes, interchange foundation, v0.1 qualification | Not started | None |
 | M5 | Web scenes and qualified destination adapters | Planned follow-on | None |
@@ -52,17 +52,17 @@ Dependencies below are completion gates, not a requirement to postpone design or
 | CORE-004 | Persist changes crash-safely | P0 | M1 | Done | CORE-002 |
 | CORE-005 | Establish reproducible build, automated checks, release packaging plan, and upstream-change policy | P0 | M0 | Done | CORE-001 |
 | UI-001 | Provide usable multitrack editing, exact trim/split/move, linked A/V, nesting, monitor seeking, audio levels, save, relink, and undo | P0 | M1 | Done | CORE-003, AGENT-001, MEDIA-003, MEDIA-004 |
-| UI-002 | Provide a dedicated Smart Rough Cut workspace with transcript, waveform, source and result preview, take comparison, reasons, and apply/restore controls | P0 | M2 | Planned | PRE-002, PRE-003 |
+| UI-002 | Provide a dedicated Smart Rough Cut workspace with transcript, waveform, source and result preview, take comparison, reasons, and apply/restore controls | P0 | M2 | In Progress | PRE-002, PRE-003 |
 | MEDIA-001 | Select a usable hardware, native, or fallback decoder through one source interface | P0 | M1 | Done | CORE-001, CORE-003 |
 | MEDIA-002 | Generate/use proxies while preserving source identity | P0 | M1 | Done | MEDIA-001 |
 | MEDIA-003 | Evaluate tracks, effects, transitions, and nested sequences through a shared render graph | P0 | M1 | Done | MEDIA-001, CORE-003 |
 | MEDIA-004 | Mix audio with sample-accurate ranges, linked edits, gain, fades, and device-clock playback | P0 | M1 | Done | MEDIA-001, CORE-003 |
 | MEDIA-005 | Keep interaction responsive under load using bounded caches, prioritized work, cancellation, and adaptive preview | P1 | M4 | Planned | MEDIA-002, MEDIA-003, MEDIA-004, PERF-001 |
-| PRE-001 | Start Smart Rough Cut only by explicit invocation with selected sources and settings | P0 | M2 | Planned | AGENT-001, SEC-002 |
-| PRE-002 | Persist versioned PreEditAnalysis and PreEditMap data with source mapping and confidence | P0 | M2 | Planned | CORE-002, CORE-003, CORE-004 |
-| PRE-003 | Identify candidate pauses, fillers, restarts, and alternative takes while preserving editorial meaning | P0 | M2 | Planned | PRE-001, PRE-002, MEDIA-004 |
-| PRE-004 | Apply an approved map through one transaction to an editable result | P0 | M2 | Planned | PRE-003, UI-002, AGENT-002 |
-| PRE-005 | Restore rejected source material and revise a map without mutating originals or silently replacing already-edited timelines | P0 | M2 | Planned | PRE-004 |
+| PRE-001 | Start Smart Rough Cut only by explicit invocation with selected sources and settings | P0 | M2 | In Progress | AGENT-001, SEC-002 |
+| PRE-002 | Persist versioned PreEditAnalysis and PreEditMap data with source mapping and confidence | P0 | M2 | In Progress | CORE-002, CORE-003, CORE-004 |
+| PRE-003 | Identify candidate pauses, fillers, restarts, and alternative takes while preserving editorial meaning | P0 | M2 | In Progress | PRE-001, PRE-002, MEDIA-004 |
+| PRE-004 | Apply an approved map through one transaction to an editable result | P0 | M2 | In Progress | PRE-003, UI-002, AGENT-002 |
+| PRE-005 | Restore rejected source material and revise a map without mutating originals or silently replacing already-edited timelines | P0 | M2 | In Progress | PRE-004 |
 | AI-001 | Store asset/scene/shot/segment/frame observations with provenance, coordinate domains, and confidence | P1 | M3 | Planned | CORE-002, MEDIA-001, SEC-001 |
 | AI-002 | Search local transcripts, tags, OCR, captions, and embeddings where available | P1 | M3 | Planned | AI-001 |
 | AI-003 | Support progressive visual inspection from contact sheets to bounded clips and precise frames | P1 | M3 | Planned | AI-001, MEDIA-003 |
@@ -127,11 +127,11 @@ These are implementation details or proposed baseline choices. They do not reope
 | DEC-002 | Canonical schema, tick frequency, storage/migration layout | Retain inherited timebase/COW model; schema v17 atomic JSON document/history snapshots selected in [DEC-002](m1/DEC-002_PROJECT_PERSISTENCE.md); exact mapping and broader durability qualification remain | M1 | Codex / Implemented storage choice; qualification In Progress |
 | DEC-003 | MotionScene JS runtime and TS/JSX compiler | Compare deterministic evaluation, embedding, sandboxing, startup, memory, licensing, and debugging | M4 | Unassigned / Open |
 | DEC-004 | Web runtime embedding/distribution | Chromium worker strategy, headless rendering, GPU sharing, isolation, readiness, platform packaging | M5 | Unassigned / Open |
-| DEC-005 | Local ASR, embeddings, and visual model profiles | Evaluate quality/language, hardware cost, licenses, installation size, offline operation; no mandatory cloud fallback | M2 for ASR; M3 for others | Unassigned / Open |
+| DEC-005 | Local ASR, embeddings, and visual model profiles | Pinned local CPU Whisper base for English M2 acceptance; [decision and qualification](m2/IMPLEMENTATION.md) | M2 for ASR; M3 for others | Codex / ASR selected, qualification In Progress |
 | DEC-006 | Codec fallback distribution and capability matrix | Native OS decoder plus pure-Rust fallback selected; 27 bounded Windows SDR case/mode checks pass; [decision, measured profile and limits](m1/DEC-006_NATIVE_MEDIA.md) | M1 | Codex / Implemented bounded profile; broader qualification In Progress |
 | DEC-007 | ACP/MCP revisions, transports, tested pairings | Pin official specifications and SDKs; define optional capability and authentication support | M3 for MCP; M4 for ACP | Unassigned / Open |
 | DEC-008 | Destination versions and interchange routes | Qualify each destination separately; establish CapCut route feasibility before editable-export commitment | M4 planning; M5 qualification | Unassigned / Open |
-| DEC-009 | Specialized workspace UI implementation | Retain native shell baseline; compare native panel versus bounded embedded surface only if necessary | M2 | Unassigned / Open |
+| DEC-009 | Specialized workspace UI implementation | Native egui Smart Rough Cut workspace with existing monitor and audio workers; [decision and qualification](m2/IMPLEMENTATION.md) | M2 | Codex / Implemented, walkthrough pending |
 | DEC-010 | Native scene subset, fonts, color/alpha contract | Qualify bounded SDR/text/2D subset; font redistribution and missing-font behavior; defer unsupported features explicitly | M4 | Unassigned / Open |
 
 Decision records should include context, options, selected choice, rationale, consequences, affected requirement IDs, migration plan, evidence, reviewer, and date. Until settled, downstream APIs are baseline proposals rather than claims of an existing SDK.

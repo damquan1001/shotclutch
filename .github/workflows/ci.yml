@@ -34,3 +34,5 @@ jobs:
           key: m1-cargo-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml', 'Cargo.lock') }}
       - name: M1 headless correctness suite
         run: python scripts/ci/m1-checks.py
+      - name: M2 rough cut correctness suite
+        run: cargo test --locked -p shotclutch-engine --lib m2_

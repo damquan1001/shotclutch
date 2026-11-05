@@ -1203,6 +1203,7 @@ fn build() -> Vec<CommandSpec> {
         // ================= File =================
         cmd!("file.newProject", "Project…", ["File", "New"], Some("Cmd+Alt+N"), r#"{"name":str}"#, always, |s, p| {
             s.ensure_revision_available()?;
+            crate::preedit::clear_jobs(s);
             let name = str_p(p, "name").unwrap_or("Untitled").to_string();
             s.project = std::sync::Arc::new(shotclutch_project::Project::new(&name));
             s.document_id = Default::default();
@@ -1222,6 +1223,7 @@ fn build() -> Vec<CommandSpec> {
         }),
         cmd!("file.openDemoProject", "Demo Project", ["File", "New"], None, "{}", always, |s, _| {
             s.ensure_revision_available()?;
+            crate::preedit::clear_jobs(s);
             let (p, seq) = crate::demo::demo_project(&s.media);
             s.project = std::sync::Arc::new(p);
             s.document_id = Default::default();
@@ -3616,6 +3618,7 @@ fn build() -> Vec<CommandSpec> {
     v.extend(crate::presets::commands());
     v.extend(crate::export_tools::commands());
     v.extend(crate::transcript::commands());
+    v.extend(crate::preedit::commands());
     v.extend(crate::panels::commands());
     v.extend(crate::scopes::commands());
     v.extend(crate::remix::commands());
@@ -4696,6 +4699,7 @@ fn install_project(
     s.ensure_revision_available()?;
     let restored = crate::document::restore(edit_state, &proj).map_err(EngineError::Other)?;
     let revision = s.revision.checked_add(1).ok_or_else(|| EngineError::Other("document revision exhausted".into()))?.max(restored.revision);
+    crate::preedit::clear_jobs(s);
     let proxies = s.media.use_proxies();
     s.media = std::sync::Arc::new(crate::MediaPool::default());
     s.media.set_use_proxies(proxies);
@@ -4782,6 +4786,7 @@ fn recover(s: &mut Session, id: Option<&str>) -> Result<Value> {
     if let Some(per) = &s.persistence {
         per.commit_snapshot(recovered.document_snapshot()).map_err(EngineError::Other)?;
     }
+    crate::preedit::clear_jobs(s);
     s.project = recovered.project.clone();
     s.media = recovered.media.clone();
     s.document_id = recovered.document_id;

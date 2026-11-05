@@ -54,7 +54,7 @@ impl ReadRoot {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn network_path(path: &Path) -> bool {
+pub(crate) fn network_path(path: &Path) -> bool {
     path.components().any(
         |part| matches!(part, std::path::Component::Prefix(prefix) if !matches!(prefix.kind(), std::path::Prefix::Disk(..) | std::path::Prefix::VerbatimDisk(..))),
     )

@@ -133,6 +133,16 @@ fn exact_tick(value: &str) -> std::result::Result<i64, TransactionError> {
 }
 
 impl Session {
+    /// Stage an engine-constructed project change on the same snapshot boundary as timeline edits.
+    pub(crate) fn prepare_project(&self, label: &str, mut project: Project, results: Vec<Value>) -> crate::Result<PreparedEdit> {
+        project.next_id = project.next_id.max(self.id_watermark);
+        if project.next_id > Project::MAX_NEXT_ID {
+            return Err(crate::EngineError::Other("RESOURCE_LIMIT: project ID space exhausted".into()));
+        }
+        project.preedit.check().map_err(crate::EngineError::Other)?;
+        Ok(PreparedEdit { base: self.project.clone(), revision: self.revision, project: Arc::new(project), label: label.into(), results, operation: None })
+    }
+
     /// Stage supported timeline edits on a private project and editor state. No history,
     /// persistence notifications, project events or live-preview updates reach the caller.
     pub fn prepare_edits(
@@ -216,6 +226,15 @@ impl Session {
     /// A configured recovery worker is acknowledged before publication. Without one this is an
     /// in-memory commit; callers needing a durability guarantee must use `commit_edits_durable`.
     pub fn commit_edits(&mut self, prepared: PreparedEdit) -> std::result::Result<Vec<Value>, TransactionError> {
+        self.commit_prepared(prepared, true)
+    }
+
+    /// Analysis checkpoints are durable derived data, without an undo entry for every chunk.
+    pub(crate) fn commit_analysis(&mut self, prepared: PreparedEdit) -> std::result::Result<Vec<Value>, TransactionError> {
+        self.commit_prepared(prepared, false)
+    }
+
+    fn commit_prepared(&mut self, prepared: PreparedEdit, undo: bool) -> std::result::Result<Vec<Value>, TransactionError> {
         if self.revision != prepared.revision || !Arc::ptr_eq(&self.project, &prepared.base) {
             return Err(TransactionError::RevisionConflict);
         }
@@ -238,11 +257,13 @@ impl Session {
         snapshot.project = prepared.project;
         snapshot.revision = self.revision.checked_add(1).ok_or_else(|| TransactionError::InvalidArgument("revision exhausted".into()))?;
         snapshot.next_id = snapshot.next_id.max(snapshot.project.next_id);
-        snapshot.history.undo.push((prepared.label, self.project.clone()));
-        if snapshot.history.undo.len() > snapshot.history.limit {
-            snapshot.history.undo.remove(0);
+        if undo {
+            snapshot.history.undo.push((prepared.label, self.project.clone()));
+            if snapshot.history.undo.len() > snapshot.history.limit {
+                snapshot.history.undo.remove(0);
+            }
+            snapshot.history.redo.clear();
         }
-        snapshot.history.redo.clear();
         snapshot.history.merge_key = None;
         // No canonical state, history item or event is published until the worker acknowledges
         // the atomic recovery snapshot containing both the complete edit and its inverse.

@@ -76,7 +76,7 @@ pub type Migration = fn(Value) -> Result<Value, String>;
 /// edit a shipped one.
 pub const MIGRATIONS: &[Migration] = &[
     v1_to_v2, v2_to_v3, v3_to_v4, v4_to_v5, v5_to_v6, v6_to_v7, v7_to_v8, v8_to_v9, v9_to_v10, v10_to_v11, v11_to_v12, v12_to_v13, v13_to_v14, v14_to_v15,
-    v15_to_v16, v16_to_v17,
+    v15_to_v16, v16_to_v17, v17_to_v18,
 ];
 
 /// The schema version this build writes (and the newest it reads).
@@ -298,6 +298,7 @@ pub fn decode(bytes: &[u8]) -> Result<Loaded, FormatError> {
 /// Refuse only values that would overflow or exhaust memory later (`Sequence::check_bounds`);
 /// structural rules such as overlaps are left to the editor, so projects that open today still open.
 fn validate_loaded(mut loaded: Loaded) -> Result<Loaded, FormatError> {
+    loaded.project.preedit.check().map_err(FormatError::Corrupt)?;
     if let Some(state) = &loaded.edit_state {
         if state.version == 1 && !state.operations.is_empty() {
             return Err(FormatError::Corrupt("operation receipts require document state version 2".into()));
@@ -508,13 +509,39 @@ fn v16_to_v17(doc: Value) -> Result<Value, String> {
     Ok(doc)
 }
 
+fn v17_to_v18(doc: Value) -> Result<Value, String> {
+    // Smart Rough Cut data defaults to empty for existing documents.
+    Ok(doc)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn schema_version_matches_table() {
-        assert_eq!(SCHEMA_VERSION, 17);
+        assert_eq!(SCHEMA_VERSION, 18);
+    }
+
+    #[test]
+    fn v17_migrates_with_empty_rough_cut_state_and_checks_original_integrity() {
+        let project = Project::new("M1 project");
+        let mut doc: Value = serde_json::from_slice(&encode(&project, false)).unwrap();
+        doc["schema_version"] = Value::from(17);
+        doc["integrity"] = Value::from(integrity_digest(serde_json::json!([
+            doc.get("format"),
+            doc.get("schema_version"),
+            doc.get("project"),
+            doc.get("edit_state"),
+            doc.get("recovery")
+        ])));
+        let original = serde_json::to_vec(&doc).unwrap();
+        let loaded = decode(&original).unwrap();
+        assert!(loaded.migrated());
+        assert!(loaded.project.preedit.is_empty());
+        assert_eq!(loaded.project, project);
+        doc["project"]["name"] = Value::from("damaged");
+        assert!(decode(&serde_json::to_vec(&doc).unwrap()).is_err());
     }
 
     #[test]

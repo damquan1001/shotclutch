@@ -290,6 +290,7 @@ pub struct ShotClutchApp {
     pub frames: Arc<FrameServer>,
     pub playback: Playback,
     pub source_playback: source_playback::SourcePlayback,
+    pub(crate) rough_cut: panels::rough_cut::Workspace,
     pub audio: Option<Box<dyn AudioOut>>,
     /// Audio during scrubbing (#211).
     pub scrub: scrub::ScrubAudio,
@@ -559,6 +560,7 @@ impl ShotClutchApp {
             frames,
             playback: Playback { speed: 1.0, ..Default::default() },
             source_playback: Default::default(),
+            rough_cut: Default::default(),
             audio: None,
             scrub: Default::default(),
             hooks: HostHooks::default(),
@@ -982,6 +984,7 @@ impl ShotClutchApp {
     }
 
     pub fn play(&mut self, speed: f64) {
+        self.rough_cut.stop(self.audio.as_deref_mut());
         self.stop_source();
         if self.session.active_sequence().is_none() {
             return;
@@ -1826,6 +1829,12 @@ impl ShotClutchApp {
         panels::metadata::follow_selection(self);
         self.frames.set_context(&ctx);
         self.session.poll_persistence();
+        if self.session.preedit_job.is_some() || self.session.preedit_apply.is_some() {
+            ctx.request_repaint_after(std::time::Duration::from_millis(100));
+        }
+        if self.rough_cut.is_playing() && !self.ui.dock.is_visible(PanelKind::SmartRoughCut) {
+            self.rough_cut.stop(self.audio.as_deref_mut());
+        }
         panels::trim_monitor::advance(self, &ctx);
         if self.session.persistence.is_some() && self.session.is_dirty() {
             // Keep polling the auto-save worker (status, "also save the project" results).
@@ -2255,19 +2264,34 @@ fn shuttle_mix_rate(device_rate: u32, speed: f64) -> Option<u32> {
 /// active sequence at device rate `sr` from `device_frame`, with the live project snapshot (edits
 /// made while playing are heard), Output Mapping, the 5.1 mixdown and voice-over cues.
 pub fn playback_mix(session: &Session, seq_id: shotclutch_project::ItemId, sr: u32) -> impl FnMut(i64, &mut [f32], usize) + Send + 'static {
-    let project = session.project.clone();
-    let provider = session.media.provider(project.clone(), session.services.clone());
+    playback_mix_snapshot(session, session.project.clone(), seq_id, sr, true)
+}
+
+fn playback_mix_snapshot(
+    session: &Session,
+    project: Arc<shotclutch_project::Project>,
+    seq_id: shotclutch_project::ItemId,
+    sr: u32,
+    live: bool,
+) -> impl FnMut(i64, &mut [f32], usize) + Send + 'static {
+    let provider = if live {
+        session.media.provider(project.clone(), session.services.clone())
+    } else {
+        session.media.full_res_provider(project.clone(), session.services.clone())
+    };
     let previews = session.previews.clone();
     // Settings ▸ Audio Hardware ▸ Output Mapping
     let map = [session.prefs.audio_hardware.map_left, session.prefs.audio_hardware.map_right];
     // Preferences ▸ Audio ▸ 5.1 Mixdown Type: how a 5.1 Mix plays on a stereo device
     let mixdown = shotclutch_audio_dsp::channels::Mixdown::from_id(&session.prefs.audio.mixdown_type).unwrap_or_default();
-    let cues = panels::voiceover::cues(session, sr);
-    previews.live.publish_project(project.clone());
+    let cues = if live { panels::voiceover::cues(session, sr) } else { Default::default() };
+    if live {
+        previews.live.publish_project(project.clone());
+    }
     let mut resampler = None;
     move |cursor: i64, buf: &mut [f32], ch: usize| {
         // the newest project snapshot: mixer moves and other edits are heard while playing
-        let project = previews.live.project().filter(|p| p.sequence(seq_id).is_some()).unwrap_or_else(|| project.clone());
+        let project = live.then(|| previews.live.project()).flatten().filter(|p| p.sequence(seq_id).is_some()).unwrap_or_else(|| project.clone());
         let Some(seq) = project.sequence(seq_id) else {
             buf.fill(0.0);
             return;

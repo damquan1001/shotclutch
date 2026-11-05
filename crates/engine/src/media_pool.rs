@@ -24,6 +24,7 @@ use shotclutch_media::generators::GeneratorSource;
 use shotclutch_media::{FrameRequest, MediaError, MediaInfo, MediaSource, Opener, SharedSource};
 use shotclutch_project::{ItemId, MediaClip, MediaRef, Project};
 use shotclutch_render::offline::OfflineReason;
+use shotclutch_time::Tick;
 
 use crate::Services;
 
@@ -629,6 +630,9 @@ impl MediaSource for UnsupportedAsSlate {
     fn info(&self) -> &MediaInfo {
         self.inner.info()
     }
+    fn video_edit_boundary(&self, time: Tick, after: bool) -> Option<Tick> {
+        self.inner.video_edit_boundary(time, after)
+    }
     fn video_frame(&self, req: FrameRequest) -> shotclutch_media::Result<Arc<VideoFrame>> {
         match self.inner.video_frame(req) {
             Err(MediaError::Unsupported(why)) => {
@@ -668,6 +672,9 @@ struct DamagedAsSlate {
 impl MediaSource for DamagedAsSlate {
     fn info(&self) -> &MediaInfo {
         self.inner.info()
+    }
+    fn video_edit_boundary(&self, time: Tick, after: bool) -> Option<Tick> {
+        self.inner.video_edit_boundary(time, after)
     }
     fn video_frame(&self, req: FrameRequest) -> shotclutch_media::Result<Arc<VideoFrame>> {
         let r = self.inner.video_frame(req);

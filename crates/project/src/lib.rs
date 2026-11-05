@@ -1274,7 +1274,12 @@ pub struct Project {
     /// Schema v16: opaque optional extension records, keyed by their owning namespace.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub extensions: BTreeMap<String, ProjectExtension>,
+    /// Schema v18: durable Smart Rough Cut analysis, review and application records.
+    #[serde(default, skip_serializing_if = "preedit::PreEdit::is_empty")]
+    pub preedit: preedit::PreEdit,
 }
+
+pub mod preedit;
 
 /// How a sequence is shown in the Timeline panel: its zoom, scroll position and track heights.
 /// Each open sequence keeps its own (as Premiere's sequence tabs do).
@@ -1379,6 +1384,7 @@ impl Project {
             narrations: BTreeMap::new(),
             notes: String::new(),
             extensions: BTreeMap::new(),
+            preedit: preedit::PreEdit::default(),
         }
     }
 
@@ -1408,6 +1414,14 @@ impl Project {
         self.search_bins.iter().for_each(|b| see(b.id.0));
         // deleting an item leaves these entries behind: a new item taking that id would inherit them
         self.transcripts.keys().chain(self.source_graphics.keys()).chain(self.narrations.keys()).for_each(|i| see(i.0));
+        see(self.preedit.max_id());
+        for analysis in self.preedit.analyses.values() {
+            see(analysis.source.item.0);
+        }
+        for application in self.preedit.applications.values() {
+            see(application.sequence.0);
+            application.clips.iter().flatten().for_each(|id| see(id.0));
+        }
         // `lut.import` names LUTs `lut<id>`
         self.luts.iter().filter_map(|l| l.id.strip_prefix("lut")?.parse().ok()).for_each(&mut see);
         fn mixer(m: &MixerStrip) -> impl Iterator<Item = u64> + '_ {

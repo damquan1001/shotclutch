@@ -611,6 +611,14 @@ impl MediaSource for MkvSource {
         &self.info
     }
 
+    fn video_edit_boundary(&self, time: Tick, after: bool) -> Option<Tick> {
+        let track = &self.file.tracks[self.vtrack?];
+        let (num, den) = tb(track);
+        let target = crate::gop::presentation_units(time, num, den);
+        let pts = crate::gop::edit_boundary_units(target, after, to_tick(track, target) == time, track.samples.iter().map(|sample| sample.pts))?;
+        Some(to_tick(track, pts))
+    }
+
     fn video_frame(&self, req: FrameRequest) -> Result<Arc<VideoFrame>, MediaError> {
         let ti = self.vtrack.ok_or(MediaError::NoStream("video"))?;
         let t = req.time.max(Tick::ZERO);

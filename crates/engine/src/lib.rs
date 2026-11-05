@@ -41,6 +41,7 @@ pub mod narration;
 pub mod panels;
 pub mod paste_media;
 pub mod perf;
+pub mod preedit;
 pub mod presets;
 pub mod previews;
 #[cfg(not(target_arch = "wasm32"))]
@@ -495,6 +496,9 @@ pub struct Session {
     pub mask_jobs: Vec<masks::PendingTrack>,
     /// Scene Edit Detection jobs whose results are applied when they finish.
     pub scene_jobs: Vec<scene_detect::PendingScene>,
+    pub preedit_job: Option<preedit::PendingAnalysis>,
+    pub preedit_apply: Option<preedit::PendingApplication>,
+    pub preedit_apply_result: Option<std::result::Result<Value, String>>,
     /// Effect presets (built-in + the user's, persisted in the data directory).
     pub presets: presets::PresetLibrary,
     /// Export presets (built-in + the user's, persisted in the data directory) and favourites.
@@ -607,6 +611,9 @@ impl Session {
             media_jobs: Vec::new(),
             mask_jobs: Vec::new(),
             scene_jobs: Vec::new(),
+            preedit_job: None,
+            preedit_apply: None,
+            preedit_apply_result: None,
             presets: Default::default(),
             export_presets: Default::default(),
             export_queue: Default::default(),
@@ -671,6 +678,7 @@ impl Session {
     /// the next launch); otherwise the session's journal directory is removed.
     pub fn shutdown(&mut self) {
         self.close_editor_service();
+        preedit::clear_jobs(self);
         self.sync_persistence();
         if let Some(p) = self.persistence.take() {
             p.close();
@@ -711,6 +719,7 @@ impl Session {
         proxies::poll(self);
         masks::poll(self);
         scene_detect::poll(self);
+        preedit::poll(self);
         export_tools::pump_queue(self, false);
         panels::log_jobs(self);
         let Some(p) = self.persistence.as_mut() else { return };

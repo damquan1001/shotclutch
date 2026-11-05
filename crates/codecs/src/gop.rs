@@ -134,6 +134,16 @@ pub(crate) fn presentation_units(time: shotclutch_time::Tick, num: i64, den: i64
     i64::try_from(units).unwrap_or(if units < 0 { i64::MIN } else { i64::MAX })
 }
 
+/// Find a presentation boundary without assuming decode order or nominal frame spacing.
+pub(crate) fn edit_boundary_units(target: i64, after: bool, exact: bool, timestamps: impl Iterator<Item = i64>) -> Option<i64> {
+    if after {
+        let threshold = if exact { target } else { target.checked_add(1)? };
+        timestamps.filter(|&pts| pts >= threshold).min()
+    } else {
+        timestamps.filter(|&pts| pts <= target).max()
+    }
+}
+
 /// A container's sync sample for `i` when leading pictures need the GOP before: `sync` is the
 /// index's own sync sample, `leads(i, key)` says `i` is shown before `key`. One step per GOP, so a
 /// loop: a crafted index can chain tens of thousands of GOPs (#2803). A `sync` past `i` stops the

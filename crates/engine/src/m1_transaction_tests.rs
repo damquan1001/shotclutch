@@ -370,7 +370,7 @@ fn upgrading_v16_preserves_original_before_writing_identity_and_history() {
     assert_eq!(std::fs::read(saved["backup"].as_str().unwrap()).unwrap(), bytes);
     let loaded = shotclutch_format::decode(&std::fs::read(&path).unwrap()).unwrap();
     assert_eq!(loaded.edit_state.unwrap().project_id, s.document_id);
-    assert_eq!(loaded.schema_version, 17);
+    assert_eq!(loaded.schema_version, shotclutch_format::SCHEMA_VERSION);
 }
 
 #[test]

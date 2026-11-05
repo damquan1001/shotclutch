@@ -488,6 +488,14 @@ impl MediaSource for Mp4Source {
         &self.info
     }
 
+    fn video_edit_boundary(&self, time: Tick, after: bool) -> Option<Tick> {
+        let track = &self.file.tracks[self.vtrack?];
+        let scale = i64::from(track.timescale);
+        let target = crate::gop::presentation_units(time, 1, scale);
+        let pts = crate::gop::edit_boundary_units(target, after, Tick::from_rational(target, 1, scale) == time, track.samples.iter().map(|sample| sample.pts))?;
+        Some(Tick::from_rational(pts, 1, scale))
+    }
+
     fn video_frame(&self, req: FrameRequest) -> Result<Arc<VideoFrame>, MediaError> {
         let f = self.video_at(req.time.max(Tick::ZERO))?;
         Ok(f)
