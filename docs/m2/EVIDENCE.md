@@ -4,7 +4,8 @@
 
 | Check | Result |
 | --- | --- |
-| Native desktop compile with default Whisper feature | Passed |
+| Native desktop build with default Whisper feature | Passed |
+| Native workspace smoke | Reopened the private v18 project, resolved its original, loaded Smart Rough Cut, and created a review revision in memory. |
 | Time, project, format and edit library tests | 191 passed with native filesystem permissions |
 | M1 engine regression filter on the M2 build | 81 passed |
 | M2 engine regression filter | 7 passed. Private model test runs separately. |
@@ -18,4 +19,6 @@ The acceptance source is about 37m 52s, with 4K 60 fps H.264 and four stereo 48 
 
 The pinned CPU model completed the 180–200 second excerpt on stream 1. It produced 46 words and two suggestions. The disposable result sequence matched the indexed source range duration and retained the selected audio stream. Analysis and source verification took 12.2 seconds in the local test run.
 
-Record inference and frame-index verification separately from the human judgment of intentional pauses, take quality, and joins. Keep the original, project, transcript, and any detailed editorial labels local.
+The full local run completed on stream 1 with **2,271.551 seconds of coverage**, 114 checkpoints, 4,031 words, 160 suggestions, and 16 take groups. The test confirmed that the disposable sequence retained the chosen stream and covered the exact input duration. Processing and source verification took 783.7 seconds. Windows reported a 756 MiB peak working set when sampled during the run. The review project saved successfully to the ignored qualification directory. The count of suggestions and groups measures proposal generation. Editorial accuracy still needs listening and labels.
+
+The automated desktop smoke used an isolated native instance and left the saved review project ready for the editorial walkthrough. Human judgment of intentional pauses, take quality, and joins is the remaining acceptance gate. Keep the original, project, transcript, and any detailed editorial labels local.

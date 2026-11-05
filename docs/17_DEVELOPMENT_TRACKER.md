@@ -33,7 +33,7 @@ Each active item must have an owner, implementation/change reference, linked tes
 |---|---|---|---|
 | M0 | Audit, standalone build, baseline measurements | Done | [Completion and acceptance mapping](m0/M0_COMPLETION.md): local/clean-install/core evidence, two independent same-source green CI runs, accepted second-PC verification and paired baselines. Expanded runtime/release and promotion gates remain separately tracked. |
 | M1 | Durable project, exact commands, native media, local editing | Done | [Scoped closeout and evidence](m1/IMPLEMENTATION.md#m1-closeout--2026-11-05) |
-| M2 | Smart Rough Cut and workspace | In Progress | [Implementation and qualification](m2/IMPLEMENTATION.md) |
+| M2 | Smart Rough Cut and workspace | In Review | [Local Windows verification and full-recording ASR](m2/EVIDENCE.md). Human editorial acceptance remains open. |
 | M3 | Semantic indexing, verified agent, MCP/CLI | Not started | None |
 | M4 | ACP/Skills, native scenes, interchange foundation, v0.1 qualification | Not started | None |
 | M5 | Web scenes and qualified destination adapters | Planned follow-on | None |
