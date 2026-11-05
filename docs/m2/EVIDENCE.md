@@ -7,10 +7,10 @@
 | Native desktop compile with default Whisper feature | Passed |
 | Time, project, format and edit library tests | 191 passed with native filesystem permissions |
 | M1 engine regression filter on the M2 build | 81 passed |
-| M2 engine regression filter | 6 passed. Private model test runs separately. |
+| M2 engine regression filter | 7 passed. Private model test runs separately. |
 | Pinned Whisper base installation | Four artifacts matched the catalogue size and SHA-256. |
 
-The M2 regressions cover half-open mapping and restoration, explicit invocation, compatible reanalysis, durable cancellation and resume, caption omission, stale application rejection, changed media, save/reopen, undo/redo, and duplicate apply. Windows atomic save tests need filesystem permissions that the workspace sandbox does not grant. The hosted M2 step adds the headless filter to the existing M1 gate.
+The M2 regressions cover half-open mapping and restoration, explicit invocation, compatible reanalysis, durable cancellation and resume, caption omission, stale application rejection, changed media, save/reopen, undo/redo, and duplicate apply. The linked A/V fixture compares the result frame before and after apply and independently checks the exported container for six video frames and 12,000 audio sample frames. The original bytes are also checked after export. Windows atomic save tests need filesystem permissions that the workspace sandbox does not grant. The hosted M2 step adds the headless filter to the existing M1 gate.
 
 ## Private recording
 

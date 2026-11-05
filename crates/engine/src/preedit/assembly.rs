@@ -57,6 +57,7 @@ pub(super) fn build(project: &mut Project, map_id: u64, map: &PreEditMap, analys
         settings.frame_rate = video.frame_rate;
     }
     let rate = settings.frame_rate;
+    let frame_size = (settings.width, settings.height);
     let name = format!("{} — Rough Cut", item.name);
     let segments = map.segments(source.range).map_err(fail)?;
     if segments.is_empty() {
@@ -79,6 +80,9 @@ pub(super) fn build(project: &mut Project, map_id: u64, map: &PreEditMap, analys
                 .ok_or_else(|| fail("MEDIA_CHANGED: could not bind video"))?;
             video.duration = segment.output.duration;
             video.link = link;
+            for effect in &mut video.effects {
+                shotclutch_project::resolve_auto_points(effect, frame_size, frame_size);
+            }
             ids.push(video.id);
             video_items.push(video);
         }

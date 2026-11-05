@@ -228,6 +228,50 @@ fn m2_result_captions_exclude_words_in_removed_ranges() {
     assert!(captions.iter().all(|caption| caption.end() <= seconds(2)));
 }
 
+#[test]
+fn m2_linked_cut_preview_and_export_preserve_frame_and_sample_counts() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = dir.path().join("indexed.mov");
+    crate::media_test_util::make_movie(&source, shotclutch_media::DemoScene::Aurora, 32, 18, 8);
+    let original = std::fs::read(&source).unwrap();
+    let mut session = Session::default();
+    session.start_autosave(crate::autosave::AutosaveConfig::new(&dir.path().join("data"))).unwrap();
+    let imported = session.execute("file.import", json!({"paths":[source]})).unwrap();
+    let item = ItemId(imported["items"][0].as_u64().unwrap());
+    let proposed = analyze(&mut session, item, None);
+    let rate = shotclutch_time::FrameRate::FPS_24;
+    let map = review_action(
+        &mut session,
+        proposed,
+        json!({
+            "kind":"range","decision":"Remove",
+            "range":{"start":rate.tick_of(2).0.to_string(),"end":rate.tick_of(4).0.to_string()}
+        }),
+    );
+    let map = review_action(&mut session, map, json!({"kind":"markReviewed"}));
+    let (draft, preview_id) = preview(&session, map).unwrap();
+    let preview = draft.sequence(preview_id).unwrap();
+    assert_eq!(preview.duration(), rate.tick_of(6));
+    assert_eq!(preview.audio_tracks[0].items[1].source_in, rate.tick_of(4));
+    assert_eq!(preview.video_tracks[0].items[1].link, preview.audio_tracks[0].items[1].link);
+    let provider = session.media.full_res_provider(draft.clone(), session.services.clone());
+    let sample = shotclutch_render::render_sequence(&draft, preview_id, rate.tick_of(2), Default::default(), &provider);
+    let request = json!({"map":map.to_string(),"expectedRevision":session.revision.to_string(),"operationId":"av-output"});
+    let result = session.execute("preedit.apply", request).unwrap();
+    let sequence = result["sequenceId"].as_str().unwrap().parse::<u64>().unwrap();
+    session.execute("sequence.open", json!({"item":sequence})).unwrap();
+    assert_eq!(session.render_program_at(1.0, rate.tick_of(2)).unwrap().to_rgba8(), sample.to_rgba8());
+    let path = dir.path().join("rough-cut.mov");
+    session.execute("file.exportMedia", json!({"path":path,"format":"prores","wait":true})).unwrap();
+    let output = shotclutch_isobmff::open(std::fs::read(path).unwrap()).unwrap();
+    let video = output.track_of_kind(shotclutch_isobmff::TrackKind::Video).unwrap();
+    let audio = output.track_of_kind(shotclutch_isobmff::TrackKind::Audio).unwrap();
+    assert_eq!(output.tracks[video].samples.len(), 6);
+    assert_eq!(output.tracks[audio].timescale, 48_000);
+    assert_eq!(output.tracks[audio].samples.iter().map(|sample| u64::from(sample.duration)).sum::<u64>(), 12_000);
+    assert_eq!(std::fs::read(source).unwrap(), original);
+}
+
 #[cfg(feature = "whisper")]
 #[test]
 #[ignore = "requires the pinned model and the operator's private footage"]
