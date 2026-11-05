@@ -633,13 +633,31 @@ impl FrameServer {
     /// not be ready in time are not started and the workers get evenly spaced frames they can
     /// finish ([`playback_plan`]). While `preroll` (clock not started yet) every frame is wanted.
     pub fn schedule_playback(&self, key: FrameKey, rate: shotclutch_time::FrameRate, scale: f32, project: &Arc<Project>, speed: f64, preroll: bool) {
+        self.schedule_frames(key, rate, scale, project, speed, preroll, 0);
+    }
+
+    /// A review preview can show a late frame while an expensive source catches up.
+    pub fn schedule_review_playback(&self, key: FrameKey, rate: shotclutch_time::FrameRate, scale: f32, project: &Arc<Project>, late_frames: i64) {
+        self.schedule_frames(key, rate, scale, project, 1.0, false, late_frames);
+    }
+
+    fn schedule_frames(
+        &self,
+        key: FrameKey,
+        rate: shotclutch_time::FrameRate,
+        scale: f32,
+        project: &Arc<Project>,
+        speed: f64,
+        preroll: bool,
+        late_frames: i64,
+    ) {
         let dir = if speed < 0.0 { -1 } else { 1 };
         let step = speed.abs().max(1.0) as i64;
         let fps = rate.as_f64() * speed.abs().max(1.0) / step as f64;
         let (lead, stride) = if preroll { (1, 1) } else { playback_plan(self.render_cost(), fps, self.shared.workers) };
         if lead <= 1 {
             // the frame due now; once the clock runs, the frames before it are late
-            self.request_job(key, rate.tick_of(key.frame), scale, project, 0, false, (!preroll && dir > 0).then_some(Tick::ZERO));
+            self.request_job(key, rate.tick_of(key.frame), scale, project, 0, late_frames > 0, (!preroll && dir > 0).then_some(Tick::ZERO));
         }
         // During preroll the clock has not started: only the frames that gate start, not a
         // prefetch run that walks the rest of a LongGOP and evicts the playhead pictures.
@@ -654,7 +672,10 @@ impl FrameServer {
         }
         let (target, rev, cur) = (key.target, key.revision, key.frame);
         let span = (lead + ahead * stride) * step + 26;
-        self.retain_queue(|k| k.target != target || (k.revision == rev && (k.frame - cur) * dir >= 0 && (k.frame - cur).abs() < span));
+        let keep = |k: &FrameKey, grace: i64| {
+            k.target != target || (k.revision == rev && (k.frame - cur) * dir >= -grace && (k.frame - cur).abs() < span.max(grace + 1))
+        };
+        self.retain_jobs(|k| keep(k, 0), |k| keep(k, late_frames));
     }
 
     /// Whether playback can start at `key`: the next [`PREROLL_FRAMES`] frames (up to `last`)
@@ -673,9 +694,13 @@ impl FrameServer {
     /// Jobs already running for such frames are cancelled: a worker blocked behind a decoder
     /// would otherwise go on to decode a frame playback has passed, possibly from its keyframe.
     pub fn retain_queue(&self, keep: impl Fn(&FrameKey) -> bool) {
-        self.shared.queue.lock().unwrap_or_else(|e| e.into_inner()).retain(|j| keep(&j.key));
+        self.retain_jobs(&keep, &keep);
+    }
+
+    fn retain_jobs(&self, queued: impl Fn(&FrameKey) -> bool, running: impl Fn(&FrameKey) -> bool) {
+        self.shared.queue.lock().unwrap_or_else(|e| e.into_inner()).retain(|j| queued(&j.key));
         for (k, c, _) in self.shared.in_flight.lock().unwrap_or_else(|e| e.into_inner()).iter() {
-            if !keep(k) {
+            if !running(k) {
                 c.store(true, Ordering::Relaxed);
             }
         }

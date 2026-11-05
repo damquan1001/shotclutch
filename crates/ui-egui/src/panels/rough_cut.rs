@@ -424,14 +424,14 @@ impl Workspace {
             revision: app.item_revision(item),
             draft: false,
         };
-        if app.source_playback.clock.playing {
-            app.frames.schedule_playback(key, view.rate, scale, &app.session.project, 1.0, false);
+        let playing = app.source_playback.clock.playing;
+        let late_frames = if playing { review_frame_grace(view.rate) } else { 0 };
+        if playing {
+            app.frames.schedule_review_playback(key, view.rate, scale, &app.session.project, late_frames);
         } else {
             app.frames.request(key, time, scale, &app.session.project, 0);
         }
-        if let Some(img) = app.frames.get(&key) {
-            app.texture_for(ui.ctx(), "rough-cut-original", key, &img);
-        }
+        update_picture(app, ui, "rough-cut-original", key, late_frames);
         if let Some((texture, size)) =
             app.texture_existing("rough-cut-original").filter(|_| app.texture_key("rough-cut-original").is_some_and(|shown| shown.target == key.target))
         {
@@ -489,14 +489,13 @@ impl Workspace {
                 revision: u64::MAX - view.revision,
                 draft: false,
             };
-            if view.playing.is_some() {
-                app.frames.schedule_playback(key, rate, scale, &view.project, 1.0, false);
+            let late_frames = if view.playing.is_some() { review_frame_grace(rate) } else { 0 };
+            if late_frames > 0 {
+                app.frames.schedule_review_playback(key, rate, scale, &view.project, late_frames);
             } else {
                 app.frames.request(key, tick, scale, &view.project, 0);
             }
-            if let Some(img) = app.frames.get(&key) {
-                app.texture_for(ui.ctx(), "rough-cut-result", key, &img);
-            }
+            update_picture(app, ui, "rough-cut-result", key, late_frames);
             if let Some((texture, size)) =
                 app.texture_existing("rough-cut-result").filter(|_| app.texture_key("rough-cut-result").is_some_and(|shown| shown.revision == key.revision))
             {
@@ -539,6 +538,7 @@ impl Workspace {
         }
         let Some(view) = &mut self.result else { return };
         if view.playing.take().is_some() {
+            app.frames.stop_prefetch();
             if let Some(audio) = app.audio.as_mut() {
                 audio.stop();
             }
@@ -910,6 +910,25 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
         transport.label(&workspace.message);
     }
     app.rough_cut = workspace;
+}
+
+fn review_frame_grace(rate: shotclutch_time::FrameRate) -> i64 {
+    rate.frame_at(Tick::from_units(1, 2)).max(1)
+}
+
+fn update_picture(app: &mut ShotClutchApp, ui: &Ui, name: &str, key: FrameKey, late_frames: i64) {
+    let shown = app.texture_key(name);
+    for offset in 0..=late_frames.min(key.frame.max(0)) {
+        let candidate = FrameKey { frame: key.frame - offset, ..key };
+        // Late pictures can move the preview forward, but should never roll it back.
+        if offset > 0 && shown.is_some_and(|old| old == FrameKey { frame: old.frame, ..key } && old.frame >= candidate.frame) {
+            break;
+        }
+        if let Some(img) = app.frames.get(&candidate) {
+            app.texture_for(ui.ctx(), name, candidate, &img);
+            break;
+        }
+    }
 }
 
 fn result_time(segments: &[Segment], source: Tick) -> Tick {
