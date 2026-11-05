@@ -90,6 +90,11 @@ minutes. If capture uncertainty cannot resolve that budget, report unverified an
 Application clock-minus-wall and matching monitor/playhead counters do not measure speaker/display
 latency. The runner deliberately leaves `physical_av_drift:null` without external measurement.
 
+Current availability (user, 2026-11-05): no external phone or camera is available. Physical A/V
+qualification therefore remains unverified pending suitable capture equipment or an explicit
+milestone scope change. This does not waive MEDIA-004 or invalidate the completed ten-minute
+audio-counter observation. Retain the procedure above for when measurement becomes possible.
+
 ## Manual editing and keyboard acceptance worksheet
 
 The full manual reference editing/keyboard-accessibility journey remains a separate UI-001 gate.

@@ -502,3 +502,12 @@ include the connected diagnostic rerun from clean commit `610a6cdd` (one journey
 ignored, 6.83 seconds, source unchanged). The connected diagnostic and ten-minute runtime result
 do not close the disconnected, full manual keyboard or physical drift gates. No hosted run was
 used and physical second-PC qualification remains excluded.
+
+### External capture availability — 2026-11-05
+
+The user confirmed that no external phone or camera is available for the physical screen/speaker
+measurement. That part of MEDIA-004 cannot currently be qualified; retain it as unverified until
+suitable capture equipment becomes available or the user explicitly changes its milestone scope.
+This availability answer is not a waiver or a passing result. The ten-minute audio-counter pass
+remains valid for its declared profile. Disconnected and manual keyboard acceptance remain
+separate open checks; physical second-PC testing remains excluded by the earlier scope decision.

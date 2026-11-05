@@ -255,3 +255,9 @@ Owner: Codex. Branch: `codex/m1-editing-foundation`. [Implementation, test scope
   source unchanged. [Retained runtime evidence and limitations](m1/evidence/runtime-20261105/README.md).
   M1 remains In Progress for disconnected operation, full manual keyboard acceptance and physical
   thirty-minute A/V measurement. Physical second-PC qualification remains excluded.
+
+- 2026-11-05 — User confirmed no external phone/camera is available for physical screen/speaker
+  timing. The physical A/V portion of MEDIA-004 remains unverified pending capture equipment
+  or an explicit scope change; no waiver or passing result is inferred. The completed ten-minute
+  audio-counter observation stands. Disconnected/manual keyboard acceptance remains open and
+  physical second-PC testing remains excluded. [Acceptance record](m1/IMPLEMENTATION.md).
