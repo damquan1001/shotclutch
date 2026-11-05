@@ -2,8 +2,9 @@
 
 Started 2026-11-02 on `codex/m1-editing-foundation`. Owner: Codex.
 
-M0 and the subsequent identity work are the starting baseline. M1 is In Progress. No M1
-requirement is Done solely because an inherited feature exists or a new unit test passes.
+M0 and the subsequent identity work are the starting baseline. M1 is complete on
+`codex/m1-editing-foundation` under the revised scope as of 2026-11-05. The closeout below
+supersedes the open items recorded in historical checkpoints.
 
 ## Current scope adjustments — 2026-11-05
 
@@ -61,7 +62,7 @@ to v16 extension support; edit-state v2 retains receipts. See [DEC-002](DEC-002_
 and the [implemented service contract](SERVICE_CONTRACT.md). Native [export delivery](EXPORT_CONTRACT.md)
 and [collected-project portability](COLLECTION_CONTRACT.md) are implemented with explicit qualification limits.
 
-## Acceptance register
+## Implementation checkpoint before closeout
 
 | Requirements | Current evidence / next action | Status |
 |---|---|---|
@@ -580,3 +581,25 @@ keyboard split, move, trim, history and dialog results.
 
 The local editing and keyboard worksheet is complete for this profile. The approved scope
 deferrals and the limits of the native media and export contracts remain recorded above.
+
+## M1 closeout — 2026-11-05
+
+Candidate `0d35e24d0cc210ba5a1a17f817ac2bff532c977c` passed the single-job
+[Ubuntu CI run](https://github.com/damquan1001/shotclutch/actions/runs/41990388906). Formatting,
+one Python gate test and 303 Rust tests passed with zero Rust failures or ignores. The job
+took 8 minutes 31 seconds. GitHub reported that the pinned cache action targets Node 20 and
+ran it on Node 24. The cache step and job succeeded.
+
+| Requirement | Revised M1 acceptance evidence |
+|---|---|
+| CORE-002–004 | Versioned project identity and history, exact rational edits and source timing, migration and atomic recovery fault tests |
+| UI-001 | Completed Windows native editing and keyboard walkthrough, with saved edits and history checked |
+| MEDIA-001–004 | Bounded SDR decoder corpus, fallback, proxy switching, mixed-rate nesting and exact export, gain/fade and ten-minute device-clock playback with zero underruns |
+| AGENT-001–002, SEC-002 | Shared structural commands, scoped CLI/MCP parity, path and authorization rejection, revision-checked staging, rollback, cancellation and grouped undo |
+| EXPORT-001, EXPORT-006 | Original-bound staged range export, frame/sample oracles, verified full-history package, local relocation and working-copy reopen |
+| SEC-001 | Visible native local-only status and passing connected local mixed-media workflow under revised scope |
+| TEST-001 | Hosted focused gate passed on the named candidate, with broader Windows checks recorded above |
+
+Physical second-PC portability, physical display/speaker sync and disconnected mixed-media
+operation remain deferred and unverified. The ten-minute sample recorded 24 dropped pictures
+(0.134%) against the proposed <0.1% target. Broader performance qualification remains in M4.
