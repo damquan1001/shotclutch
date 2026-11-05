@@ -9,6 +9,7 @@ use shotclutch_project::{ItemId, Project};
 use shotclutch_time::{TICKS_PER_SECOND, Tick, TimeRange};
 
 use crate::frames::{FrameKey, Target};
+use crate::icons::{self, Icon};
 use crate::{AudioOut, ShotClutchApp};
 
 #[derive(Default)]
@@ -741,27 +742,39 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                 }
             });
             viewer.add_space(8.0);
-            if workspace.original {
-                if app.session.state.source_item != Some(item) {
-                    workspace.seek_source(app, item, workspace.cursor.clamp(source_range.start, source_range.end()));
+            let mut picture = viewer.available_rect_before_wrap();
+            picture.max.y = (picture.max.y - 36.0).max(picture.min.y);
+            viewer.scope_builder(egui::UiBuilder::new().max_rect(picture), |ui| {
+                if workspace.original {
+                    if app.session.state.source_item != Some(item) {
+                        workspace.seek_source(app, item, workspace.cursor.clamp(source_range.start, source_range.end()));
+                    }
+                    workspace.cursor = app.session.state.source_playhead.clamp(source_range.start, source_range.end());
+                    workspace.original_view(app, ui, item, source_range);
+                } else if !changed && let Some((id, _)) = map {
+                    workspace.result_surface(app, ui, id, duration, &segments);
                 }
-                workspace.cursor = app.session.state.source_playhead.clamp(source_range.start, source_range.end());
-                workspace.original_view(app, &mut viewer, item, source_range);
-            } else if !changed && let Some((id, _)) = map {
-                workspace.result_surface(app, &mut viewer, id, duration, &segments);
-            }
+            });
+            viewer.add_space(4.0);
 
             let playing = if workspace.original { app.source_playback.clock.playing } else { workspace.is_playing() };
             let mut toggle = std::mem::take(&mut workspace.toggle_requested);
-            transport.horizontal_wrapped(|ui| {
-                let label = if playing { "Pause" } else { "Play" };
-                let response = ui.button(if playing { "Ⅱ Pause" } else { "▶ Play" }).on_hover_text("Play / pause (Space)");
-                app.auto.add_response("roughCut.play", &response, label);
-                toggle |= response.clicked();
+            viewer.horizontal_wrapped(|ui| {
                 let frame = media.info.video.as_ref().map_or(Tick::from_units(1, 30), |video| video.frame_rate.frame_duration());
-                for (label, step) in [("‹ Frame", -frame), ("Frame ›", frame)] {
-                    if ui.button(label).clicked() {
-                        if workspace.original {
+                let play_icon = if playing { Icon::Pause } else { Icon::Play };
+                let play_label = if playing { "Pause" } else { "Play" };
+                for (icon, id, label, step) in [
+                    (Icon::StepBack, "roughCut.stepBack", "Previous frame", -frame),
+                    (play_icon, "roughCut.play", play_label, Tick::ZERO),
+                    (Icon::StepFwd, "roughCut.stepForward", "Next frame", frame),
+                ] {
+                    let tooltip = if step == Tick::ZERO { "Play / pause (Space)" } else { label };
+                    let response = icons::button(ui, icon, 28.0, false, &app.tokens, tooltip);
+                    app.auto.add_response(id, &response, label);
+                    if response.clicked() {
+                        if step == Tick::ZERO {
+                            toggle = true;
+                        } else if workspace.original {
                             workspace.seek(app, item, &segments, (workspace.cursor + step).clamp(source_range.start, source_range.end()));
                         } else {
                             workspace.stop(app.audio.as_deref_mut());
@@ -774,7 +787,8 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                 let elapsed =
                     if workspace.original { workspace.cursor - source_range.start } else { workspace.result.as_ref().map_or(Tick::ZERO, |view| view.time) };
                 ui.monospace(format!("{} / {}", time_label(elapsed), time_label(if workspace.original { source_range.duration } else { duration })));
-                ui.separator();
+            });
+            transport.horizontal_wrapped(|ui| {
                 let cuts = ui.checkbox(&mut workspace.show_cuts, "Show cuts");
                 app.auto.add_response("roughCut.showCuts", &cuts, "Show cuts");
                 let mut skip = !workspace.original;
@@ -789,7 +803,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                 ui.add(egui::Slider::new(&mut workspace.zoom, 1.0..=64.0).logarithmic(true).show_value(false).text("Zoom"));
             });
             if toggle && !changed {
-                workspace.toggle(app, &transport, item, stream, source_range, duration);
+                workspace.toggle(app, &viewer, item, stream, source_range, duration);
             }
             if let Some((id, map)) = map
                 && !changed
