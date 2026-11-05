@@ -38,13 +38,16 @@ Scope: CORE-002–CORE-004, UI-001, MEDIA-001–MEDIA-004, AGENT-001–AGENT-002
 
 Extend canonical schemas, exact time, stable IDs, durable persistence, source fingerprints, command validation, revision-safe transactions, preview/undo, decoder fallback, proxies, native render/audio paths, local permissions, basic rendered export, and project portability. Preserve usable manual editing while adding headless service access.
 
-Exit: the offline mixed-media editing journey passes on a declared platform; save/recovery and grouped undo survive fault injection; proxy/original swaps preserve cuts; a command produces equivalent behavior across service clients; final render has correct frame/sample counts and source bindings.
+Exit: the local mixed-media editing journey passes on a declared platform; save/recovery and grouped undo survive fault injection; proxy/original swaps preserve cuts; a command produces equivalent behavior across service clients; final render has correct frame/sample counts and source bindings.
 
 Scope adjustment (user, 2026-11-04): qualify project collection/relink through local relocation
 and integrity checks. A physical second-PC run is deferred beyond M1 and does not block its exit.
 
 Scope adjustment (user, 2026-11-05): defer external display/speaker A/V sync measurement beyond
 M1. Retain local playback and audio underrun checks.
+
+Scope adjustment (user, 2026-11-05): defer the network-disconnected mixed-media run beyond M1.
+The connected local journey and visible local-only processing status remain M1 evidence.
 
 Risk: codec edge cases, GPU/CPU mismatches, and persistence changes. Mitigation: bounded media qualification and failure fixtures before broader AI work depends on them.
 

@@ -7,6 +7,9 @@ The physical second-PC check is excluded from M1 by the user's 2026-11-04 decisi
 
 ## Disconnected mixed-media journey
 
+The user deferred the disconnected run beyond M1 on 2026-11-05. The connected diagnostic
+passed. Disconnected operation remains unverified, with the procedure retained for later use.
+
 Prerequisites: clean committed source, cached locked Cargo dependencies, installed ffmpeg/ffprobe,
 and the local native toolchain. Existing local test commands are preserved. From the repository:
 

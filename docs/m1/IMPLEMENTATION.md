@@ -542,6 +542,8 @@ the distinct project, whose `sync-30.mp4` timeline appeared in the native access
 The first Enter attempt used a copy with the same document identity, so a distinct project
 was used to confirm the observed switch. The isolated editor closed normally.
 
-The keyboard portion of the worksheet is complete. The disconnected mixed-media journey
-and the rest of the broader manual editing worksheet remain separately tracked. No hosted
-CI run was needed for these desktop checks.
+The keyboard portion of the worksheet is complete. The broader manual editing walkthrough
+remains open. The user deferred the network-disconnected mixed-media run beyond M1 on
+2026-11-05. Actual disconnected operation remains unverified, and the connected journey
+remains valid for its tested conditions. This decision supersedes earlier disconnected exit
+obligations in this document. No hosted CI run was needed for these desktop checks.

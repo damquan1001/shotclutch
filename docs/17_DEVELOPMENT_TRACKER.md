@@ -271,3 +271,7 @@ Owner: Codex. Branch: `codex/m1-editing-foundation`. [Implementation, test scope
   move, split, trim, save/history, panel focus and keyboard dialog acceptance/cancellation.
   The broader manual editing worksheet and disconnected mixed-media journey remain open.
   [Native results](m1/IMPLEMENTATION.md).
+
+- 2026-11-05 — User deferred the disconnected mixed-media run beyond M1. The connected
+  journey remains recorded as passed. Actual disconnected operation remains unverified.
+  The broader manual editing walkthrough remains open. [Updated roadmap](16_MVP_ROADMAP.md).
