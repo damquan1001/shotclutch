@@ -261,3 +261,8 @@ Owner: Codex. Branch: `codex/m1-editing-foundation`. [Implementation, test scope
   or an explicit scope change; no waiver or passing result is inferred. The completed ten-minute
   audio-counter observation stands. Disconnected/manual keyboard acceptance remains open and
   physical second-PC testing remains excluded. [Acceptance record](m1/IMPLEMENTATION.md).
+
+- 2026-11-05 — User deferred physical display/speaker A/V sync verification beyond M1. The
+  measurement remains unverified. The ten-minute audio-counter pass stands. Disconnected
+  operation and full manual keyboard acceptance remain M1 exit checks.
+  [Updated roadmap](16_MVP_ROADMAP.md).

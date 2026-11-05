@@ -43,6 +43,9 @@ Exit: the offline mixed-media editing journey passes on a declared platform; sav
 Scope adjustment (user, 2026-11-04): qualify project collection/relink through local relocation
 and integrity checks. A physical second-PC run is deferred beyond M1 and does not block its exit.
 
+Scope adjustment (user, 2026-11-05): defer external display/speaker A/V sync measurement beyond
+M1. Retain local playback and audio underrun checks.
+
 Risk: codec edge cases, GPU/CPU mismatches, and persistence changes. Mitigation: bounded media qualification and failure fixtures before broader AI work depends on them.
 
 ## M2 — Smart Rough Cut

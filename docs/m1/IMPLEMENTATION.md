@@ -5,7 +5,12 @@ Started 2026-11-02 on `codex/m1-editing-foundation`. Owner: Codex.
 M0 and the subsequent identity work are the starting baseline. M1 is In Progress. No M1
 requirement is Done solely because an inherited feature exists or a new unit test passes.
 
-## Current scope adjustment — 2026-11-04
+## Current scope adjustments — 2026-11-05
+
+The user deferred physical display/speaker A/V sync verification beyond M1 on 2026-11-05.
+Physical sync remains unverified. The ten-minute device-clock audio criterion passed for the
+declared fixture. This decision supersedes physical A/V exit obligations in the historical
+records below. Disconnected operation and manual keyboard acceptance remain open.
 
 The user excluded the physical second-PC check from M1. Local collection, integrity, relinking
 and relocation remain required. Physical cross-machine qualification is deferred beyond M1 and
@@ -478,9 +483,8 @@ The native multi-file export contract also retains its explicit physical-interru
 limitation; ordinary rollback is tested and single-file publication is atomic. None of these
 limitations is converted into a passing result by the new status UI or qualification scripts.
 
-The next M1 acceptance actions are the actual disconnected journey, completing the manual
-editing/keyboard-accessibility reference workflow, and the long-form physical A/V measurement.
-M1 remains In Progress.
+The next M1 acceptance actions are the actual disconnected journey and the manual
+editing/keyboard-accessibility reference workflow. M1 remains In Progress.
 
 ### Completed ten-minute device-clock observation
 
@@ -506,8 +510,6 @@ used and physical second-PC qualification remains excluded.
 ### External capture availability — 2026-11-05
 
 The user confirmed that no external phone or camera is available for the physical screen/speaker
-measurement. That part of MEDIA-004 cannot currently be qualified; retain it as unverified until
-suitable capture equipment becomes available or the user explicitly changes its milestone scope.
-This availability answer is not a waiver or a passing result. The ten-minute audio-counter pass
-remains valid for its declared profile. Disconnected and manual keyboard acceptance remain
-separate open checks; physical second-PC testing remains excluded by the earlier scope decision.
+measurement and subsequently deferred that measurement beyond M1. The ten-minute audio-counter
+pass remains valid for its declared profile. Disconnected and manual keyboard acceptance remain
+open. The earlier decision also defers physical second-PC testing beyond M1.
