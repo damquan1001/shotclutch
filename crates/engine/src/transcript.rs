@@ -419,16 +419,23 @@ fn models(_: &mut Session, _: &Value) -> Result<Value> {
 /// the size, source and licence (`transcript.models`) and ask before running this.
 fn download_model(_: &mut Session, p: &Value) -> Result<Value> {
     let id = str_p(p, "model").unwrap_or(shotclutch_speech::models::DEFAULT_MODEL);
-    let m = shotclutch_speech::models::find(id).ok_or_else(|| speech_err(SpeechError::UnknownModel(id.into())))?;
+    let dir = install_model(id, &mut |_, _, _| true)?;
+    Ok(json!({"model": id, "dir": dir.to_string_lossy()}))
+}
+
+/// Install a pinned model, reporting bytes transferred and the current artifact.
+/// Return false from the callback to cancel.
+pub fn install_model(id: &str, progress: &mut dyn FnMut(u64, u64, &str) -> bool) -> Result<std::path::PathBuf> {
+    let model = shotclutch_speech::models::find(id).ok_or_else(|| speech_err(SpeechError::UnknownModel(id.into())))?;
     let dir = models_dir().ok_or_else(|| EngineError::Other("no data directory for speech models".into()))?;
     #[cfg(feature = "speech-download")]
     {
-        shotclutch_speech::models::download(&dir, m, &mut |_, _, _| true).map_err(speech_err)?;
-        Ok(json!({"model": m.id, "dir": shotclutch_speech::models::model_dir(&dir, m).to_string_lossy()}))
+        shotclutch_speech::models::download(&dir, model, progress).map_err(speech_err)?;
+        Ok(shotclutch_speech::models::model_dir(&dir, model))
     }
     #[cfg(not(feature = "speech-download"))]
     {
-        let _ = (m, dir);
+        let _ = (model, dir, progress);
         Err(EngineError::Other("model downloads are not available in this build (built without the `speech-download` feature)".into()))
     }
 }

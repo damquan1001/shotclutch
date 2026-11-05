@@ -257,14 +257,15 @@ pub fn download_files(dir: &Path, files: &[ModelFile], progress: DownloadProgres
         return Err(SpeechError::Download(format!("invalid model artifact name: {:?}", file.name)));
     }
     std::fs::create_dir_all(dir)?;
-    let total: u64 = files.iter().filter(|f| !valid_file(&dir.join(f.name), f)).map(|f| f.size).sum();
+    let missing: Vec<_> = files.iter().filter(|f| !valid_file(&dir.join(f.name), f)).collect();
+    let total: u64 = missing.iter().map(|f| f.size).sum();
     let agent = agent();
     let mut done = 0u64;
-    for f in files {
-        let dest = dir.join(f.name);
-        if valid_file(&dest, f) {
-            continue;
+    for f in missing {
+        if !progress(done, total, f.name) {
+            return Err(SpeechError::Cancelled);
         }
+        let dest = dir.join(f.name);
         let part = dir.join(format!("{}.part", f.name));
         let resp = agent.get(f.url).call().map_err(|e| SpeechError::Download(format!("{}: {e}", f.url)))?;
         let mut body = resp.into_body();
@@ -312,6 +313,7 @@ fn agent() -> ureq::Agent {
                 .build(),
         )
         .timeout_connect(Some(std::time::Duration::from_secs(30)))
+        .timeout_recv_response(Some(std::time::Duration::from_secs(60)))
         .build()
         .into()
 }

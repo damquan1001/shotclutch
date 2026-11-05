@@ -1,6 +1,6 @@
 //! Native review surface. Only the editor commands can change a rough-cut map.
 
-use std::sync::Arc;
+use std::sync::{Arc, atomic::Ordering, mpsc};
 
 use egui::{Rect, Ui, pos2, vec2};
 use serde_json::{Value, json};
@@ -38,9 +38,20 @@ pub struct Workspace {
     message: String,
     result: Option<ResultView>,
     preview_attempt: Option<(u64, u64)>,
-    download: Option<std::sync::mpsc::Receiver<Result<(), String>>>,
-    confirm_download: bool,
+    model_install: ModelInstall,
     document: Option<String>,
+}
+
+#[derive(Default)]
+struct ModelInstall {
+    pending: Option<ModelDownload>,
+    confirm: bool,
+    result: Option<Result<(), String>>,
+}
+
+struct ModelDownload {
+    progress: Arc<shotclutch_export::Progress>,
+    result: mpsc::Receiver<Result<(), String>>,
 }
 
 #[derive(Default, PartialEq)]
@@ -270,7 +281,7 @@ impl Workspace {
             } else {
                 "Whisper base on this device · editorial suggestions qualified for English"
             });
-            self.model_install(ui);
+            self.model_install.show(app, ui);
         }
         if let Some((_, analysis)) = app.session.project.preedit.analyses.iter().rev().find(|(_, a)| a.source.item == item) {
             let end = analysis.chunks.last().map_or(analysis.source.range.start, |c| c.coverage.end());
@@ -286,51 +297,6 @@ impl Workspace {
             ui.add(egui::ProgressBar::new(fraction).text(format!("{state} · {:.1}s covered", covered.0 as f64 / TICKS_PER_SECOND as f64)));
         } else if running {
             ui.label("Verifying the source and opening the selected stream…");
-        }
-    }
-
-    fn model_install(&mut self, ui: &mut Ui) {
-        if let Some(receiver) = &self.download {
-            match receiver.try_recv() {
-                Ok(result) => {
-                    self.message = result.err().unwrap_or_else(|| "Whisper base is installed.".into());
-                    self.download = None;
-                }
-                Err(std::sync::mpsc::TryRecvError::Disconnected) => {
-                    self.download = None;
-                    self.message = "The model installer stopped.".into();
-                }
-                Err(std::sync::mpsc::TryRecvError::Empty) => {
-                    ui.label("Downloading and checking the model…");
-                    ui.ctx().request_repaint_after(std::time::Duration::from_millis(200));
-                    return;
-                }
-            }
-        }
-        if ui.button("Install local speech model…").clicked() {
-            self.confirm_download = true;
-        }
-        if self.confirm_download {
-            ui.label("Whisper base · 293 MB · OpenAI via Hugging Face · MIT weights, Apache 2.0 conversion");
-            ui.horizontal(|ui| {
-                if ui.button("Download model").clicked() {
-                    let (send, receiver) = std::sync::mpsc::channel();
-                    let started = std::thread::Builder::new().name("rough-cut-model".into()).spawn(move || {
-                        let result = shotclutch_engine::Session::default()
-                            .execute("transcript.downloadModel", json!({"model":"whisper-base"}))
-                            .map(|_| ())
-                            .map_err(|error| error.to_string());
-                        let _ = send.send(result);
-                    });
-                    if started.is_ok() {
-                        self.download = Some(receiver);
-                    }
-                    self.confirm_download = false;
-                }
-                if ui.button("Cancel").clicked() {
-                    self.confirm_download = false;
-                }
-            });
         }
     }
 
@@ -580,6 +546,89 @@ impl Workspace {
     }
 }
 
+impl ModelInstall {
+    fn show(&mut self, app: &mut ShotClutchApp, ui: &mut Ui) {
+        if let Some(download) = &self.pending {
+            let result = match download.result.try_recv() {
+                Ok(result) => result,
+                Err(mpsc::TryRecvError::Disconnected) => Err("The model installer stopped.".into()),
+                Err(mpsc::TryRecvError::Empty) => {
+                    let done = download.progress.done.load(Ordering::Relaxed);
+                    let total = download.progress.total.load(Ordering::Relaxed);
+                    let status = download.progress.status.lock().unwrap_or_else(std::sync::PoisonError::into_inner).clone();
+                    let fraction = if total == 0 { 0.0 } else { (done as f32 / total as f32).min(1.0) };
+                    let text = if total == 0 {
+                        "Checking local model files…".into()
+                    } else {
+                        format!("{:.0}%   ·   {:.1} / {:.1} MB", fraction * 100.0, done as f64 / 1e6, total as f64 / 1e6)
+                    };
+                    let bar = ui.add(egui::ProgressBar::new(fraction).animate(total == 0).text(&text));
+                    app.auto.add_response("roughCut.model.progress", &bar, &text);
+                    if total > 0 {
+                        ui.label(if done >= total { "Verifying model files…" } else { &status });
+                    }
+                    ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
+                    return;
+                }
+            };
+            self.pending = None;
+            self.result = Some(result);
+        }
+        match &self.result {
+            Some(Ok(())) => {
+                let status = ui.label("Whisper base installed");
+                app.auto.add_response("roughCut.model.installed", &status, "Whisper base installed");
+                return;
+            }
+            Some(Err(error)) => {
+                ui.label(format!("Could not install Whisper base. {error}"));
+            }
+            None => {}
+        }
+        if !self.confirm {
+            let label = if self.result.is_some() { "Retry model download…" } else { "Install local speech model…" };
+            let response = ui.button(label);
+            app.auto.add_response("roughCut.model.install", &response, label);
+            self.confirm = response.clicked();
+        }
+        if self.confirm {
+            ui.label("Whisper base · 293 MB · OpenAI via Hugging Face · MIT weights, Apache 2.0 conversion");
+            ui.horizontal(|ui| {
+                let response = ui.button("Download model");
+                app.auto.add_response("roughCut.model.download", &response, "Download model");
+                if response.clicked() {
+                    self.start(ui.ctx().clone());
+                }
+                if ui.button("Cancel").clicked() {
+                    self.confirm = false;
+                }
+            });
+        }
+    }
+
+    fn start(&mut self, ctx: egui::Context) {
+        let (send, result) = mpsc::channel();
+        let progress = Arc::new(shotclutch_export::Progress::default());
+        let worker = progress.clone();
+        let started = std::thread::Builder::new().name("rough-cut-model".into()).spawn(move || {
+            let result = shotclutch_engine::transcript::install_model("whisper-base", &mut |done, total, file| {
+                worker.done.store(done, Ordering::Relaxed);
+                worker.total.store(total, Ordering::Relaxed);
+                *worker.status.lock().unwrap_or_else(std::sync::PoisonError::into_inner) = format!("Downloading {file}");
+                true
+            });
+            let _ = send.send(result.map(|_| ()).map_err(|error| error.to_string()));
+            ctx.request_repaint();
+        });
+        self.result = None;
+        match started {
+            Ok(_) => self.pending = Some(ModelDownload { progress, result }),
+            Err(error) => self.result = Some(Err(error.to_string())),
+        }
+        self.confirm = false;
+    }
+}
+
 pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
     if cfg!(target_arch = "wasm32") {
         ui.put(rect, egui::Label::new("Smart Rough Cut requires the native desktop app."));
@@ -590,6 +639,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
     if workspace.document.as_ref() != Some(&document) {
         workspace.stop(app.audio.as_deref_mut());
         workspace = Workspace {
+            model_install: std::mem::take(&mut workspace.model_install),
             document: Some(document),
             language: "en".into(),
             show_cuts: true,
