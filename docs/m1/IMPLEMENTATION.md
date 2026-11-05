@@ -513,3 +513,15 @@ The user confirmed that no external phone or camera is available for the physica
 measurement and subsequently deferred that measurement beyond M1. The ten-minute audio-counter
 pass remains valid for its declared profile. Disconnected and manual keyboard acceptance remain
 open. The earlier decision also defers physical second-PC testing beyond M1.
+
+### Native keyboard trim verification — 2026-11-05
+
+Opened a private copy of the VFR project in the Windows desktop editor. At frame 13, the
+unshifted Q shortcut removed source frames [5, 13) from both linked tracks. The saved project
+kept the edit at sequence frame 5, set the second segment's source start to frame 13 and ended
+at sequence frame 112. Both segments retained matching video/audio link groups. Ctrl+S saved
+the edit, Ctrl+Z restored the prior cut and Ctrl+Shift+Z reproduced the same saved track data.
+The editor then closed normally. Uppercase Q sent by the automation tool invoked Shift+Q's
+Extend Previous Edit and was undone before the ripple check. This covers native trim, save and
+history. The full manual keyboard worksheet remains open. Active Ethernet and Wi-Fi interfaces
+also prevented the disconnected run during this session.
