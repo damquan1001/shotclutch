@@ -266,3 +266,8 @@ Owner: Codex. Branch: `codex/m1-editing-foundation`. [Implementation, test scope
   measurement remains unverified. The ten-minute audio-counter pass stands. Disconnected
   operation and full manual keyboard acceptance remain M1 exit checks.
   [Updated roadmap](16_MVP_ROADMAP.md).
+
+- 2026-11-05 — Completed the native keyboard portion of UI-001 on this PC, including linked
+  move, split, trim, save/history, panel focus and keyboard dialog acceptance/cancellation.
+  The broader manual editing worksheet and disconnected mixed-media journey remain open.
+  [Native results](m1/IMPLEMENTATION.md).

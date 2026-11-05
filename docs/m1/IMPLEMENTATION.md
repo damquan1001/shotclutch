@@ -525,3 +525,23 @@ The editor then closed normally. Uppercase Q sent by the automation tool invoked
 Extend Previous Edit and was undone before the ripple check. This covers native trim, save and
 history. The full manual keyboard worksheet remains open. Active Ethernet and Wi-Fi interfaces
 also prevented the disconnected run during this session.
+
+### Remaining native keyboard steps — 2026-11-05
+
+Completed the representative keyboard steps in the UI-001 worksheet on the isolated Windows
+desktop project. Shift+2 and Shift+3 switched panels, Shift+Right sought from frame 5 to 10,
+and D selected the linked clip under the playhead. Ctrl+Right moved both linked clips from
+frame 5 to 6 with their source ranges intact. Ctrl+K split both tracks at frame 10 and Ctrl+S
+persisted the matching ranges [0, 5), [6, 10) and [10, 113) with source starts 0, 13 and 17.
+The earlier native ripple trim, undo and redo checks cover the other edit shortcuts.
+
+Ctrl+, opened Preferences and Escape closed it. Ctrl+O opened the Windows file picker and
+Escape canceled it. On the acceptance run, Alt+N selected File name, Tab visibly focused
+the file-type control, and Shift+Tab returned to File name. Enter closed the picker and loaded
+the distinct project, whose `sync-30.mp4` timeline appeared in the native accessibility tree.
+The first Enter attempt used a copy with the same document identity, so a distinct project
+was used to confirm the observed switch. The isolated editor closed normally.
+
+The keyboard portion of the worksheet is complete. The disconnected mixed-media journey
+and the rest of the broader manual editing worksheet remain separately tracked. No hosted
+CI run was needed for these desktop checks.
