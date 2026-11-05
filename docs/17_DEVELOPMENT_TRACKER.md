@@ -275,3 +275,9 @@ Owner: Codex. Branch: `codex/m1-editing-foundation`. [Implementation, test scope
 - 2026-11-05 — User deferred the disconnected mixed-media run beyond M1. The connected
   journey remains recorded as passed. Actual disconnected operation remains unverified.
   The broader manual editing walkthrough remains open. [Updated roadmap](16_MVP_ROADMAP.md).
+
+- 2026-11-05 — Completed the local Windows desktop editing walkthrough. The editor verified
+  mixed-rate nesting, linked trim and history, gain/fade, proxy switching, relink, original-bound
+  range export, package relocation and working-copy reopen. Four independently decoded exports
+  matched at 56 frames and 89,690 stereo sample frames. Native keyboard and visible gain-dialog
+  checks complete the local worksheet. [Walkthrough results](m1/IMPLEMENTATION.md).

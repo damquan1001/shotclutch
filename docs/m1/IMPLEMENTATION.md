@@ -547,3 +547,36 @@ remains open. The user deferred the network-disconnected mixed-media run beyond 
 2026-11-05. Actual disconnected operation remains unverified, and the connected journey
 remains valid for its tested conditions. This decision supersedes earlier disconnected exit
 obligations in this document. No hosted CI run was needed for these desktop checks.
+
+### Completed local desktop editing walkthrough — 2026-11-05
+
+The remaining local walkthrough passed on this Windows PC. Used the real desktop editor with
+separate app data and private copies of the phone VFR and 25 fps camera fixtures. The connected
+desktop command interface drove the repeatable editing and delivery steps. Native window input
+verified reopening, the monitor and the Audio Gain dialog, complementing the earlier native
+keyboard split, move, trim, history and dialog results.
+
+- Built a 24 fps multitrack sequence, retimed the linked phone clip to 200%, applied -6 dB gain
+  and a three-frame Constant Power fade, and nested it in a 30000/1001 sequence. A one-frame
+  linked trim survived undo and redo. The program monitor and playhead agreed at frame 12.
+  A short preview used the device audio clock. This is preview evidence for the fixture.
+- Created and enabled a proxy without changing either timeline. Reopened with the camera
+  original moved to a new folder under its original name and relinked it. The first renamed
+  source was rejected by the filename check. Full-history collection required the old path
+  referenced by undo, so the identical source was supplied at that path before collection.
+- Verified the collection, then relocated it locally with original and proxy paths unavailable.
+  The desktop reopened the package with zero missing media and saved a working copy outside it.
+  The working copy reopened with zero missing media, the original package still verified and the
+  source digests matched. The harness stored app data outside the package. An earlier attempt
+  collided with the collection directory on Windows and the verifier rejected the extra files.
+- Independent FFprobe/FFmpeg checks found 56 frames and 89,690 stereo sample frames in each
+  explicit-range ProRes export. Decoded RGB and PCM digests matched across the original,
+  proxy-enabled, relinked and relocated exports. Raw output and the result report are in
+  `target/m1/desktop-mixed-jm24_gse/`.
+- The visible working copy showed both sequence tabs and a decoded retimed phone frame. The
+  Audio Gain dialog showed a -26.7 dB peak for the selection. Entering +3 dB in Adjust Gain
+  and confirming saved the phone audio at -3 dB. Undo and save restored the prior project
+  contents. The private editor exited normally.
+
+The local editing and keyboard worksheet is complete for this profile. The approved scope
+deferrals and the limits of the native media and export contracts remain recorded above.
