@@ -26,6 +26,7 @@ pub struct PendingAnalysis {
     original_path: PathBuf,
     analysis: Option<u64>,
     previous_map: Option<u64>,
+    auto_cut: bool,
     receiver: mpsc::Receiver<Message>,
     cancel: Cancellation,
 }
@@ -64,7 +65,7 @@ impl Drop for PendingAnalysis {
 enum Message {
     Started(PreEditAnalysis),
     Chunk(Arc<AnalysisChunk>),
-    Finished(std::result::Result<(), String>),
+    Finished(std::result::Result<Option<Arc<Vec<Override>>>, String>),
 }
 
 fn fail(text: impl Into<String>) -> EngineError {
@@ -93,6 +94,8 @@ struct Start {
     previous_map: Option<u64>,
     #[serde(default, with = "optional_decimal")]
     resume: Option<u64>,
+    #[serde(default)]
+    auto_cut: bool,
     min_pause_ms: Option<u32>,
     handle_ms: Option<u32>,
 }
@@ -228,7 +231,7 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
                 if decoded.info().audio_streams.get(req.audio_stream).is_none() {
                     return Err("CAPABILITY_UNAVAILABLE: original audio stream is unavailable".into());
                 }
-                let analysis = PreEditAnalysis {
+                let mut analysis = PreEditAnalysis {
                     source,
                     settings,
                     model_digest,
@@ -237,12 +240,16 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
                     chunks: resume.map_or_else(Vec::new, |a| a.chunks.clone()),
                 };
                 send.send(Message::Started(analysis.clone())).map_err(|_| "CANCELED: project closed")?;
-                analysis::run(decoded, &analysis, &signal, &send)?;
+                analysis::run(decoded.clone(), &mut analysis, &signal, &send)?;
+                let cuts = req.auto_cut.then(|| {
+                    let map = analysis::propose(0, &analysis);
+                    automatic_cuts(&map, &analysis, &*decoded)
+                });
                 let after = verify_original(worker_path, identity, &signal)?;
                 if after.fingerprint.0 != analysis.source.sha256 || after.modified != verified.modified {
                     return Err("MEDIA_CHANGED: original changed during rough-cut analysis".into());
                 }
-                Ok(())
+                Ok(cuts)
             })();
             let _ = send.send(Message::Finished(result));
         })
@@ -253,6 +260,7 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
         original_path: path,
         analysis: req.resume,
         previous_map: req.previous_map,
+        auto_cut: req.auto_cut,
         receiver,
         cancel,
     });
@@ -308,8 +316,11 @@ fn publish(s: &mut Session, job: &mut PendingAnalysis, message: Message) -> Resu
                 } else {
                     AnalysisStatus::Failed
                 };
-                if !changed && !saved.chunks.is_empty() {
+                if !changed && !saved.chunks.is_empty() && (!job.auto_cut || saved.status == AnalysisStatus::Complete) {
                     let mut map = analysis::propose(id, saved);
+                    if !was_canceled && let Ok(Some(cuts)) = &result {
+                        map.automatic = Some(cuts.clone());
+                    }
                     let source = saved.source.clone();
                     if let Some(old_id) = job.previous_map.filter(|id| project.preedit.maps.contains_key(id)) {
                         // A review action during analysis may have produced a newer revision.
@@ -329,7 +340,7 @@ fn publish(s: &mut Session, job: &mut PendingAnalysis, message: Message) -> Resu
                     project.preedit.maps.insert(map_id, Arc::new(map));
                 }
             }
-            terminal = Some(if was_canceled { Ok(()) } else { result });
+            terminal = Some(if was_canceled { Ok(()) } else { result.map(|_| ()) });
         }
     }
     let prepared = s.prepare_project("Analyze Smart Rough Cut", project, Vec::new())?;
@@ -374,6 +385,8 @@ enum Action {
     ResetDecisions,
     DismissConflict { index: usize },
     MarkReviewed,
+    AutoCut,
+    ClearConflicts,
 }
 
 fn review(s: &mut Session, value: &Value) -> Result<Value> {
@@ -446,6 +459,14 @@ fn review(s: &mut Session, value: &Value) -> Result<Value> {
             }
             map.conflicts.remove(index);
         }
+        Action::AutoCut => {
+            if analysis.status != AnalysisStatus::Complete {
+                return Err(fail("Finish processing the source before generating automatic cuts"));
+            }
+            let decoded = s.media.full_res_source(&s.project, analysis.source.item, &*s.services).ok_or_else(|| fail("Original media is unavailable"))?;
+            map.automatic = Some(automatic_cuts(&map, analysis, &*decoded));
+        }
+        Action::ClearConflicts => map.conflicts.clear(),
         Action::MarkReviewed => {
             if !map.conflicts.is_empty() {
                 return Err(fail("REVISION_CONFLICT: resolve the carried decisions before marking reviewed"));
@@ -465,6 +486,55 @@ fn review(s: &mut Session, value: &Value) -> Result<Value> {
     project.preedit.maps.insert(id, Arc::new(map));
     let prepared = s.prepare_project("Review Smart Rough Cut", project, vec![json!({"map": id.to_string()})])?;
     s.commit_edits(prepared).map_err(|e| fail(e.to_string()))?.pop().ok_or_else(|| fail("INTERNAL_ERROR: missing review receipt"))
+}
+
+fn automatic_cuts(map: &PreEditMap, analysis: &PreEditAnalysis, source: &dyn shotclutch_media::MediaSource) -> Arc<Vec<Override>> {
+    let video = source.info().has_video().then_some(source);
+    let Some(audio) = source.info().audio_streams.get(analysis.source.audio_stream) else { return Arc::default() };
+    let rate = audio.sample_rate;
+    let available = analysis.source.range;
+    let words: Vec<_> = analysis.chunks.iter().filter_map(|c| c.transcript.as_ref()).flat_map(|t| &t.words).collect();
+    let phrase = |range: TimeRange| {
+        let start = words.partition_point(|w| w.start < range.start);
+        words[start..].iter().take_while(|w| w.end <= range.end()).map(|w| w.normalized()).collect::<Vec<_>>()
+    };
+    // Keep the last matching take. Similar openings with different endings are left in place.
+    let mut duplicates = std::collections::BTreeSet::new();
+    for group in map.takes.iter() {
+        if let Some((&last, earlier)) = group.alternatives.split_last() {
+            let retained = phrase(map.candidates[last].range);
+            duplicates.extend(earlier.iter().copied().filter(|&i| retained.len() >= 3 && phrase(map.candidates[i].range) == retained));
+        }
+    }
+    let cuts: Vec<_> = map
+        .candidates
+        .iter()
+        .enumerate()
+        .filter_map(|(index, candidate)| {
+            if candidate.kind == CandidateKind::Restart {
+                let next = words.partition_point(|w| w.start < candidate.range.end());
+                if words.get(next).is_none_or(|w| w.start - candidate.range.end() > Tick::from_units(2, 1)) {
+                    return None;
+                }
+            }
+            if candidate.kind == CandidateKind::Take && !duplicates.contains(&index) {
+                return None;
+            }
+            let range = assembly::snap_decision(video, rate, available, candidate.range, candidate.kind == CandidateKind::Pause).ok()?;
+            // Reject a cut that would clip an adjacent word after snapping.
+            let start = words.partition_point(|w| w.start < range.start);
+            let left = start > 0 && words[start - 1].end > range.start;
+            let right = words[start..].iter().take_while(|w| w.start < range.end()).any(|w| w.end > range.end());
+            (!left && !right).then_some(Override { range, decision: Decision::Remove })
+        })
+        .take(4096)
+        .collect();
+    let mut cuts = Arc::new(cuts);
+    let auto = PreEditMap { automatic: Some(cuts.clone()), overrides: Vec::new(), ..map.clone() };
+    if auto.segments(available).is_ok_and(|segments| segments.is_empty()) {
+        cuts = Arc::new(Vec::new());
+    }
+    cuts
 }
 
 fn crosses_word(analysis: &PreEditAnalysis, range: TimeRange) -> bool {
@@ -567,7 +637,7 @@ fn validate_application<'a>(s: &'a Session, req: &Apply) -> Result<(&'a PreEditM
         return Err(fail("REVISION_CONFLICT: refresh the rough-cut preview"));
     }
     let (map, saved) = records(s, req.map)?;
-    if !map.reviewed {
+    if !map.reviewed && (map.automatic.is_none() || !map.conflicts.is_empty()) {
         return Err(fail("INVALID_ARGUMENT: mark this map reviewed before applying"));
     }
     Ok((map, saved))

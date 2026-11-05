@@ -105,6 +105,9 @@ pub struct PreEditMap {
     pub reviewed: bool,
     pub candidates: Arc<Vec<Candidate>>,
     pub takes: Arc<Vec<TakeGroup>>,
+    /// Frame-aligned automatic cleanup, followed by manual edits. None denotes a legacy map.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub automatic: Option<Arc<Vec<Override>>>,
     /// Ordered user actions. The most recent decision wins where ranges overlap.
     pub overrides: Vec<Override>,
     pub conflicts: Vec<Override>,
@@ -134,13 +137,14 @@ pub fn encloses(outer: TimeRange, inner: TimeRange) -> bool {
 }
 
 impl PreEditMap {
-    /// Assemble exact half-open ranges. Suggestions have no effect until explicitly accepted.
+    /// Assemble exact half-open ranges, with manual edits taking precedence.
     pub fn segments(&self, source: TimeRange) -> Result<Vec<Segment>, String> {
-        if !valid(source) || self.overrides.iter().any(|entry| !encloses(source, entry.range)) {
+        let edits = self.automatic.iter().flat_map(|cuts| cuts.iter()).chain(&self.overrides);
+        if !valid(source) || edits.clone().any(|entry| !encloses(source, entry.range)) {
             return Err("invalid rough-cut source or decision range".into());
         }
         let mut retained = vec![source];
-        for entry in &self.overrides {
+        for entry in edits {
             let cut = entry.range;
             match entry.decision {
                 Decision::Remove => {
@@ -261,6 +265,10 @@ impl PreEdit {
             let source = self.analyses.get(&map.analysis).ok_or("rough-cut map references missing analysis")?.source.range;
             if map.previous.is_some_and(|old| old >= *id || !self.maps.contains_key(&old))
                 || map.overrides.len() > 4096
+                || map
+                    .automatic
+                    .as_ref()
+                    .is_some_and(|cuts| cuts.len() > 4096 || cuts.iter().any(|cut| cut.decision != Decision::Remove || !encloses(source, cut.range)))
                 || map.conflicts.len() > 4096
                 || map.candidates.iter().any(|c| !encloses(source, c.range) || c.confidence.is_some_and(|p| !(0.0..=1.0).contains(&p)))
                 || map.takes.iter().any(|g| g.alternatives.len() < 2 || g.alternatives.iter().any(|&i| i >= map.candidates.len()))

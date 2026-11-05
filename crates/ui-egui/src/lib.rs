@@ -1567,6 +1567,15 @@ impl ShotClutchApp {
         }
         // A pane divider or floating-panel grip keeps focus after a pointer drag so arrows can
         // nudge it, but it takes no other key: Space and the other shortcuts keep working (#1482).
+        if self.ui.workspace == "Smart Rough Cut"
+            && self.ui.dock.is_visible(PanelKind::SmartRoughCut)
+            && self.dialog.is_none()
+            && !ctx.text_edit_focused()
+            && !egui::Popup::is_any_open(ctx)
+            && ctx.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Space))
+        {
+            self.rough_cut.toggle_requested = true;
+        }
         let divider_focused = self.divider_focused(ctx);
         if (ctx.egui_wants_keyboard_input() && !divider_focused) || self.dialog == Some(Dialog::Shortcuts) {
             return;

@@ -71,6 +71,7 @@ fn m2_map_restores_nested_ranges_and_maps_half_open_joins() {
         candidates: Arc::default(),
         takes: Arc::default(),
         conflicts: Vec::new(),
+        automatic: None,
         overrides: vec![Override { range: range(1, 5), decision: Decision::Remove }, Override { range: range(2, 3), decision: Decision::Keep }],
     };
     let segments = map.segments(range(0, 6)).unwrap();
@@ -345,4 +346,45 @@ fn m2_private_whisper_qualification() {
     if let Some(path) = std::env::var_os("SHOTCLUTCH_M2_REVIEW_PROJECT") {
         session.execute("file.saveAs", json!({"path":PathBuf::from(path)})).map_err(|_| "could not save private review project").unwrap();
     }
+}
+
+#[test]
+fn m2_auto_cut_opens_without_review_and_restoration_survives_reanalysis() {
+    let (_dir, _, mut session, item) = fixture();
+    let request = |prior: Option<u64>| {
+        json!({
+            "item": item.0.to_string(), "audioStream": 0, "autoCut": true,
+            "previousMap": prior.map(|id| id.to_string())
+        })
+    };
+    session.execute("preedit.analyze", request(None)).unwrap();
+    wait(&mut session);
+    let (&map_id, map) = session.project.preedit.maps.last_key_value().unwrap();
+    assert!(!map.reviewed);
+    assert_eq!(map.automatic.as_ref().unwrap().len(), 1);
+    assert!(map.overrides.is_empty());
+    let cut = map.automatic.as_ref().unwrap()[0].range;
+    let (preview, sequence) = super::preview(&session, map_id).unwrap();
+    assert_eq!(preview.sequence(sequence).unwrap().duration(), seconds(4) - cut.duration);
+    let reply = session
+        .execute(
+            "preedit.apply",
+            json!({
+                "map": map_id.to_string(), "expectedRevision": session.revision.to_string(), "operationId": "auto-cut"
+            }),
+        )
+        .unwrap();
+    assert_eq!(reply["state"], "committed");
+    let restored = review_action(
+        &mut session,
+        map_id,
+        json!({
+            "kind": "range", "decision": "Keep", "range": {"start": cut.start.0.to_string(), "end": cut.end().0.to_string()}
+        }),
+    );
+    session.execute("preedit.analyze", request(Some(restored))).unwrap();
+    wait(&mut session);
+    let (_, recut) = session.project.preedit.maps.last_key_value().unwrap();
+    assert_eq!(recut.automatic.as_ref().unwrap().len(), 1);
+    assert_eq!(recut.segments(range(0, 4)).unwrap()[0].source, range(0, 4));
 }

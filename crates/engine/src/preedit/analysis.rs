@@ -72,7 +72,7 @@ pub(super) fn model_digest(settings: &AnalysisSettings) -> Result<Option<String>
     Ok(Some(format!("{:x}", digest.finalize())))
 }
 
-pub(super) fn run(original: SharedSource, analysis: &PreEditAnalysis, cancel: &Cancellation, sender: &SyncSender<Message>) -> Result<(), String> {
+pub(super) fn run(original: SharedSource, analysis: &mut PreEditAnalysis, cancel: &Cancellation, sender: &SyncSender<Message>) -> Result<(), String> {
     let transcriber = if let Some(model) = &analysis.settings.model {
         let dir = crate::transcript::models_dir().ok_or("CAPABILITY_UNAVAILABLE: speech model directory is unavailable")?;
         Some(shotclutch_speech::load(&dir, model).map_err(|e| format!("CAPABILITY_UNAVAILABLE: {e}"))?)
@@ -128,7 +128,9 @@ pub(super) fn run(original: SharedSource, analysis: &PreEditAnalysis, cancel: &C
             None
         };
         stopped(cancel)?;
-        sender.send(Message::Chunk(Arc::new(AnalysisChunk { coverage: range, transcript, quiet, peaks }))).map_err(|_| "CANCELED: project closed")?;
+        let chunk = Arc::new(AnalysisChunk { coverage: range, transcript, quiet, peaks });
+        sender.send(Message::Chunk(chunk.clone())).map_err(|_| "CANCELED: project closed")?;
+        analysis.chunks.push(chunk);
         start = end;
     }
     Ok(())
@@ -258,6 +260,7 @@ pub(super) fn propose(analysis_id: u64, analysis: &PreEditAnalysis) -> PreEditMa
         reviewed: false,
         candidates: Arc::new(candidates),
         takes: Arc::new(takes),
+        automatic: None,
         overrides: Vec::new(),
         conflicts: Vec::new(),
     }

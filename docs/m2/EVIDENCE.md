@@ -28,3 +28,9 @@ The automated desktop smoke used an isolated native instance and left the saved 
 The workspace was reworked using the supplied Gling screenshot and the local OpenGling layout as references. Native verification covered the Script, Suggestions, and Files & analysis tabs, original and result pictures, transcript click-to-seek, waveform click-to-seek, and the full-width transport. Screenshots were visually inspected at 1440×950 and 1024×720. The original 4K seek needed additional decode time before its picture appeared. The isolated walkthrough left the saved private project unchanged. Screenshots and the walkthrough script remain in ignored local qualification storage.
 
 `cargo check --locked -p shotclutch -j 6` passed. The standard build compiled dependencies but could not replace the older executable because that app was running. Linking the same app with `cargo rustc --locked -p shotclutch --bin shotclutch -j 6 -- -o <local separate executable>` passed, and the native walkthrough used that new executable. Formatting and diff whitespace checks passed. This UI change does not close the human editorial acceptance gate above.
+
+## Automatic cut review
+
+The native fixture opened on the generated cut and verified result playback, original playback, Space to pause, and opening the edit as a sequence. The saved private transcript generated 136 cuts and a 31m 11s preview from the 37m 52s original. The visual walkthrough used the saved analysis and kept its project and screenshots local.
+
+Eight focused M2 engine tests passed. The new regression covers automatic preview and sequence creation without a separate approval step, then verifies that a restored pause survives another cleanup run. The private ASR qualification test was filtered out of this run.
