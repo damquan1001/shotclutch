@@ -56,11 +56,12 @@ pub struct Workspace {
 struct TimelineSelection {
     range: Option<TimeRange>,
     select_at: Option<Tick>,
-    trim: Option<CutTrim>,
+    trim: Option<RegionTrim>,
 }
 
-struct CutTrim {
-    cut: TimeRange,
+struct RegionTrim {
+    range: TimeRange,
+    removed: bool,
     left: bool,
     target: Tick,
     pointer_offset: f32,
@@ -1761,7 +1762,7 @@ fn waveform(
         })
     };
     if let Some(time) = selection.select_at.take() {
-        selection.range = cut_at(segments, source, time);
+        selection.range = region_at(time);
     }
     // A quick press and release can arrive in the same frame.
     let completed_drag = ui
@@ -1787,26 +1788,24 @@ fn waveform(
     {
         selection.range = if pointer.y >= lane_top { region_at(time_at(pointer)) } else { None };
     }
-    let selected_cut = selection.range.filter(|r| cut_at(segments, source, r.start) == Some(*r));
-    if let Some(cut) = selected_cut.filter(|_| show_cuts) {
-        let highlight = Rect::from_min_max(pos2(x(cut.start), lane_top), pos2(x(cut.end()), rect.bottom()));
+    if let Some(range) = selection.range.filter(|r| region_at(r.start) == Some(*r)) {
+        let removed = cut_at(segments, source, range.start).is_some();
+        let highlight = Rect::from_min_max(pos2(x(range.start), lane_top), pos2(x(range.end()), rect.bottom()));
         painter.rect_stroke(highlight, 1.0, (1.5, tokens.accent_hover), egui::StrokeKind::Inside);
-        for (left, edge) in [(true, cut.start), (false, cut.end())] {
-            if edge < window.start || edge > window.end() {
-                continue;
-            }
+        let edges = [(true, range.start), (false, range.end())];
+        let edges = edges.into_iter().filter(|(_, edge)| (!removed || show_cuts) && *edge >= window.start && *edge <= window.end());
+        for (left, edge) in edges.clone() {
             let handle = Rect::from_center_size(pos2(x(edge), cuts_lane.center().y), vec2(14.0, cuts_lane.height()));
             let visible = handle.intersect(rect);
-            app.auto.add(if left { "roughCut.trim.start" } else { "roughCut.trim.end" }, visible, "Drag cut edge");
+            app.auto.add(if left { "roughCut.trim.start" } else { "roughCut.trim.end" }, visible, "Drag region edge");
             painter.rect_filled(Rect::from_center_size(handle.center(), vec2(5.0, 13.0)), 1.0, tokens.accent_hover);
         }
         let find_edge = |pointer: egui::Pos2| {
             if pointer.y < lane_top || !rect.contains(pointer) {
                 return None;
             }
-            [(true, cut.start), (false, cut.end())]
-                .into_iter()
-                .filter(|(_, edge)| *edge >= window.start && *edge <= window.end())
+            edges
+                .clone()
                 .filter(|(_, edge)| (x(*edge) - pointer.x).abs() <= 8.0)
                 .min_by(|(_, a), (_, b)| (x(*a) - pointer.x).abs().total_cmp(&(x(*b) - pointer.x).abs()))
         };
@@ -1818,31 +1817,29 @@ fn waveform(
         if let Some(origin) = origin
             && let Some((left, edge)) = find_edge(origin)
         {
-            selection.trim = Some(CutTrim { cut, left, target: edge, pointer_offset: origin.x - x(edge) });
+            selection.trim = Some(RegionTrim { range, removed, left, target: edge, pointer_offset: origin.x - x(edge) });
         }
-    } else if let Some(range) = selection.range {
-        let highlight = Rect::from_min_max(pos2(x(range.start), lane_top), pos2(x(range.end()), rect.bottom()));
-        painter.rect_stroke(highlight, 1.0, (1.5, tokens.accent_hover), egui::StrokeKind::Inside);
     }
     let trimming = selection.trim.is_some();
     let mut edit = None;
     if let Some(trim) = &mut selection.trim {
         if let Some(pointer) = ui.input(|i| i.pointer.interact_pos()) {
             let target = time_at(pos2(pointer.x - trim.pointer_offset, pointer.y));
-            trim.target = if trim.left { target.min(trim.cut.end()) } else { target.max(trim.cut.start) };
+            trim.target = if trim.left { target.min(trim.range.end()) } else { target.max(trim.range.start) };
         }
         ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeHorizontal);
         let edge = x(trim.target);
         painter.line_segment([pos2(edge, lane_top), pos2(edge, rect.bottom())], (2.0, tokens.accent_hover));
         painter.text(pos2(edge, lane_top - 2.0), egui::Align2::CENTER_BOTTOM, time_label(trim.target), egui::FontId::monospace(12.0), tokens.accent_hover);
         if completed_drag.is_some() || response.drag_stopped_by(egui::PointerButton::Primary) {
-            let old = if trim.left { trim.cut.start } else { trim.cut.end() };
+            let old = if trim.left { trim.range.start } else { trim.range.end() };
             if trim.target != old {
-                let keep = if trim.left { trim.target > old } else { trim.target < old };
+                let contracts = if trim.left { trim.target > old } else { trim.target < old };
+                let keep = contracts == trim.removed;
                 let difference = TimeRange::from_bounds(old.min(trim.target), old.max(trim.target));
                 edit = Some(range_action(difference, if keep { "Keep" } else { "Remove" }));
                 // Resolve the selected range from the next map's snapped boundaries.
-                let (start, end) = if trim.left { (trim.target, trim.cut.end()) } else { (trim.cut.start, trim.target) };
+                let (start, end) = if trim.left { (trim.target, trim.range.end()) } else { (trim.range.start, trim.target) };
                 selection.select_at = (start < end).then(|| start + Tick((end - start).0 / 2));
                 selection.range = None;
             }
