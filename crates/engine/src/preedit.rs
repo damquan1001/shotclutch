@@ -348,6 +348,7 @@ fn publish(s: &mut Session, job: &mut PendingAnalysis, message: Message) -> Resu
                         map.automatic = Some(cuts.clone());
                     }
                     let source = saved.source.clone();
+                    let refreshed_chunks = saved.chunks.clone();
                     if let Some(old_id) = job.previous_map.filter(|id| project.preedit.maps.contains_key(id)) {
                         // A review action during analysis may have produced a newer revision.
                         let current = current_revision(&project.preedit, old_id);
@@ -356,6 +357,25 @@ fn publish(s: &mut Session, job: &mut PendingAnalysis, message: Message) -> Resu
                             let compatible = project.preedit.analyses.get(&old.analysis).is_some_and(|a| a.source == source);
                             if compatible {
                                 map.overrides.clone_from(&old.overrides);
+                                // A refreshed transcript can keep corrections whose original words still match.
+                                if !old.corrections.is_empty() {
+                                    let previous = &project.preedit.analyses[&old.analysis];
+                                    let words = |chunks: &[Arc<AnalysisChunk>]| {
+                                        chunks
+                                            .iter()
+                                            .filter_map(|c| c.transcript.as_ref())
+                                            .flat_map(|t| &t.words)
+                                            .filter(|w| old.corrections.contains_key(&w.start.0))
+                                            .map(|w| (w.start.0, (w.end, w.text.clone())))
+                                            .collect::<std::collections::BTreeMap<_, _>>()
+                                    };
+                                    let before = words(&previous.chunks);
+                                    map.corrections = words(&refreshed_chunks)
+                                        .into_iter()
+                                        .filter(|(tick, word)| before.get(tick) == Some(word))
+                                        .map(|(tick, _)| (tick, old.corrections[&tick].clone()))
+                                        .collect();
+                                }
                             } else {
                                 map.conflicts.extend(old.overrides.iter().cloned());
                             }
@@ -403,6 +423,7 @@ struct Review {
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 enum Action {
     Range { range: ExactRange, decision: Decision },
+    CorrectText { words: Vec<WordCorrection> },
     Candidate { index: usize, decision: Decision },
     ChooseTake { group: usize, retain: Vec<usize> },
     RejectGroup { group: usize },
@@ -414,6 +435,13 @@ enum Action {
     AutoCut,
     CleanUp { options: CleanupSettings },
     ClearConflicts,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct WordCorrection {
+    start: String,
+    text: String,
 }
 
 fn review(s: &mut Session, value: &Value) -> Result<Value> {
@@ -432,6 +460,31 @@ fn review(s: &mut Session, value: &Value) -> Result<Value> {
     map.reviewed = false;
     match req.action {
         Action::Range { range, decision } => map.overrides.push(Override { range: snap(range.parse()?, false)?, decision }),
+        Action::CorrectText { words } => {
+            if words.is_empty() || words.len() > 4096 {
+                return Err(fail("INVALID_ARGUMENT: select transcript words to correct"));
+            }
+            let original: std::collections::BTreeMap<_, _> = analysis
+                .chunks
+                .iter()
+                .filter_map(|chunk| chunk.transcript.as_ref())
+                .flat_map(|transcript| &transcript.words)
+                .map(|word| (word.start.0, &word.text))
+                .collect();
+            for word in words {
+                let tick = word.start.parse::<i64>().map_err(|_| fail("INVALID_ARGUMENT: invalid word timestamp"))?;
+                let old = original.get(&tick).ok_or_else(|| fail("NOT_FOUND: transcript word"))?;
+                let text = word.text.trim();
+                if text.is_empty() || text.len() > 512 {
+                    return Err(fail("INVALID_ARGUMENT: enter between 1 and 512 bytes of text per word"));
+                }
+                if text == old.as_str() {
+                    map.corrections.remove(&tick);
+                } else {
+                    map.corrections.insert(tick, text.into());
+                }
+            }
+        }
         Action::Candidate { index, decision } => {
             let candidate = map.candidates.get(index).ok_or_else(|| fail("NOT_FOUND: rough-cut candidate"))?;
             let range = snap(candidate.range, candidate.kind == CandidateKind::Pause && decision == Decision::Remove)?;
@@ -792,6 +845,35 @@ pub fn preview(s: &Session, map: u64) -> Result<(Arc<shotclutch_project::Project
     Ok((Arc::new(project), result.sequence))
 }
 
+fn export_clip(s: &mut Session, value: &Value) -> Result<Value> {
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct Request {
+        #[serde(with = "decimal_u64")]
+        map: u64,
+        range: ExactRange,
+        path: String,
+    }
+    let req: Request = typed(value)?;
+    if req.path.trim().is_empty() {
+        return Err(fail("INVALID_ARGUMENT: choose an export destination"));
+    }
+    let (map, analysis) = records(s, req.map)?;
+    let (media, _) = original(s, analysis.source.item)?;
+    let video = indexed_video(s, analysis.source.item, media.info.has_video())?;
+    let audio = media.info.audio_streams.get(analysis.source.audio_stream).ok_or_else(|| fail("MEDIA_CHANGED: selected audio stream is missing"))?;
+    let mut analysis = analysis.clone();
+    analysis.source.range = assembly::snap_decision(video.as_deref(), audio.sample_rate, analysis.source.range, req.range.parse()?, false)?;
+    let selection = PreEditMap { automatic: None, overrides: Vec::new(), ..map.clone() };
+    let mut project = (*s.project).clone();
+    let seq = assembly::build(&mut project, req.map, &selection, &analysis)?.sequence;
+    let (format, ext) = if video.is_some() { (shotclutch_export::Format::H264, "mp4") } else { (shotclutch_export::Format::Wav, "wav") };
+    let path = PathBuf::from(req.path).with_extension(ext).to_string_lossy().into_owned();
+    let settings = shotclutch_export::ExportSettings { format, path, ..Default::default() };
+    let job = crate::export_tools::spawn_export(s, Arc::new(project), seq, settings, "Export transcript clip".into(), false)?;
+    Ok(json!({"job":job}))
+}
+
 pub(crate) fn commands() -> Vec<CommandSpec> {
     let command = |id, label, params, run| CommandSpec { id, label, params, run, menu: &[], shortcut: None, enabled: |_| Ok(()), journal: false };
     vec![
@@ -810,6 +892,7 @@ pub(crate) fn commands() -> Vec<CommandSpec> {
             Ok(json!({"running":s.preedit_job.is_some(),"revision":s.revision.to_string(),"preedit":s.project.preedit}))
         }),
         command("preedit.review", "Review Smart Rough Cut", r#"{"map":string,"expectedRevision":string,"action":object}"#, review),
+        command("preedit.exportClip", "Export Transcript Clip", r#"{"map":string,"range":object,"path":string}"#, export_clip),
         command("preedit.preview", "Preview Smart Rough Cut", r#"{"map":string}"#, |s, p| {
             #[derive(Deserialize)]
             #[serde(deny_unknown_fields)]

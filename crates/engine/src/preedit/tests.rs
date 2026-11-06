@@ -71,6 +71,7 @@ fn m2_map_restores_nested_ranges_and_maps_half_open_joins() {
         candidates: Arc::default(),
         takes: Arc::default(),
         conflicts: Vec::new(),
+        corrections: Default::default(),
         automatic: None,
         cleanup: None,
         overrides: vec![Override { range: range(1, 5), decision: Decision::Remove }, Override { range: range(2, 3), decision: Decision::Keep }],
@@ -196,7 +197,7 @@ fn m2_background_apply_rejects_an_intervening_edit() {
 
 #[test]
 fn m2_result_captions_exclude_words_in_removed_ranges() {
-    let (_dir, _, mut session, item) = fixture();
+    let (dir, _, mut session, item) = fixture();
     let proposed = analyze(&mut session, item, None);
     session
         .edit("Test transcript fixture", |project, _| {
@@ -222,11 +223,21 @@ fn m2_result_captions_exclude_words_in_removed_ranges() {
             "kind":"range","decision":"Remove","range":{"start":seconds(1).0.to_string(),"end":seconds(3).0.to_string()}
         }),
     );
-    let (draft, sequence) = preview(&session, cut).unwrap();
+    let corrected = review_action(
+        &mut session,
+        cut,
+        json!({
+            "kind":"correctText","words":[{"start":seconds(3).0.to_string(),"text":"Corrected"}]
+        }),
+    );
+    let saved = dir.path().join("correction.scproj");
+    session.execute("file.saveAs", json!({"path":saved})).unwrap();
+    session.execute("file.open", json!({"path":saved})).unwrap();
+    let (draft, sequence) = preview(&session, corrected).unwrap();
     let seq = draft.sequence(sequence).unwrap();
     let captions = &seq.caption_tracks[0].captions;
     let text = captions.iter().map(|caption| caption.text.as_str()).collect::<Vec<_>>().join(" ");
-    assert!(text.contains("First") && text.contains("Last") && !text.contains("Discard"));
+    assert!(text.contains("First") && text.contains("Corrected") && !text.contains("Discard") && !text.contains("Last"));
     assert!(captions.iter().all(|caption| caption.end() <= seconds(2)));
 }
 

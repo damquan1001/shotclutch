@@ -292,6 +292,7 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, cleanup: Option<Clean
         automatic: None,
         cleanup,
         overrides: Vec::new(),
+        corrections: Default::default(),
         conflicts: Vec::new(),
     }
 }

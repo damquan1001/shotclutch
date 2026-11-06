@@ -146,6 +146,9 @@ pub struct PreEditMap {
     pub automatic: Option<Arc<Vec<Override>>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cleanup: Option<CleanupSettings>,
+    /// Corrected transcript words keyed by their source start tick.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub corrections: BTreeMap<i64, String>,
     /// Ordered user actions. The most recent decision wins where ranges overlap.
     pub overrides: Vec<Override>,
     pub conflicts: Vec<Override>,
@@ -324,6 +327,8 @@ impl PreEdit {
             if map.previous.is_some_and(|old| old >= *id || !self.maps.contains_key(&old))
                 || map.cleanup.is_some_and(|settings| !settings.valid())
                 || map.overrides.len() > 4096
+                || map.corrections.len() > 4096
+                || map.corrections.iter().any(|(&tick, text)| !source.contains(Tick(tick)) || text.trim().is_empty() || text.len() > 512)
                 || map
                     .automatic
                     .as_ref()

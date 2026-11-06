@@ -39,12 +39,37 @@ pub struct Workspace {
     window_start: Tick,
     mark_in: Option<Tick>,
     mark_out: Option<Tick>,
+    timeline: TimelineSelection,
+    text_anchor: Option<TimeRange>,
+    text_selection: Option<TimeRange>,
+    text_dragging: bool,
+    correction: Option<TextCorrection>,
     pub(crate) toggle_requested: bool,
     message: String,
     result: Option<ResultView>,
     preview_attempt: Option<(u64, u64)>,
     model_install: ModelInstall,
     document: Option<String>,
+}
+
+#[derive(Default)]
+struct TimelineSelection {
+    range: Option<TimeRange>,
+    select_at: Option<Tick>,
+    trim: Option<CutTrim>,
+}
+
+struct CutTrim {
+    cut: TimeRange,
+    left: bool,
+    target: Tick,
+    pointer_offset: f32,
+}
+
+struct TextCorrection {
+    map: u64,
+    revision: u64,
+    words: Vec<(Tick, String)>,
 }
 
 #[derive(Default)]
@@ -468,22 +493,44 @@ impl Workspace {
         self.command(app, "source.setPlayhead", json!({"time":time.0}));
     }
 
-    fn script(&mut self, app: &mut ShotClutchApp, ui: &mut Ui, id: u64, analysis: &PreEditAnalysis, segments: &[Segment]) {
+    fn script(&mut self, app: &mut ShotClutchApp, ui: &mut Ui, id: u64, map: &PreEditMap, analysis: &PreEditAnalysis, segments: &[Segment]) {
         ui.horizontal(|ui| {
             ui.add(egui::TextEdit::singleline(&mut self.search).hint_text("Find in transcript").desired_width(ui.available_width()));
         });
-        ui.label(egui::RichText::new("Click a word to seek. Right-click to cut or restore.").small().color(app.tokens.text_dim));
+        ui.label(egui::RichText::new("Click to seek · Drag or Shift-click to select words").small().color(app.tokens.text_dim));
         ui.add_space(4.0);
         let query = self.search.to_lowercase();
         let mut seek = None;
-        let mut action = None;
+        let mut toolbar = None;
         let mut any = false;
+        let (press, down, escape) = ui.input(|i| {
+            let press = i.events.iter().find_map(|event| match event {
+                egui::Event::PointerButton { pos, button: egui::PointerButton::Primary, pressed: true, modifiers } => Some((*pos, modifiers.shift)),
+                _ => None,
+            });
+            (press, i.pointer.primary_down(), i.key_pressed(egui::Key::Escape))
+        });
+        let mut pressed_word = None;
+        let mut pointed_word = None;
+        let mut clicked_word = None;
+        if escape && self.correction.is_none() {
+            self.text_selection = None;
+            self.text_anchor = None;
+        }
         egui::ScrollArea::vertical().id_salt("rough-cut-script").auto_shrink([false, false]).show(ui, |ui| {
             ui.spacing_mut().item_spacing = vec2(4.0, 7.0);
             for chunk in &analysis.chunks {
                 let Some(text) = &chunk.transcript else { continue };
                 for words in text.words.chunks(32) {
-                    if !query.is_empty() && !words.iter().map(|w| w.text.as_str()).collect::<Vec<_>>().join(" ").to_lowercase().contains(&query) {
+                    if !query.is_empty()
+                        && !words
+                            .iter()
+                            .map(|w| map.corrections.get(&w.start.0).unwrap_or(&w.text).as_str())
+                            .collect::<Vec<_>>()
+                            .join(" ")
+                            .to_lowercase()
+                            .contains(&query)
+                    {
                         continue;
                     }
                     let Some(first) = words.first() else { continue };
@@ -496,24 +543,47 @@ impl Workspace {
                         for word in words {
                             let midpoint = word.start + Tick(word.range().duration.0 / 2);
                             let removed = !retained_at(segments, midpoint);
-                            if removed && !self.show_cuts { continue; }
-                            let active = word.range().contains(self.cursor);
-                            let mut label = egui::RichText::new(&word.text).size(16.0).color(if removed { app.tokens.text_dim } else { app.tokens.text });
-                            if removed { label = label.strikethrough(); }
-                            if active { label = label.background_color(app.tokens.row_selected); }
-                            let response = ui.add(egui::Label::new(label).sense(egui::Sense::click()));
-                            if response.clicked() {
-                                if removed { self.original = true; self.stop(app.audio.as_deref_mut()); }
-                                seek = Some(word.start);
+                            if removed && !self.show_cuts {
+                                continue;
                             }
-                            response.on_hover_text("Click to seek · right-click to remove or restore").context_menu(|ui| {
-                                for (label, decision) in [("Keep / restore word", "Keep"), ("Remove word", "Remove")] {
-                                    if ui.button(label).clicked() {
-                                        action = Some(json!({"kind":"range","range":{"start":word.start.0.to_string(),"end":word.range().end().0.to_string()},"decision":decision}));
-                                        ui.close();
-                                    }
+                            let selected = self.text_selection.is_some_and(|r| r.contains(word.start));
+                            let active = word.range().contains(self.cursor);
+                            let text = map.corrections.get(&word.start.0).unwrap_or(&word.text);
+                            let mut label = egui::RichText::new(text).size(16.0).color(if removed { app.tokens.text_dim } else { app.tokens.text });
+                            if removed {
+                                label = label.strikethrough();
+                            }
+                            if selected {
+                                label = label.background_color(app.tokens.accent.gamma_multiply(0.55));
+                            } else if active {
+                                label = label.background_color(app.tokens.row_selected);
+                            }
+                            // Wrap between word widgets so each word has one hit rectangle.
+                            let response = ui.add(egui::Label::new(label).extend().selectable(false).sense(egui::Sense::click()));
+                            if ui.is_rect_visible(response.rect) {
+                                app.auto.add_response(&format!("roughCut.word.{}", word.start.0), &response, text);
+                                if selected {
+                                    toolbar = Some(response.rect);
                                 }
-                            });
+                            }
+                            if let Some((position, shift)) = press
+                                && response.rect.intersect(ui.clip_rect()).contains(position)
+                                && ui.ctx().layer_id_at(position) == Some(ui.layer_id())
+                            {
+                                pressed_word = Some((word.range(), shift));
+                            }
+                            if ui.rect_contains_pointer(response.rect) {
+                                pointed_word = Some(word.range());
+                            }
+                            if response.clicked() {
+                                clicked_word = Some((word.start, removed));
+                            }
+                            if response.secondary_clicked() {
+                                if !selected {
+                                    self.text_selection = Some(word.range());
+                                }
+                                toolbar = Some(response.rect);
+                            }
                         }
                     });
                 }
@@ -522,11 +592,122 @@ impl Workspace {
                 ui.label(if query.is_empty() { "No speech transcript. Review the cuts in the timeline." } else { "No matching phrases." });
             }
         });
+        if self.correction.is_none() {
+            let shift = pressed_word.is_some_and(|(_, shift)| shift);
+            if let Some((word, _)) = pressed_word {
+                self.text_dragging = true;
+                if !shift || self.text_anchor.is_none() {
+                    self.text_anchor = Some(word);
+                    self.text_selection = None;
+                }
+            }
+            if self.text_dragging
+                && let Some((anchor, word)) = self.text_anchor.zip(pointed_word)
+            {
+                self.text_selection = (shift || anchor != word).then(|| TimeRange::from_bounds(anchor.start.min(word.start), anchor.end().max(word.end())));
+                ui.ctx().request_repaint();
+            }
+            if let Some((time, removed)) = clicked_word
+                && self.text_selection.is_none()
+            {
+                if removed {
+                    self.original = true;
+                    self.stop(app.audio.as_deref_mut());
+                }
+                seek = Some(time);
+            }
+        }
         if let Some(time) = seek {
             self.seek(app, analysis.source.item, segments, time);
         }
-        if let Some(action) = action {
-            self.review(app, id, action);
+        self.text_dragging &= down;
+        if let Some((range, anchor)) = self.text_selection.zip(toolbar).filter(|_| !self.text_dragging && self.correction.is_none()) {
+            let mut action = None;
+            egui::Area::new(egui::Id::new("rough-cut-text-actions")).order(egui::Order::Foreground).fixed_pos(pos2(anchor.left(), anchor.top() - 36.0)).show(
+                ui.ctx(),
+                |ui| {
+                    egui::Frame::popup(ui.style()).show(ui, |ui| {
+                        ui.horizontal(|ui| {
+                            for (label, key) in [("Cut", "cut"), ("Uncut", "uncut"), ("Correct text", "correct"), ("Export clip", "export")] {
+                                let button = ui.button(label);
+                                app.auto.add_response(&format!("roughCut.text.{key}"), &button, label);
+                                if button.clicked() {
+                                    action = Some(key);
+                                }
+                            }
+                        });
+                    });
+                },
+            );
+            match action {
+                Some("cut" | "uncut") => {
+                    self.review(app, id, range_action(range, if action == Some("cut") { "Remove" } else { "Keep" }));
+                }
+                Some("correct") => {
+                    let words = analysis
+                        .chunks
+                        .iter()
+                        .filter_map(|c| c.transcript.as_ref())
+                        .flat_map(|t| &t.words)
+                        .filter(|w| range.contains(w.start))
+                        .map(|w| (w.start, map.corrections.get(&w.start.0).unwrap_or(&w.text).clone()))
+                        .collect();
+                    self.correction = Some(TextCorrection { map: id, revision: app.session.revision, words });
+                }
+                Some("export") => {
+                    let video = app.session.project.item(analysis.source.item).and_then(|i| i.as_media()).is_some_and(|m| m.info.has_video());
+                    let (filter, ext) = if video { ("MP4 video", "mp4") } else { ("WAV audio", "wav") };
+                    let document = app.session.document_id;
+                    app.pick_ui(crate::native_dialogs::FileDialog::save_as(filter, &[ext], &format!("Transcript clip.{ext}")), move |app, paths| {
+                        if app.session.document_id == document
+                            && let Some(path) = paths.into_iter().next()
+                        {
+                            let result = app.session.execute("preedit.exportClip", json!({"map":id.to_string(),"range":range_json(range),"path":path}));
+                            app.rough_cut.message = match result {
+                                Ok(_) => "Export started. Follow progress in Jobs.".into(),
+                                Err(error) => error.to_string(),
+                            };
+                        }
+                    });
+                }
+                _ => {}
+            }
+        }
+        self.correct_text_dialog(app, ui, id);
+    }
+
+    fn correct_text_dialog(&mut self, app: &mut ShotClutchApp, ui: &Ui, id: u64) {
+        let Some(mut edit) = self.correction.take() else { return };
+        if edit.map != id || edit.revision != app.session.revision {
+            return;
+        }
+        let mut open = true;
+        let mut save = false;
+        let mut cancel = false;
+        egui::Window::new("Correct transcript text").collapsible(false).open(&mut open).show(ui.ctx(), |ui| {
+            ui.label("Edit the words while keeping their timing.");
+            egui::ScrollArea::vertical().max_height(260.0).show(ui, |ui| {
+                for (tick, text) in &mut edit.words {
+                    ui.horizontal(|ui| {
+                        ui.monospace(time_label(*tick));
+                        let field = ui.text_edit_singleline(text);
+                        app.auto.add_response(&format!("roughCut.correct.{}", tick.0), &field, "Correct word");
+                    });
+                }
+            });
+            ui.horizontal(|ui| {
+                let valid = edit.words.iter().all(|(_, text)| !text.trim().is_empty() && text.trim().len() <= 512);
+                let apply = ui.add_enabled(valid, egui::Button::new("Apply correction"));
+                app.auto.add_response("roughCut.correct.apply", &apply, "Apply correction");
+                save = apply.clicked();
+                cancel = ui.button("Cancel").clicked();
+            });
+        });
+        if save {
+            let words: Vec<_> = edit.words.iter().map(|(tick, text)| json!({"start":tick.0.to_string(),"text":text})).collect();
+            self.review(app, id, json!({"kind":"correctText","words":words}));
+        } else if open && !cancel && !ui.input(|i| i.key_pressed(egui::Key::Escape)) {
+            self.correction = Some(edit);
         }
     }
 
@@ -1119,6 +1300,9 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
     transport.set_clip_rect(bottom);
 
     if let Some((id, map)) = map {
+        if workspace.map != Some(id) {
+            workspace.timeline.trim = None;
+        }
         workspace.map = Some(id);
         let analysis_mode = (map.analysis, map.automatic.is_some());
         if workspace.seen_analysis != Some(analysis_mode) {
@@ -1135,6 +1319,11 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
             workspace.cursor = analysis.unwrap().source.range.start;
             workspace.mark_in = None;
             workspace.mark_out = None;
+            workspace.timeline = TimelineSelection::default();
+            workspace.text_selection = None;
+            workspace.text_anchor = None;
+            workspace.text_dragging = false;
+            workspace.correction = None;
             workspace.window_start = workspace.cursor;
             workspace.stop(app.audio.as_deref_mut());
             app.stop_source();
@@ -1158,7 +1347,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
         if left_ui.small_button("Cleanup settings…").clicked() {
             workspace.tab = ReviewTab::Files;
         }
-        workspace.script(app, &mut left_ui, id, analysis, &segments);
+        workspace.script(app, &mut left_ui, id, map, analysis, &segments);
     } else if let (ReviewTab::Cuts, Some((id, map)), Some(analysis)) = (&workspace.tab, map, analysis) {
         workspace.cut_review(app, &mut left_ui, id, map, analysis, &segments);
     } else {
@@ -1202,8 +1391,6 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                 let result = ui.add_enabled(duration > Tick::ZERO, egui::Button::selectable(!workspace.original, "Result"));
                 app.auto.add_response("roughCut.preview.original", &original, "Original preview");
                 app.auto.add_response("roughCut.preview.result", &result, "Result preview");
-                // Keep the existing preview-toggle automation target.
-                app.auto.add_response("roughCut.skipCuts", if workspace.original { &result } else { &original }, "Switch preview");
                 if (original.clicked() && !workspace.original) || (result.clicked() && workspace.original) {
                     workspace.stop(app.audio.as_deref_mut());
                     app.stop_source();
@@ -1275,6 +1462,20 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                 ui.separator();
                 let cuts = ui.checkbox(&mut workspace.show_cuts, "Show cuts");
                 app.auto.add_response("roughCut.showCuts", &cuts, "Show cuts");
+                let mut skip = !workspace.original;
+                let response = ui
+                    .add_enabled(duration > Tick::ZERO, egui::Checkbox::new(&mut skip, "Skip cuts"))
+                    .on_hover_text("Play the edited result, skipping removed source ranges");
+                app.auto.add_response("roughCut.skipCuts", &response, "Skip cuts");
+                if response.changed() {
+                    workspace.stop(app.audio.as_deref_mut());
+                    app.stop_source();
+                    workspace.original = !skip;
+                    workspace.seek(app, item, &segments, workspace.cursor);
+                    // Resume once the newly selected preview has been prepared.
+                    workspace.toggle_requested = playing;
+                    ui.ctx().request_repaint();
+                }
                 ui.add(egui::Slider::new(&mut workspace.zoom, 1.0..=64.0).logarithmic(true).show_value(false).text("Zoom"));
             });
             if toggle && !changed {
@@ -1332,12 +1533,17 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                         start
                     };
                     let window = TimeRange::from_bounds(workspace.window_start, workspace.window_start + span);
-                    let (seek, restore) = waveform(&mut transport, app, analysis, &segments, window, workspace.cursor, selected, workspace.show_cuts);
+                    let (seek, edit) =
+                        waveform(&mut transport, app, analysis, &segments, window, workspace.cursor, selected, workspace.show_cuts, &mut workspace.timeline);
+                    if workspace.timeline.trim.is_some() {
+                        workspace.stop(app.audio.as_deref_mut());
+                        app.stop_source();
+                    }
                     if let Some(time) = seek {
                         workspace.seek(app, item, &segments, time);
                     }
-                    if let Some(range) = restore {
-                        workspace.review(app, id, range_action(range, "Keep"));
+                    if let Some(edit) = edit {
+                        workspace.review(app, id, edit);
                     }
                 }
             } else if map.is_none() {
@@ -1442,7 +1648,11 @@ fn cut_count(segments: &[Segment], source: TimeRange) -> usize {
 }
 
 fn range_action(range: TimeRange, decision: &str) -> Value {
-    json!({"kind":"range","range":{"start":range.start.0.to_string(),"end":range.end().0.to_string()},"decision":decision})
+    json!({"kind":"range","range":range_json(range),"decision":decision})
+}
+
+fn range_json(range: TimeRange) -> Value {
+    json!({"start":range.start.0.to_string(),"end":range.end().0.to_string()})
 }
 
 fn time_label(time: Tick) -> String {
@@ -1459,7 +1669,8 @@ fn waveform(
     playhead: Tick,
     selected: Option<TimeRange>,
     show_cuts: bool,
-) -> (Option<Tick>, Option<TimeRange>) {
+    selection: &mut TimelineSelection,
+) -> (Option<Tick>, Option<Value>) {
     let (strip, _) = ui.allocate_exact_size(vec2(ui.available_width(), 94.0), egui::Sense::hover());
     let tokens = app.tokens;
     let label_width = 72.0_f32.min(strip.width() * 0.2);
@@ -1542,20 +1753,128 @@ fn waveform(
     }
     let px = x(playhead);
     painter.line_segment([pos2(px, rect.top()), pos2(px, rect.bottom())], (2.0, tokens.accent_hover));
-    let seek = (response.clicked() || response.dragged()).then(|| response.interact_pointer_pos().map(time_at)).flatten();
-    let mut restored = None;
+    let source = analysis.source.range;
+    let region_at = |time| {
+        cut_at(segments, source, time).or_else(|| {
+            let index = segments.partition_point(|s| s.source.end() <= time);
+            segments.get(index).filter(|s| s.source.contains(time)).map(|s| s.source)
+        })
+    };
+    if let Some(time) = selection.select_at.take() {
+        selection.range = cut_at(segments, source, time);
+    }
+    // A quick press and release can arrive in the same frame.
+    let completed_drag = ui
+        .input(|input| {
+            let mut start = None;
+            for event in &input.events {
+                if let egui::Event::PointerButton { pos, button: egui::PointerButton::Primary, pressed, .. } = event {
+                    if *pressed {
+                        start = Some(*pos);
+                    } else if let Some(start) = start
+                        && (pos.x - start.x).abs() >= 6.0
+                    {
+                        return Some(start);
+                    }
+                }
+            }
+            None
+        })
+        .filter(|pos| ui.ctx().layer_id_at(*pos) == Some(ui.layer_id()));
+    if completed_drag.is_none()
+        && response.clicked()
+        && let Some(pointer) = response.interact_pointer_pos()
+    {
+        selection.range = if pointer.y >= lane_top { region_at(time_at(pointer)) } else { None };
+    }
+    let selected_cut = selection.range.filter(|r| cut_at(segments, source, r.start) == Some(*r));
+    if let Some(cut) = selected_cut.filter(|_| show_cuts) {
+        let highlight = Rect::from_min_max(pos2(x(cut.start), lane_top), pos2(x(cut.end()), rect.bottom()));
+        painter.rect_stroke(highlight, 1.0, (1.5, tokens.accent_hover), egui::StrokeKind::Inside);
+        for (left, edge) in [(true, cut.start), (false, cut.end())] {
+            if edge < window.start || edge > window.end() {
+                continue;
+            }
+            let handle = Rect::from_center_size(pos2(x(edge), cuts_lane.center().y), vec2(14.0, cuts_lane.height()));
+            let visible = handle.intersect(rect);
+            app.auto.add(if left { "roughCut.trim.start" } else { "roughCut.trim.end" }, visible, "Drag cut edge");
+            painter.rect_filled(Rect::from_center_size(handle.center(), vec2(5.0, 13.0)), 1.0, tokens.accent_hover);
+        }
+        let find_edge = |pointer: egui::Pos2| {
+            if pointer.y < lane_top || !rect.contains(pointer) {
+                return None;
+            }
+            [(true, cut.start), (false, cut.end())]
+                .into_iter()
+                .filter(|(_, edge)| *edge >= window.start && *edge <= window.end())
+                .filter(|(_, edge)| (x(*edge) - pointer.x).abs() <= 8.0)
+                .min_by(|(_, a), (_, b)| (x(*a) - pointer.x).abs().total_cmp(&(x(*b) - pointer.x).abs()))
+        };
+        if response.hovered() && ui.input(|i| i.pointer.hover_pos()).and_then(find_edge).is_some() {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeHorizontal);
+        }
+        let origin =
+            completed_drag.or_else(|| response.drag_started_by(egui::PointerButton::Primary).then(|| ui.input(|i| i.pointer.press_origin())).flatten());
+        if let Some(origin) = origin
+            && let Some((left, edge)) = find_edge(origin)
+        {
+            selection.trim = Some(CutTrim { cut, left, target: edge, pointer_offset: origin.x - x(edge) });
+        }
+    } else if let Some(range) = selection.range {
+        let highlight = Rect::from_min_max(pos2(x(range.start), lane_top), pos2(x(range.end()), rect.bottom()));
+        painter.rect_stroke(highlight, 1.0, (1.5, tokens.accent_hover), egui::StrokeKind::Inside);
+    }
+    let trimming = selection.trim.is_some();
+    let mut edit = None;
+    if let Some(trim) = &mut selection.trim {
+        if let Some(pointer) = ui.input(|i| i.pointer.interact_pos()) {
+            let target = time_at(pos2(pointer.x - trim.pointer_offset, pointer.y));
+            trim.target = if trim.left { target.min(trim.cut.end()) } else { target.max(trim.cut.start) };
+        }
+        ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeHorizontal);
+        let edge = x(trim.target);
+        painter.line_segment([pos2(edge, lane_top), pos2(edge, rect.bottom())], (2.0, tokens.accent_hover));
+        painter.text(pos2(edge, lane_top - 2.0), egui::Align2::CENTER_BOTTOM, time_label(trim.target), egui::FontId::monospace(12.0), tokens.accent_hover);
+        if completed_drag.is_some() || response.drag_stopped_by(egui::PointerButton::Primary) {
+            let old = if trim.left { trim.cut.start } else { trim.cut.end() };
+            if trim.target != old {
+                let keep = if trim.left { trim.target > old } else { trim.target < old };
+                let difference = TimeRange::from_bounds(old.min(trim.target), old.max(trim.target));
+                edit = Some(range_action(difference, if keep { "Keep" } else { "Remove" }));
+                // Resolve the selected range from the next map's snapped boundaries.
+                let (start, end) = if trim.left { (trim.target, trim.cut.end()) } else { (trim.cut.start, trim.target) };
+                selection.select_at = (start < end).then(|| start + Tick((end - start).0 / 2));
+                selection.range = None;
+            }
+            selection.trim = None;
+        } else if !ui.input(|i| i.pointer.primary_down()) {
+            selection.trim = None;
+        }
+    }
+    let seek = (!trimming && (response.clicked() || response.dragged())).then(|| response.interact_pointer_pos().map(time_at)).flatten();
     let anchor = ui.make_persistent_id("rough-cut-waveform-menu");
     if response.secondary_clicked()
         && let Some(pointer) = response.interact_pointer_pos()
     {
         ui.data_mut(|data| data.insert_temp(anchor, time_at(pointer)));
+        selection.range = region_at(time_at(pointer));
     }
-    response.on_hover_text("Drag to scrub. Right-click a removed range to restore it.").context_menu(|ui| {
-        let cut = ui.data(|data| data.get_temp::<Tick>(anchor)).and_then(|t| cut_at(segments, analysis.source.range, t));
-        if ui.add_enabled(cut.is_some(), egui::Button::new("Restore cut")).clicked() {
-            restored = cut;
-            ui.close();
+    response.context_menu(|ui| {
+        let Some(time) = ui.data(|data| data.get_temp::<Tick>(anchor)) else { return };
+        if let Some(range) = selected.filter(|r| r.contains(time)).or_else(|| region_at(time)) {
+            let marked = selected == Some(range);
+            let is_cut = cut_at(segments, source, time).is_some();
+            for (label, decision, show) in [("Cut", "Remove", marked || !is_cut), ("Uncut", "Keep", marked || is_cut)] {
+                if show {
+                    let button = ui.button(label);
+                    app.auto.add_response(&format!("roughCut.timeline.{}", label.to_lowercase()), &button, label);
+                    if button.clicked() {
+                        edit = Some(range_action(range, decision));
+                        ui.close();
+                    }
+                }
+            }
         }
     });
-    (seek, restored)
+    (seek, edit)
 }

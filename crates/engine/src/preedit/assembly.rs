@@ -117,7 +117,7 @@ pub(super) fn build(project: &mut Project, map_id: u64, map: &PreEditMap, analys
             if segment.source.contains(midpoint) {
                 let map_tick = |t: Tick| segment.output.start + (t.clamp(segment.source.start, segment.source.end()) - segment.source.start);
                 words.push(SeqWord {
-                    text: word.text.clone(),
+                    text: map.corrections.get(&word.start.0).unwrap_or(&word.text).clone(),
                     start: map_tick(word.start),
                     end: map_tick(word.end),
                     clip: audio.id,
