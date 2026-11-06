@@ -180,10 +180,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut egui::Ui, rect: Rect, which: Which
             ui.painter().rect_filled(pic, 0.0, t.monitor_bg);
         }
         let playing = if which == Which::Program { app.playback.playing } else { app.source_playback.clock.playing };
-        let res = mv.effective_res(playing);
-        // frame pixels per screen pixel along the axis that needs the most of them
-        let screen_scale = (pic.width() * ppp / frame_size.0.max(1) as f32).max(pic.height() * ppp / frame_size.1.max(1) as f32).min(1.0);
-        let scale = quantize_scale(res.scale().min(screen_scale.max(1.0 / 32.0)));
+        let scale = render_scale(pic, ppp, frame_size, mv.effective_res(playing));
         let frame = rate.frame_at(time);
         let rev = match target {
             Target::Item(i) => app.item_revision(i),
@@ -225,16 +222,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut egui::Ui, rect: Rect, which: Which
             format!("monitor-{prefix}")
         };
         let (shown, on_screen) = if use_gpu {
-            let found = app
-                .frames
-                .get_plan(&key)
-                .map(|p| (key, p))
-                .or_else(|| app.frames.nearest_plan(key, 6))
-                .or_else(|| asked.iter().find_map(|k| app.frames.get_plan(k).map(|p| (*k, p))));
-            match found {
-                Some((k, plan)) => (app.gpu_present(k, &plan).map(|(id, _)| id), Some(k)),
-                None => (app.gpu.as_ref().and_then(|g| g.texture), app.gpu.as_ref().and_then(|g| g.last_key)),
-            }
+            gpu_texture(app, key, &asked, 6)
         } else if grid {
             cpu_texture_as(app, &ctx, &tex_name, key, &asked, display, true)
         } else {
@@ -506,6 +494,20 @@ fn asked_before(app: &mut ShotClutchApp, prefix: &str, key: FrameKey, playing: b
     before
 }
 
+/// Present the best available GPU plan and identify the frame in the texture.
+pub(super) fn gpu_texture(app: &mut ShotClutchApp, key: FrameKey, asked: &[FrameKey], max_back: i64) -> (Option<egui::TextureId>, Option<FrameKey>) {
+    let found = app
+        .frames
+        .get_plan(&key)
+        .map(|plan| (key, plan))
+        .or_else(|| app.frames.nearest_plan(key, max_back))
+        .or_else(|| asked.iter().find_map(|k| app.frames.get_plan(k).map(|plan| (*k, plan))));
+    match found {
+        Some((k, plan)) => (app.gpu_present(k, &plan).map(|(id, _)| id), Some(k)),
+        None => (app.gpu.as_ref().and_then(|g| g.texture), app.gpu.as_ref().and_then(|g| g.last_key)),
+    }
+}
+
 /// A monitor texture from the CPU frame path: the exact frame, else the nearest cached one before
 /// it, else the newest ready one of `asked` (see [`asked_before`]), with the display mode's
 /// channel mapping. Returns the texture and the frame it shows.
@@ -648,6 +650,12 @@ pub fn quantize_scale(s: f32) -> f32 {
     // Buckets keep the cache effective while resizing the panel.
     let buckets = [1.0 / 32.0, 1.0 / 16.0, 1.0 / 8.0, 0.1875, 0.25, 0.375, 0.5, 0.75, 1.0];
     *buckets.iter().find(|b| **b >= s - 1e-4).unwrap_or(&1.0)
+}
+
+pub(super) fn render_scale(picture: Rect, pixels_per_point: f32, frame_size: (u32, u32), resolution: PlaybackRes) -> f32 {
+    // Use the axis that needs the most pixels, accounting for non-square pixels and display DPI.
+    let screen_scale = (picture.width() / frame_size.0.max(1) as f32).max(picture.height() / frame_size.1.max(1) as f32) * pixels_per_point;
+    quantize_scale(resolution.scale().min(screen_scale.max(1.0 / 32.0)))
 }
 
 pub fn fit(area: Rect, w: f32, h: f32) -> Rect {

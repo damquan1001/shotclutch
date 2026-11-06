@@ -10,6 +10,7 @@ use shotclutch_time::{TICKS_PER_SECOND, Tick, TimeRange};
 
 use crate::frames::{FrameKey, Target};
 use crate::icons::{self, Icon};
+use crate::panels::monitor;
 use crate::{AudioOut, ShotClutchApp};
 
 #[derive(Default)]
@@ -44,6 +45,9 @@ pub struct Workspace {
     text_selection: Option<TimeRange>,
     text_dragging: bool,
     correction: Option<TextCorrection>,
+    script_layout: Option<(u64, bool, u32, u32)>,
+    paragraph_heights: std::collections::BTreeMap<Tick, f32>,
+    segments: Option<(u64, Arc<[Segment]>)>,
     pub(crate) toggle_requested: bool,
     message: String,
     result: Option<ResultView>,
@@ -57,6 +61,14 @@ struct TimelineSelection {
     range: Option<TimeRange>,
     select_at: Option<Tick>,
     trim: Option<RegionTrim>,
+    peaks: Option<WaveformPeaks>,
+}
+
+struct WaveformPeaks {
+    analysis: u64,
+    chunks: usize,
+    window: TimeRange,
+    bins: Vec<u8>,
 }
 
 struct RegionTrim {
@@ -520,6 +532,11 @@ impl Workspace {
         }
         egui::ScrollArea::vertical().id_salt("rough-cut-script").auto_shrink([false, false]).show(ui, |ui| {
             ui.spacing_mut().item_spacing = vec2(4.0, 7.0);
+            let layout = (id, self.show_cuts, ui.available_width().to_bits(), ui.ctx().pixels_per_point().to_bits());
+            if self.script_layout != Some(layout) {
+                self.script_layout = Some(layout);
+                self.paragraph_heights.clear();
+            }
             for chunk in &analysis.chunks {
                 let Some(text) = &chunk.transcript else { continue };
                 for words in text.words.chunks(32) {
@@ -536,57 +553,68 @@ impl Workspace {
                     }
                     let Some(first) = words.first() else { continue };
                     any = true;
-                    ui.add_space(10.0);
-                    if ui.small_button(time_label(first.start)).on_hover_text("Seek original").clicked() {
-                        seek = Some(first.start);
+                    let top = ui.cursor().top();
+                    if let Some(&height) = self.paragraph_heights.get(&first.start)
+                        && (top + height < ui.clip_rect().top() || top > ui.clip_rect().bottom())
+                    {
+                        ui.add_space(height);
+                        continue;
                     }
-                    ui.horizontal_wrapped(|ui| {
-                        for word in words {
-                            let midpoint = word.start + Tick(word.range().duration.0 / 2);
-                            let removed = !retained_at(segments, midpoint);
-                            if removed && !self.show_cuts {
-                                continue;
-                            }
-                            let selected = self.text_selection.is_some_and(|r| r.contains(word.start));
-                            let active = word.range().contains(self.cursor);
-                            let text = map.corrections.get(&word.start.0).unwrap_or(&word.text);
-                            let mut label = egui::RichText::new(text).size(16.0).color(if removed { app.tokens.text_dim } else { app.tokens.text });
-                            if removed {
-                                label = label.strikethrough();
-                            }
-                            if selected {
-                                label = label.background_color(app.tokens.accent.gamma_multiply(0.55));
-                            } else if active {
-                                label = label.background_color(app.tokens.row_selected);
-                            }
-                            // Wrap between word widgets so each word has one hit rectangle.
-                            let response = ui.add(egui::Label::new(label).extend().selectable(false).sense(egui::Sense::click()));
-                            if ui.is_rect_visible(response.rect) {
-                                app.auto.add_response(&format!("roughCut.word.{}", word.start.0), &response, text);
+                    // Stable widget IDs keep selection and focus independent of which paragraphs were laid out.
+                    ui.push_id(first.start.0, |ui| {
+                        ui.add_space(10.0);
+                        if ui.small_button(time_label(first.start)).on_hover_text("Seek original").clicked() {
+                            seek = Some(first.start);
+                        }
+                        ui.horizontal_wrapped(|ui| {
+                            for word in words {
+                                let midpoint = word.start + Tick(word.range().duration.0 / 2);
+                                let removed = !retained_at(segments, midpoint);
+                                if removed && !self.show_cuts {
+                                    continue;
+                                }
+                                let selected = self.text_selection.is_some_and(|r| r.contains(word.start));
+                                let active = word.range().contains(self.cursor);
+                                let text = map.corrections.get(&word.start.0).unwrap_or(&word.text);
+                                let mut label = egui::RichText::new(text).size(16.0).color(if removed { app.tokens.text_dim } else { app.tokens.text });
+                                if removed {
+                                    label = label.strikethrough();
+                                }
                                 if selected {
+                                    label = label.background_color(app.tokens.accent.gamma_multiply(0.55));
+                                } else if active {
+                                    label = label.background_color(app.tokens.row_selected);
+                                }
+                                // Wrap between word widgets so each word has one hit rectangle.
+                                let response = ui.add(egui::Label::new(label).extend().selectable(false).sense(egui::Sense::click()));
+                                if ui.is_rect_visible(response.rect) {
+                                    app.auto.add_response(&format!("roughCut.word.{}", word.start.0), &response, text);
+                                    if selected {
+                                        toolbar = Some(response.rect);
+                                    }
+                                }
+                                if let Some((position, shift)) = press
+                                    && response.rect.intersect(ui.clip_rect()).contains(position)
+                                    && ui.ctx().layer_id_at(position) == Some(ui.layer_id())
+                                {
+                                    pressed_word = Some((word.range(), shift));
+                                }
+                                if ui.rect_contains_pointer(response.rect) {
+                                    pointed_word = Some(word.range());
+                                }
+                                if response.clicked() {
+                                    clicked_word = Some((word.start, removed));
+                                }
+                                if response.secondary_clicked() {
+                                    if !selected {
+                                        self.text_selection = Some(word.range());
+                                    }
                                     toolbar = Some(response.rect);
                                 }
                             }
-                            if let Some((position, shift)) = press
-                                && response.rect.intersect(ui.clip_rect()).contains(position)
-                                && ui.ctx().layer_id_at(position) == Some(ui.layer_id())
-                            {
-                                pressed_word = Some((word.range(), shift));
-                            }
-                            if ui.rect_contains_pointer(response.rect) {
-                                pointed_word = Some(word.range());
-                            }
-                            if response.clicked() {
-                                clicked_word = Some((word.start, removed));
-                            }
-                            if response.secondary_clicked() {
-                                if !selected {
-                                    self.text_selection = Some(word.range());
-                                }
-                                toolbar = Some(response.rect);
-                            }
-                        }
+                        });
                     });
+                    self.paragraph_heights.insert(first.start, ui.cursor().top() - top);
                 }
             }
             if !any {
@@ -892,29 +920,31 @@ impl Workspace {
             });
             return;
         };
-        let scale = (ui.available_width() / video.width as f32).clamp(0.05, 0.5);
+        let frame_size = (video.width, video.height);
+        let par = app.session.project.source_par(item).map_or(1.0, shotclutch_project::par_ratio) as f32;
+        let area = ui.available_rect_before_wrap();
+        let picture = monitor::fit(area, video.width as f32 * par, video.height as f32);
+        let playing = app.source_playback.clock.playing;
+        let scale = monitor::render_scale(picture, ui.ctx().pixels_per_point(), frame_size, app.ui.source.effective_res(playing));
         let time = app.session.state.source_playhead.clamp(range.start, range.end() - Tick(1));
         let key = FrameKey {
             target: Target::Item(item),
             frame: view.rate.frame_at(time),
             size: (scale * 1000.0) as u32,
             revision: app.item_revision(item),
-            draft: false,
+            draft: crate::frames::draft_playback(playing, scale, app.session.prefs.playback.draft_decode),
         };
-        let playing = app.source_playback.clock.playing;
         let late_frames = if playing { review_frame_grace(view.rate) } else { 0 };
         if playing {
             app.frames.schedule_review_playback(key, view.rate, scale, &app.session.project, late_frames);
         } else {
-            app.frames.request(key, time, scale, &app.session.project, 0);
+            app.frames.request(key, view.rate.tick_of(key.frame), scale, &app.session.project, 0);
         }
         update_picture(app, ui, "rough-cut-original", key, late_frames);
-        if let Some((texture, size)) =
+        if let Some((texture, _)) =
             app.texture_existing("rough-cut-original").filter(|_| app.texture_key("rough-cut-original").is_some_and(|shown| shown.target == key.target))
         {
-            ui.vertical_centered(|ui| {
-                ui.add(egui::Image::new((texture, size)).max_size(ui.available_size()));
-            });
+            paint_picture(ui, texture, picture);
         } else {
             ui.label("Loading original frame…");
         }
@@ -958,30 +988,35 @@ impl Workspace {
         }
         let Some(sequence) = view.project.sequence(view.sequence) else { return };
         let rate = sequence.settings.frame_rate;
-        let scale = (ui.available_width() / sequence.settings.width as f32).clamp(0.05, 0.5);
         if !sequence.video_tracks.is_empty() {
-            let tick = rate.snap(view.time.min(duration - Tick(1)));
+            let frame_size = (sequence.settings.width, sequence.settings.height);
+            let par = shotclutch_project::par_ratio(sequence.settings.par) as f32;
+            let picture = monitor::fit(ui.available_rect_before_wrap(), frame_size.0 as f32 * par, frame_size.1 as f32);
+            let playing = view.playing.is_some();
+            let scale = monitor::render_scale(picture, ui.ctx().pixels_per_point(), frame_size, app.ui.program.effective_res(playing));
+            let gpu = app.gpu.is_some() && !crate::panels::menu_dialogs::software_renderer(app);
+            let frame = rate.frame_at(view.time.min(duration - Tick(1)));
             let key = FrameKey {
-                target: Target::SequenceLive(view.sequence),
-                frame: rate.frame_at(tick),
+                target: if gpu { Target::SequencePlan(view.sequence) } else { Target::SequenceLive(view.sequence) },
+                frame,
                 size: (scale * 1000.0) as u32,
                 revision: u64::MAX - view.revision,
-                draft: false,
+                draft: crate::frames::draft_playback(playing, scale, app.session.prefs.playback.draft_decode),
             };
-            let late_frames = if view.playing.is_some() { review_frame_grace(rate) } else { 0 };
+            let late_frames = if playing { review_frame_grace(rate) } else { 0 };
             if late_frames > 0 {
                 app.frames.schedule_review_playback(key, rate, scale, &view.project, late_frames);
             } else {
-                app.frames.request(key, tick, scale, &view.project, 0);
+                app.frames.request(key, rate.tick_of(frame), scale, &view.project, 0);
             }
-            update_picture(app, ui, "rough-cut-result", key, late_frames);
-            if let Some((texture, size)) =
-                app.texture_existing("rough-cut-result").filter(|_| app.texture_key("rough-cut-result").is_some_and(|shown| shown.revision == key.revision))
-            {
-                let available = ui.available_size();
-                ui.vertical_centered(|ui| {
-                    ui.add(egui::Image::new((texture, size)).max_size(available));
-                });
+            let (texture, shown) = if gpu {
+                monitor::gpu_texture(app, key, &[], late_frames)
+            } else {
+                update_picture(app, ui, "rough-cut-result", key, late_frames);
+                (app.texture_existing("rough-cut-result").map(|(texture, _)| texture), app.texture_key("rough-cut-result"))
+            };
+            if let Some(texture) = texture.filter(|_| shown.is_some_and(|frame| frame.target == key.target && frame.revision == key.revision)) {
+                paint_picture(ui, texture, picture);
             } else {
                 ui.label("Loading result frame…");
                 ui.ctx().request_repaint_after(std::time::Duration::from_millis(30));
@@ -1187,7 +1222,14 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
         project.preedit.maps.iter().rev().find(|(_, map)| project.preedit.analyses.get(&map.analysis).is_some_and(|a| Some(a.source.item) == workspace.source));
     let map = current.map(|(&id, map)| (id, &**map));
     let analysis = map.map(|(_, map)| &*project.preedit.analyses[&map.analysis]);
-    let segments = map.zip(analysis).and_then(|((_, map), analysis)| map.segments(analysis.source.range).ok()).unwrap_or_default();
+    if let Some(((id, map), analysis)) = map.zip(analysis) {
+        if workspace.segments.as_ref().is_none_or(|(cached, _)| *cached != id) {
+            workspace.segments = Some((id, map.segments(analysis.source.range).unwrap_or_default().into()));
+        }
+    } else {
+        workspace.segments = None;
+    }
+    let segments = workspace.segments.as_ref().map(|(_, segments)| segments.clone()).unwrap_or_default();
     let duration = segments.last().map_or(Tick::ZERO, |segment| segment.output.end());
     let tokens = app.tokens;
     let can_open = map.is_some_and(|(_, map)| (map.automatic.is_some() || map.reviewed) && map.conflicts.is_empty())
@@ -1534,8 +1576,18 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                         start
                     };
                     let window = TimeRange::from_bounds(workspace.window_start, workspace.window_start + span);
-                    let (seek, edit) =
-                        waveform(&mut transport, app, analysis, &segments, window, workspace.cursor, selected, workspace.show_cuts, &mut workspace.timeline);
+                    let (seek, edit) = waveform(
+                        &mut transport,
+                        app,
+                        map.analysis,
+                        analysis,
+                        &segments,
+                        window,
+                        workspace.cursor,
+                        selected,
+                        workspace.show_cuts,
+                        &mut workspace.timeline,
+                    );
                     if workspace.timeline.trim.is_some() {
                         workspace.stop(app.audio.as_deref_mut());
                         app.stop_source();
@@ -1604,6 +1656,11 @@ fn review_frame_grace(rate: shotclutch_time::FrameRate) -> i64 {
     rate.frame_at(Tick::from_units(1, 2)).max(1)
 }
 
+fn paint_picture(ui: &mut Ui, texture: egui::TextureId, picture: Rect) {
+    ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
+    ui.painter().image(texture, picture, Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)), egui::Color32::WHITE);
+}
+
 fn update_picture(app: &mut ShotClutchApp, ui: &Ui, name: &str, key: FrameKey, late_frames: i64) {
     let shown = app.texture_key(name);
     for offset in 0..=late_frames.min(key.frame.max(0)) {
@@ -1664,6 +1721,7 @@ fn time_label(time: Tick) -> String {
 fn waveform(
     ui: &mut Ui,
     app: &mut ShotClutchApp,
+    analysis_id: u64,
     analysis: &PreEditAnalysis,
     segments: &[Segment],
     window: TimeRange,
@@ -1729,20 +1787,27 @@ fn waveform(
         );
     }
     let width = rect.width().clamp(1.0, 2048.0) as usize;
-    let mut bins = vec![0u8; width];
-    for chunk in analysis.chunks.iter().filter(|chunk| chunk.coverage.start < window.end() && chunk.coverage.end() > window.start) {
-        for (i, peak) in chunk.peaks.iter().enumerate() {
-            let tick = chunk.coverage.start + Tick(chunk.coverage.duration.0 * i as i64 / chunk.peaks.len() as i64);
-            if window.contains(tick) {
-                let column = ((tick - window.start).0 as f64 / window.duration.0 as f64 * width as f64) as usize;
-                if let Some(bin) = bins.get_mut(column) {
-                    *bin = (*bin).max(*peak);
+    if selection
+        .peaks
+        .as_ref()
+        .is_none_or(|peaks| peaks.analysis != analysis_id || peaks.chunks != analysis.chunks.len() || peaks.window != window || peaks.bins.len() != width)
+    {
+        let mut bins = vec![0u8; width];
+        for chunk in analysis.chunks.iter().filter(|chunk| chunk.coverage.start < window.end() && chunk.coverage.end() > window.start) {
+            for (i, peak) in chunk.peaks.iter().enumerate() {
+                let tick = chunk.coverage.start + Tick(chunk.coverage.duration.0 * i as i64 / chunk.peaks.len() as i64);
+                if window.contains(tick) {
+                    let column = ((tick - window.start).0 as f64 / window.duration.0 as f64 * width as f64) as usize;
+                    if let Some(bin) = bins.get_mut(column) {
+                        *bin = (*bin).max(*peak);
+                    }
                 }
             }
         }
+        selection.peaks = Some(WaveformPeaks { analysis: analysis_id, chunks: analysis.chunks.len(), window, bins });
     }
     let mid = (audio_top + rect.bottom()) / 2.0;
-    for (i, peak) in bins.into_iter().enumerate().filter(|(_, peak)| *peak != 0) {
+    for (i, peak) in selection.peaks.iter().flat_map(|peaks| peaks.bins.iter().copied()).enumerate().filter(|(_, peak)| *peak != 0) {
         let tick = window.start + Tick(window.duration.0 * i as i64 / width as i64);
         let retained = retained_at(segments, tick);
         if !show_cuts && !retained {
