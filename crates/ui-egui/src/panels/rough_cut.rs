@@ -1274,13 +1274,15 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
             } else if app.session.preedit_job.is_some() {
                 "Processing…"
             } else if can_open {
-                "Cut ready"
+                ""
             } else if map.is_some() {
                 "Review cut"
             } else {
                 "Setup"
             };
-            ui.label(egui::RichText::new(status).color(if can_open { tokens.accent_hover } else { tokens.text_dim }));
+            if !status.is_empty() {
+                ui.label(egui::RichText::new(status).color(tokens.text_dim));
+            }
         }
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             let open = ui
