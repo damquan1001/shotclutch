@@ -1214,7 +1214,6 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
     }
 
     let bounds = rect.shrink2(vec2(10.0, 8.0));
-    let mut header = ui.new_child(egui::UiBuilder::new().max_rect(Rect::from_min_max(bounds.min, pos2(bounds.right(), bounds.top() + 40.0))));
     if let Some(result) = app.session.preedit_apply_result.take() {
         match result {
             Ok(reply) => {
@@ -1262,23 +1261,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                     .is_some_and(|old| Some(old.source.item) == workspace.source)
         })
         .map(|(&id, _)| id);
-    header.horizontal(|ui| {
-        if bounds.width() > 820.0 {
-            let status = if app.session.preedit_apply.is_some() {
-                "Opening in editor…"
-            } else if app.session.preedit_job.is_some() {
-                "Processing…"
-            } else if can_open {
-                ""
-            } else if map.is_some() {
-                "Review cut"
-            } else {
-                "Setup"
-            };
-            if !status.is_empty() {
-                ui.label(egui::RichText::new(status).color(tokens.text_dim));
-            }
-        }
+    let preview_actions = |ui: &mut Ui, app: &mut ShotClutchApp, workspace: &mut Workspace| {
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             let open = ui
                 .add_enabled(can_open, primary_button(&tokens, "Open in editor", true))
@@ -1318,10 +1301,9 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                 }
             }
         });
-    });
+    };
     let transport_h = (bounds.height() * 0.24).clamp(170.0, 220.0);
-    let body =
-        Rect::from_min_max(pos2(bounds.left(), bounds.top() + 44.0), pos2(bounds.right(), (bounds.bottom() - transport_h - 8.0).max(bounds.top() + 80.0)));
+    let body = Rect::from_min_max(bounds.min, pos2(bounds.right(), (bounds.bottom() - transport_h - 8.0).max(bounds.top() + 80.0)));
     let split = body.left() + (body.width() * 0.38).clamp(280.0_f32.min(body.width() * 0.47), 650.0);
     let left = Rect::from_min_max(body.min, pos2(split - 3.0, body.bottom()));
     let right = Rect::from_min_max(pos2(split + 3.0, body.top()), body.max);
@@ -1436,6 +1418,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
         let stream = analysis.filter(|a| a.source.item == item).map_or(workspace.stream, |a| a.source.audio_stream);
         if source_range.duration > Tick::ZERO {
             let changed = map.is_some_and(|(id, _)| workspace.map != Some(id));
+            let inline_actions = viewer.available_width() >= 620.0 && app.session.preedit_job.is_none();
             viewer.horizontal_wrapped(|ui| {
                 ui.label(egui::RichText::new("Preview").strong());
                 ui.separator();
@@ -1460,7 +1443,13 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                         workspace.command(app, "preedit.cancel", json!({}));
                     }
                 }
+                if inline_actions {
+                    preview_actions(ui, app, &mut workspace);
+                }
             });
+            if !inline_actions {
+                preview_actions(&mut viewer, app, &mut workspace);
+            }
             viewer.separator();
             let mut picture = viewer.available_rect_before_wrap();
             picture.max.y = (picture.max.y - 36.0).max(picture.min.y);
@@ -1618,6 +1607,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
             }
         }
     } else {
+        preview_actions(&mut viewer, app, &mut workspace);
         viewer.centered_and_justified(|ui| {
             ui.label("Import media to preview it here.");
         });
