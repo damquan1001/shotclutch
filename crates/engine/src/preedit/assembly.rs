@@ -2,10 +2,12 @@ use std::sync::Arc;
 
 use shotclutch_edit::transcript::{CaptionRules, SeqWord, caption_blocks};
 use shotclutch_project::preedit::*;
-use shotclutch_project::{Caption, CaptionTrack, ClipId, ItemKind, Project, SequenceSettings, TrackId, TrackKind, Transition, TransitionAlign, TransitionId};
+use shotclutch_project::{
+    Caption, CaptionTrack, ClipId, ItemId, ItemKind, Project, SequenceSettings, TrackId, TrackKind, Transition, TransitionAlign, TransitionId,
+};
 use shotclutch_time::{Tick, TimeRange};
 
-use super::{digest, fail};
+use super::fail;
 use crate::Result;
 
 /// Snap edit decisions before persisting them, so the recorded map and the assembly agree.
@@ -39,7 +41,7 @@ pub(super) fn snap_decision(
     Ok(TimeRange::from_bounds(start, end))
 }
 
-pub(super) fn build(project: &mut Project, map_id: u64, map: &PreEditMap, analysis: &PreEditAnalysis) -> Result<PreEditApplication> {
+pub(super) fn build(project: &mut Project, map: &PreEditMap, analysis: &PreEditAnalysis) -> Result<(ItemId, Vec<Vec<ClipId>>)> {
     let source = &analysis.source;
     let item = project.item(source.item).ok_or_else(|| fail("MEDIA_CHANGED: original has been removed"))?;
     let ItemKind::Media(media) = &item.kind else { return Err(fail("MEDIA_CHANGED: original is no longer a media asset")) };
@@ -163,5 +165,5 @@ pub(super) fn build(project: &mut Project, map_id: u64, map: &PreEditMap, analys
     seq.audio_tracks[0].transitions = transitions;
     seq.caption_tracks.extend(captions);
     seq.check().map_err(fail)?;
-    Ok(PreEditApplication { map: map_id, sequence, sequence_digest: digest(seq)?, clips })
+    Ok((sequence, clips))
 }

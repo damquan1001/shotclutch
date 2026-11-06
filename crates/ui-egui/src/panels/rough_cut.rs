@@ -45,8 +45,9 @@ pub struct Workspace {
     text_selection: Option<TimeRange>,
     text_dragging: bool,
     correction: Option<TextCorrection>,
-    script_layout: Option<(u64, bool, u32, u32)>,
-    paragraph_heights: std::collections::BTreeMap<Tick, f32>,
+    script_layout: Option<(u64, u32, u32)>,
+    script_corrections: std::collections::BTreeMap<i64, String>,
+    paragraph_heights: std::collections::BTreeMap<Tick, (u32, f32)>,
     segments: Option<(u64, Arc<[Segment]>)>,
     pub(crate) toggle_requested: bool,
     message: String,
@@ -532,9 +533,10 @@ impl Workspace {
         }
         egui::ScrollArea::vertical().id_salt("rough-cut-script").auto_shrink([false, false]).show(ui, |ui| {
             ui.spacing_mut().item_spacing = vec2(4.0, 7.0);
-            let layout = (id, self.show_cuts, ui.available_width().to_bits(), ui.ctx().pixels_per_point().to_bits());
-            if self.script_layout != Some(layout) {
+            let layout = (map.analysis, ui.available_width().to_bits(), ui.ctx().pixels_per_point().to_bits());
+            if self.script_layout != Some(layout) || self.script_corrections != map.corrections {
                 self.script_layout = Some(layout);
+                self.script_corrections.clone_from(&map.corrections);
                 self.paragraph_heights.clear();
             }
             for chunk in &analysis.chunks {
@@ -553,8 +555,18 @@ impl Workspace {
                     }
                     let Some(first) = words.first() else { continue };
                     any = true;
+                    // Cut decisions only affect wrapping when removed words are hidden.
+                    let hidden = if self.show_cuts {
+                        0
+                    } else {
+                        words.iter().enumerate().fold(0, |mask, (i, word)| {
+                            let midpoint = word.start + Tick(word.range().duration.0 / 2);
+                            mask | (u32::from(!retained_at(segments, midpoint)) << i)
+                        })
+                    };
                     let top = ui.cursor().top();
-                    if let Some(&height) = self.paragraph_heights.get(&first.start)
+                    if let Some(&(previous_hidden, height)) = self.paragraph_heights.get(&first.start)
+                        && previous_hidden == hidden
                         && (top + height < ui.clip_rect().top() || top > ui.clip_rect().bottom())
                     {
                         ui.add_space(height);
@@ -614,7 +626,7 @@ impl Workspace {
                             }
                         });
                     });
-                    self.paragraph_heights.insert(first.start, ui.cursor().top() - top);
+                    self.paragraph_heights.insert(first.start, (hidden, ui.cursor().top() - top));
                 }
             }
             if !any {

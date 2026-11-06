@@ -134,14 +134,39 @@ pub(crate) fn presentation_units(time: shotclutch_time::Tick, num: i64, den: i64
     i64::try_from(units).unwrap_or(if units < 0 { i64::MIN } else { i64::MAX })
 }
 
-/// Find a presentation boundary without assuming decode order or nominal frame spacing.
-pub(crate) fn edit_boundary_units(target: i64, after: bool, exact: bool, timestamps: impl Iterator<Item = i64>) -> Option<i64> {
-    if after {
-        let threshold = if exact { target } else { target.checked_add(1)? };
-        timestamps.filter(|&pts| pts >= threshold).min()
-    } else {
-        timestamps.filter(|&pts| pts <= target).max()
+/// Lazily index timestamps in presentation order. Container sample tables can be in decode order.
+#[derive(Default)]
+pub(crate) struct EditBoundaries(std::sync::OnceLock<Vec<i64>>);
+
+impl EditBoundaries {
+    pub(crate) fn find(&self, target: i64, after: bool, exact: bool, timestamps: impl Iterator<Item = i64>) -> Option<i64> {
+        let pts = self.0.get_or_init(|| {
+            let mut pts: Vec<_> = timestamps.collect();
+            pts.sort_unstable();
+            pts.dedup();
+            pts
+        });
+        if after {
+            let threshold = if exact { target } else { target.checked_add(1)? };
+            pts.get(pts.partition_point(|&p| p < threshold)).copied()
+        } else {
+            let index = pts.partition_point(|&p| p <= target).checked_sub(1)?;
+            Some(pts[index])
+        }
     }
+}
+
+#[test]
+fn edit_boundaries_handle_reordered_and_repeated_timestamps() {
+    let index = EditBoundaries::default();
+    let find = |target, after, exact| index.find(target, after, exact, [20, -5, 10, 10, 7].into_iter());
+    assert_eq!(find(10, true, true), Some(10));
+    assert_eq!(find(10, true, false), Some(20));
+    assert_eq!(find(9, false, false), Some(7));
+    assert_eq!(find(-6, true, true), Some(-5));
+    assert_eq!(find(-6, false, true), None);
+    assert_eq!(find(20, true, false), None);
+    assert_eq!(find(i64::MAX, true, false), None);
 }
 
 /// A container's sync sample for `i` when leading pictures need the GOP before: `sync` is the

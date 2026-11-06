@@ -23,7 +23,7 @@ use shotclutch_media::{AudioStreamInfo, FrameRequest, MediaError, MediaInfo, Med
 use shotclutch_time::{FrameRate, Tick};
 
 use crate::audio::{PacketDecoder, decode_pcm};
-use crate::gop::{GopCache, VideoSamples};
+use crate::gop::{EditBoundaries, GopCache, VideoSamples};
 use crate::stream_color::ColorCodes;
 use crate::video::VideoDecoder;
 use crate::{CodecError, make_video_decoder};
@@ -58,6 +58,7 @@ pub struct MkvSource {
     /// Video codec as an ISO-BMFF sample entry (for the decoder factories).
     ventry: Option<SampleEntry>,
     video: GopCache,
+    edit_boundaries: EditBoundaries,
     /// The alpha layer of a VP8 / VP9 track with `AlphaMode` 1 (WebM transparency, #402).
     alpha: Option<Arc<crate::webm_alpha::AlphaLayer>>,
     /// The playable audio tracks in file order: `info.audio_streams[k]` describes `audios[k]`.
@@ -458,7 +459,17 @@ impl MkvSource {
         });
         let alpha = alpha.map(|t| Arc::new(crate::webm_alpha::AlphaLayer::new(bytes.clone(), t.samples.iter().map(|s| (s.pts, s.addition)))));
         let (num, den) = vtrack.and_then(|i| file.tracks.get(i)).map_or((1, 1), tb);
-        Ok(Self { info, bytes, file, vtrack, ventry, video: GopCache::new(explicit_color).with_rotation(rotation).with_clock(num, den, 0), alpha, audios })
+        Ok(Self {
+            info,
+            bytes,
+            file,
+            vtrack,
+            ventry,
+            edit_boundaries: EditBoundaries::default(),
+            video: GopCache::new(explicit_color).with_rotation(rotation).with_clock(num, den, 0),
+            alpha,
+            audios,
+        })
     }
 
     fn read(&self, track: usize, i: usize) -> crate::Result<Vec<u8>> {
@@ -615,7 +626,7 @@ impl MediaSource for MkvSource {
         let track = &self.file.tracks[self.vtrack?];
         let (num, den) = tb(track);
         let target = crate::gop::presentation_units(time, num, den);
-        let pts = crate::gop::edit_boundary_units(target, after, to_tick(track, target) == time, track.samples.iter().map(|sample| sample.pts))?;
+        let pts = self.edit_boundaries.find(target, after, to_tick(track, target) == time, track.samples.iter().map(|sample| sample.pts))?;
         Some(to_tick(track, pts))
     }
 

@@ -14,7 +14,7 @@ use shotclutch_media::{AudioStreamInfo, FrameRequest, MediaError, MediaInfo, Med
 use shotclutch_time::{FrameRate, Tick};
 
 use crate::audio::{PacketDecoder, decode_pcm};
-use crate::gop::{GopCache, VideoSamples};
+use crate::gop::{EditBoundaries, GopCache, VideoSamples};
 use crate::video::VideoDecoder;
 use crate::{CodecError, make_video_decoder};
 
@@ -53,6 +53,7 @@ pub struct Mp4Source {
     file: Mp4File,
     vtrack: Option<usize>,
     video: GopCache,
+    edit_boundaries: EditBoundaries,
     /// Grid validated across the full sample table, rather than the metadata's median rate.
     lookup_rate: Option<FrameRate>,
     /// The playable audio tracks in file order: `info.audio_streams[k]` describes `audios[k]`.
@@ -378,6 +379,7 @@ impl Mp4Source {
             bytes,
             file,
             vtrack,
+            edit_boundaries: EditBoundaries::default(),
             video: GopCache::new(explicit_color).with_rotation(rotation).with_crop(aperture).with_clock(1, timebase, origin),
             lookup_rate,
             audios,
@@ -492,7 +494,7 @@ impl MediaSource for Mp4Source {
         let track = &self.file.tracks[self.vtrack?];
         let scale = i64::from(track.timescale);
         let target = crate::gop::presentation_units(time, 1, scale);
-        let pts = crate::gop::edit_boundary_units(target, after, Tick::from_rational(target, 1, scale) == time, track.samples.iter().map(|sample| sample.pts))?;
+        let pts = self.edit_boundaries.find(target, after, Tick::from_rational(target, 1, scale) == time, track.samples.iter().map(|sample| sample.pts))?;
         Some(Tick::from_rational(pts, 1, scale))
     }
 

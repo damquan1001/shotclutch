@@ -446,8 +446,11 @@ struct WordCorrection {
 
 fn review(s: &mut Session, value: &Value) -> Result<Value> {
     let req: Review = typed(value)?;
-    if s.revision != req.expected_revision || current_revision(&s.project.preedit, req.map) != req.map {
+    if s.revision != req.expected_revision || current_revision(&s.project.preedit, req.map) != req.map || s.trim_play.active() {
         return Err(fail("REVISION_CONFLICT: rough-cut review changed; refresh the workspace"));
+    }
+    if s.edit_group_depth != 0 {
+        return Err(fail("INVALID_ARGUMENT: review edits cannot be nested in command groups"));
     }
     let mut map = s.project.preedit.maps.get(&req.map).map(|m| (**m).clone()).ok_or_else(|| fail("NOT_FOUND: rough-cut map"))?;
     let analysis = &s.project.preedit.analyses[&map.analysis];
@@ -573,12 +576,14 @@ fn review(s: &mut Session, value: &Value) -> Result<Value> {
     if map.overrides.len() > 4096 {
         return Err(fail("RESOURCE_LIMIT: too many rough-cut decisions"));
     }
-    let mut project = (*s.project).clone();
-    project.next_id = project.next_id.max(s.id_watermark);
-    let id = project.alloc_id();
-    project.preedit.maps.insert(id, Arc::new(map));
-    let prepared = s.prepare_project("Review Smart Cut", project, vec![json!({"map": id.to_string()})])?;
-    s.commit_edits(prepared).map_err(|e| fail(e.to_string()))?.pop().ok_or_else(|| fail("INTERNAL_ERROR: missing review receipt"))
+    // Review gestures use the same undo and background recovery path as timeline edits.
+    // Waiting for an atomic snapshot of the whole document here blocks the UI on every click.
+    s.edit("Review Smart Cut", move |project, _| {
+        let id = project.alloc_id();
+        project.preedit.maps.insert(id, Arc::new(map));
+        project.preedit.check().map_err(fail)?;
+        Ok(json!({"map":id.to_string()}))
+    })
 }
 
 fn automatic_cuts(map: &PreEditMap, analysis: &PreEditAnalysis, source: &dyn shotclutch_media::MediaSource) -> Arc<Vec<Override>> {
@@ -759,7 +764,9 @@ fn commit_application(s: &mut Session, req: Apply, verified: Option<VerifiedOrig
     verify_edit_boundaries(s, map, saved)?;
     let mut project = (*s.project).clone();
     project.next_id = project.next_id.max(s.id_watermark);
-    let mut application = assembly::build(&mut project, req.map, map, saved)?;
+    let (sequence, clips) = assembly::build(&mut project, map, saved)?;
+    let sequence_digest = digest(project.sequence(sequence).ok_or_else(|| fail("INTERNAL_ERROR: missing assembly sequence"))?)?;
+    let mut application = PreEditApplication { map: req.map, sequence, sequence_digest, clips };
     if let Some(replace) = req.replace {
         let previous = s.project.preedit.applications.get(&replace).ok_or_else(|| fail("NOT_FOUND: generated application to replace"))?;
         let (_, previous_source) = records(s, previous.map)?;
@@ -841,8 +848,8 @@ pub fn preview(s: &Session, map: u64) -> Result<(Arc<shotclutch_project::Project
     let (record, analysis) = records(s, map)?;
     verify_edit_boundaries(s, record, analysis)?;
     let mut project = (*s.project).clone();
-    let result = assembly::build(&mut project, map, record, analysis)?;
-    Ok((Arc::new(project), result.sequence))
+    let (sequence, _) = assembly::build(&mut project, record, analysis)?;
+    Ok((Arc::new(project), sequence))
 }
 
 fn export_clip(s: &mut Session, value: &Value) -> Result<Value> {
@@ -866,7 +873,7 @@ fn export_clip(s: &mut Session, value: &Value) -> Result<Value> {
     analysis.source.range = assembly::snap_decision(video.as_deref(), audio.sample_rate, analysis.source.range, req.range.parse()?, false)?;
     let selection = PreEditMap { automatic: None, overrides: Vec::new(), ..map.clone() };
     let mut project = (*s.project).clone();
-    let seq = assembly::build(&mut project, req.map, &selection, &analysis)?.sequence;
+    let (seq, _) = assembly::build(&mut project, &selection, &analysis)?;
     let (format, ext) = if video.is_some() { (shotclutch_export::Format::H264, "mp4") } else { (shotclutch_export::Format::Wav, "wav") };
     let path = PathBuf::from(req.path).with_extension(ext).to_string_lossy().into_owned();
     let settings = shotclutch_export::ExportSettings { format, path, ..Default::default() };
