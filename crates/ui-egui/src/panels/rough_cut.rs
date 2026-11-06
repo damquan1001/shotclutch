@@ -156,7 +156,27 @@ impl Workspace {
         }
     }
 
-    fn inputs(&mut self, app: &mut ShotClutchApp, ui: &mut Ui) {
+    fn saved_analysis_map(&self, app: &ShotClutchApp) -> Option<u64> {
+        self.map.filter(|id| {
+            app.session
+                .project
+                .preedit
+                .maps
+                .get(id)
+                .and_then(|map| app.session.project.preedit.analyses.get(&map.analysis))
+                .is_some_and(|analysis| analysis.status == AnalysisStatus::Complete)
+        })
+    }
+
+    fn update_cut(&mut self, app: &mut ShotClutchApp, id: u64) {
+        self.review(app, id, json!({"kind":"cleanUp","options":self.cleanup_options(true)}));
+        if self.map != Some(id) {
+            self.original = false;
+            self.tab = ReviewTab::Script;
+        }
+    }
+
+    fn inputs(&mut self, app: &mut ShotClutchApp, ui: &mut Ui, compact: bool) {
         let items: Vec<_> = app
             .session
             .project
@@ -176,9 +196,21 @@ impl Workspace {
                 .or_else(|| items.first().map(|(id, _)| *id));
         }
         let running = app.session.preedit_job.is_some();
+        let tokens = app.tokens;
+        ui.horizontal_wrapped(|ui| {
+            section_title(ui, &tokens, "01", "Source");
+            if ui.add_enabled(!running, egui::Button::new("Import media…")).clicked() {
+                if let Err(error) = crate::menus::invoke(app, ui.ctx(), "file.import", json!({})) {
+                    self.message = error;
+                }
+            }
+        });
+        ui.add_space(4.0);
         let before = self.source;
         ui.add_enabled_ui(!running, |ui| {
             egui::ComboBox::from_id_salt("rough-cut-source")
+                .width((ui.available_width() - 20.0).max(80.0))
+                .truncate()
                 .selected_text(items.iter().find(|(id, _)| Some(*id) == self.source).map_or("Select media", |(_, name)| name))
                 .show_ui(ui, |ui| {
                     for (id, name) in &items {
@@ -202,15 +234,32 @@ impl Workspace {
             self.result = None;
         }
         let Some(item) = self.source else {
-            ui.label("Import an audio or video original to get started.");
+            ui.label(egui::RichText::new("Import a clip with audio to create a transcript and rough cut.").color(tokens.text_dim));
             return;
         };
         let Some(media) = app.session.project.item(item).and_then(|item| item.as_media()) else { return };
         let duration = media.duration();
         let streams = media.info.audio_streams.clone();
         self.stream = self.stream.min(streams.len().saturating_sub(1));
+        ui.horizontal_wrapped(|ui| {
+            ui.add_enabled_ui(!running, |ui| {
+                egui::ComboBox::from_id_salt("rough-cut-audio").selected_text(format!("Audio stream {}", self.stream + 1)).show_ui(ui, |ui| {
+                    for (index, stream) in streams.iter().enumerate() {
+                        ui.selectable_value(&mut self.stream, index, format!("{} · {} channels · {} Hz", index + 1, stream.channels, stream.sample_rate));
+                    }
+                });
+                ui.checkbox(&mut self.silence_only, "Silence only");
+                if ui.button("Audition stream").clicked() {
+                    let start = if app.session.state.source_item == Some(item) { app.session.state.source_playhead } else { Tick::ZERO };
+                    let end = (start + Tick(10 * TICKS_PER_SECOND)).min(duration);
+                    if end > start {
+                        self.audition(app, item, self.stream, TimeRange::from_bounds(start, end));
+                    }
+                }
+            });
+        });
         ui.add_enabled_ui(!running, |ui| {
-            ui.collapsing("Analysis settings", |ui| {
+            ui.collapsing("Advanced source settings", |ui| {
                 ui.horizontal_wrapped(|ui| {
                     ui.label("Source start / end (seconds)");
                     ui.add(egui::TextEdit::singleline(&mut self.selection_start).desired_width(55.0));
@@ -235,73 +284,55 @@ impl Workspace {
                 });
             });
         });
-        ui.horizontal_wrapped(|ui| {
-            ui.add_enabled_ui(!running, |ui| {
-                egui::ComboBox::from_id_salt("rough-cut-audio").selected_text(format!("Audio stream {}", self.stream + 1)).show_ui(ui, |ui| {
-                    for (index, stream) in streams.iter().enumerate() {
-                        ui.selectable_value(&mut self.stream, index, format!("{} · {} channels · {} Hz", index + 1, stream.channels, stream.sample_rate));
-                    }
+        ui.add_space(8.0);
+        ui.separator();
+        section_title(ui, &tokens, "02", "Speech cleanup");
+        ui.add_enabled_ui(!running, |ui| {
+            ui.add_enabled_ui(!self.silence_only, |ui| {
+                cleanup_option(ui, &tokens, &mut self.cleanup.cut_bad_takes, "Remove repeated takes", "Cut matching attempts and repeated openings.");
+                cleanup_option(ui, &tokens, &mut self.cleanup.cut_fillers, "Remove fillers", "Cut hesitation sounds such as “um” and “uh.”");
+            });
+            cleanup_option(ui, &tokens, &mut self.cleanup.cut_pauses, "Trim silences and pauses", "Shorten quiet gaps while keeping breathing room.");
+            ui.add_enabled_ui(self.cleanup.cut_pauses, |ui| {
+                ui.horizontal_wrapped(|ui| {
+                    ui.add(egui::DragValue::new(&mut self.pause_ms).range(200..=10_000).prefix("Minimum pause ").suffix(" ms"));
+                    ui.add(egui::DragValue::new(&mut self.handle_ms).range(0..=1000).prefix("Padding ").suffix(" ms"))
+                        .on_hover_text("Audio kept at each end of a trimmed pause");
                 });
-                ui.checkbox(&mut self.silence_only, "Silence only");
-                if ui.button("Audition stream").clicked() {
-                    let start = if app.session.state.source_item == Some(item) { app.session.state.source_playhead } else { Tick::ZERO };
-                    let end = (start + Tick(10 * TICKS_PER_SECOND)).min(duration);
-                    if end > start {
-                        self.audition(app, item, self.stream, TimeRange::from_bounds(start, end));
-                    }
-                }
             });
         });
         ui.add_space(8.0);
-        ui.label(egui::RichText::new("Speech cleanup").strong());
-        ui.add_enabled_ui(!running, |ui| {
-            ui.horizontal_wrapped(|ui| {
-                ui.add_enabled(!self.silence_only, egui::Checkbox::new(&mut self.cleanup.cut_bad_takes, "Bad takes"));
-                ui.add_enabled(!self.silence_only, egui::Checkbox::new(&mut self.cleanup.cut_fillers, "Fillers"));
-                ui.checkbox(&mut self.cleanup.cut_pauses, "Silence and pauses");
-            });
-            ui.horizontal_wrapped(|ui| {
-                ui.add(egui::DragValue::new(&mut self.pause_ms).range(200..=10_000).prefix("Minimum pause ").suffix(" ms"));
-                ui.add(egui::DragValue::new(&mut self.handle_ms).range(0..=1000).prefix("Pause padding ").suffix(" ms"));
-            });
-        });
+        ui.separator();
+        section_title(ui, &tokens, "03", "Process");
+        let saved = self.saved_analysis_map(app);
         ui.horizontal_wrapped(|ui| {
             if running {
                 if ui.button("Cancel analysis").clicked() {
                     self.command(app, "preedit.cancel", json!({}));
                 }
             } else {
+                if let Some(id) = saved.filter(|_| !compact) {
+                    let recut = ui
+                        .add(primary_button(&tokens, "Update cut", true))
+                        .on_hover_text("Apply these settings to the saved analysis without transcribing again");
+                    app.auto.add_response("roughCut.cleanUpSaved", &recut, "Update cut");
+                    if recut.clicked() {
+                        self.update_cut(app, id);
+                    }
+                }
                 let label = if self.silence_only { "Analyze & cut pauses" } else { "Transcribe & cut" };
-                let cut = ui.button(label);
-                app.auto.add_response("roughCut.transcribeAndCut", &cut, label);
-                if cut.clicked() {
-                    self.start(app, None, true);
+                if !compact || saved.is_some() {
+                    let cut = ui.add(primary_button(&tokens, label, saved.is_none()));
+                    app.auto.add_response("roughCut.transcribeAndCut", &cut, label);
+                    if cut.clicked() {
+                        self.start(app, None, true);
+                    }
                 }
                 if !self.silence_only {
                     let transcribe = ui.button("Transcribe only").on_hover_text("Create a timed script without automatic cuts");
                     app.auto.add_response("roughCut.transcribeOnly", &transcribe, "Transcribe only");
                     if transcribe.clicked() {
                         self.start(app, None, false);
-                    }
-                }
-                if let Some(id) = self.map
-                    && app
-                        .session
-                        .project
-                        .preedit
-                        .maps
-                        .get(&id)
-                        .and_then(|map| app.session.project.preedit.analyses.get(&map.analysis))
-                        .is_some_and(|analysis| analysis.status == AnalysisStatus::Complete)
-                {
-                    let recut = ui.button("Clean up saved analysis").on_hover_text("Apply these cleanup settings to the saved source range and audio stream");
-                    app.auto.add_response("roughCut.cleanUpSaved", &recut, "Clean up saved analysis");
-                    if recut.clicked() {
-                        self.review(app, id, json!({"kind":"cleanUp","options":self.cleanup_options(true)}));
-                        if self.map != Some(id) {
-                            self.original = false;
-                            self.tab = ReviewTab::Script;
-                        }
                     }
                 }
                 if let Some((&id, record)) = app
@@ -355,7 +386,11 @@ impl Workspace {
                 AnalysisStatus::Canceled => "Canceled",
                 AnalysisStatus::Failed => "Failed",
             };
-            ui.add(egui::ProgressBar::new(fraction).text(format!("{state} · {:.1}s covered", covered.0 as f64 / TICKS_PER_SECOND as f64)));
+            if running {
+                ui.add(egui::ProgressBar::new(fraction).text(format!("{state} · {} analyzed", time_label(covered))));
+            } else {
+                ui.label(egui::RichText::new(format!("{state} · {} analyzed", time_label(covered))).color(tokens.text_dim));
+            }
         } else if running {
             ui.label("Verifying the source and opening the selected stream…");
         }
@@ -372,9 +407,10 @@ impl Workspace {
 
     fn script(&mut self, app: &mut ShotClutchApp, ui: &mut Ui, id: u64, analysis: &PreEditAnalysis, segments: &[Segment]) {
         ui.horizontal(|ui| {
-            ui.add(egui::TextEdit::singleline(&mut self.search).hint_text("Find in script").desired_width(ui.available_width()));
+            ui.add(egui::TextEdit::singleline(&mut self.search).hint_text("Find in transcript").desired_width(ui.available_width()));
         });
-        ui.add_space(10.0);
+        ui.label(egui::RichText::new("Click a word to seek. Right-click to cut or restore.").small().color(app.tokens.text_dim));
+        ui.add_space(4.0);
         let query = self.search.to_lowercase();
         let mut seek = None;
         let mut action = None;
@@ -405,7 +441,6 @@ impl Workspace {
                             let response = ui.add(egui::Label::new(label).sense(egui::Sense::click()));
                             if response.clicked() {
                                 seek = Some(word.start);
-
                             }
                             response.on_hover_text("Click to seek · right-click to remove or restore").context_menu(|ui| {
                                 for (label, decision) in [("Keep / restore word", "Keep"), ("Remove word", "Remove")] {
@@ -462,7 +497,9 @@ impl Workspace {
         if let Some((texture, size)) =
             app.texture_existing("rough-cut-original").filter(|_| app.texture_key("rough-cut-original").is_some_and(|shown| shown.target == key.target))
         {
-            ui.add(egui::Image::new((texture, size)).max_size(ui.available_size()));
+            ui.vertical_centered(|ui| {
+                ui.add(egui::Image::new((texture, size)).max_size(ui.available_size()));
+            });
         } else {
             ui.label("Loading original frame…");
         }
@@ -527,7 +564,9 @@ impl Workspace {
                 app.texture_existing("rough-cut-result").filter(|_| app.texture_key("rough-cut-result").is_some_and(|shown| shown.revision == key.revision))
             {
                 let available = ui.available_size();
-                ui.add(egui::Image::new((texture, size)).max_size(available));
+                ui.vertical_centered(|ui| {
+                    ui.add(egui::Image::new((texture, size)).max_size(available));
+                });
             } else {
                 ui.label("Loading result frame…");
                 ui.ctx().request_repaint_after(std::time::Duration::from_millis(30));
@@ -712,7 +751,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
         };
     }
 
-    let bounds = rect.shrink2(vec2(16.0, 10.0));
+    let bounds = rect.shrink2(vec2(10.0, 8.0));
     let mut header = ui.new_child(egui::UiBuilder::new().max_rect(Rect::from_min_max(bounds.min, pos2(bounds.right(), bounds.top() + 40.0))));
     if let Some(result) = app.session.preedit_apply_result.take() {
         match result {
@@ -731,20 +770,82 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
     let project = app.session.project.clone();
     let current =
         project.preedit.maps.iter().rev().find(|(_, map)| project.preedit.analyses.get(&map.analysis).is_some_and(|a| Some(a.source.item) == workspace.source));
+    let map = current.map(|(&id, map)| (id, &**map));
+    let analysis = map.map(|(_, map)| &*project.preedit.analyses[&map.analysis]);
+    let segments = map.zip(analysis).and_then(|((_, map), analysis)| map.segments(analysis.source.range).ok()).unwrap_or_default();
+    let duration = segments.last().map_or(Tick::ZERO, |segment| segment.output.end());
+    let tokens = app.tokens;
+    let can_open = map.is_some_and(|(_, map)| (map.automatic.is_some() || map.reviewed) && map.conflicts.is_empty())
+        && duration > Tick::ZERO
+        && app.session.preedit_apply.is_none();
+    let previous = project
+        .preedit
+        .applications
+        .iter()
+        .rev()
+        .find(|(_, application)| {
+            project.sequence(application.sequence).is_some()
+                && project
+                    .preedit
+                    .maps
+                    .get(&application.map)
+                    .and_then(|old| project.preedit.analyses.get(&old.analysis))
+                    .is_some_and(|old| Some(old.source.item) == workspace.source)
+        })
+        .map(|(&id, _)| id);
     header.horizontal(|ui| {
-        ui.label(egui::RichText::new("Smart Rough Cut").size(18.0).strong());
+        ui.label(egui::RichText::new("Smart Rough Cut").size(16.0).strong());
         if let Some(item) = workspace.source.and_then(|id| project.item(id)) {
             ui.separator();
-            ui.add_sized(vec2((bounds.width() * 0.4).max(80.0), 22.0), egui::Label::new(&item.name).truncate());
+            ui.add_sized(vec2((bounds.width() * 0.23).clamp(65.0, 350.0), 24.0), egui::Label::new(&item.name).truncate());
+        }
+        if bounds.width() > 820.0 {
+            let status = if app.session.preedit_apply.is_some() {
+                "Opening in editor…"
+            } else if app.session.preedit_job.is_some() {
+                "Processing…"
+            } else if can_open {
+                "Cut ready"
+            } else if map.is_some() {
+                "Review cut"
+            } else {
+                "Setup"
+            };
+            ui.label(egui::RichText::new(status).color(if can_open { tokens.accent_hover } else { tokens.text_dim }));
         }
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            if ui.button("Editing workspace").clicked() {
-                workspace.stop(app.audio.as_deref_mut());
-                app.stop_source();
-                app.set_workspace("Editing");
+            let open = ui
+                .add_enabled(can_open, primary_button(&tokens, "Open in editor", true))
+                .on_disabled_hover_text("Generate a cut with retained material first.");
+            app.auto.add_response("roughCut.openInEditor", &open, "Open in editor");
+            if open.clicked()
+                && let Some((id, _)) = map
+            {
+                workspace.open_in_editor(app, id, None);
             }
-            for (label, command, enabled) in [("Redo", "edit.redo", app.session.history.can_redo()), ("Undo", "edit.undo", app.session.history.can_undo())] {
-                if ui.add_enabled(enabled && app.session.preedit_apply.is_none(), egui::Button::new(label)).clicked() {
+            ui.menu_button("More", |ui| {
+                if ui.button("Back to editing workspace").clicked() {
+                    workspace.stop(app.audio.as_deref_mut());
+                    app.stop_source();
+                    app.set_workspace("Editing");
+                    ui.close();
+                }
+                if let (Some(previous), Some((id, _))) = (previous, map)
+                    && ui.add_enabled(can_open, egui::Button::new("Replace previous sequence")).clicked()
+                {
+                    workspace.open_in_editor(app, id, Some(previous));
+                    ui.close();
+                }
+            })
+            .response
+            .on_hover_text("Workspace actions");
+            ui.separator();
+            for (icon, label, command, enabled) in
+                [(Icon::Redo, "Redo", "edit.redo", app.session.history.can_redo()), (Icon::Undo, "Undo", "edit.undo", app.session.history.can_undo())]
+            {
+                let response =
+                    ui.add_enabled_ui(enabled && app.session.preedit_apply.is_none(), |ui| icons::button(ui, icon, 24.0, false, &tokens, label)).inner;
+                if response.clicked() {
                     workspace.stop(app.audio.as_deref_mut());
                     app.stop_source();
                     workspace.command(app, command, json!({}));
@@ -752,36 +853,38 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
             }
         });
     });
-    let transport_h = (bounds.height() * 0.24).clamp(180.0, 220.0);
+    let transport_h = (bounds.height() * 0.24).clamp(170.0, 220.0);
     let body =
         Rect::from_min_max(pos2(bounds.left(), bounds.top() + 44.0), pos2(bounds.right(), (bounds.bottom() - transport_h - 8.0).max(bounds.top() + 80.0)));
-    let split = body.left() + body.width() * 0.49;
-    let left = Rect::from_min_max(body.min, pos2(split - 10.0, body.bottom()));
-    let right = Rect::from_min_max(pos2(split + 10.0, body.top()), body.max);
-    let bottom = Rect::from_min_max(pos2(bounds.left(), body.bottom() + 12.0), bounds.max);
+    let split = body.left() + (body.width() * 0.38).clamp(280.0_f32.min(body.width() * 0.47), 650.0);
+    let left = Rect::from_min_max(body.min, pos2(split - 3.0, body.bottom()));
+    let right = Rect::from_min_max(pos2(split + 3.0, body.top()), body.max);
+    let bottom = Rect::from_min_max(pos2(bounds.left(), body.bottom() + 6.0), bounds.max);
     app.auto.add("roughCut.scriptPane", left, "Script pane");
     app.auto.add("roughCut.viewer", right, "Video preview");
     app.auto.add("roughCut.transport", bottom, "Review transport");
-    ui.painter().rect_filled(left, 8.0, app.tokens.field_bg);
-    ui.painter().line_segment([bottom.left_top(), bottom.right_top()], (1.0, app.tokens.separator));
+    for panel in [left, right, bottom] {
+        ui.painter().rect(panel, 2.0, tokens.panel_bg, (1.0, tokens.separator), egui::StrokeKind::Inside);
+    }
     let mut left_ui = ui.new_child(egui::UiBuilder::new().max_rect(left.shrink(12.0)));
     left_ui.set_clip_rect(left);
     left_ui.horizontal(|ui| {
-        for (tab, id, label) in [(ReviewTab::Script, "script", "Script"), (ReviewTab::Files, "files", "Files & analysis")] {
-            let response = ui.selectable_value(&mut workspace.tab, tab, label);
+        let has_analysis = analysis.is_some();
+        for (tab, id, label) in [(ReviewTab::Script, "script", "Transcript"), (ReviewTab::Files, "files", "Setup")] {
+            let selected = if has_analysis { workspace.tab == tab } else { tab == ReviewTab::Files };
+            let response = ui.add_enabled(has_analysis || tab == ReviewTab::Files, egui::Button::selectable(selected, label));
+            if response.clicked() {
+                workspace.tab = tab;
+            }
             app.auto.add_response(&format!("roughCut.tab.{id}"), &response, label);
         }
     });
     left_ui.separator();
-    let mut viewer = ui.new_child(egui::UiBuilder::new().max_rect(right));
+    let mut viewer = ui.new_child(egui::UiBuilder::new().max_rect(right.shrink2(vec2(10.0, 8.0))));
     viewer.set_clip_rect(right);
-    let mut transport = ui.new_child(egui::UiBuilder::new().max_rect(bottom.shrink2(vec2(0.0, 8.0))));
+    let mut transport = ui.new_child(egui::UiBuilder::new().max_rect(bottom.shrink2(vec2(10.0, 8.0))));
     transport.set_clip_rect(bottom);
 
-    let map = current.map(|(&id, map)| (id, &**map));
-    let analysis = map.map(|(_, map)| &*project.preedit.analyses[&map.analysis]);
-    let segments = map.zip(analysis).and_then(|((_, map), analysis)| map.segments(analysis.source.range).ok()).unwrap_or_default();
-    let duration = segments.last().map_or(Tick::ZERO, |segment| segment.output.end());
     if let Some((id, map)) = map {
         workspace.map = Some(id);
         let analysis_mode = (map.analysis, map.automatic.is_some());
@@ -824,18 +927,29 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
         }
         workspace.script(app, &mut left_ui, id, analysis, &segments);
     } else {
-        egui::ScrollArea::vertical().id_salt("rough-cut-files").show(&mut left_ui, |ui| {
-            if map.is_none() {
-                ui.heading("Start a smart cut");
-                ui.label("Choose your source. Cleanup opens the cut automatically when processing finishes.");
-                ui.add_space(8.0);
-            }
-            if ui.button("Import media…").clicked() {
-                if let Err(error) = crate::menus::invoke(app, ui.ctx(), "file.import", json!({})) {
-                    workspace.message = error;
+        let compact = left.height() < 510.0;
+        if compact && workspace.source.is_some() && app.session.preedit_job.is_none() {
+            let saved = workspace.saved_analysis_map(app);
+            let (id, label) = if saved.is_some() {
+                ("roughCut.cleanUpSaved", "Update cut")
+            } else if workspace.silence_only {
+                ("roughCut.transcribeAndCut", "Analyze & cut pauses")
+            } else {
+                ("roughCut.transcribeAndCut", "Transcribe & cut")
+            };
+            let response = left_ui.add(primary_button(&tokens, label, true));
+            app.auto.add_response(id, &response, label);
+            if response.clicked() {
+                if let Some(id) = saved {
+                    workspace.update_cut(app, id);
+                } else {
+                    workspace.start(app, None, true);
                 }
             }
-            workspace.inputs(app, ui);
+            left_ui.add_space(5.0);
+        }
+        egui::ScrollArea::vertical().id_salt("rough-cut-files").show(&mut left_ui, |ui| {
+            workspace.inputs(app, ui, compact);
         });
     }
 
@@ -847,13 +961,23 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
         if source_range.duration > Tick::ZERO {
             let changed = map.is_some_and(|(id, _)| workspace.map != Some(id));
             viewer.horizontal_wrapped(|ui| {
-                ui.label(if workspace.original { "Original" } else { "Smart cut" });
+                ui.label(egui::RichText::new("Preview").strong());
                 ui.separator();
-                let total = if workspace.original { source_range.duration } else { duration };
-                ui.label(time_label(total));
+                let original = ui.selectable_label(workspace.original, "Original");
+                let result = ui.add_enabled(duration > Tick::ZERO, egui::Button::selectable(!workspace.original, "Result"));
+                app.auto.add_response("roughCut.preview.original", &original, "Original preview");
+                app.auto.add_response("roughCut.preview.result", &result, "Result preview");
+                // Keep the existing preview-toggle automation target.
+                app.auto.add_response("roughCut.skipCuts", if workspace.original { &result } else { &original }, "Switch preview");
+                if (original.clicked() && !workspace.original) || (result.clicked() && workspace.original) {
+                    workspace.stop(app.audio.as_deref_mut());
+                    app.stop_source();
+                    workspace.original = original.clicked();
+                    workspace.seek(app, item, &segments, workspace.cursor);
+                }
                 if map.is_some() {
                     let cuts = cut_count(&segments, source_range);
-                    ui.label(format!("{cuts} cuts · {} saved", time_label(source_range.duration - duration)));
+                    ui.label(egui::RichText::new(format!("{cuts} cuts · {} saved", time_label(source_range.duration - duration))).color(tokens.text_dim));
                 }
                 if app.session.preedit_job.is_some() {
                     ui.spinner();
@@ -863,10 +987,11 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                     }
                 }
             });
-            viewer.add_space(8.0);
+            viewer.separator();
             let mut picture = viewer.available_rect_before_wrap();
             picture.max.y = (picture.max.y - 36.0).max(picture.min.y);
             viewer.scope_builder(egui::UiBuilder::new().max_rect(picture), |ui| {
+                ui.painter().rect_filled(picture, 1.0, tokens.field_bg);
                 if workspace.original {
                     if app.session.state.source_item != Some(item) {
                         workspace.seek_source(app, item, workspace.cursor.clamp(source_range.start, source_range.end()));
@@ -911,17 +1036,10 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                 ui.monospace(format!("{} / {}", time_label(elapsed), time_label(if workspace.original { source_range.duration } else { duration })));
             });
             transport.horizontal_wrapped(|ui| {
+                ui.label(egui::RichText::new("Source timeline").strong());
+                ui.separator();
                 let cuts = ui.checkbox(&mut workspace.show_cuts, "Show cuts");
                 app.auto.add_response("roughCut.showCuts", &cuts, "Show cuts");
-                let mut skip = !workspace.original;
-                let response = ui.add_enabled(duration > Tick::ZERO, egui::Checkbox::new(&mut skip, "Skip cuts"));
-                app.auto.add_response("roughCut.skipCuts", &response, "Skip cuts");
-                if response.changed() {
-                    workspace.stop(app.audio.as_deref_mut());
-                    app.stop_source();
-                    workspace.original = !skip;
-                    workspace.seek(app, item, &segments, workspace.cursor);
-                }
                 ui.add(egui::Slider::new(&mut workspace.zoom, 1.0..=64.0).logarithmic(true).show_value(false).text("Zoom"));
             });
             if toggle && !changed {
@@ -935,6 +1053,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                 let cut = cut_at(&segments, source_range, workspace.cursor);
                 let mut action = None;
                 transport.horizontal_wrapped(|ui| {
+                    ui.label(egui::RichText::new("Marked range").color(tokens.text_dim));
                     if ui.button("Set in").clicked() {
                         workspace.mark_in = Some(workspace.cursor);
                     }
@@ -953,7 +1072,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                     if ui.add_enabled(restore.is_some(), egui::Button::new("Restore range")).clicked() {
                         action = restore.map(|range| range_action(range, "Keep"));
                     }
-                    if ui.small_button("Clear marks").clicked() {
+                    if ui.small_button("Clear range").clicked() {
                         workspace.mark_in = None;
                         workspace.mark_out = None;
                     }
@@ -964,25 +1083,6 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                             .clicked()
                     {
                         action = Some(json!({"kind":"clearConflicts"}));
-                    }
-                    let can_open =
-                        (map.automatic.is_some() || map.reviewed) && map.conflicts.is_empty() && duration > Tick::ZERO && app.session.preedit_apply.is_none();
-                    let response = ui.add_enabled(can_open, egui::Button::new("Open in editor"));
-                    app.auto.add_response("roughCut.openInEditor", &response, "Open in editor");
-                    if response.clicked() {
-                        workspace.open_in_editor(app, id, None);
-                    }
-                    if let Some((&previous, _)) = project.preedit.applications.iter().rev().find(|(_, application)| {
-                        project.sequence(application.sequence).is_some()
-                            && project
-                                .preedit
-                                .maps
-                                .get(&application.map)
-                                .and_then(|old| project.preedit.analyses.get(&old.analysis))
-                                .is_some_and(|old| old.source.item == item)
-                    }) && ui.add_enabled(can_open, egui::Button::new("Replace previous sequence")).clicked()
-                    {
-                        workspace.open_in_editor(app, id, Some(previous));
                     }
                 });
                 if let Some(action) = action {
@@ -1032,6 +1132,30 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
         transport.label(&workspace.message);
     }
     app.rough_cut = workspace;
+}
+
+fn section_title(ui: &mut Ui, tokens: &crate::theme::Tokens, number: &str, label: &str) {
+    ui.horizontal(|ui| {
+        ui.label(egui::RichText::new(number).monospace().color(tokens.text_dim));
+        ui.label(egui::RichText::new(label).size(14.0).strong());
+    });
+}
+
+fn cleanup_option(ui: &mut Ui, tokens: &crate::theme::Tokens, enabled: &mut bool, label: &str, description: &str) {
+    ui.checkbox(enabled, label);
+    ui.horizontal(|ui| {
+        ui.add_space(ui.spacing().icon_width + ui.spacing().icon_spacing);
+        ui.label(egui::RichText::new(description).small().color(tokens.text_dim));
+    });
+    ui.add_space(3.0);
+}
+
+fn primary_button<'a>(tokens: &crate::theme::Tokens, label: &'a str, primary: bool) -> egui::Button<'a> {
+    if primary {
+        egui::Button::new(egui::RichText::new(label).strong().color(egui::Color32::WHITE)).fill(tokens.accent).min_size(vec2(0.0, 26.0))
+    } else {
+        egui::Button::new(label)
+    }
 }
 
 fn review_frame_grace(rate: shotclutch_time::FrameRate) -> i64 {
@@ -1096,30 +1220,45 @@ fn waveform(
     selected: Option<TimeRange>,
     show_cuts: bool,
 ) -> (Option<Tick>, Option<TimeRange>) {
-    let (rect, response) = ui.allocate_exact_size(vec2(ui.available_width(), 76.0), egui::Sense::click_and_drag());
-    app.auto.add_response("roughCut.waveform", &response, "Source waveform");
-    let painter = ui.painter().with_clip_rect(rect);
+    let (strip, _) = ui.allocate_exact_size(vec2(ui.available_width(), 94.0), egui::Sense::hover());
     let tokens = app.tokens;
-    painter.rect_filled(rect, 4.0, tokens.field_bg);
+    let label_width = 72.0_f32.min(strip.width() * 0.2);
+    let rect = Rect::from_min_max(pos2(strip.left() + label_width, strip.top()), strip.max);
+    let response = ui.interact(rect, ui.make_persistent_id("rough-cut-waveform"), egui::Sense::click_and_drag());
+    app.auto.add_response("roughCut.waveform", &response, "Source waveform");
+    let painter = ui.painter().with_clip_rect(strip);
+    painter.rect_filled(strip, 2.0, tokens.field_bg);
+    for (label, y) in [("Cuts", 35.0), ("Audio", 68.0)] {
+        painter.text(pos2(strip.left() + 8.0, strip.top() + y), egui::Align2::LEFT_CENTER, label, egui::FontId::proportional(12.0), tokens.text_dim);
+    }
+    painter.line_segment([rect.left_top(), rect.left_bottom()], (1.0, tokens.separator));
+    let painter = painter.with_clip_rect(rect);
     let x = |t: Tick| rect.left() + rect.width() * (t - window.start).0 as f32 / window.duration.0 as f32;
     let time_at =
         |pointer: egui::Pos2| window.start + Tick((window.duration.0 as f64 * f64::from(((pointer.x - rect.left()) / rect.width()).clamp(0.0, 1.0))) as i64);
-    let lane = |range: TimeRange| Rect::from_min_max(pos2(x(range.start), rect.top() + 19.0), pos2(x(range.end()), rect.bottom()));
-    if show_cuts {
-        painter.rect_filled(rect, 4.0, tokens.field_border);
-    }
+    let lane_top = rect.top() + 25.0;
+    let audio_top = rect.top() + 46.0;
+    let lane = |range: TimeRange| Rect::from_min_max(pos2(x(range.start), lane_top), pos2(x(range.end()), audio_top - 3.0));
+    let cuts_lane = Rect::from_min_max(pos2(rect.left(), lane_top), pos2(rect.right(), audio_top - 3.0));
+    painter.rect_filled(cuts_lane, 1.0, if show_cuts { tokens.field_border } else { tokens.control_well });
     for segment in segments.iter().filter(|segment| segment.source.start < window.end() && segment.source.end() > window.start) {
-        painter.rect_filled(lane(segment.source), 3.0, tokens.control_surface);
-        painter.line_segment([pos2(x(segment.source.start), rect.top() + 19.0), pos2(x(segment.source.start), rect.bottom())], (1.0, tokens.separator));
+        painter.rect_filled(lane(segment.source).shrink2(vec2(0.5, 0.0)), 1.0, tokens.accent.gamma_multiply(0.8));
     }
     if let Some(range) = selected {
-        painter.rect_filled(lane(range), 0.0, tokens.row_selected);
+        let highlight = Rect::from_min_max(lane(range).min, pos2(x(range.end()), rect.bottom()));
+        painter.rect_filled(highlight, 0.0, tokens.accent.gamma_multiply(0.24));
     }
+    painter.line_segment([pos2(rect.left(), audio_top), pos2(rect.right(), audio_top)], (1.0, tokens.separator));
     let steps = (rect.width() / 115.0).clamp(2.0, 12.0) as i64;
     for step in 0..=steps {
         let time = window.start + Tick(window.duration.0 * step / steps);
+        let major = x(time);
+        for minor in 0..if step == steps { 1 } else { 5 } {
+            let px = major + rect.width() * minor as f32 / (steps * 5) as f32;
+            painter.line_segment([pos2(px, rect.top() + if minor == 0 { 16.0 } else { 20.0 }), pos2(px, lane_top)], (1.0, tokens.separator));
+        }
         painter.text(
-            pos2(x(time), rect.top() + 3.0),
+            pos2(major, rect.top() + 3.0),
             if step == steps { egui::Align2::RIGHT_TOP } else { egui::Align2::LEFT_TOP },
             time_label(time),
             egui::FontId::monospace(11.0),
@@ -1139,7 +1278,7 @@ fn waveform(
             }
         }
     }
-    let mid = rect.center().y + 9.0;
+    let mid = (audio_top + rect.bottom()) / 2.0;
     for (i, peak) in bins.into_iter().enumerate().filter(|(_, peak)| *peak != 0) {
         let tick = window.start + Tick(window.duration.0 * i as i64 / width as i64);
         let retained = segments.iter().any(|segment| segment.source.contains(tick));
@@ -1147,7 +1286,7 @@ fn waveform(
             continue;
         }
         let px = rect.left() + i as f32 * rect.width() / width as f32;
-        let y = 25.0 * (f32::from(peak) / 255.0).sqrt();
+        let y = ((rect.bottom() - audio_top) / 2.0 - 2.0) * (f32::from(peak) / 255.0).sqrt();
         painter.line_segment([pos2(px, mid - y), pos2(px, mid + y)], (1.0, if retained { tokens.accent_hover } else { tokens.text_dim }));
     }
     let px = x(playhead);
