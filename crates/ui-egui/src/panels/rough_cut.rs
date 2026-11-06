@@ -1263,11 +1263,6 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
         })
         .map(|(&id, _)| id);
     header.horizontal(|ui| {
-        ui.label(egui::RichText::new("Smart Cut").size(16.0).strong());
-        if let Some(item) = workspace.source.and_then(|id| project.item(id)) {
-            ui.separator();
-            ui.add_sized(vec2((bounds.width() * 0.23).clamp(65.0, 350.0), 24.0), egui::Label::new(&item.name).truncate());
-        }
         if bounds.width() > 820.0 {
             let status = if app.session.preedit_apply.is_some() {
                 "Opening in editor…"
