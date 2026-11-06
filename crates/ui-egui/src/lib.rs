@@ -864,6 +864,7 @@ impl ShotClutchApp {
     }
 
     pub fn set_workspace(&mut self, name: &str) {
+        let name = if name == "Smart Rough Cut" { "Smart Cut" } else { name };
         self.ui.workspace = name.to_string();
         let layout = dock::saved_docking(&self.workspaces, name);
         self.ui.dock = layout.root;
@@ -1567,7 +1568,7 @@ impl ShotClutchApp {
         }
         // A pane divider or floating-panel grip keeps focus after a pointer drag so arrows can
         // nudge it, but it takes no other key: Space and the other shortcuts keep working (#1482).
-        if self.ui.workspace == "Smart Rough Cut"
+        if self.ui.workspace == "Smart Cut"
             && self.ui.dock.is_visible(PanelKind::SmartRoughCut)
             && self.dialog.is_none()
             && !ctx.text_edit_focused()

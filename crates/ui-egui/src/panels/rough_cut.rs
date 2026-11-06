@@ -1181,7 +1181,7 @@ impl ModelInstall {
 
 pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
     if cfg!(target_arch = "wasm32") {
-        ui.put(rect, egui::Label::new("Smart Rough Cut requires the native desktop app."));
+        ui.put(rect, egui::Label::new("Smart Cut requires the native desktop app."));
         return;
     }
     let mut workspace = std::mem::take(&mut app.rough_cut);
@@ -1251,7 +1251,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
         })
         .map(|(&id, _)| id);
     header.horizontal(|ui| {
-        ui.label(egui::RichText::new("Smart Rough Cut").size(16.0).strong());
+        ui.label(egui::RichText::new("Smart Cut").size(16.0).strong());
         if let Some(item) = workspace.source.and_then(|id| project.item(id)) {
             ui.separator();
             ui.add_sized(vec2((bounds.width() * 0.23).clamp(65.0, 350.0), 24.0), egui::Label::new(&item.name).truncate());

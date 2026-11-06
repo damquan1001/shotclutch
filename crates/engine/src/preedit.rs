@@ -1,4 +1,4 @@
-//! Owner-side Smart Rough Cut commands. Scoped clients do not dispatch these commands.
+//! Owner-side Smart Cut commands. Scoped clients do not dispatch these commands.
 
 mod analysis;
 mod assembly;
@@ -310,7 +310,7 @@ pub(crate) fn poll(s: &mut Session) {
     match publish(s, &mut job, message) {
         Ok(true) => s.preedit_job = Some(job),
         Ok(false) => {}
-        Err(error) => s.error_toast("Smart Rough Cut", error.to_string()),
+        Err(error) => s.error_toast("Smart Cut", error.to_string()),
     }
 }
 
@@ -389,7 +389,7 @@ fn publish(s: &mut Session, job: &mut PendingAnalysis, message: Message) -> Resu
             terminal = Some(if was_canceled { Ok(()) } else { result.map(|_| ()) });
         }
     }
-    let prepared = s.prepare_project("Analyze Smart Rough Cut", project, Vec::new())?;
+    let prepared = s.prepare_project("Analyze Smart Cut", project, Vec::new())?;
     s.commit_analysis(prepared).map_err(|e| fail(e.to_string()))?;
     if let Some(result) = terminal {
         result.map_err(fail)?;
@@ -577,7 +577,7 @@ fn review(s: &mut Session, value: &Value) -> Result<Value> {
     project.next_id = project.next_id.max(s.id_watermark);
     let id = project.alloc_id();
     project.preedit.maps.insert(id, Arc::new(map));
-    let prepared = s.prepare_project("Review Smart Rough Cut", project, vec![json!({"map": id.to_string()})])?;
+    let prepared = s.prepare_project("Review Smart Cut", project, vec![json!({"map": id.to_string()})])?;
     s.commit_edits(prepared).map_err(|e| fail(e.to_string()))?.pop().ok_or_else(|| fail("INTERNAL_ERROR: missing review receipt"))
 }
 
@@ -787,7 +787,7 @@ fn commit_application(s: &mut Session, req: Apply, verified: Option<VerifiedOrig
         "sequenceId":sequence.0.to_string(),"priorRevision":s.revision.to_string(),"revision":revision.to_string(),
         "state":"committed","retainedUntil":retained_until,"application":application_id.to_string(),
     });
-    let mut prepared = s.prepare_project("Apply Smart Rough Cut", project, vec![reply.clone()])?;
+    let mut prepared = s.prepare_project("Apply Smart Cut", project, vec![reply.clone()])?;
     prepared.operation = Some(OperationRecord {
         actor: "shotclutch:preedit".into(),
         operation_id: req.operation_id.clone(),
@@ -879,7 +879,7 @@ pub(crate) fn commands() -> Vec<CommandSpec> {
     vec![
         command(
             "preedit.analyze",
-            "Analyze Smart Rough Cut",
+            "Analyze Smart Cut",
             r#"{"item":string,"audioStream":integer,"model":string?,"language":string?,"channel":integer?,"range":object?,"resume":string?,"previousMap":string?}"#,
             start,
         ),
@@ -888,12 +888,12 @@ pub(crate) fn commands() -> Vec<CommandSpec> {
             job.cancel.cancel();
             Ok(json!({"state":"cancel_requested"}))
         }),
-        command("preedit.inspect", "Inspect Smart Rough Cut", "{}", |s, _| {
+        command("preedit.inspect", "Inspect Smart Cut", "{}", |s, _| {
             Ok(json!({"running":s.preedit_job.is_some(),"revision":s.revision.to_string(),"preedit":s.project.preedit}))
         }),
-        command("preedit.review", "Review Smart Rough Cut", r#"{"map":string,"expectedRevision":string,"action":object}"#, review),
+        command("preedit.review", "Review Smart Cut", r#"{"map":string,"expectedRevision":string,"action":object}"#, review),
         command("preedit.exportClip", "Export Transcript Clip", r#"{"map":string,"range":object,"path":string}"#, export_clip),
-        command("preedit.preview", "Preview Smart Rough Cut", r#"{"map":string}"#, |s, p| {
+        command("preedit.preview", "Preview Smart Cut", r#"{"map":string}"#, |s, p| {
             #[derive(Deserialize)]
             #[serde(deny_unknown_fields)]
             struct Preview {
@@ -911,10 +911,10 @@ pub(crate) fn commands() -> Vec<CommandSpec> {
                 })).collect::<Vec<_>>()
             }))
         }),
-        command("preedit.apply", "Apply Smart Rough Cut", r#"{"map":string,"expectedRevision":string,"operationId":string,"replace":string?}"#, apply),
+        command("preedit.apply", "Apply Smart Cut", r#"{"map":string,"expectedRevision":string,"operationId":string,"replace":string?}"#, apply),
         command(
             "preedit.applyBackground",
-            "Verify and Apply Smart Rough Cut",
+            "Verify and Apply Smart Cut",
             r#"{"map":string,"expectedRevision":string,"operationId":string,"replace":string?}"#,
             start_apply,
         ),

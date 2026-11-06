@@ -119,7 +119,7 @@ fn m2_explicit_analysis_review_apply_reopen_retry_and_changed_result() {
     reopened.execute("file.open", json!({"path":saved})).unwrap();
     assert_eq!(reopened.project.preedit, session.project.preedit);
     assert_eq!(reopened.execute("preedit.apply", params.clone()).unwrap(), reply);
-    assert_eq!(session.undo().as_deref(), Some("Apply Smart Rough Cut"));
+    assert_eq!(session.undo().as_deref(), Some("Apply Smart Cut"));
     assert!(session.project.sequence(sequence).is_none());
     assert_eq!(session.execute("preedit.apply", params).unwrap(), reply);
     session.redo().unwrap();
@@ -327,14 +327,14 @@ fn m2_private_whisper_qualification() {
         std::thread::sleep(std::time::Duration::from_millis(25));
     }
     let (_, analysis) = session.project.preedit.analyses.last_key_value().unwrap_or_else(|| {
-        let error = session.log.entries.iter().rev().find(|entry| entry.source == "Smart Rough Cut").map(|entry| &entry.message);
+        let error = session.log.entries.iter().rev().find(|entry| entry.source == "Smart Cut").map(|entry| &entry.message);
         panic!("no durable analysis: {error:?}")
     });
     assert_eq!(
         analysis.status,
         AnalysisStatus::Complete,
         "private analysis did not complete: {:?}",
-        session.log.entries.iter().rev().find(|entry| entry.source == "Smart Rough Cut").map(|entry| &entry.message)
+        session.log.entries.iter().rev().find(|entry| entry.source == "Smart Cut").map(|entry| &entry.message)
     );
     let words = analysis.chunks.iter().filter_map(|c| c.transcript.as_ref()).map(|t| t.words.len()).sum::<usize>();
     assert!(words > 0, "selected stream produced no transcript");
