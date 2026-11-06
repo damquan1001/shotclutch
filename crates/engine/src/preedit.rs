@@ -2,6 +2,7 @@
 
 mod analysis;
 mod assembly;
+mod cleanup;
 #[cfg(test)]
 mod tests;
 
@@ -95,6 +96,8 @@ struct Start {
     previous_map: Option<u64>,
     #[serde(default, with = "optional_decimal")]
     resume: Option<u64>,
+    #[serde(default, with = "optional_decimal")]
+    reuse_transcript: Option<u64>,
     #[serde(default)]
     auto_cut: bool,
     cleanup: Option<CleanupSettings>,
@@ -186,7 +189,7 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
     if !encloses(available, range) || range.duration.0 > 4 * 3600 * TICKS_PER_SECOND {
         return Err(fail("INVALID_ARGUMENT: select a source range within four hours"));
     }
-    let pause = req.min_pause_ms.unwrap_or(1000);
+    let pause = req.min_pause_ms.unwrap_or(500);
     let handle = req.handle_ms.unwrap_or(150);
     if !(200..=10_000).contains(&pause) || handle > 1000 {
         return Err(fail("INVALID_ARGUMENT: pause threshold or retained handle is out of bounds"));
@@ -199,6 +202,20 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
         AnalysisSettings { model: req.model, language, min_pause: Tick::from_units(i64::from(pause), 1000), handle: Tick::from_units(i64::from(handle), 1000) };
     let model_digest = analysis::model_digest(&settings).map_err(fail)?;
     let resume = req.resume.map(|id| s.project.preedit.analyses.get(&id).cloned().ok_or_else(|| fail("NOT_FOUND: analysis to resume"))).transpose()?;
+    let reuse = req.reuse_transcript.map(|id| s.project.preedit.analyses.get(&id).cloned().ok_or_else(|| fail("NOT_FOUND: saved transcript"))).transpose()?;
+    if let Some(saved) = &reuse
+        && (req.resume.is_some()
+            || saved.status != AnalysisStatus::Complete
+            || saved.settings.model != settings.model
+            || saved.settings.language != settings.language
+            || saved.model_digest != model_digest
+            || saved.source.item != req.item
+            || saved.source.range != range
+            || saved.source.audio_stream != req.audio_stream
+            || saved.source.channel != req.channel)
+    {
+        return Err(fail("INVALID_ARGUMENT: audio refresh requires a completed analysis of the same source, stream, range and speech model"));
+    }
     if let Some(saved) = &resume
         && (saved.status == AnalysisStatus::Complete
             || saved.settings != settings
@@ -231,6 +248,9 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
                 if resume.as_ref().is_some_and(|saved| saved.source != source) {
                     return Err("MEDIA_CHANGED: resumed source no longer matches the original".into());
                 }
+                if reuse.as_ref().is_some_and(|saved| saved.source != source) {
+                    return Err("MEDIA_CHANGED: saved transcript no longer matches the original".into());
+                }
                 let path = worker_path.to_str().ok_or("CAPABILITY_UNAVAILABLE: original path is not valid UTF-8")?;
                 let decoded = media_pool.probe_file(path, &*services).map_err(|_| "CAPABILITY_UNAVAILABLE: could not open the original audio reader")?;
                 if decoded.info().audio_streams.get(req.audio_stream).is_none() {
@@ -245,7 +265,7 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
                     chunks: resume.map_or_else(Vec::new, |a| a.chunks.clone()),
                 };
                 send.send(Message::Started(analysis.clone())).map_err(|_| "CANCELED: project closed")?;
-                analysis::run(decoded.clone(), &mut analysis, &signal, &send)?;
+                analysis::run(decoded.clone(), &mut analysis, reuse.as_deref(), &signal, &send)?;
                 let cuts = req.auto_cut.then(|| {
                     let map = analysis::propose(0, &analysis, req.cleanup);
                     automatic_cuts(&map, &analysis, &*decoded)
@@ -467,7 +487,11 @@ fn review(s: &mut Session, value: &Value) -> Result<Value> {
             map.conflicts.remove(index);
         }
         action @ (Action::AutoCut | Action::CleanUp { .. }) => {
-            if let Action::CleanUp { options } = action {
+            let options = match action {
+                Action::CleanUp { options } => options,
+                _ => map.cleanup.unwrap_or_default(),
+            };
+            {
                 if !options.valid() {
                     return Err(fail("INVALID_ARGUMENT: cleanup pause threshold or padding is out of bounds"));
                 }
@@ -511,18 +535,9 @@ fn automatic_cuts(map: &PreEditMap, analysis: &PreEditAnalysis, source: &dyn sho
     let rate = audio.sample_rate;
     let available = analysis.source.range;
     let words: Vec<_> = analysis.chunks.iter().filter_map(|c| c.transcript.as_ref()).flat_map(|t| &t.words).collect();
-    let phrase = |range: TimeRange| {
-        let start = words.partition_point(|w| w.start < range.start);
-        words[start..].iter().take_while(|w| w.end <= range.end()).map(|w| w.normalized()).filter(|word| !analysis::is_filler(word)).collect::<Vec<_>>()
-    };
-    // Keep the last matching take. Similar openings with different endings are left in place.
-    let mut duplicates = std::collections::BTreeSet::new();
-    for group in map.takes.iter() {
-        if let Some((&last, earlier)) = group.alternatives.split_last() {
-            let retained = phrase(map.candidates[last].range);
-            duplicates.extend(earlier.iter().copied().filter(|&i| retained.len() >= 3 && phrase(map.candidates[i].range) == retained));
-        }
-    }
+    let quiet = cleanup::quiet_ranges(analysis);
+    // Each group records the earlier and later attempts selected by the transcript rules.
+    let duplicates: std::collections::BTreeSet<_> = map.takes.iter().flat_map(|g| g.alternatives.iter().rev().skip(1).copied()).collect();
     let cuts: Vec<_> = map
         .candidates
         .iter()
@@ -536,16 +551,18 @@ fn automatic_cuts(map: &PreEditMap, analysis: &PreEditAnalysis, source: &dyn sho
             if !enabled {
                 return None;
             }
-            if candidate.kind == CandidateKind::Restart {
-                let next = words.partition_point(|w| w.start < candidate.range.end());
-                if words.get(next).is_none_or(|w| w.start - candidate.range.end() > Tick::from_units(2, 1)) {
-                    return None;
-                }
-            }
             if candidate.kind == CandidateKind::Take && !duplicates.contains(&index) {
                 return None;
             }
-            let range = assembly::snap_decision(video, rate, available, candidate.range, candidate.kind == CandidateKind::Pause).ok()?;
+            let proposed = if settings.mode == CleanupMode::Natural && candidate.kind != CandidateKind::Pause {
+                cleanup::natural_word_range(candidate.range, &words, &quiet, available)?
+            } else if settings.mode == CleanupMode::Transcript && matches!(candidate.kind, CandidateKind::Filler | CandidateKind::Restart) {
+                let pause = settings.min_pause_ms.map_or(analysis.settings.min_pause, |ms| Tick::from_units(i64::from(ms), 1000));
+                cleanup::transcript_word_range(candidate.range, &words, pause)
+            } else {
+                candidate.range
+            };
+            let range = assembly::snap_decision(video, rate, available, proposed, candidate.kind == CandidateKind::Pause).ok()?;
             // Reject a cut that would clip an adjacent word after snapping.
             let start = words.partition_point(|w| w.start < range.start);
             let left = start > 0 && words[start - 1].end > range.start;

@@ -34,3 +34,17 @@ The workspace was reworked using the supplied Gling screenshot and the local Ope
 The native fixture opened on the generated cut and verified result playback, original playback, Space to pause, and opening the edit as a sequence. The saved private transcript generated 136 cuts and a 31m 11s preview from the 37m 52s original. The visual walkthrough used the saved analysis and kept its project and screenshots local.
 
 Eight focused M2 engine tests passed. The new regression covers automatic preview and sequence creation without a separate approval step, then verifies that a restored pause survives another cleanup run. The private ASR qualification test was filtered out of this run.
+
+## OpenGling cleanup adaptation — 2026-11-06
+
+The [implementation comparison](OPENGLING_CLEANUP_ASSESSMENT.md) records the local reference files, adapted rules, acoustic differences, and review behavior.
+
+- 17 focused M2 regressions passed, including adaptive noise-floor detection, preserved audible islands, sentence pacing, exact transcript gaps, guarded filler boundaries, varied take openings, stereo phase cancellation, transcript reuse, manual restoration, and efficient automatic-interval assembly. The long private-model test remains separately invoked.
+- All 81 M1 engine regressions passed. All 66 project and 25 format library tests passed, including v17 migration and atomic persistence checks.
+- A fresh local Whisper run on a 12-second excerpt produced timed words with no cuts in Transcribe only. Native Update cut reused those words. Switching to Transcript rules and updating the cut persisted the selected mode. Screenshots were inspected locally.
+- Full-recording audio refresh completed 114 checkpoints in 113.26 seconds and preserved all 4,031 saved words exactly. These measurements include source verification and native-host overhead. No new Whisper inference was needed for this pass. The final build reused those refreshed measurements with a 500 ms pause threshold and 150 ms padding, producing 675 automatic removal intervals, merging into 314 cuts and removing 812.82 seconds before manual review edits.
+- The earlier released cut removed about 400.19 seconds with its older defaults. The final comparison includes changed classification, boundary selection, and the pause threshold. It measures changed removal behavior rather than labeled accuracy. Acoustic measurements also preserved material that a less selective quiet threshold would remove.
+- The full-recording native walkthrough filtered cut pauses, played removed material in original context, restored a range, regenerated cleanup while preserving that override, and switched cleanup modes. The original private project checksum stayed unchanged. Only new files in the ignored qualification directory were saved.
+- Final native verification compared both takes, retained the earlier take, verified grouped undo/redo, kept both alternatives, and saved/reopened those decisions. The take-review layout was inspected at 1440×950 and 1024×720. The test harness was corrected to order decimal map IDs numerically when identifying the latest revision.
+
+The workspace still cuts automatically before review. Human judgment of take selection, intentional pauses, clipped speech, audible joins, and restoration rates remains necessary for M2 editorial acceptance.

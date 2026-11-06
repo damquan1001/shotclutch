@@ -99,8 +99,22 @@ pub struct Override {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum CleanupMode {
+    Natural,
+    Transcript,
+}
+
+impl Default for CleanupMode {
+    fn default() -> Self {
+        Self::Natural
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase", deny_unknown_fields)]
 pub struct CleanupSettings {
+    pub mode: CleanupMode,
     pub cut_bad_takes: bool,
     pub cut_fillers: bool,
     pub cut_pauses: bool,
@@ -110,7 +124,7 @@ pub struct CleanupSettings {
 
 impl Default for CleanupSettings {
     fn default() -> Self {
-        Self { cut_bad_takes: true, cut_fillers: true, cut_pauses: true, min_pause_ms: None, handle_ms: None }
+        Self { mode: CleanupMode::Natural, cut_bad_takes: true, cut_fillers: true, cut_pauses: true, min_pause_ms: None, handle_ms: None }
     }
 }
 
@@ -167,8 +181,28 @@ impl PreEditMap {
         if !valid(source) || edits.clone().any(|entry| !encloses(source, entry.range)) {
             return Err("invalid rough-cut source or decision range".into());
         }
-        let mut retained = vec![source];
-        for entry in edits {
+        // Automatic cuts have no ordering dependency. Union them once instead of
+        // repeatedly copying a growing segment list on every preview frame.
+        let automatic = self.automatic.as_deref().map(Vec::as_slice).unwrap_or_default();
+        let fast = automatic.iter().all(|entry| entry.decision == Decision::Remove);
+        let mut retained = Vec::new();
+        if fast {
+            let mut cuts: Vec<_> = automatic.iter().map(|entry| entry.range).collect();
+            cuts.sort_unstable_by_key(|range| range.start);
+            let mut cursor = source.start;
+            for cut in cuts {
+                if cut.start > cursor {
+                    retained.push(TimeRange::from_bounds(cursor, cut.start));
+                }
+                cursor = cursor.max(cut.end());
+            }
+            if cursor < source.end() {
+                retained.push(TimeRange::from_bounds(cursor, source.end()));
+            }
+        } else {
+            retained.push(source);
+        }
+        for entry in automatic.iter().filter(|_| !fast).chain(&self.overrides) {
             let cut = entry.range;
             match entry.decision {
                 Decision::Remove => {

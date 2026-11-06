@@ -13,7 +13,7 @@ use super::{Message, stopped};
 use crate::service::Cancellation;
 
 const CHUNK_SAMPLES: i64 = 20 * SAMPLE_RATE as i64;
-pub(super) const ANALYZER_VERSION: u32 = 1;
+pub(super) const ANALYZER_VERSION: u32 = 2;
 pub(super) const SOURCE_BUDGET: u64 = 8 * 1024 * 1024 * 1024;
 
 pub(super) fn fingerprint(path: &Path, imported: Option<MediaIdentity>, cancel: &Cancellation) -> Result<(String, u64), String> {
@@ -72,8 +72,14 @@ pub(super) fn model_digest(settings: &AnalysisSettings) -> Result<Option<String>
     Ok(Some(format!("{:x}", digest.finalize())))
 }
 
-pub(super) fn run(original: SharedSource, analysis: &mut PreEditAnalysis, cancel: &Cancellation, sender: &SyncSender<Message>) -> Result<(), String> {
-    let transcriber = if let Some(model) = &analysis.settings.model {
+pub(super) fn run(
+    original: SharedSource,
+    analysis: &mut PreEditAnalysis,
+    reuse: Option<&PreEditAnalysis>,
+    cancel: &Cancellation,
+    sender: &SyncSender<Message>,
+) -> Result<(), String> {
+    let transcriber = if let Some(model) = analysis.settings.model.as_ref().filter(|_| reuse.is_none()) {
         let dir = crate::transcript::models_dir().ok_or("CAPABILITY_UNAVAILABLE: speech model directory is unavailable")?;
         Some(shotclutch_speech::load(&dir, model).map_err(|e| format!("CAPABILITY_UNAVAILABLE: {e}"))?)
     } else {
@@ -102,13 +108,31 @@ pub(super) fn run(original: SharedSource, analysis: &mut PreEditAnalysis, cancel
         let lo = (sample_start - context_start) as usize;
         let hi = (sample_end - context_start) as usize;
         let audible = mono.get(lo..hi).ok_or("CAPABILITY_UNAVAILABLE: incomplete decoded audio chunk")?;
-        let levels = shotclutch_speech::vad::frame_db(audible);
-        let quiet = quiet_intervals(range, &levels);
+        // Measure channel energy separately so phase-inverted stereo cannot cancel to silence.
+        let mut levels = vec![f32::NEG_INFINITY; audible.len().div_ceil(SAMPLE_RATE as usize / 100)];
+        for (index, channel) in audio.channels.iter().enumerate() {
+            if source.channel.is_some_and(|selected| usize::from(selected) != index) {
+                continue;
+            }
+            let channel = channel.get(lo..hi).ok_or("CAPABILITY_UNAVAILABLE: incomplete audio channel")?;
+            for (level, db) in levels.iter_mut().zip(shotclutch_speech::vad::frame_db(channel)) {
+                *level = level.max(db);
+            }
+        }
+        let quiet = super::cleanup::quiet_intervals(range, &levels);
         let peaks = audible
             .chunks(SAMPLE_RATE as usize / 20)
             .map(|samples| (samples.iter().fold(0.0f32, |peak, sample| peak.max(sample.abs())).min(1.0) * 255.0).round() as u8)
             .collect();
-        let transcript = if let Some(model) = &transcriber {
+        let transcript = if let Some(saved) = reuse {
+            saved
+                .chunks
+                .iter()
+                .find(|chunk| chunk.coverage == range)
+                .ok_or("INVALID_ARGUMENT: saved transcript coverage does not match audio refresh")?
+                .transcript
+                .clone()
+        } else if let Some(model) = &transcriber {
             let mut t = model.transcribe(&mono, &opts, &mut |_, _| stopped(cancel).is_ok()).map_err(|e| e.to_string())?;
             let offset = Tick(context_start * TICKS_PER_SAMPLE);
             for w in &mut t.words {
@@ -136,164 +160,31 @@ pub(super) fn run(original: SharedSource, analysis: &mut PreEditAnalysis, cancel
     Ok(())
 }
 
-fn quiet_intervals(range: TimeRange, levels: &[f32]) -> Vec<TimeRange> {
-    // A conservative energy proxy, not a semantic classification. A constantly loud or
-    // low-dynamic-range recording must never be mistaken for all silence by an adaptive threshold.
-    let threshold = shotclutch_speech::vad::threshold(levels).min(-42.0);
-    let step = Tick(shotclutch_time::TICKS_PER_SECOND / 100);
-    let mut quiet = Vec::new();
-    let mut start = None;
-    for (i, level) in levels.iter().enumerate() {
-        let t = (range.start + Tick(i as i64 * step.0)).min(range.end());
-        if *level < threshold {
-            start.get_or_insert(t);
-        } else if let Some(a) = start.take()
-            && t > a
-        {
-            quiet.push(TimeRange::from_bounds(a, t));
-        }
-    }
-    if let Some(a) = start
-        && a < range.end()
-    {
-        quiet.push(TimeRange::from_bounds(a, range.end()));
-    }
-    quiet
-}
-
 pub(super) fn is_filler(word: &str) -> bool {
-    matches!(word, "um" | "uh" | "erm" | "hmm" | "uhm" | "umm" | "uhh" | "er")
+    matches!(
+        word,
+        "er" | "erm"
+            | "ermm"
+            | "err"
+            | "errr"
+            | "hm"
+            | "hmm"
+            | "hmmm"
+            | "um"
+            | "umm"
+            | "ummm"
+            | "uhm"
+            | "ah"
+            | "uh"
+            | "uhh"
+            | "uhhh"
+            | "mhm"
+            | "mmhm"
+            | "mm-hm"
+            | "mm-hmm"
+    )
 }
 
 pub(super) fn propose(analysis_id: u64, analysis: &PreEditAnalysis, cleanup: Option<CleanupSettings>) -> PreEditMap {
-    let mut candidates = Vec::new();
-    let mut takes = Vec::new();
-    let mut quiet: Vec<TimeRange> = Vec::new();
-    let words: Vec<_> = analysis.chunks.iter().filter_map(|c| c.transcript.as_ref()).flat_map(|t| &t.words).collect();
-    for r in analysis.chunks.iter().flat_map(|c| c.quiet.iter().copied()) {
-        if let Some(last) = quiet.last_mut()
-            && last.end() == r.start
-        {
-            *last = TimeRange::from_bounds(last.start, r.end());
-        } else {
-            quiet.push(r);
-        }
-    }
-    let settings = cleanup.unwrap_or_default();
-    let handle = settings.handle_ms.map_or(analysis.settings.handle, |ms| Tick::from_units(i64::from(ms), 1000));
-    let threshold = settings.min_pause_ms.map_or(analysis.settings.min_pause, |ms| Tick::from_units(i64::from(ms), 1000));
-    let mut add_pause = |start: Tick, end: Tick| {
-        let duration = end - start;
-        if duration >= threshold && duration.0 > 2 * handle.0 {
-            candidates.push(Candidate {
-                range: TimeRange::from_bounds(start + handle, end - handle),
-                kind: CandidateKind::Pause,
-                reason: "Quiet audio outside the timed speech".into(),
-                confidence: None,
-            });
-        }
-    };
-    for range in quiet {
-        let first = words.partition_point(|word| word.end <= range.start);
-        let mut start = range.start;
-        for word in words[first..].iter().take_while(|word| word.start < range.end()) {
-            add_pause(start, word.start);
-            start = start.max(word.end);
-        }
-        add_pause(start, range.end());
-    }
-    if analysis.settings.language == "en" {
-        for word in &words {
-            if is_filler(&word.normalized()) {
-                candidates.push(Candidate {
-                    range: word.range(),
-                    kind: CandidateKind::Filler,
-                    reason: "Possible hesitation in the transcript".into(),
-                    confidence: None,
-                });
-            }
-        }
-        let gap = Tick::from_units(1, 2);
-        let mut phrases = Vec::new();
-        let mut begin = 0;
-        for i in 1..=words.len() {
-            if i == words.len() || words[i].start - words[i - 1].end >= gap || words[i - 1].text.ends_with(['.', '!', '?']) {
-                phrases.push(&words[begin..i]);
-                begin = i;
-            }
-        }
-        // Match a repeated opening inside one utterance as well as between paused attempts.
-        for phrase in &phrases {
-            let text: Vec<_> = phrase.iter().map(|w| w.normalized()).collect();
-            if let Some(index) =
-                (3..=12.min(text.len() / 2)).find(|&i| text[..i] == text[i..2 * i] && text[..i].iter().collect::<std::collections::BTreeSet<_>>().len() >= 3)
-            {
-                candidates.push(Candidate {
-                    range: TimeRange::from_bounds(phrase[0].start, phrase[index - 1].end),
-                    kind: CandidateKind::Restart,
-                    reason: "The speaker repeats the opening within the same phrase".into(),
-                    confidence: None,
-                });
-            }
-        }
-        let mut grouped = vec![false; phrases.len()];
-        for i in 0..phrases.len() {
-            let a = phrases[i];
-            if a.len() < 2 || grouped[i] {
-                continue;
-            }
-            let left: Vec<_> = a.iter().map(|w| w.normalized()).filter(|w| !is_filler(w)).collect();
-            if left.len() < 2 {
-                continue;
-            }
-            let mut similar = Vec::new();
-            for j in i + 1..phrases.len().min(i + 5) {
-                let b = phrases[j];
-                if b[0].start - a[a.len() - 1].end > Tick::from_units(20, 1) {
-                    break;
-                }
-                let right: Vec<_> = b.iter().map(|w| w.normalized()).filter(|w| !is_filler(w)).collect();
-                let common = left.iter().zip(&right).take_while(|(a, b)| a == b).count();
-                if common >= 3 && common * 4 >= 3 * left.len().max(right.len()) && !grouped[j] {
-                    similar.push(j);
-                } else if j == i + 1 && common == left.len() && right.len() > left.len() {
-                    candidates.push(Candidate {
-                        range: TimeRange::from_bounds(a[0].start, a[a.len() - 1].end),
-                        kind: CandidateKind::Restart,
-                        reason: "The next phrase repeats the opening words and continues".into(),
-                        confidence: None,
-                    });
-                }
-            }
-            if !similar.is_empty() {
-                let alternatives = std::iter::once(i)
-                    .chain(similar)
-                    .map(|j| {
-                        grouped[j] = true;
-                        let p = phrases[j];
-                        let index = candidates.len();
-                        candidates.push(Candidate {
-                            range: TimeRange::from_bounds(p[0].start, p[p.len() - 1].end),
-                            kind: CandidateKind::Take,
-                            reason: "Nearby attempts share an opening phrase".into(),
-                            confidence: None,
-                        });
-                        index
-                    })
-                    .collect();
-                takes.push(TakeGroup { alternatives, explanation: "Compare the full statements before choosing; similar wording can change meaning".into() });
-            }
-        }
-    }
-    PreEditMap {
-        analysis: analysis_id,
-        previous: None,
-        reviewed: false,
-        candidates: Arc::new(candidates),
-        takes: Arc::new(takes),
-        automatic: None,
-        cleanup,
-        overrides: Vec::new(),
-        conflicts: Vec::new(),
-    }
+    super::cleanup::propose(analysis_id, analysis, cleanup)
 }

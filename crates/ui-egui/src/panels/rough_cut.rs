@@ -4,7 +4,7 @@ use std::sync::{Arc, atomic::Ordering, mpsc};
 
 use egui::{Rect, Ui, pos2, vec2};
 use serde_json::{Value, json};
-use shotclutch_project::preedit::{AnalysisStatus, CleanupSettings, PreEditAnalysis, Segment};
+use shotclutch_project::preedit::{AnalysisStatus, CandidateKind, CleanupMode, CleanupSettings, PreEditAnalysis, PreEditMap, Segment};
 use shotclutch_project::{ItemId, Project};
 use shotclutch_time::{TICKS_PER_SECOND, Tick, TimeRange};
 
@@ -17,6 +17,9 @@ pub struct Workspace {
     tab: ReviewTab,
     show_cuts: bool,
     search: String,
+    review_kind: Option<CandidateKind>,
+    review_status: u8,
+    review_index: Option<usize>,
     original: bool,
     source: Option<ItemId>,
     stream: usize,
@@ -61,6 +64,7 @@ enum ReviewTab {
     #[default]
     Script,
     Files,
+    Cuts,
 }
 
 struct ResultView {
@@ -118,6 +122,7 @@ impl Workspace {
 
     fn cleanup_options(&self, cut: bool) -> CleanupSettings {
         CleanupSettings {
+            mode: self.cleanup.mode,
             cut_bad_takes: cut && !self.silence_only && self.cleanup.cut_bad_takes,
             cut_fillers: cut && !self.silence_only && self.cleanup.cut_fillers,
             cut_pauses: cut && self.cleanup.cut_pauses,
@@ -169,11 +174,42 @@ impl Workspace {
     }
 
     fn update_cut(&mut self, app: &mut ShotClutchApp, id: u64) {
+        let old = app
+            .session
+            .project
+            .preedit
+            .maps
+            .get(&id)
+            .and_then(|map| app.session.project.preedit.analyses.get(&map.analysis).map(|a| (map.analysis, a.clone())));
+        if let Some((analysis_id, analysis)) = old
+            && analysis.analyzer_version < 2
+            && self.cleanup.mode == CleanupMode::Natural
+        {
+            self.refresh_audio(app, id, analysis_id, &analysis);
+            return;
+        }
         self.review(app, id, json!({"kind":"cleanUp","options":self.cleanup_options(true)}));
         if self.map != Some(id) {
             self.original = false;
             self.tab = ReviewTab::Script;
         }
+    }
+
+    fn refresh_audio(&mut self, app: &mut ShotClutchApp, map: u64, id: u64, analysis: &PreEditAnalysis) {
+        self.stop(app.audio.as_deref_mut());
+        app.stop_source();
+        let source = &analysis.source;
+        self.command(
+            app,
+            "preedit.analyze",
+            json!({
+                "item":source.item.0.to_string(), "audioStream":source.audio_stream, "channel":source.channel,
+                "model":analysis.settings.model, "language":analysis.settings.language,
+                "range":{"start":source.range.start.0.to_string(),"end":source.range.end().0.to_string()},
+                "reuseTranscript":id.to_string(),"previousMap":map.to_string(),"autoCut":true,
+                "minPauseMs":self.pause_ms,"handleMs":self.handle_ms,"cleanup":self.cleanup_options(true)
+            }),
+        );
     }
 
     fn inputs(&mut self, app: &mut ShotClutchApp, ui: &mut Ui, compact: bool) {
@@ -288,8 +324,23 @@ impl Workspace {
         ui.separator();
         section_title(ui, &tokens, "02", "Speech cleanup");
         ui.add_enabled_ui(!running, |ui| {
+            ui.horizontal_wrapped(|ui| {
+                for (mode, label, id) in [(CleanupMode::Natural, "Natural", "natural"), (CleanupMode::Transcript, "Transcript rules", "transcript")] {
+                    let response = ui.selectable_value(&mut self.cleanup.mode, mode, label);
+                    app.auto.add_response(&format!("roughCut.mode.{id}"), &response, label);
+                }
+            });
+            ui.label(
+                egui::RichText::new(if self.cleanup.mode == CleanupMode::Natural {
+                    "Use audio levels to protect speech and keep natural pacing."
+                } else {
+                    "Gling-compatible word gaps. Review sounds missing from the transcript."
+                })
+                .small()
+                .color(tokens.text_dim),
+            );
             ui.add_enabled_ui(!self.silence_only, |ui| {
-                cleanup_option(ui, &tokens, &mut self.cleanup.cut_bad_takes, "Remove repeated takes", "Cut matching attempts and repeated openings.");
+                cleanup_option(ui, &tokens, &mut self.cleanup.cut_bad_takes, "Remove repeated takes", "Keep later attempts and cut repeated phrase patterns.");
                 cleanup_option(ui, &tokens, &mut self.cleanup.cut_fillers, "Remove fillers", "Cut hesitation sounds such as “um” and “uh.”");
             });
             cleanup_option(ui, &tokens, &mut self.cleanup.cut_pauses, "Trim silences and pauses", "Shorten quiet gaps while keeping breathing room.");
@@ -318,6 +369,18 @@ impl Workspace {
                     app.auto.add_response("roughCut.cleanUpSaved", &recut, "Update cut");
                     if recut.clicked() {
                         self.update_cut(app, id);
+                    }
+                }
+                if let Some(id) = saved {
+                    let response = ui
+                        .button("Refresh audio & cut")
+                        .on_hover_text("Remeasure the original audio using the saved transcript. No speech model inference is needed.");
+                    app.auto.add_response("roughCut.refreshAudio", &response, "Refresh audio & cut");
+                    if response.clicked() {
+                        let map = &app.session.project.preedit.maps[&id];
+                        let analysis_id = map.analysis;
+                        let analysis = app.session.project.preedit.analyses[&analysis_id].clone();
+                        self.refresh_audio(app, id, analysis_id, &analysis);
                     }
                 }
                 let label = if self.silence_only { "Analyze & cut pauses" } else { "Transcribe & cut" };
@@ -432,7 +495,7 @@ impl Workspace {
                     ui.horizontal_wrapped(|ui| {
                         for word in words {
                             let midpoint = word.start + Tick(word.range().duration.0 / 2);
-                            let removed = !segments.iter().any(|segment| segment.source.contains(midpoint));
+                            let removed = !retained_at(segments, midpoint);
                             if removed && !self.show_cuts { continue; }
                             let active = word.range().contains(self.cursor);
                             let mut label = egui::RichText::new(&word.text).size(16.0).color(if removed { app.tokens.text_dim } else { app.tokens.text });
@@ -440,6 +503,7 @@ impl Workspace {
                             if active { label = label.background_color(app.tokens.row_selected); }
                             let response = ui.add(egui::Label::new(label).sense(egui::Sense::click()));
                             if response.clicked() {
+                                if removed { self.original = true; self.stop(app.audio.as_deref_mut()); }
                                 seek = Some(word.start);
                             }
                             response.on_hover_text("Click to seek · right-click to remove or restore").context_menu(|ui| {
@@ -460,6 +524,175 @@ impl Workspace {
         });
         if let Some(time) = seek {
             self.seek(app, analysis.source.item, segments, time);
+        }
+        if let Some(action) = action {
+            self.review(app, id, action);
+        }
+    }
+
+    fn cut_review(&mut self, app: &mut ShotClutchApp, ui: &mut Ui, id: u64, map: &PreEditMap, analysis: &PreEditAnalysis, segments: &[Segment]) {
+        let tokens = app.tokens;
+        ui.horizontal_wrapped(|ui| {
+            for (kind, label) in
+                [(None, "All"), (Some(CandidateKind::Pause), "Pauses"), (Some(CandidateKind::Filler), "Fillers"), (Some(CandidateKind::Take), "Takes")]
+            {
+                let response = ui.selectable_value(&mut self.review_kind, kind, label);
+                app.auto.add_response(&format!("roughCut.review.filter.{label}"), &response, label);
+            }
+        });
+        ui.horizontal(|ui| {
+            for (status, label) in [(0, "All ranges"), (1, "Cut"), (2, "Kept")] {
+                let response = ui.selectable_value(&mut self.review_status, status, label);
+                app.auto.add_response(&format!("roughCut.review.status.{status}"), &response, label);
+            }
+        });
+        let rows: Vec<_> = map
+            .candidates
+            .iter()
+            .enumerate()
+            .filter_map(|(index, candidate)| {
+                if self.review_kind.is_some_and(|kind| candidate.kind != kind && !(kind == CandidateKind::Take && candidate.kind == CandidateKind::Restart)) {
+                    return None;
+                }
+                let first = segments.partition_point(|s| s.source.end() <= candidate.range.start);
+                let kept: i64 = segments[first..]
+                    .iter()
+                    .take_while(|s| s.source.start < candidate.range.end())
+                    .map(|s| (s.source.end().min(candidate.range.end()) - s.source.start.max(candidate.range.start)).0.max(0))
+                    .sum();
+                let removed = kept < candidate.range.duration.0;
+                if (self.review_status == 1 && !removed) || (self.review_status == 2 && removed) {
+                    return None;
+                }
+                Some((index, candidate, removed, kept == 0))
+            })
+            .collect();
+        ui.label(egui::RichText::new(format!("{} ranges · P / N to navigate · R to restore", rows.len())).small().color(tokens.text_dim));
+        let mut selected = self.review_index.and_then(|index| rows.iter().position(|r| r.0 == index)).unwrap_or(0);
+        let mut navigate = 0i32;
+        let mut listen = None;
+        let mut action = None;
+        ui.horizontal(|ui| {
+            for (label, step, key) in [("Previous", -1, "previous"), ("Next", 1, "next")] {
+                let response = ui.add_enabled(!rows.is_empty(), egui::Button::new(label));
+                app.auto.add_response(&format!("roughCut.review.{key}"), &response, label);
+                if response.clicked() {
+                    navigate = step;
+                }
+            }
+        });
+        if !ui.ctx().egui_wants_keyboard_input() {
+            if ui.input(|i| i.key_pressed(egui::Key::N)) {
+                navigate = 1;
+            }
+            if ui.input(|i| i.key_pressed(egui::Key::P)) {
+                navigate = -1;
+            }
+            if ui.input(|i| i.key_pressed(egui::Key::R))
+                && let Some(row) = rows.get(selected)
+            {
+                action = Some(range_action(row.1.range, "Keep"));
+            }
+        }
+        if !rows.is_empty() {
+            selected = (selected as i32 + navigate).rem_euclid(rows.len() as i32) as usize;
+            self.review_index = Some(rows[selected].0);
+            let row = rows[selected];
+            ui.horizontal_wrapped(|ui| {
+                let response = ui.button("Listen in context");
+                app.auto.add_response("roughCut.review.listen", &response, "Listen in context");
+                if response.clicked() {
+                    listen = Some(row.1.range);
+                }
+                let response = ui.button(if row.2 { "Restore" } else { "Cut range" });
+                app.auto.add_response("roughCut.review.restoreOrCut", &response, if row.2 { "Restore" } else { "Cut range" });
+                if response.clicked() {
+                    action = Some(range_action(row.1.range, if row.2 { "Keep" } else { "Remove" }));
+                }
+                if ui.button("Mark boundaries").clicked() {
+                    self.mark_in = Some(row.1.range.start);
+                    self.mark_out = Some(row.1.range.end());
+                    self.original = true;
+                    self.seek(app, analysis.source.item, segments, row.1.range.start);
+                }
+            });
+            if let Some((group_index, group)) = map.takes.iter().enumerate().find(|(_, g)| g.alternatives.contains(&row.0)) {
+                ui.horizontal_wrapped(|ui| {
+                    ui.label("Compare");
+                    for (n, &index) in group.alternatives.iter().enumerate() {
+                        let response = ui.button(format!("Take {}", n + 1));
+                        app.auto.add_response(&format!("roughCut.review.take.{n}"), &response, "Audition take");
+                        if response.clicked() {
+                            listen = Some(map.candidates[index].range);
+                        }
+                    }
+                });
+                ui.horizontal_wrapped(|ui| {
+                    for (n, &index) in group.alternatives.iter().enumerate() {
+                        let response = ui.button(format!("Keep take {}", n + 1));
+                        app.auto.add_response(&format!("roughCut.review.keepTake.{n}"), &response, "Keep this take");
+                        if response.clicked() {
+                            action = Some(json!({"kind":"chooseTake","group":group_index,"retain":[index]}));
+                        }
+                    }
+                    let response = ui.button("Keep both");
+                    app.auto.add_response("roughCut.review.keepBoth", &response, "Keep both takes");
+                    if response.clicked() {
+                        action = Some(json!({"kind":"chooseTake","group":group_index,"retain":group.alternatives}));
+                    }
+                });
+            }
+        }
+        ui.separator();
+        let mut scroll = egui::ScrollArea::vertical().id_salt("rough-cut-review").auto_shrink([false, false]);
+        if navigate != 0 {
+            scroll = scroll.vertical_scroll_offset(selected as f32 * 96.0);
+        }
+        scroll.show_rows(ui, 92.0, rows.len(), |ui, visible| {
+            for row in &rows[visible] {
+                let candidate = row.1;
+                let kind = match candidate.kind {
+                    CandidateKind::Pause => "Pause",
+                    CandidateKind::Filler => "Filler",
+                    CandidateKind::Restart => "Restart",
+                    CandidateKind::Take => "Take",
+                };
+                let state = if row.3 {
+                    "Cut"
+                } else if row.2 {
+                    "Partly cut"
+                } else {
+                    "Kept"
+                };
+                let response = ui.selectable_label(
+                    self.review_index == Some(row.0),
+                    format!("{kind} · {}–{} · {state}", time_label(candidate.range.start), time_label(candidate.range.end())),
+                );
+                app.auto.add_response(&format!("roughCut.review.row.{}", row.0), &response, state);
+                if response.clicked() {
+                    self.review_index = Some(row.0);
+                }
+                ui.add(egui::Label::new(egui::RichText::new(&candidate.reason).small().color(tokens.text_dim)).truncate()).on_hover_text(&candidate.reason);
+                let text = analysis
+                    .chunks
+                    .iter()
+                    .filter_map(|c| c.transcript.as_ref())
+                    .flat_map(|t| &t.words)
+                    .filter(|w| w.start < candidate.range.end() && w.end > candidate.range.start)
+                    .map(|w| w.text.as_str())
+                    .collect::<Vec<_>>()
+                    .join(" ");
+                ui.add(egui::Label::new(if text.is_empty() { "Quiet interval" } else { &text }).truncate());
+                ui.label(egui::RichText::new("Rule-based detection · confidence unknown").small().color(tokens.text_dim));
+                ui.separator();
+            }
+        });
+        if let Some(range) = listen {
+            let range = TimeRange::from_bounds(
+                (range.start - Tick::from_units(3, 4)).max(analysis.source.range.start),
+                (range.end() + Tick::from_units(3, 4)).min(analysis.source.range.end()),
+            );
+            self.audition(app, analysis.source.item, analysis.source.audio_stream, range);
         }
         if let Some(action) = action {
             self.review(app, id, action);
@@ -745,7 +978,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
             show_cuts: true,
             zoom: 1.0,
             original: true,
-            pause_ms: 1000,
+            pause_ms: 500,
             handle_ms: 150,
             ..Default::default()
         };
@@ -870,7 +1103,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
     left_ui.set_clip_rect(left);
     left_ui.horizontal(|ui| {
         let has_analysis = analysis.is_some();
-        for (tab, id, label) in [(ReviewTab::Script, "script", "Transcript"), (ReviewTab::Files, "files", "Setup")] {
+        for (tab, id, label) in [(ReviewTab::Script, "script", "Transcript"), (ReviewTab::Cuts, "cuts", "Review cuts"), (ReviewTab::Files, "files", "Setup")] {
             let selected = if has_analysis { workspace.tab == tab } else { tab == ReviewTab::Files };
             let response = ui.add_enabled(has_analysis || tab == ReviewTab::Files, egui::Button::selectable(selected, label));
             if response.clicked() {
@@ -926,6 +1159,8 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
             workspace.tab = ReviewTab::Files;
         }
         workspace.script(app, &mut left_ui, id, analysis, &segments);
+    } else if let (ReviewTab::Cuts, Some((id, map)), Some(analysis)) = (&workspace.tab, map, analysis) {
+        workspace.cut_review(app, &mut left_ui, id, map, analysis, &segments);
     } else {
         let compact = left.height() < 510.0;
         if compact && workspace.source.is_some() && app.session.preedit_job.is_none() {
@@ -1186,6 +1421,11 @@ fn result_time(segments: &[Segment], source: Tick) -> Tick {
         .unwrap_or(Tick::ZERO)
 }
 
+fn retained_at(segments: &[Segment], time: Tick) -> bool {
+    let index = segments.partition_point(|segment| segment.source.end() <= time);
+    segments.get(index).is_some_and(|segment| segment.source.contains(time))
+}
+
 fn cut_at(segments: &[Segment], source: TimeRange, time: Tick) -> Option<TimeRange> {
     let index = segments.partition_point(|segment| segment.source.end() <= time);
     if segments.get(index).is_some_and(|segment| segment.source.contains(time)) || !source.contains(time) {
@@ -1292,7 +1532,7 @@ fn waveform(
     let mid = (audio_top + rect.bottom()) / 2.0;
     for (i, peak) in bins.into_iter().enumerate().filter(|(_, peak)| *peak != 0) {
         let tick = window.start + Tick(window.duration.0 * i as i64 / width as i64);
-        let retained = segments.iter().any(|segment| segment.source.contains(tick));
+        let retained = retained_at(segments, tick);
         if !show_cuts && !retained {
             continue;
         }

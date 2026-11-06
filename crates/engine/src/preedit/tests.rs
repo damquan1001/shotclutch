@@ -449,3 +449,159 @@ fn m2_cleanup_finds_repeated_opening_and_protects_timed_speech_in_quiet_audio() 
     assert!(proposed.candidates.iter().any(|c| c.kind == CandidateKind::Pause && c.range.end() < time(2100)));
     assert!(!proposed.candidates.iter().any(|c| c.kind == CandidateKind::Pause && c.range.contains(time(2150))));
 }
+
+#[test]
+fn m2_adaptive_silence_keeps_audible_islands_and_constant_audio() {
+    let mut db = vec![-32.0; 600]; // room noise above the old -42 dB ceiling
+    db[..100].fill(-12.0);
+    db[500..].fill(-12.0);
+    db[290..310].fill(-18.0); // a breath / untranscribed sound
+    let quiet = cleanup::quiet_intervals(range(0, 6), &db);
+    assert!(quiet.iter().any(|r| r.contains(seconds(2))));
+    assert!(quiet.iter().any(|r| r.contains(seconds(4))));
+    assert!(!quiet.iter().any(|r| r.contains(seconds(3))));
+    for level in [-32.0, -55.0, -15.0] {
+        assert!(cleanup::quiet_intervals(range(0, 6), &vec![level; 600]).is_empty());
+    }
+}
+
+#[test]
+fn m2_natural_pause_padding_is_per_speech_gap_and_transcript_mode_is_exact() {
+    let (_dir, _, mut session, item) = fixture();
+    let id = analyze(&mut session, item, None);
+    let map = &session.project.preedit.maps[&id];
+    let mut saved = (*session.project.preedit.analyses[&map.analysis]).clone();
+    let t = |v| Tick::from_units(v, 1000);
+    let chunk = Arc::make_mut(&mut saved.chunks[0]);
+    chunk.transcript = Some(shotclutch_project::Transcript {
+        words: vec![shotclutch_project::Word::new("Hello.", t(100), t(1000)), shotclutch_project::Word::new("Again", t(3000), t(3800))],
+        ..Default::default()
+    });
+    chunk.quiet = vec![TimeRange::from_bounds(t(1000), t(1800)), TimeRange::from_bounds(t(1900), t(3000))];
+    let options = CleanupSettings { min_pause_ms: Some(500), handle_ms: Some(100), ..Default::default() };
+    let natural = analysis::propose(map.analysis, &saved, Some(options));
+    let cuts: Vec<_> = natural.candidates.iter().filter(|c| c.kind == CandidateKind::Pause).collect();
+    assert_eq!(cuts.len(), 2);
+    assert_eq!(cuts[0].range, TimeRange::from_bounds(t(1270), t(1800)));
+    assert_eq!(cuts[1].range, TimeRange::from_bounds(t(1900), t(2820)));
+    let transcript = analysis::propose(map.analysis, &saved, Some(CleanupSettings { mode: CleanupMode::Transcript, ..options }));
+    assert!(transcript.candidates.iter().any(|c| c.range == TimeRange::from_bounds(t(1000), t(3000))));
+    assert!(transcript.candidates.iter().any(|c| c.range == TimeRange::from_bounds(t(0), t(100))));
+    assert!(transcript.candidates.iter().any(|c| c.range == TimeRange::from_bounds(t(3800), t(4000))));
+}
+
+#[test]
+fn m2_natural_word_cuts_guard_neighbors_and_require_quiet_boundaries() {
+    let t = |v| Tick::from_units(v, 1000);
+    let owned = [
+        shotclutch_project::Word::new("hello", t(300), t(600)),
+        shotclutch_project::Word::new("um", t(1100), t(1300)),
+        shotclutch_project::Word::new("world", t(1800), t(2200)),
+    ];
+    let words: Vec<_> = owned.iter().collect();
+    let quiet = [TimeRange::from_bounds(t(600), t(1100)), TimeRange::from_bounds(t(1300), t(1800))];
+    assert_eq!(cleanup::natural_word_range(owned[1].range(), &words, &quiet, range(0, 3)), Some(TimeRange::from_bounds(t(720), t(1720))));
+    assert_eq!(cleanup::natural_word_range(owned[1].range(), &words, &[], range(0, 3)), None);
+    assert_eq!(cleanup::transcript_word_range(owned[1].range(), &words, t(500)), TimeRange::from_bounds(t(600), t(1800)));
+    assert_eq!(cleanup::transcript_word_range(owned[1].range(), &words, t(400)), owned[1].range());
+}
+
+#[test]
+fn m2_transcript_rules_detect_varied_take_openings_and_extended_fillers() {
+    let (_dir, _, mut session, item) = fixture();
+    let id = analyze(&mut session, item, None);
+    let map = &session.project.preedit.maps[&id];
+    let mut saved = (*session.project.preedit.analyses[&map.analysis]).clone();
+    let time = |v| Tick::from_units(v, 1000);
+    let mut words: Vec<_> = ["this", "camera", "looks", "very", "good", "this", "camera", "looks", "really", "great", "ummm"]
+        .iter()
+        .enumerate()
+        .map(|(i, text)| {
+            let start = i as i64 * 140 + if i >= 5 { 650 } else { 0 };
+            shotclutch_project::Word::new(*text, time(start), time(start + 100))
+        })
+        .collect();
+    words.last_mut().unwrap().end = time(2200);
+    Arc::make_mut(&mut saved.chunks[0]).transcript = Some(shotclutch_project::Transcript { words, ..Default::default() });
+    let options = CleanupSettings { mode: CleanupMode::Transcript, min_pause_ms: Some(500), ..Default::default() };
+    let map = analysis::propose(map.analysis, &saved, Some(options));
+    assert_eq!(map.takes.len(), 1);
+    assert!(map.candidates.iter().any(|c| c.kind == CandidateKind::Filler));
+    let source = session.media.full_res_source(&session.project, item, &*session.services).unwrap();
+    let cuts = automatic_cuts(&map, &saved, &*source);
+    assert!(cuts.iter().any(|c| c.range.start == time(0) && c.range.end() == time(660)));
+    assert!(!cuts.iter().any(|c| c.range.contains(time(1400))));
+}
+
+#[test]
+fn m2_audio_refresh_reuses_words_preserves_restoration_and_checks_binding() {
+    let (_dir, _, mut session, item) = fixture();
+    let id = analyze(&mut session, item, None);
+    let kept = review_action(&mut session, id, json!({"kind":"candidate","index":0,"decision":"Keep"}));
+    let analysis_id = session.project.preedit.maps[&kept].analysis;
+    session
+        .edit("Attach timed test transcript", |project, _| {
+            let analysis = Arc::make_mut(project.preedit.analyses.get_mut(&analysis_id).unwrap());
+            analysis.analyzer_version = 1;
+            Arc::make_mut(&mut analysis.chunks[0]).transcript =
+                Some(shotclutch_project::Transcript { words: vec![shotclutch_project::Word::new("test", Tick::ZERO, seconds(1))], ..Default::default() });
+            Ok(())
+        })
+        .unwrap();
+    let old = session.project.preedit.analyses[&analysis_id].clone();
+    let args = json!({"item":item.0.to_string(),"audioStream":0,"reuseTranscript":analysis_id.to_string(),"previousMap":kept.to_string(),"autoCut":true});
+    session.execute("preedit.analyze", args.clone()).unwrap();
+    wait(&mut session);
+    let (_, map) = session.project.preedit.maps.last_key_value().unwrap();
+    assert_eq!(map.overrides, session.project.preedit.maps[&kept].overrides);
+    let refreshed = &session.project.preedit.analyses[&map.analysis];
+    assert_eq!(refreshed.analyzer_version, 2);
+    assert_eq!(refreshed.chunks[0].transcript, old.chunks[0].transcript);
+    let mut wrong = args;
+    wrong["language"] = json!("fr");
+    assert!(session.execute("preedit.analyze", wrong).unwrap_err().to_string().contains("same source"));
+}
+
+#[test]
+fn m2_automatic_union_matches_ordered_edits_with_manual_overrides() {
+    let (_dir, _, mut session, item) = fixture();
+    let id = analyze(&mut session, item, None);
+    let mut map = (*session.project.preedit.maps[&id]).clone();
+    let cuts: Vec<_> = (0..300)
+        .map(|i| {
+            let start = (i * 73 % 3500) as i64;
+            Override { range: TimeRange::from_bounds(Tick::from_units(start, 1000), Tick::from_units(start + 230, 1000)), decision: Decision::Remove }
+        })
+        .collect();
+    map.overrides = vec![Override { range: range(1, 3), decision: Decision::Keep }, Override { range: range(2, 3), decision: Decision::Remove }];
+    map.automatic = Some(Arc::new(cuts.clone()));
+    let fast = map.segments(range(0, 4)).unwrap();
+    map.automatic = None;
+    map.overrides.splice(0..0, cuts);
+    assert_eq!(fast, map.segments(range(0, 4)).unwrap());
+}
+
+#[test]
+fn m2_opposite_phase_stereo_does_not_become_silence() {
+    let (dir, original, mut session, _) = fixture();
+    let mono = std::fs::read(original).unwrap();
+    let mut stereo = mono[..44].to_vec();
+    stereo[4..8].copy_from_slice(&((mono.len() as u32 - 44) * 2 + 36).to_le_bytes());
+    stereo[22..24].copy_from_slice(&2u16.to_le_bytes());
+    stereo[28..32].copy_from_slice(&64000u32.to_le_bytes());
+    stereo[32..34].copy_from_slice(&4u16.to_le_bytes());
+    stereo[40..44].copy_from_slice(&((mono.len() as u32 - 44) * 2).to_le_bytes());
+    for sample in mono[44..].chunks_exact(2) {
+        let v = i16::from_le_bytes([sample[0], sample[1]]);
+        stereo.extend(v.to_le_bytes());
+        stereo.extend((-v).to_le_bytes());
+    }
+    let path = dir.path().join("stereo.wav");
+    std::fs::write(&path, stereo).unwrap();
+    session.execute("file.import", json!({"paths":[path]})).unwrap();
+    let item = session.project.items.values().find(|i| i.name == "stereo.wav").unwrap().id;
+    let id = analyze(&mut session, item, None);
+    let map = &session.project.preedit.maps[&id];
+    assert_eq!(map.candidates.len(), 1);
+    assert_eq!(map.candidates[0].range, range(1, 3));
+}
