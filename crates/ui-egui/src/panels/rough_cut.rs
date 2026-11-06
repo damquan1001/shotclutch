@@ -1238,14 +1238,25 @@ fn waveform(
         |pointer: egui::Pos2| window.start + Tick((window.duration.0 as f64 * f64::from(((pointer.x - rect.left()) / rect.width()).clamp(0.0, 1.0))) as i64);
     let lane_top = rect.top() + 25.0;
     let audio_top = rect.top() + 46.0;
-    let lane = |range: TimeRange| Rect::from_min_max(pos2(x(range.start), lane_top), pos2(x(range.end()), audio_top - 3.0));
     let cuts_lane = Rect::from_min_max(pos2(rect.left(), lane_top), pos2(rect.right(), audio_top - 3.0));
-    painter.rect_filled(cuts_lane, 1.0, if show_cuts { tokens.field_border } else { tokens.control_well });
+    let audio_lane = Rect::from_min_max(pos2(rect.left(), audio_top), rect.right_bottom());
+    // The gaps between retained segments are removed time, including gaps with no audio peaks.
+    painter.rect_filled(cuts_lane, 1.0, if show_cuts { tokens.control_border } else { tokens.control_well });
+    if show_cuts {
+        painter.rect_filled(audio_lane, 0.0, tokens.field_border);
+    }
     for segment in segments.iter().filter(|segment| segment.source.start < window.end() && segment.source.end() > window.start) {
-        painter.rect_filled(lane(segment.source).shrink2(vec2(0.5, 0.0)), 1.0, tokens.accent.gamma_multiply(0.8));
+        let left = x(segment.source.start.max(window.start));
+        let right = x(segment.source.end().min(window.end()));
+        let kept_cuts = Rect::from_min_max(pos2(left, lane_top), pos2(right, cuts_lane.bottom()));
+        painter.rect_filled(kept_cuts, 0.0, tokens.accent.gamma_multiply(0.8));
+        if show_cuts {
+            let kept_audio = Rect::from_min_max(pos2(left, audio_top), pos2(right, rect.bottom()));
+            painter.rect_filled(kept_audio, 0.0, tokens.field_bg);
+        }
     }
     if let Some(range) = selected {
-        let highlight = Rect::from_min_max(lane(range).min, pos2(x(range.end()), rect.bottom()));
+        let highlight = Rect::from_min_max(pos2(x(range.start), lane_top), pos2(x(range.end()), rect.bottom()));
         painter.rect_filled(highlight, 0.0, tokens.accent.gamma_multiply(0.24));
     }
     painter.line_segment([pos2(rect.left(), audio_top), pos2(rect.right(), audio_top)], (1.0, tokens.separator));
