@@ -90,6 +90,7 @@ struct Start {
     audio_stream: usize,
     channel: Option<u16>,
     model: Option<String>,
+    api_key: Option<String>,
     language: Option<String>,
     range: Option<ExactRange>,
     #[serde(default, with = "optional_decimal")]
@@ -200,6 +201,13 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
     }
     let settings =
         AnalysisSettings { model: req.model, language, min_pause: Tick::from_units(i64::from(pause), 1000), handle: Tick::from_units(i64::from(handle), 1000) };
+    if settings.model.as_deref() == Some("assemblyai")
+        && req.reuse_transcript.is_none()
+        && req.api_key.as_ref().is_none_or(|key| key.trim().is_empty())
+        && std::env::var("ASSEMBLYAI_API_KEY").ok().is_none_or(|key| key.trim().is_empty())
+    {
+        return Err(fail("INVALID_ARGUMENT: enter an AssemblyAI API key"));
+    }
     let model_digest = analysis::model_digest(&settings).map_err(fail)?;
     let resume = req.resume.map(|id| s.project.preedit.analyses.get(&id).cloned().ok_or_else(|| fail("NOT_FOUND: analysis to resume"))).transpose()?;
     let reuse = req.reuse_transcript.map(|id| s.project.preedit.analyses.get(&id).cloned().ok_or_else(|| fail("NOT_FOUND: saved transcript"))).transpose()?;
@@ -265,7 +273,7 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
                     chunks: resume.map_or_else(Vec::new, |a| a.chunks.clone()),
                 };
                 send.send(Message::Started(analysis.clone())).map_err(|_| "CANCELED: project closed")?;
-                analysis::run(decoded.clone(), &mut analysis, reuse.as_deref(), &signal, &send)?;
+                analysis::run(decoded.clone(), &mut analysis, reuse.as_deref(), req.api_key, &signal, &send)?;
                 let cuts = req.auto_cut.then(|| {
                     let map = analysis::propose(0, &analysis, req.cleanup);
                     automatic_cuts(&map, &analysis, &*decoded)

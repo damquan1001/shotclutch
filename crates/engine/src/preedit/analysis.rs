@@ -64,6 +64,9 @@ pub(super) fn fingerprint(path: &Path, imported: Option<MediaIdentity>, cancel: 
 
 pub(super) fn model_digest(settings: &AnalysisSettings) -> Result<Option<String>, String> {
     let Some(model) = &settings.model else { return Ok(None) };
+    if model == "assemblyai" {
+        return Ok(None);
+    }
     let info = shotclutch_speech::models::find(model).ok_or("INVALID_ARGUMENT: unknown speech model")?;
     let mut digest = Sha256::new();
     for file in info.files {
@@ -76,12 +79,18 @@ pub(super) fn run(
     original: SharedSource,
     analysis: &mut PreEditAnalysis,
     reuse: Option<&PreEditAnalysis>,
+    api_key: Option<String>,
     cancel: &Cancellation,
     sender: &SyncSender<Message>,
 ) -> Result<(), String> {
     let transcriber = if let Some(model) = analysis.settings.model.as_ref().filter(|_| reuse.is_none()) {
-        let dir = crate::transcript::models_dir().ok_or("CAPABILITY_UNAVAILABLE: speech model directory is unavailable")?;
-        Some(shotclutch_speech::load(&dir, model).map_err(|e| format!("CAPABILITY_UNAVAILABLE: {e}"))?)
+        if model == "assemblyai" {
+            let key = api_key.filter(|key| !key.trim().is_empty()).or_else(|| std::env::var("ASSEMBLYAI_API_KEY").ok()).unwrap_or_default();
+            Some(Arc::new(shotclutch_speech::assemblyai::AssemblyAi::new(key).map_err(|e| e.to_string())?) as Arc<dyn shotclutch_speech::Transcriber>)
+        } else {
+            let dir = crate::transcript::models_dir().ok_or("CAPABILITY_UNAVAILABLE: speech model directory is unavailable")?;
+            Some(shotclutch_speech::load(&dir, model).map_err(|e| format!("CAPABILITY_UNAVAILABLE: {e}"))?)
+        }
     } else {
         None
     };
@@ -90,7 +99,13 @@ pub(super) fn run(
     let mut start = analysis.chunks.last().map_or(source.range.start, |chunk| chunk.coverage.end());
     while start < source.range.end() {
         stopped(cancel)?;
-        let end = (start + Tick(CHUNK_SAMPLES * TICKS_PER_SAMPLE)).min(source.range.end());
+        let end = (start
+            + Tick(if analysis.settings.model.as_deref() == Some("assemblyai") {
+                300 * SAMPLE_RATE as i64 * TICKS_PER_SAMPLE
+            } else {
+                CHUNK_SAMPLES * TICKS_PER_SAMPLE
+            }))
+        .min(source.range.end());
         let range = TimeRange::from_bounds(start, end);
         let sample_start = start.0.div_euclid(TICKS_PER_SAMPLE);
         let sample_end = end.0.div_euclid(TICKS_PER_SAMPLE) + i64::from(end.0.rem_euclid(TICKS_PER_SAMPLE) != 0);

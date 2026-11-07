@@ -305,7 +305,7 @@ impl PreEdit {
             for chunk in &analysis.chunks {
                 if chunk.coverage.start != end
                     || !encloses(analysis.source.range, chunk.coverage)
-                    || chunk.peaks.len() > 401
+                    || chunk.peaks.len() > if analysis.settings.model.as_deref() == Some("assemblyai") { 6001 } else { 401 }
                     || chunk.quiet.iter().any(|range| !encloses(chunk.coverage, *range))
                 {
                     return Err("invalid rough-cut analysis coverage".into());

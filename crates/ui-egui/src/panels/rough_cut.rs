@@ -26,6 +26,8 @@ pub struct Workspace {
     stream: usize,
     channel: Option<u16>,
     silence_only: bool,
+    assemblyai: bool,
+    assemblyai_key: String,
     cleanup: CleanupSettings,
     cleanup_initialized: bool,
     language: String,
@@ -172,7 +174,7 @@ impl Workspace {
 
     fn start(&mut self, app: &mut ShotClutchApp, resume: Option<u64>, cut: bool) {
         let Some(item) = self.source else { return };
-        let model = (!self.silence_only).then_some("whisper-base");
+        let model = (!self.silence_only).then_some(if self.assemblyai { "assemblyai" } else { "whisper-base" });
         let range = if self.selection_start.trim().is_empty() && self.selection_end.trim().is_empty() {
             Value::Null
         } else {
@@ -189,7 +191,7 @@ impl Workspace {
                 "preedit.analyze",
                 json!({
                     "item":item.0.to_string(),"audioStream":self.stream,"channel":self.channel,"model":model,"language":self.language,"range":range,
-                    "minPauseMs":self.pause_ms,"handleMs":self.handle_ms,"autoCut":true,"cleanup":self.cleanup_options(cut),
+                    "apiKey":if self.assemblyai { Some(&self.assemblyai_key) } else { None },"minPauseMs":self.pause_ms,"handleMs":self.handle_ms,"autoCut":true,"cleanup":self.cleanup_options(cut),
                     "previousMap":self.map.map(|id| id.to_string()),"resume":resume.map(|id| id.to_string())
                 }),
             )
@@ -361,6 +363,20 @@ impl Workspace {
         });
         ui.add_space(8.0);
         ui.separator();
+        ui.add_enabled_ui(!running && !self.silence_only, |ui| {
+            ui.horizontal(|ui| {
+                let local = ui.selectable_value(&mut self.assemblyai, false, "Whisper · Local");
+                app.auto.add_response("roughCut.provider.local", &local, "Whisper");
+                let cloud = ui.selectable_value(&mut self.assemblyai, true, "AssemblyAI · Cloud");
+                app.auto.add_response("roughCut.provider.assemblyai", &cloud, "AssemblyAI");
+            });
+            if self.assemblyai {
+                ui.label("Transcribe sends the selected audio to AssemblyAI. API usage is billed to your account.");
+                let key = ui.add(egui::TextEdit::singleline(&mut self.assemblyai_key).password(true).hint_text("AssemblyAI API key (or ASSEMBLYAI_API_KEY)"));
+                app.auto.add_response("roughCut.assemblyai.key", &key, "AssemblyAI API key");
+                ui.label(egui::RichText::new("Key kept for this session. Completed audio sections can be resumed.").small().color(tokens.text_dim));
+            }
+        });
         section_title(ui, &tokens, "02", "Speech cleanup");
         ui.add_enabled_ui(!running, |ui| {
             ui.horizontal_wrapped(|ui| {
@@ -458,6 +474,7 @@ impl Workspace {
                     if !cut && !transcribe {
                         return;
                     }
+                    self.assemblyai = record.settings.model.as_deref() == Some("assemblyai");
                     self.channel = record.source.channel;
                     self.language.clone_from(&record.settings.language);
                     self.pause_ms = record.settings.min_pause.to_units_floor(1000) as u32;
@@ -469,7 +486,7 @@ impl Workspace {
                 }
             }
         });
-        if !self.silence_only {
+        if !self.silence_only && !self.assemblyai {
             ui.label(if self.language == "en" {
                 "English · Whisper base on this device"
             } else {
@@ -1347,6 +1364,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                 workspace.pause_ms = settings.min_pause_ms.unwrap_or(workspace.pause_ms);
                 workspace.handle_ms = settings.handle_ms.unwrap_or(workspace.handle_ms);
             }
+            workspace.assemblyai = analysis.unwrap().settings.model.as_deref() == Some("assemblyai");
             workspace.cleanup_initialized = true;
             workspace.seen_analysis = Some(analysis_mode);
             workspace.original = duration == Tick::ZERO || map.automatic.is_none();
