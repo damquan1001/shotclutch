@@ -633,7 +633,10 @@ fn automatic_cuts(map: &PreEditMap, analysis: &PreEditAnalysis, source: &dyn sho
             let start = words.partition_point(|w| w.start < range.start);
             let left = start > 0 && words[start - 1].end > range.start;
             let right = words[start..].iter().take_while(|w| w.start < range.end()).any(|w| w.end > range.end());
-            (!left && !right).then_some(Override { range, decision: Decision::Remove })
+            let measured_edge = candidate.kind == CandidateKind::Pause
+                && cleanup::verified_edge_pause(analysis, range)
+                && words.iter().filter(|word| word.start < range.end() && word.end > range.start).all(|word| word.range().duration > Tick::from_units(2, 1));
+            ((!left && !right) || measured_edge).then_some(Override { range, decision: Decision::Remove })
         })
         .take(4096)
         .collect();

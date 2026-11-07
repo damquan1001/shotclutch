@@ -566,7 +566,7 @@ fn m2_audio_refresh_reuses_words_preserves_restoration_and_checks_binding() {
     let (_, map) = session.project.preedit.maps.last_key_value().unwrap();
     assert_eq!(map.overrides, session.project.preedit.maps[&kept].overrides);
     let refreshed = &session.project.preedit.analyses[&map.analysis];
-    assert_eq!(refreshed.analyzer_version, 2);
+    assert_eq!(refreshed.analyzer_version, analysis::ANALYZER_VERSION);
     assert_eq!(refreshed.chunks[0].transcript, old.chunks[0].transcript);
     let mut wrong = args;
     wrong["language"] = json!("fr");
@@ -615,4 +615,36 @@ fn m2_opposite_phase_stereo_does_not_become_silence() {
     let map = &session.project.preedit.maps[&id];
     assert_eq!(map.candidates.len(), 1);
     assert_eq!(map.candidates[0].range, range(1, 3));
+}
+
+#[test]
+fn m2_source_edges_ignore_overlong_alignment_but_protect_real_words() {
+    let mut db = vec![-85.0; 400];
+    db[150..250].fill(-25.0);
+    let measured = cleanup::source_edge_quiet(range(0, 4), range(0, 4), &db);
+    assert_eq!(
+        measured,
+        vec![TimeRange::from_bounds(seconds(0), Tick::from_units(1500, 1000)), TimeRange::from_bounds(Tick::from_units(2500, 1000), seconds(4))]
+    );
+    assert!(cleanup::source_edge_quiet(range(0, 4), range(0, 4), &vec![-65.0; 400]).is_empty());
+    let (_dir, _, mut session, item) = fixture();
+    let id = analyze(&mut session, item, None);
+    let map = &session.project.preedit.maps[&id];
+    let mut saved = (*session.project.preedit.analyses[&map.analysis]).clone();
+    let chunk = Arc::make_mut(&mut saved.chunks[0]);
+    chunk.edge_quiet = measured.clone();
+    chunk.transcript = Some(shotclutch_project::Transcript {
+        words: vec![shotclutch_project::Word::new("Aligned", Tick::from_units(100, 1000), Tick::from_units(3800, 1000))],
+        ..Default::default()
+    });
+    let proposed = analysis::propose(map.analysis, &saved, None);
+    let source = session.media.full_res_source(&session.project, item, &*session.services).unwrap();
+    let cuts = automatic_cuts(&proposed, &saved, &*source);
+    assert!(cuts.iter().any(|cut| cut.range.start == Tick::ZERO && cut.range.end() > seconds(1)));
+    let restored = PreEditMap { automatic: Some(cuts), overrides: vec![Override { range: measured[0], decision: Decision::Keep }], ..proposed };
+    assert_eq!(restored.segments(range(0, 4)).unwrap()[0].source.start, Tick::ZERO);
+    Arc::make_mut(&mut saved.chunks[0]).transcript.as_mut().unwrap().words =
+        vec![shotclutch_project::Word::new("Quiet", Tick::from_units(100, 1000), Tick::from_units(500, 1000))];
+    let protected = analysis::propose(map.analysis, &saved, None);
+    assert!(!protected.candidates.iter().any(|cut| cut.range.start == Tick::ZERO && cut.range.end() > seconds(1)));
 }

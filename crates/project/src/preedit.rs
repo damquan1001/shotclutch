@@ -48,6 +48,9 @@ pub struct AnalysisChunk {
     /// Absolute source time. None denotes a silence-only chunk.
     pub transcript: Option<Transcript>,
     pub quiet: Vec<TimeRange>,
+    /// Near-silent source edges measured independently of transcript alignment.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub edge_quiet: Vec<TimeRange>,
     /// Peak amplitude in equal-duration bins, quantized for the waveform display.
     #[serde(default)]
     pub peaks: Vec<u8>,
@@ -307,6 +310,10 @@ impl PreEdit {
                     || !encloses(analysis.source.range, chunk.coverage)
                     || chunk.peaks.len() > if analysis.settings.model.as_deref() == Some("assemblyai") { 6001 } else { 401 }
                     || chunk.quiet.iter().any(|range| !encloses(chunk.coverage, *range))
+                    || chunk.edge_quiet.len() > 2
+                    || chunk.edge_quiet.iter().any(|range| {
+                        !encloses(chunk.coverage, *range) || (range.start != analysis.source.range.start && range.end() != analysis.source.range.end())
+                    })
                 {
                     return Err("invalid rough-cut analysis coverage".into());
                 }

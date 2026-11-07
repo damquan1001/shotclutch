@@ -223,7 +223,7 @@ impl Workspace {
             .get(&id)
             .and_then(|map| app.session.project.preedit.analyses.get(&map.analysis).map(|a| (map.analysis, a.clone())));
         if let Some((analysis_id, analysis)) = old
-            && analysis.analyzer_version < 2
+            && analysis.analyzer_version < 3
             && self.cleanup.mode == CleanupMode::Natural
         {
             self.refresh_audio(app, id, analysis_id, &analysis);

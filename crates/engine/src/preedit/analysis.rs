@@ -13,7 +13,7 @@ use super::{Message, stopped};
 use crate::service::Cancellation;
 
 const CHUNK_SAMPLES: i64 = 20 * SAMPLE_RATE as i64;
-pub(super) const ANALYZER_VERSION: u32 = 2;
+pub(super) const ANALYZER_VERSION: u32 = 3;
 pub(super) const SOURCE_BUDGET: u64 = 8 * 1024 * 1024 * 1024;
 
 pub(super) fn fingerprint(path: &Path, imported: Option<MediaIdentity>, cancel: &Cancellation) -> Result<(String, u64), String> {
@@ -135,6 +135,7 @@ pub(super) fn run(
             }
         }
         let quiet = super::cleanup::quiet_intervals(range, &levels);
+        let edge_quiet = super::cleanup::source_edge_quiet(range, source.range, &levels);
         let peaks = audible
             .chunks(SAMPLE_RATE as usize / 20)
             .map(|samples| (samples.iter().fold(0.0f32, |peak, sample| peak.max(sample.abs())).min(1.0) * 255.0).round() as u8)
@@ -167,7 +168,7 @@ pub(super) fn run(
             None
         };
         stopped(cancel)?;
-        let chunk = Arc::new(AnalysisChunk { coverage: range, transcript, quiet, peaks });
+        let chunk = Arc::new(AnalysisChunk { coverage: range, transcript, quiet, edge_quiet, peaks });
         sender.send(Message::Chunk(chunk.clone())).map_err(|_| "CANCELED: project closed")?;
         analysis.chunks.push(chunk);
         start = end;

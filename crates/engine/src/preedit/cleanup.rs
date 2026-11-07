@@ -12,6 +12,37 @@ fn ms(n: i64) -> Tick {
     Tick::from_units(n, 1000)
 }
 
+/// Trim only near-silent recording edges, with an audible reference in the same chunk.
+/// Low-gain continuous recordings cannot qualify through an absolute threshold alone.
+pub(super) fn source_edge_quiet(range: TimeRange, source: TimeRange, levels: &[f32]) -> Vec<TimeRange> {
+    let mut audible: Vec<_> = levels.iter().copied().filter(|db| db.is_finite() && *db > -100.0).collect();
+    audible.sort_by(f32::total_cmp);
+    if audible.is_empty() || audible[(audible.len() - 1) * 95 / 100] < -60.0 {
+        return Vec::new();
+    }
+    let mut edges = Vec::new();
+    if range.start == source.start {
+        let frames = levels.iter().take_while(|db| **db <= -65.0).count();
+        let end = (range.start + ms(frames as i64 * 10)).min(range.end());
+        if end - range.start >= ms(500) {
+            edges.push(TimeRange::from_bounds(range.start, end));
+        }
+    }
+    if range.end() == source.end() {
+        let frames = levels.iter().rev().take_while(|db| **db <= -65.0).count();
+        let start = (range.end() - ms(frames as i64 * 10)).max(range.start);
+        if range.end() - start >= ms(500) {
+            edges.push(TimeRange::from_bounds(start, range.end()));
+        }
+    }
+    edges
+}
+
+pub(super) fn verified_edge_pause(analysis: &PreEditAnalysis, range: TimeRange) -> bool {
+    analysis.chunks.iter().flat_map(|chunk| &chunk.edge_quiet).any(|edge| encloses(*edge, range))
+        && (range.start == analysis.source.range.start || range.end() == analysis.source.range.end())
+}
+
 /// A rolling four-second noise/speech distribution, in 10 ms frames. Histogram
 /// updates are linear in recording length and never require the full recording.
 pub(super) fn quiet_intervals(range: TimeRange, levels: &[f32]) -> Vec<TimeRange> {
@@ -115,6 +146,25 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, cleanup: Option<Clean
     let words: Vec<_> = analysis.chunks.iter().filter_map(|c| c.transcript.as_ref()).flat_map(|t| &t.words).filter(|w| w.end > w.start).collect();
     let quiet = quiet_ranges(analysis);
     let mut candidates = Vec::new();
+    for edge in analysis.chunks.iter().flat_map(|chunk| &chunk.edge_quiet) {
+        let leading = edge.start == analysis.source.range.start;
+        let start = if leading { edge.start } else { edge.start + handle.max(ms(80)) };
+        let end = if leading { edge.end() - handle.max(ms(80)) } else { edge.end() };
+        if end <= start {
+            continue;
+        }
+        let range = TimeRange::from_bounds(start, end);
+        // Ordinary timed words are protected. Multi-second alignment spans can contain silence.
+        let safe = words.iter().filter(|word| word.start < end && word.end > start).all(|word| word.range().duration > ms(2000));
+        if safe {
+            candidates.push(Candidate {
+                range,
+                kind: CandidateKind::Pause,
+                reason: "Near-silent source edge; an overlong transcript timestamp does not protect it".into(),
+                confidence: None,
+            });
+        }
+    }
     let mut takes = Vec::new();
     let mut add_pause = |start: Tick, end: Tick, previous: Option<&Word>, next: Option<&Word>| {
         let boundary = previous.is_none() || next.is_none();
