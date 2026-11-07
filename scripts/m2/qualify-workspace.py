@@ -194,6 +194,8 @@ def run(args):
                 state, key, record = latest()
                 analysis_id = str(record["analysis"])
                 binding = analysis["source"]
+                preview_before = call("perf.stats")["smartCut"]
+                ui_checks = 0
                 started = time.monotonic()
                 command("preedit.analyze", {
                     "item": str(binding["item"]), "audioStream": binding["audio_stream"],
@@ -207,10 +209,22 @@ def run(args):
                     state, _, record = latest()
                     if not state["running"]:
                         break
+                    elements = widgets()
+                    viewer = elements["roughCut.viewer"]["rect"]
+                    play = elements["roughCut.play"]["rect"]
+                    editor = elements["roughCut.openInEditor"]["rect"]
+                    assert play[1] + play[3] <= viewer[1] + viewer[3] + 2
+                    assert editor[1] < viewer[1] + 110
+                    current_preview = call("perf.stats")["smartCut"]
+                    if current_preview["map"] == preview_before["map"]:
+                        assert current_preview["builds"] == preview_before["builds"]
+                    ui_checks += 1
                     time.sleep(.5)
                 assert not state["running"]
                 assert record["overrides"] == expected
                 results["automated"]["refresh_preserves_decisions"] = True
+                assert ui_checks > 0
+                results["automated"]["analysis_keeps_preview_and_transport"] = True
                 results["audio_refresh_seconds"] = round(time.monotonic() - started, 2)
                 state, key, record = latest()
                 revision = state["revision"]

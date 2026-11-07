@@ -54,6 +54,7 @@ pub struct Workspace {
     pub(crate) toggle_requested: bool,
     message: String,
     result: Option<ResultView>,
+    preview_builds: u64,
     preview_attempt: Option<(u64, u64)>,
     model_install: ModelInstall,
     document: Option<String>,
@@ -111,6 +112,8 @@ enum ReviewTab {
 struct ResultView {
     map: u64,
     revision: u64,
+    source: ItemId,
+    use_proxies: bool,
     project: Arc<Project>,
     sequence: ItemId,
     time: Tick,
@@ -118,6 +121,11 @@ struct ResultView {
 }
 
 impl Workspace {
+    pub(crate) fn preview_stats(&self) -> Value {
+        json!({"builds":self.preview_builds,"map":self.result.as_ref().map(|v| v.map),
+            "revision":self.result.as_ref().map(|v| v.revision),"playing":self.is_playing()})
+    }
+
     pub(crate) fn is_playing(&self) -> bool {
         self.result.as_ref().is_some_and(|view| view.playing.is_some())
     }
@@ -174,6 +182,11 @@ impl Workspace {
 
     fn start(&mut self, app: &mut ShotClutchApp, resume: Option<u64>, cut: bool) {
         let Some(item) = self.source else { return };
+        self.stop(app.audio.as_deref_mut());
+        app.stop_source();
+        self.text_selection = None;
+        self.text_anchor = None;
+        self.correction = None;
         let model = (!self.silence_only).then_some(if self.assemblyai { "assemblyai" } else { "whisper-base" });
         let range = if self.selection_start.trim().is_empty() && self.selection_end.trim().is_empty() {
             Value::Null
@@ -1010,7 +1023,12 @@ impl Workspace {
 
     fn result_surface(&mut self, app: &mut ShotClutchApp, ui: &mut Ui, map: u64, duration: Tick, segments: &[Segment]) {
         ui.separator();
-        if self.result.as_ref().is_some_and(|view| view.map != map || view.revision != app.session.revision) {
+        if self.result.as_ref().is_some_and(|view| {
+            view.map != map
+                || view.project.item(view.source) != app.session.project.item(view.source)
+                || view.project.settings != app.session.project.settings
+                || view.use_proxies != app.session.media.use_proxies()
+        }) {
             self.stop(app.audio.as_deref_mut());
             self.result = None;
         }
@@ -1018,11 +1036,21 @@ impl Workspace {
         let retry = self.result.is_none() && self.preview_attempt == Some(attempt) && ui.button("Retry result preview").clicked();
         if duration > Tick::ZERO && self.result.is_none() && (self.preview_attempt != Some(attempt) || retry) {
             self.preview_attempt = Some(attempt);
+            self.preview_builds += 1;
             self.stop(app.audio.as_deref_mut());
             match shotclutch_engine::preedit::preview(&app.session, map) {
                 Ok((project, sequence)) => {
-                    self.result =
-                        Some(ResultView { map, revision: app.session.revision, project, sequence, time: result_time(segments, self.cursor), playing: None })
+                    let source = app.session.project.preedit.analyses[&app.session.project.preedit.maps[&map].analysis].source.item;
+                    self.result = Some(ResultView {
+                        map,
+                        revision: app.session.revision,
+                        source,
+                        use_proxies: app.session.media.use_proxies(),
+                        project,
+                        sequence,
+                        time: result_time(segments, self.cursor),
+                        playing: None,
+                    })
                 }
                 Err(error) => self.message = error.to_string(),
             }
@@ -1290,7 +1318,8 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
     let tokens = app.tokens;
     let can_open = map.is_some_and(|(_, map)| (map.automatic.is_some() || map.reviewed) && map.conflicts.is_empty())
         && duration > Tick::ZERO
-        && app.session.preedit_apply.is_none();
+        && app.session.preedit_apply.is_none()
+        && app.session.preedit_job.is_none();
     let previous = project
         .preedit
         .applications
@@ -1464,7 +1493,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
         let stream = analysis.filter(|a| a.source.item == item).map_or(workspace.stream, |a| a.source.audio_stream);
         if source_range.duration > Tick::ZERO {
             let changed = map.is_some_and(|(id, _)| workspace.map != Some(id));
-            let inline_actions = viewer.available_width() >= 620.0 && app.session.preedit_job.is_none();
+            let inline_actions = viewer.available_width() >= 620.0;
             viewer.horizontal_wrapped(|ui| {
                 ui.label(egui::RichText::new("Preview").strong());
                 ui.separator();
@@ -1484,8 +1513,28 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                 }
                 if app.session.preedit_job.is_some() {
                     ui.spinner();
-                    ui.label("Generating smart cut…");
-                    if ui.small_button("Cancel").clicked() {
+                    let status = project
+                        .preedit
+                        .analyses
+                        .values()
+                        .rev()
+                        .find(|a| a.source.item == item && a.status == AnalysisStatus::Running)
+                        .map(|a| {
+                            let covered = a.chunks.last().map_or(a.source.range.start, |chunk| chunk.coverage.end()) - a.source.range.start;
+                            let phase = if covered >= a.source.range.duration {
+                                "Finishing cut"
+                            } else if a.settings.model.is_some() {
+                                "Transcribing"
+                            } else {
+                                "Analyzing audio"
+                            };
+                            format!("{phase} · {} / {}", time_label(covered), time_label(a.source.range.duration))
+                        })
+                        .unwrap_or_else(|| "Preparing analysis…".into());
+                    ui.label(status);
+                    let cancel = ui.small_button("Cancel");
+                    app.auto.add_response("roughCut.cancelAnalysis", &cancel, "Cancel analysis");
+                    if cancel.clicked() {
                         workspace.command(app, "preedit.cancel", json!({}));
                     }
                 }
@@ -1494,7 +1543,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                 }
             });
             if !inline_actions {
-                preview_actions(&mut viewer, app, &mut workspace);
+                viewer.horizontal(|ui| preview_actions(ui, app, &mut workspace));
             }
             viewer.separator();
             let mut picture = viewer.available_rect_before_wrap();

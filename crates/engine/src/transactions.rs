@@ -107,6 +107,42 @@ pub struct PreparedEdit {
     pub(crate) operation: Option<shotclutch_format::session::OperationRecord>,
 }
 
+pub(crate) struct AnalysisCommit {
+    base: Arc<Project>,
+    revision: u64,
+    saved_revision: u64,
+    id_watermark: u64,
+    storage_epoch: Option<u64>,
+    session_dir: Option<std::path::PathBuf>,
+    snapshot: crate::document::Snapshot,
+    ack: Option<std::sync::mpsc::Receiver<std::result::Result<(), String>>>,
+}
+
+impl AnalysisCommit {
+    pub(crate) fn poll(&mut self) -> Option<std::result::Result<(), TransactionError>> {
+        let Some(ack) = &self.ack else { return Some(Ok(())) };
+        match ack.try_recv() {
+            Ok(result) => {
+                self.ack = None;
+                Some(result.map_err(TransactionError::PersistenceFailed))
+            }
+            Err(std::sync::mpsc::TryRecvError::Empty) => None,
+            Err(std::sync::mpsc::TryRecvError::Disconnected) => Some(Err(TransactionError::PersistenceFailed("checkpoint acknowledgement lost".into()))),
+        }
+    }
+
+    pub(crate) fn is_current(&self, s: &Session) -> bool {
+        self.revision == s.revision
+            && self.id_watermark == s.id_watermark
+            && self.storage_epoch == s.persistence.as_ref().map(|p| p.checkpoint_epoch())
+            && Arc::ptr_eq(&self.base, &s.project)
+            && self.saved_revision == s.saved_revision
+            && self.snapshot.project_id == s.document_id
+            && self.snapshot.path == s.path
+            && self.session_dir.as_ref() == s.persistence.as_ref().map(|p| &p.session_dir)
+    }
+}
+
 impl PreparedEdit {
     pub(crate) fn is_current(&self, session: &Session) -> bool {
         self.revision == session.revision && Arc::ptr_eq(&self.base, &session.project)
@@ -229,9 +265,49 @@ impl Session {
         self.commit_prepared(prepared, true)
     }
 
-    /// Analysis checkpoints are durable derived data, without an undo entry for every chunk.
-    pub(crate) fn commit_analysis(&mut self, prepared: PreparedEdit) -> std::result::Result<Vec<Value>, TransactionError> {
-        self.commit_prepared(prepared, false)
+    /// Queue a durable derived-data checkpoint without waiting on the UI thread. Publication
+    /// still requires the worker's acknowledgement and a current base; callers rebase on conflict.
+    pub(crate) fn begin_analysis_commit(&self, prepared: PreparedEdit) -> std::result::Result<AnalysisCommit, TransactionError> {
+        if !prepared.is_current(self) || self.trim_play.active() {
+            return Err(TransactionError::RevisionConflict);
+        }
+        self.ensure_revision_available().map_err(|e| TransactionError::InvalidArgument(e.to_string()))?;
+        if self.edit_group_depth != 0 {
+            return Err(TransactionError::InvalidArgument("analysis checkpoints cannot be nested in command groups".into()));
+        }
+        self.refuse_self_nesting(&prepared.project).map_err(|e| TransactionError::VerificationFailed(e.to_string()))?;
+        let mut snapshot = self.document_snapshot();
+        snapshot.project = prepared.project;
+        snapshot.revision = self.revision + 1;
+        snapshot.next_id = snapshot.next_id.max(snapshot.project.next_id);
+        snapshot.history.merge_key = None;
+        let ack = self.persistence.as_ref().map(|p| p.begin_commit_snapshot(snapshot.clone())).transpose().map_err(TransactionError::PersistenceFailed)?;
+        Ok(AnalysisCommit {
+            base: prepared.base,
+            revision: prepared.revision,
+            saved_revision: self.saved_revision,
+            id_watermark: self.id_watermark,
+            storage_epoch: self.persistence.as_ref().map(|p| p.checkpoint_epoch()),
+            session_dir: self.persistence.as_ref().map(|p| p.session_dir.clone()),
+            snapshot,
+            ack,
+        })
+    }
+
+    pub(crate) fn finish_analysis_commit(&mut self, commit: AnalysisCommit) -> std::result::Result<(), TransactionError> {
+        if !commit.is_current(self) || self.trim_play.active() {
+            return Err(TransactionError::RevisionConflict);
+        }
+        let snapshot = commit.snapshot;
+        self.project = snapshot.project;
+        self.history = snapshot.history;
+        self.operation_records = snapshot.operations;
+        self.id_watermark = snapshot.next_id;
+        self.bump();
+        self.fix_state();
+        self.sync_persistence();
+        self.previews.live.publish_project(self.project.clone());
+        Ok(())
     }
 
     fn commit_prepared(&mut self, prepared: PreparedEdit, undo: bool) -> std::result::Result<Vec<Value>, TransactionError> {

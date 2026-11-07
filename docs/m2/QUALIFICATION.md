@@ -39,6 +39,8 @@ This launches a separate app with isolated data and an authenticated loopback co
 
 The output contains `summary.json`, `reviewed.scproj`, and `editorial-labels.csv`. Automated pause restoration demonstrates the action; it does not assert that the pause was intentional. Mechanical transport checks do not prove smooth video playback or acceptable audible joins. Inspect those during the human pass. The linked A/V regression independently checks preview/application picture agreement, omitted captions, selected stream, and exported frame/sample counts.
 
+During refresh, the harness checks that media controls remain within the viewer, actions stay at the top, and an unchanged map does not rebuild its preview on each analysis checkpoint. For real-model responsiveness, start Transcribe & cut on a saved result, check wide and compact layouts during processing, then cancel after several completed chunks. `perf.stats.smartCut` exposes preview map/revision/build counts for this local diagnostic. Control-channel round trips include transport/scheduling overhead and must not be reported as displayed video frame times.
+
 ## Human editorial pass
 
 Open the candidate and private reviewed project. Listen to the selected dialogue track and representative alternatives. Review the worksheet's source-time ranges in original context, including leading/trailing quiet, short pauses, fillers, restart cuts and takes. The deterministic sample includes up to eight candidates per category; it is a structured review sample, not an unbiased estimate of all cuts.

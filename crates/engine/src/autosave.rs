@@ -657,6 +657,8 @@ enum Msg {
     AutoSaveNow(Sender<Result<PathBuf, String>>),
     Flush(Sender<Result<(), String>>),
     Commit(Snapshot, Sender<Result<(), String>>),
+    #[cfg(test)]
+    Pause(Sender<()>, Receiver<()>),
     Stop,
 }
 
@@ -711,6 +713,7 @@ pub struct Persistence {
     pub candidates: Vec<RecoveryCandidate>,
     pub status: Status,
     pub(crate) last_sent: Option<Sent>,
+    checkpoint_epoch: std::sync::atomic::AtomicU64,
     lock: Option<File>,
     tx: Sender<Msg>,
     events: Receiver<WorkerEvent>,
@@ -760,6 +763,7 @@ impl Persistence {
             candidates,
             status: Status::default(),
             last_sent: None,
+            checkpoint_epoch: std::sync::atomic::AtomicU64::new(0),
             lock: Some(lock),
             tx,
             events,
@@ -772,10 +776,12 @@ impl Persistence {
     }
 
     pub(crate) fn send_clean(&self) {
+        self.checkpoint_epoch.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         let _ = self.tx.send(Msg::Clean);
     }
 
     pub fn set_prefs(&self, p: AutoSavePrefs) {
+        self.checkpoint_epoch.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         let _ = self.tx.send(Msg::Prefs(p));
     }
 
@@ -793,9 +799,25 @@ impl Persistence {
     }
 
     pub(crate) fn commit_snapshot(&self, snapshot: Snapshot) -> Result<(), String> {
+        self.begin_commit_snapshot(snapshot)?.recv().map_err(|_| "commit acknowledgement lost; recover the snapshot before retrying".to_string())?
+    }
+
+    pub(crate) fn begin_commit_snapshot(&self, snapshot: Snapshot) -> Result<Receiver<Result<(), String>>, String> {
         let (tx, rx) = channel();
         self.tx.send(Msg::Commit(snapshot, tx)).map_err(|_| "recovery worker stopped".to_string())?;
-        rx.recv().map_err(|_| "commit acknowledgement lost; recover the snapshot before retrying".to_string())?
+        Ok(rx)
+    }
+
+    pub(crate) fn checkpoint_epoch(&self) -> u64 {
+        self.checkpoint_epoch.load(std::sync::atomic::Ordering::Relaxed)
+    }
+
+    #[cfg(test)]
+    pub(crate) fn pause_for_test(&self) -> (Receiver<()>, Sender<()>) {
+        let (entered, ready) = channel();
+        let (release, wait) = channel();
+        self.tx.send(Msg::Pause(entered, wait)).unwrap();
+        (ready, release)
     }
 
     /// Write an auto-save now (if there are unsaved changes) and wait for the result.
@@ -938,6 +960,11 @@ impl Worker {
                 },
             };
             match msg {
+                #[cfg(test)]
+                Some(Msg::Pause(entered, release)) => {
+                    let _ = entered.send(());
+                    let _ = release.recv();
+                }
                 Some(Msg::Dirty(s)) => {
                     let now = Instant::now();
                     self.first_pending.get_or_insert(now);

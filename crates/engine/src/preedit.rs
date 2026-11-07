@@ -31,6 +31,15 @@ pub struct PendingAnalysis {
     cleanup: Option<CleanupSettings>,
     receiver: mpsc::Receiver<Message>,
     cancel: Cancellation,
+    checkpoint: Option<Checkpoint>,
+}
+
+struct Checkpoint {
+    commit: crate::transactions::AnalysisCommit,
+    message: Message,
+    original_analysis: Option<u64>,
+    canceled: bool,
+    terminal: Option<std::result::Result<(), String>>,
 }
 
 pub struct PendingApplication {
@@ -64,6 +73,7 @@ impl Drop for PendingAnalysis {
     }
 }
 
+#[derive(Clone)]
 enum Message {
     Started(PreEditAnalysis),
     Chunk(Arc<AnalysisChunk>),
@@ -297,6 +307,7 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
         cleanup: req.cleanup,
         receiver,
         cancel,
+        checkpoint: None,
     });
     Ok(json!({"state": "running"}))
 }
@@ -307,7 +318,47 @@ pub(crate) fn poll(s: &mut Session) {
     if job.document != s.document_id || !matches!(original(s, job.item), Ok((_, path)) if path == job.original_path) {
         return;
     }
-    let message = match job.receiver.try_recv() {
+    if s.trim_play.active() {
+        s.preedit_job = Some(job);
+        return;
+    }
+    let retry = if let Some(mut checkpoint) = job.checkpoint.take() {
+        match checkpoint.commit.poll() {
+            None => {
+                job.checkpoint = Some(checkpoint);
+                s.preedit_job = Some(job);
+                return;
+            }
+            Some(Err(error)) => {
+                s.error_toast("Smart Cut", error.to_string());
+                return;
+            }
+            Some(Ok(())) => {
+                if !checkpoint.commit.is_current(s) || checkpoint.canceled != stopped(&job.cancel).is_err() {
+                    // User edits and save operations remain responsive while a checkpoint writes.
+                    // Rebuild its derived change against that newer state instead of replacing it.
+                    job.analysis = checkpoint.original_analysis;
+                    Some(checkpoint.message)
+                } else {
+                    if let Err(error) = s.finish_analysis_commit(checkpoint.commit) {
+                        s.error_toast("Smart Cut", error.to_string());
+                        return;
+                    }
+                    if let Some(result) = checkpoint.terminal {
+                        if let Err(error) = result {
+                            s.error_toast("Smart Cut", error);
+                        }
+                    } else {
+                        s.preedit_job = Some(job);
+                    }
+                    return;
+                }
+            }
+        }
+    } else {
+        None
+    };
+    let message = match retry.map(Ok).unwrap_or_else(|| job.receiver.try_recv()) {
         Ok(message) => message,
         Err(mpsc::TryRecvError::Empty) => {
             s.preedit_job = Some(job);
@@ -315,14 +366,18 @@ pub(crate) fn poll(s: &mut Session) {
         }
         Err(mpsc::TryRecvError::Disconnected) => Message::Finished(Err("INTERNAL_ERROR: rough-cut worker stopped".into())),
     };
-    match publish(s, &mut job, message) {
-        Ok(true) => s.preedit_job = Some(job),
-        Ok(false) => {}
+    let original_analysis = job.analysis;
+    let canceled = stopped(&job.cancel).is_err();
+    match publish(s, &mut job, message.clone()) {
+        Ok((commit, terminal)) => {
+            job.checkpoint = Some(Checkpoint { commit, message, original_analysis, canceled, terminal });
+            s.preedit_job = Some(job);
+        }
         Err(error) => s.error_toast("Smart Cut", error.to_string()),
     }
 }
 
-fn publish(s: &mut Session, job: &mut PendingAnalysis, message: Message) -> Result<bool> {
+fn publish(s: &Session, job: &mut PendingAnalysis, message: Message) -> Result<(crate::transactions::AnalysisCommit, Option<std::result::Result<(), String>>)> {
     let mut project = (*s.project).clone();
     project.next_id = project.next_id.max(s.id_watermark);
     let mut terminal = None;
@@ -398,13 +453,8 @@ fn publish(s: &mut Session, job: &mut PendingAnalysis, message: Message) -> Resu
         }
     }
     let prepared = s.prepare_project("Analyze Smart Cut", project, Vec::new())?;
-    s.commit_analysis(prepared).map_err(|e| fail(e.to_string()))?;
-    if let Some(result) = terminal {
-        result.map_err(fail)?;
-        Ok(false)
-    } else {
-        Ok(true)
-    }
+    let commit = s.begin_analysis_commit(prepared).map_err(|e| fail(e.to_string()))?;
+    Ok((commit, terminal))
 }
 
 fn current_revision(state: &PreEdit, mut id: u64) -> u64 {

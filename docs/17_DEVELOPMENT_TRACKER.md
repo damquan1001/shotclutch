@@ -1,6 +1,6 @@
 # ShotClutch — Development Tracker
 
-Baseline 0.1 · Last updated: 2026-11-07 · Authoritative living work record.
+Baseline 0.1 · Last updated: 2026-11-08 · Authoritative living work record.
 
 ## Current state
 

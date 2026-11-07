@@ -182,6 +182,82 @@ fn m2_cancellation_preserves_completed_checkpoints_for_resume() {
 }
 
 #[test]
+fn m2_checkpoint_disk_wait_is_nonblocking_and_rebases_concurrent_review() {
+    let (_dir, _, mut session, item) = fixture();
+    let old = analyze(&mut session, item, None);
+    let analysis_count = session.project.preedit.analyses.len();
+    let undo_count = session.history.undo.len();
+    let (ready, release) = session.persistence.as_ref().unwrap().pause_for_test();
+    ready.recv_timeout(std::time::Duration::from_secs(2)).unwrap();
+    session.execute("preedit.analyze", json!({"item":item.0.to_string(),"audioStream":0,"previousMap":old.to_string()})).unwrap();
+    let started = std::time::Instant::now();
+    loop {
+        let poll_start = std::time::Instant::now();
+        session.poll_persistence();
+        assert!(poll_start.elapsed() < std::time::Duration::from_millis(250), "UI poll waited on checkpoint storage");
+        if session.preedit_job.as_ref().is_some_and(|job| job.checkpoint.is_some()) {
+            break;
+        }
+        assert!(started.elapsed().as_secs() < 5);
+        std::thread::sleep(std::time::Duration::from_millis(2));
+    }
+    assert_eq!(session.project.preedit.analyses.len(), analysis_count, "unacknowledged data must not be published");
+    let reviewed =
+        review_action(&mut session, old, json!({"kind":"range","decision":"Keep","range":{"start":seconds(1).0.to_string(),"end":seconds(2).0.to_string()}}));
+    let manual = session.project.preedit.maps[&reviewed].overrides.clone();
+    session.execute("preedit.cancel", json!({})).unwrap();
+    release.send(()).unwrap();
+    wait(&mut session);
+    assert!(session.project.preedit.maps.contains_key(&reviewed), "a checkpoint must not overwrite a concurrent review or reuse its ID");
+    let (id, record) = session.project.preedit.analyses.last_key_value().unwrap();
+    assert_eq!(record.status, AnalysisStatus::Canceled);
+    assert_eq!(session.project.preedit.maps.last_key_value().unwrap().1.overrides, manual);
+    assert_eq!(session.history.undo.len(), undo_count + 1, "analysis chunks are not individual undo items");
+    let snapshot = session.persistence.as_ref().unwrap().session_dir.join("snapshot.scproj");
+    let saved = shotclutch_format::decode(&std::fs::read(snapshot).unwrap()).unwrap();
+    assert_eq!(saved.project.preedit.analyses[id], *record);
+    assert_eq!(saved.project.preedit.maps[&reviewed].overrides, manual);
+}
+
+#[test]
+fn m2_checkpoint_rebases_after_recovery_preferences_change_without_an_edit() {
+    let (_dir, _, mut session, item) = fixture();
+    let (ready, release) = session.persistence.as_ref().unwrap().pause_for_test();
+    ready.recv_timeout(std::time::Duration::from_secs(2)).unwrap();
+    session.execute("preedit.analyze", json!({"item":item.0.to_string(),"audioStream":0})).unwrap();
+    let started = std::time::Instant::now();
+    while session.preedit_job.as_ref().is_none_or(|job| job.checkpoint.is_none()) {
+        session.poll_persistence();
+        assert!(started.elapsed().as_secs() < 5);
+        std::thread::sleep(std::time::Duration::from_millis(2));
+    }
+    let revision = session.revision;
+    assert!(session.preedit_job.as_ref().unwrap().checkpoint.as_ref().unwrap().commit.is_current(&session));
+    let mut prefs = session.prefs.clone();
+    prefs.auto_save.recovery_journal = false;
+    session.set_prefs(prefs.clone()).unwrap();
+    prefs.auto_save.recovery_journal = true;
+    session.set_prefs(prefs).unwrap();
+    assert_eq!(session.revision, revision);
+    assert!(!session.preedit_job.as_ref().unwrap().checkpoint.as_ref().unwrap().commit.is_current(&session));
+    release.send(()).unwrap();
+    wait(&mut session);
+    assert_eq!(session.project.preedit.analyses.last_key_value().unwrap().1.status, AnalysisStatus::Complete);
+}
+
+#[test]
+fn m2_failed_async_checkpoint_does_not_publish_unpersisted_analysis() {
+    let (_dir, _, mut session, item) = fixture();
+    let before = session.project.preedit.clone();
+    let mut prefs = session.prefs.clone();
+    prefs.auto_save.recovery_journal = false;
+    session.set_prefs(prefs).unwrap();
+    session.execute("preedit.analyze", json!({"item":item.0.to_string(),"audioStream":0})).unwrap();
+    wait(&mut session);
+    assert_eq!(session.project.preedit, before);
+}
+
+#[test]
 fn m2_background_apply_rejects_an_intervening_edit() {
     let (_dir, _, mut session, item) = fixture();
     let proposed = analyze(&mut session, item, None);

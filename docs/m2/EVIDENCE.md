@@ -1,6 +1,28 @@
 # M2 verification record
 
-This record retains historical runs below. The 2026-11-07 closeout qualification is the current implementation result. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
+This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
+
+## Transcription responsiveness and preview layout — 2026-11-08
+
+Reproduced Transcribe & cut from the saved full-recording result. Three coupled faults were found: checkpoint publication waited for atomic snapshot writes on the UI thread; each checkpoint's global revision discarded the unchanged result preview; and the processing-state toolbar's fallback layout consumed the viewer's available height. The existing transcript could also leave its selection popup visible when a new run started.
+
+Checkpoint writes now return an acknowledgement receiver. The UI polls it and publishes only acknowledged, current derived data. Review edits, saves, ID allocation and recovery-control changes invalidate a pending base and rebase its analysis event; failed writes publish no unpersisted data. Analysis remains bounded and cancellable. The result cache now follows map/source/render settings instead of every global revision. Preview actions occupy a bounded row at both window widths, media controls stay below the picture, starting analysis clears transient text selection, and the header reports preparation, covered transcription time or finalization.
+
+Local control-channel samples during real CPU Whisper reanalysis of the full recording:
+
+| Measurement | Previous build | Corrected build |
+| --- | --- | --- |
+| UI query samples | 28 | 113 |
+| Median query round trip | 204.60 ms | 102.52 ms |
+| 95th percentile query round trip | 3,721.16 ms | 210.25 ms |
+| Longest query round trip | 5,012.40 ms | 310.67 ms |
+| Invalid viewer/control layouts | 28 | 0 |
+| Real completed checkpoints observed | 6 | 5 |
+| Preview builds during corrected run | Not instrumented | 1, unchanged across checkpoints |
+
+Both runs used a separate native instance, the same private review project and pinned local model, a roughly 35-second observation window, and wide 1440×950 / compact 1024×720 layouts. Round trips include TCP, scheduling and widget-registry overhead; they are not direct input-to-paint or video-frame measurements. Host load/cache conditions were not isolated as a release benchmark. Both input project checksums stayed unchanged, both jobs were canceled, and screenshots were inspected locally. A separate real-model video excerpt also completed transcription/cutting, produced 35 words, and displayed the generated result picture and transport.
+
+All 26 M2 and 81 M1 engine regressions and 17 autosave regressions passed. New cases hold the recovery worker paused while UI polling and manual review continue, verify rebasing without overwriting decisions or reusing IDs, check cancellation and acknowledged recovery data, reject stale checkpoints after recovery settings change without a project edit, and prove failed writes publish no analysis. The repeatable native workspace harness also checks preview retention and control bounds during audio refresh. Private scripts, media excerpts, transcripts, metrics and screenshots remain ignored. This correctness/performance repair does not replace the outstanding human editorial acceptance. Native candidate: `shotclutch-smart-cut-responsive.exe`. The two superseded task executables were removed after verification.
 
 ## Main source audio default — 2026-11-07
 
