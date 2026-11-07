@@ -1,5 +1,25 @@
 # M2 verification record
 
+This record retains historical runs below. The 2026-11-07 closeout qualification is the current implementation result. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
+
+## Closeout qualification — 2026-11-07
+
+The final audit added protection for take matches that change negation or numeric tokens. Natural automatic take removal now requires identical words or an unfinished earlier prefix; ambiguous endings remain reviewable. Reject grouping restores every alternative in one undoable revision. The native take panel exposes Keep all and grouping rejection/splitting.
+
+Implementation and qualification tools: `52ad1598`. Native Windows candidate: `shotclutch-m2-qualified.exe`, SHA-256 `d1acd707a3097effb6f77d8a25cc3760fefdcea2b35d5b70f1f1b1f2deeff5a0`. The candidate was linked from the final production code with engine/UI development optimization overridden to zero; this is a qualification executable, not a release package.
+
+The unchanged M1 runner passed on Windows: 191 time/project/edit/format library checks, formatting, 81 engine regressions and five automation regressions. The expanded M2 runner passed **22 engine regressions**, one indexed edit-boundary timestamp test and three AssemblyAI parsing/pre-upload cancellation checks. The added collection/relink case removes the original location, verifies the complete collected bytes, relinks them and restores the removed interval before a fresh application. The permission case rejects owner-only `preedit` commands from an editing-scoped client without changing revision or project state. The local CI runner is wired into the existing workflow; no new hosted CI execution is claimed.
+
+Fresh CPU Whisper base inference covered the entire **2,271.551-second** selected recording on UI stream 1 (command stream 0), with **114 completed checkpoints, 4,031 words, 790 review candidates and 38 take groups**. The private ignored test passed and saved a new review project. Test-reported analysis/source-verification time was **1,076.5 seconds**; wrapper wall time was **1,084.41 seconds**. Sampled peak working set was **747.8 MiB**, sampled every 0.5 seconds using Windows process telemetry. This was a warm-model Windows qualification run on the existing Ryzen 7 4800H host with other compilation running; it is not a controlled release performance benchmark. Candidate/group counts measure detection, not correctness or the number of applied cuts.
+
+The source-verification budget is 8 GiB per phase with streamed hashing; local audio decode/recognition remains bounded to 20-second chunks plus context. Analyzer v3 measures near-silent source edges independently of transcript alignment. The earlier source-edge regression and private source-edge native check passed, including a spanning alignment and a short genuine leading word. The final run uses analyzer v3 throughout.
+
+The native walkthrough passed pause restoration, take comparison/retention, highlighted phrase Cut / Uncut, result transport, full audio refresh preserving manual decisions, Open in editor, idempotent apply, save/reopen, grouped undo/redo, rejection of replacement after a mixer edit, and fresh-sequence creation after rejection. Full-recording audio refresh took **84.84 seconds** and preserved all words and manual decisions. The original input project checksum remained unchanged. The control-channel automatic cleanup request took 29.37 ms on this run; this is command round-trip latency, not a rendered-frame or join-quality measurement. Prior native cut/uncut latency checks and shared-monitor playback measurements remain separate observations.
+
+A separate handoff check saved a new private review-ready project with Smart Cut active and visually inspected its transcript, result picture, icon transport, viewer actions and gray/retained source timeline. The main harness now waits for the UI to consume a background application receipt before returning to review; otherwise that receipt can legitimately switch back to Editing on the next frame. Three superseded generated app executables were removed from the task's build directory after the candidate passed.
+
+The reproducible native walkthrough and private sample worksheet are maintained in `scripts/m2/qualify-workspace.py`; `scripts/m2/editorial-metrics.py` calculates sample-row metrics from human verdicts. The worksheet contains **25 unreviewed rows**, so review coverage is 0% and restoration/adjustment/accepted-removal rates are null. Source media, full transcripts, runtime logs, revealing screenshots and detailed labels remain in ignored local storage. **No final human editorial verdict, listening-based track audition, or labeled restoration rate is inferred from these automated runs.** Optional AssemblyAI live-account qualification remains unexecuted; it is separate from the qualified local model profile.
+
 ## Windows local checks
 
 | Check | Result |

@@ -2,7 +2,7 @@
 
 ## Local reference assessment
 
-Reviewed the local OpenGling 0.12.0 source on 2026-11-06, specifically `src/speech-cleanup.js`, `src/acoustic-cleanup.js`, `src/cleanup-state.js`, `public/app.js`, and the natural-cleanup and speech-cleanup tests. These are implementation references. The requested Shotclutch workflow remains automatic cutting followed by review.
+Reviewed the local OpenGling 0.12.0 source on 2026-11-06, specifically `src/speech-cleanup.js`, `src/acoustic-cleanup.js`, `src/cleanup-state.js`, `public/app.js`, and the natural-cleanup and speech-cleanup tests. These are implementation references. The requested Shotclutch workflow remains automatic cutting followed by review. This assessment was updated 2026-11-07 for source-edge measurements and take safety guards.
 
 | Area | OpenGling behavior | Previous Shotclutch limitation | Adaptation |
 | --- | --- | --- | --- |
@@ -25,17 +25,21 @@ Natural quiet detection uses 10 ms per-channel RMS, rolling four-second distribu
 
 Natural pauses retain at least 250 ms of ordinary pacing or 450 ms after sentence punctuation, subject to the selected padding and available gap. Audible islands remain. Word removals need quiet cutting room and protect 120 ms after the preceding word and 80 ms before the following word. Existing frame alignment and short fades remain responsible for realizable edit boundaries and audio joins. This implementation does not add the reference's sample-minimum search or paragraph pacing because the saved analysis does not retain those samples or paragraph identities.
 
-Take matching stays within 20 seconds and the same speaker label. Cross-take suffix removal requires at least two consecutive words. Unrelated intervening takes are retained. These constraints intentionally differ from the reference's broader abandoned-take and single-word suffix heuristics. Recognition errors and meaning changes still require editorial review. Detection confidence remains explicitly unknown rather than presenting a heuristic score as a calibrated probability.
+Take matching stays within 20 seconds and the same speaker label. Cross-take suffix removal requires at least two consecutive words. Unrelated intervening takes are retained. Automatic Natural removal additionally requires an identical earlier attempt or an earlier prefix of at least two words in the later attempt. Both modes preserve alternatives whose numeric/negation markers differ, and automatic restart removal preserves those markers. Opening similarity can still create a review group without authorizing removal. These guards intentionally differ from the reference's broader abandoned-take and single-word suffix heuristics. They do not detect every semantic change; recognition errors and performance choices still require editorial review. Detection confidence remains explicitly unknown rather than presenting a heuristic score as a calibrated probability.
+
+Analyzer v3 independently measures near-silent source edges: contiguous 10 ms bins at or below −65 dBFS, at least 500 ms, and a same-chunk audible reference above the low-gain guard. It applies source-edge padding and protects adjacent word alignments that do not merely span the quiet edge. This addresses overlong Whisper alignment masking leading silence. Constant low-gain recordings do not qualify on the absolute threshold alone. Earlier saved measurements require an explicit refresh; opening a project does not reclassify it.
 
 ## Saved projects and commands
 
 `cleanup.mode` accepts `natural` and `transcript`, defaulting to `natural` when omitted. Existing project files remain readable. Regeneration creates a new map and preserves compatible manual overrides. Existing saved maps are not silently reclassified when opened.
 
-`preedit.analyze.reuseTranscript` takes a decimal analysis ID. It requires completed coverage of the same asset, range, stream, channel, language, model, and source fingerprint. It decodes bounded audio chunks and copies the saved timed words without loading Whisper. The new analysis uses analyzer version 2. The native Update cut action refreshes old acoustic measurements when Natural is selected. Refresh audio & cut explicitly requests this pass for any completed analysis.
+`preedit.analyze.reuseTranscript` takes a decimal analysis ID. It requires completed coverage of the same asset, range, stream, channel, language, model, and source fingerprint. It decodes bounded audio chunks and copies the saved timed words without loading Whisper or uploading audio. The new analysis uses analyzer version 3. The native Update cut action refreshes older acoustic measurements when Natural is selected. Refresh audio & cut explicitly requests this pass for any completed analysis.
 
 New sessions use a 500 ms pause threshold. Saved user settings are preserved. Review cuts provides P/N navigation and R to restore when a text field does not own keyboard input. Clicking a removed transcript word opens its original context. All cut generation still happens before review, with no suggestion approval step.
 
 Automatic removal intervals are sorted and unioned before timeline assembly. Ordered manual edits are applied afterward. Transcript/waveform hit checks use binary search, and cut review renders only visible rows. These changes reduce repeated work when a recording contains many cuts.
+
+Take review exposes Keep all, choose one, and grouping rejection/splitting. Reject grouping restores all alternatives in one undoable revision. The waveform supports selecting both removed and retained intervals, edge trimming and Cut / Uncut menus; transcript selection exposes Cut / Uncut / Correct / Export clip. Removed material is gray and remains accessible in original playback.
 
 ## Validation
 

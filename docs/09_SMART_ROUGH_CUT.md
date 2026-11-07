@@ -1,12 +1,14 @@
-# ShotClutch — Smart Rough Cut
+# ShotClutch — Smart Cut
 
 Baseline 0.1 · 2026-10-26 · UI-002 and PRE-001 through PRE-005.
 
+Implementation amendment, 2026-11-07: the user renamed the feature Smart Cut and requested automatic cutting followed by review, with no suggestion approval queue. The existing filename, `PreEdit*` types and `preedit` command namespace remain stable. See [current implementation](m2/IMPLEMENTATION.md) and [acceptance record](m2/ACCEPTANCE.md).
+
 ## Product contract
 
-Smart Rough Cut is a manually invoked, nondestructive preparation workflow for speech-led footage. It proposes an editable first assembly by finding pauses, fillers, false starts, repeated attempts, and alternative takes. It preserves the user's performance and intended meaning rather than optimizing solely for the shortest duration.
+Smart Cut is a manually invoked, nondestructive preparation workflow for speech-led footage. Transcribe & cut creates a logical first assembly immediately by finding pauses, fillers, false starts, repeated attempts, and alternative takes. The user reviews and changes that result. Editorial meaning and performance remain acceptance criteria.
 
-Importing media, transcribing, or background indexing does not start or apply Smart Rough Cut. The user selects sources, invokes the feature, and chooses analysis settings. The agent may invoke it only as part of an explicit user-requested rough-cut task with the required scope; an indexing job cannot infer that authorization.
+Importing media, Transcribe only, or background indexing does not start cleanup or apply an editorial sequence. The user selects sources, explicitly invokes Transcribe & cut (or Update cut), and chooses settings. The agent may invoke it only as part of an explicit user-requested cutting task with the required scope; an indexing job cannot infer that authorization.
 
 Results persist as PreEditAnalysis, TakeGroup, and versioned PreEditMap objects. Original media is never rewritten. Applying a reviewed map is a separate command and one undoable transaction.
 
@@ -15,9 +17,9 @@ Results persist as PreEditAnalysis, TakeGroup, and versioned PreEditMap objects.
 | Surface | User purpose |
 |---|---|
 | Source selector and settings | Choose asset/range, language, analysis policy, source audio, and available local/provider models |
-| Transcript and waveform | Inspect words, timing, pauses, and proposed removals with linked playback |
+| Transcript and waveform | Inspect words, timing, pauses and current removals; select cut or uncut ranges, trim edges and restore text |
 | Source monitor | Hear and see the original context surrounding a candidate |
-| Result monitor | Preview the current logical rough cut with proposed joins and audio treatment |
+| Result monitor | Play the current logical cut with shared-engine icon transport below the picture; Skip cuts toggles original/result |
 | Take comparison | Compare repeated attempts side by side or sequentially; choose or preserve alternatives |
 | Decisions panel | Filter by remove/keep/review, reason, confidence, or manual override |
 | Apply controls | Choose new sequence or explicitly selected target, inspect change summary, apply or cancel |
@@ -32,7 +34,7 @@ Selection follows exact source ranges. Keyboard actions support keep, remove, re
 4. Generate candidates for silence, fillers, restarts, repetitions, and take groups.
 5. Apply conservative boundary padding and speech-preservation constraints.
 6. Rank alternatives with reasons and confidence, leaving ambiguity visible.
-7. Persist a proposal and let the user review/override it.
+7. Persist the automatic cut and show the result for direct review, restoration and boundary changes. Keep ambiguous material available.
 8. Preview the mapped result, verify boundaries/audio, and apply only when requested.
 
 Settings include pause thresholds, minimum retained context, boundary handles, filler handling, restart/retake detection, and default treatment of low-confidence results. Exact values should be tuned on the evaluation corpus; they are not universal defaults asserted here. Provide conservative presets and explicit per-project settings.
@@ -56,15 +58,15 @@ Video boundaries must be valid presentation/frame boundaries; audio joins retain
 ## Review and lifecycle
 
 ```text
-not_started -> analyzing -> proposed -> reviewing -> reviewed
+not_started -> analyzing -> automatic_result -> reviewing
                     |                         |
                     +-> failed/canceled       +-> new map revision
-reviewed -> apply transaction -> applied record
+current_result -> explicit apply transaction -> applied record
 ```
 
 An applied record points to a particular map revision; it is not a permanent state that prevents later revisions. A source change marks relevant analysis and maps stale. A settings change creates a new analysis revision. Reanalysis preserves user decisions by stable candidate/source references where valid and flags unresolved conflicts rather than transferring them blindly.
 
-Actions include keep/remove/restore range, adjust boundary, select take, preserve pause, merge/split candidate grouping, and mark reviewed. Each is persisted through commands and undo. “Reset suggestions” and “reset all decisions” are distinct; the latter must clearly include manual overrides.
+Actions include keep/remove/restore range, adjust boundary, select take, preserve pause, split/reject grouping, correct transcript text and export a selected clip. Each map edit is persisted through commands and undo. Regenerating automatic cleanup preserves compatible manual overrides; discarding manual decisions must be explicit. Rejecting grouping restores all alternatives in one action.
 
 ## Applying and revising the result
 

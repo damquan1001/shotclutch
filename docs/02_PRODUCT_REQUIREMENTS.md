@@ -25,7 +25,7 @@ no second-machine pass is claimed. This supersedes earlier M1 testing references
 | CORE-004 | P0 / M1 | Persist changes crash-safely. Fault injection at each commit/save boundary recovers either the previous or complete new revision, never a partial project. |
 | CORE-005 | P0 / M0 | Establish reproducible build, automated checks, release packaging plan, and upstream-change policy. Record a baseline revision and clean build evidence for the initial platform. |
 | UI-001 | P0 / M1 | Provide usable multitrack editing, exact trim/split/move, linked A/V, nesting, monitor seeking, audio levels, save, relink, and undo. Complete the reference manual editing workflow and keyboard-accessibility checks. |
-| UI-002 | P0 / M2 | Provide a dedicated Smart Rough Cut workspace with transcript, waveform, source and result preview, take comparison, reasons, and apply/restore controls. A user completes review without agent or CLI access. |
+| UI-002 | P0 / M2 | Provide a dedicated Smart Cut workspace with transcript, waveform, source and result preview, take comparison, reasons, and apply/restore controls. A user completes review without agent or CLI access. |
 
 ## Media, playback, and rendering
 
@@ -41,10 +41,10 @@ no second-machine pass is claimed. This supersedes earlier M1 testing references
 
 | ID | Priority / milestone | Required behavior and acceptance evidence |
 |---|---|---|
-| PRE-001 | P0 / M2 | Start Smart Rough Cut only by explicit invocation with selected sources and settings. Import and background indexing cannot silently generate or apply an editorial cut. |
+| PRE-001 | P0 / M2 | Start Smart Cut only by explicit invocation with selected sources and settings. Import and background indexing cannot silently generate or apply an editorial cut. |
 | PRE-002 | P0 / M2 | Persist versioned PreEditAnalysis and PreEditMap data with source mapping and confidence. Save/reopen and interrupted analysis preserve user decisions and valid completed results. |
-| PRE-003 | P0 / M2 | Identify candidate pauses, fillers, restarts, and alternative takes while preserving editorial meaning. Users can compare, override, exclude, and restore suggestions; low-confidence or ambiguous cases remain reviewable. |
-| PRE-004 | P0 / M2 | Apply an approved map through one transaction to an editable result. A repeated request is idempotent; source timestamps, selected takes, audio links, and resulting duration are verified. |
+| PRE-003 | P0 / M2 | Identify pauses, fillers, restarts, and alternative takes while preserving editorial meaning. Explicit Transcribe & cut produces the result immediately for review. Users can compare, override, exclude, and restore removals; low-confidence or ambiguous cases remain reviewable. |
+| PRE-004 | P0 / M2 | Apply the current reviewed map through one explicit transaction to an editable result. A repeated request is idempotent; source timestamps, selected takes, audio links, and resulting duration are verified. |
 | PRE-005 | P0 / M2 | Restore rejected source material and revise a map without mutating originals or silently replacing already-edited timelines. Map updates offer explicit regeneration or revision-aware reapplication and grouped undo. |
 
 ## Semantic media and visual AI
