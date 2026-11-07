@@ -18,6 +18,8 @@
 
 pub mod assemblyai;
 pub mod diarize;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod fast_whisper;
 pub mod mel;
 pub mod models;
 pub mod vad;
@@ -124,6 +126,10 @@ pub fn load(models_dir: &std::path::Path, id: &str) -> Result<std::sync::Arc<dyn
     let m = models::find(id).ok_or_else(|| SpeechError::UnknownModel(id.into()))?;
     if !models::installed(models_dir, m) {
         return Err(SpeechError::NotInstalled(id.into()));
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    if fast_whisper::supports(id) {
+        return Ok(std::sync::Arc::new(fast_whisper::FastWhisper::new(models_dir, id)?));
     }
     #[cfg(feature = "whisper")]
     {

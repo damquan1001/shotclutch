@@ -162,6 +162,9 @@ pub(super) fn safe_take_removal(earlier: &[String], later: &[String], natural: b
 
 pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, cleanup: Option<CleanupSettings>) -> PreEditMap {
     let settings = cleanup.unwrap_or_default();
+    if settings.mode == CleanupMode::GlingCompatible && analysis.chunks.iter().filter_map(|c| c.transcript.as_ref()).any(|t| !t.words.is_empty()) {
+        return super::gling::propose(id, analysis, settings);
+    }
     let threshold = settings.min_pause_ms.map_or(analysis.settings.min_pause, |v| ms(i64::from(v)));
     let handle = settings.handle_ms.map_or(analysis.settings.handle, |v| ms(i64::from(v)));
     let words: Vec<_> = analysis.chunks.iter().filter_map(|c| c.transcript.as_ref()).flat_map(|t| &t.words).filter(|w| w.end > w.start).collect();

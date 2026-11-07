@@ -12,7 +12,6 @@ use shotclutch_time::{Tick, TimeRange};
 use super::{Message, stopped};
 use crate::service::Cancellation;
 
-const CHUNK_SAMPLES: i64 = 20 * SAMPLE_RATE as i64;
 pub(super) const ANALYZER_VERSION: u32 = 3;
 pub(super) const SOURCE_BUDGET: u64 = 8 * 1024 * 1024 * 1024;
 
@@ -72,6 +71,10 @@ pub(super) fn model_digest(settings: &AnalysisSettings) -> Result<Option<String>
     for file in info.files {
         digest.update(file.sha256.as_bytes());
     }
+    #[cfg(not(target_arch = "wasm32"))]
+    if shotclutch_speech::fast_whisper::supports(model) {
+        digest.update(shotclutch_speech::fast_whisper::PROFILE.as_bytes());
+    }
     Ok(Some(format!("{:x}", digest.finalize())))
 }
 
@@ -99,13 +102,7 @@ pub(super) fn run(
     let mut start = analysis.chunks.last().map_or(source.range.start, |chunk| chunk.coverage.end());
     while start < source.range.end() {
         stopped(cancel)?;
-        let end = (start
-            + Tick(if analysis.settings.model.as_deref() == Some("assemblyai") {
-                300 * SAMPLE_RATE as i64 * TICKS_PER_SAMPLE
-            } else {
-                CHUNK_SAMPLES * TICKS_PER_SAMPLE
-            }))
-        .min(source.range.end());
+        let end = (start + Tick::from_units(analysis.settings.chunk_seconds(), 1)).min(source.range.end());
         let range = TimeRange::from_bounds(start, end);
         let sample_start = start.0.div_euclid(TICKS_PER_SAMPLE);
         let sample_end = end.0.div_euclid(TICKS_PER_SAMPLE) + i64::from(end.0.rem_euclid(TICKS_PER_SAMPLE) != 0);
@@ -149,7 +146,23 @@ pub(super) fn run(
                 .transcript
                 .clone()
         } else if let Some(model) = &transcriber {
-            let mut t = model.transcribe(&mono, &opts, &mut |_, _| stopped(cancel).is_ok()).map_err(|e| e.to_string())?;
+            let mut processed = start - source.range.start;
+            let mut t = model
+                .transcribe(&mono, &opts, &mut |fraction, phase| {
+                    if !fraction.is_finite() || stopped(cancel).is_err() {
+                        return false;
+                    }
+                    let position = Tick(context_start * TICKS_PER_SAMPLE)
+                        + Tick::from_seconds_f64(mono.len() as f64 / f64::from(SAMPLE_RATE) * f64::from(fraction.clamp(0.0, 1.0)));
+                    processed = processed.max((position - source.range.start).clamp(Tick::ZERO, source.range.duration));
+                    let _ = sender.try_send(Message::Progress(super::AnalysisProgress {
+                        processed,
+                        total: source.range.duration,
+                        phase: phase.chars().take(80).collect(),
+                    }));
+                    true
+                })
+                .map_err(|e| e.to_string())?;
             let offset = Tick(context_start * TICKS_PER_SAMPLE);
             for w in &mut t.words {
                 w.start += offset;

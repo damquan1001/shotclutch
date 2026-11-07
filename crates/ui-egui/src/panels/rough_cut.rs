@@ -28,6 +28,7 @@ pub struct Workspace {
     silence_only: bool,
     assemblyai: bool,
     assemblyai_key: String,
+    local_model: String,
     cleanup: CleanupSettings,
     cleanup_initialized: bool,
     language: String,
@@ -91,6 +92,7 @@ struct TextCorrection {
 
 #[derive(Default)]
 struct ModelInstall {
+    model: Option<String>,
     pending: Option<ModelDownload>,
     confirm: bool,
     result: Option<Result<(), String>>,
@@ -187,7 +189,7 @@ impl Workspace {
         self.text_selection = None;
         self.text_anchor = None;
         self.correction = None;
-        let model = (!self.silence_only).then_some(if self.assemblyai { "assemblyai" } else { "whisper-base" });
+        let model = (!self.silence_only).then(|| if self.assemblyai { "assemblyai".into() } else { self.local_model.clone() });
         let range = if self.selection_start.trim().is_empty() && self.selection_end.trim().is_empty() {
             Value::Null
         } else {
@@ -400,12 +402,27 @@ impl Workspace {
                 let key = ui.add(egui::TextEdit::singleline(&mut self.assemblyai_key).password(true).hint_text("AssemblyAI API key (or ASSEMBLYAI_API_KEY)"));
                 app.auto.add_response("roughCut.assemblyai.key", &key, "AssemblyAI API key");
                 ui.label(egui::RichText::new("Key kept for this session. Completed audio sections can be resumed.").small().color(tokens.text_dim));
+            } else {
+                let profile = egui::ComboBox::from_id_salt("smart-cut-speech-profile")
+                    .selected_text(shotclutch_engine::transcript::speech_model(&self.local_model).map_or("Select speech profile", |m| m.name))
+                    .show_ui(ui, |ui| {
+                        for model in shotclutch_engine::transcript::model_catalogue() {
+                            let response = ui.selectable_value(&mut self.local_model, model.id.into(), model.name);
+                            app.auto.add_response(&format!("roughCut.profile.{}", model.id), &response, model.name);
+                        }
+                    })
+                    .response;
+                app.auto.add_response("roughCut.profile", &profile, "Speech profile");
             }
         });
         section_title(ui, &tokens, "02", "Speech cleanup");
         ui.add_enabled_ui(!running, |ui| {
             ui.horizontal_wrapped(|ui| {
-                for (mode, label, id) in [(CleanupMode::Natural, "Natural", "natural"), (CleanupMode::Transcript, "Transcript rules", "transcript")] {
+                for (mode, label, id) in [
+                    (CleanupMode::GlingCompatible, "Gling compatible", "gling"),
+                    (CleanupMode::Natural, "Conservative", "natural"),
+                    (CleanupMode::Transcript, "Legacy transcript", "transcript"),
+                ] {
                     let response = ui.selectable_value(&mut self.cleanup.mode, mode, label);
                     app.auto.add_response(&format!("roughCut.mode.{id}"), &response, label);
                 }
@@ -413,8 +430,10 @@ impl Workspace {
             ui.label(
                 egui::RichText::new(if self.cleanup.mode == CleanupMode::Natural {
                     "Use audio levels to protect speech and keep natural pacing."
+                } else if self.cleanup.mode == CleanupMode::GlingCompatible {
+                    "Match Gling transcript rules for takes, fillers and pauses. Review and restore any cut."
                 } else {
-                    "Gling-compatible word gaps. Review sounds missing from the transcript."
+                    "Use the earlier transcript cleanup rules. Review and restore any cut."
                 })
                 .small()
                 .color(tokens.text_dim),
@@ -423,12 +442,20 @@ impl Workspace {
                 cleanup_option(ui, &tokens, &mut self.cleanup.cut_bad_takes, "Remove repeated takes", "Keep later attempts and cut repeated phrase patterns.");
                 cleanup_option(ui, &tokens, &mut self.cleanup.cut_fillers, "Remove fillers", "Cut hesitation sounds such as “um” and “uh.”");
             });
-            cleanup_option(ui, &tokens, &mut self.cleanup.cut_pauses, "Trim silences and pauses", "Shorten quiet gaps while keeping breathing room.");
+            let pause_help = if self.cleanup.mode == CleanupMode::GlingCompatible {
+                "Cut gaps outside timed speech, including the recording edges."
+            } else {
+                "Shorten quiet gaps while keeping breathing room."
+            };
+            cleanup_option(ui, &tokens, &mut self.cleanup.cut_pauses, "Trim silences and pauses", pause_help);
             ui.add_enabled_ui(self.cleanup.cut_pauses, |ui| {
                 ui.horizontal_wrapped(|ui| {
                     ui.add(egui::DragValue::new(&mut self.pause_ms).range(200..=10_000).prefix("Minimum pause ").suffix(" ms"));
-                    ui.add(egui::DragValue::new(&mut self.handle_ms).range(0..=1000).prefix("Padding ").suffix(" ms"))
-                        .on_hover_text("Audio kept at each end of a trimmed pause");
+                    ui.add_enabled(
+                        self.cleanup.mode != CleanupMode::GlingCompatible,
+                        egui::DragValue::new(&mut self.handle_ms).range(0..=1000).prefix("Padding ").suffix(" ms"),
+                    )
+                    .on_hover_text("Conservative and legacy modes keep padding. Gling-compatible mode uses word boundaries.");
                 });
             });
         });
@@ -500,6 +527,9 @@ impl Workspace {
                         return;
                     }
                     self.assemblyai = record.settings.model.as_deref() == Some("assemblyai");
+                    if let Some(model) = record.settings.model.as_ref().filter(|m| m.as_str() != "assemblyai") {
+                        self.local_model = model.clone();
+                    }
                     self.channel = record.source.channel;
                     self.language.clone_from(&record.settings.language);
                     self.pause_ms = record.settings.min_pause.to_units_floor(1000) as u32;
@@ -512,12 +542,8 @@ impl Workspace {
             }
         });
         if !self.silence_only && !self.assemblyai {
-            ui.label(if self.language == "en" {
-                "English · Whisper base on this device"
-            } else {
-                "Whisper base on this device · word-based cleanup is tuned for English"
-            });
-            self.model_install.show(app, ui);
+            ui.label(if self.language == "en" { "English · Local CPU speech" } else { "Local speech · word-based cleanup is tuned for English" });
+            self.model_install.show(app, ui, &self.local_model);
         }
         if let Some((_, analysis)) = app.session.project.preedit.analyses.iter().rev().find(|(_, a)| a.source.item == item) {
             let end = analysis.chunks.last().map_or(analysis.source.range.start, |c| c.coverage.end());
@@ -1182,7 +1208,17 @@ impl Workspace {
 }
 
 impl ModelInstall {
-    fn show(&mut self, app: &mut ShotClutchApp, ui: &mut Ui) {
+    fn show(&mut self, app: &mut ShotClutchApp, ui: &mut Ui, model: &str) {
+        if self.pending.is_none() && self.model.as_deref() != Some(model) {
+            self.model = Some(model.into());
+            self.confirm = false;
+            self.result = None;
+        }
+        let selected = self.model.as_deref().unwrap_or(model).to_owned();
+        let Some(info) = shotclutch_engine::transcript::speech_model(&selected) else {
+            ui.label("Select a supported speech profile.");
+            return;
+        };
         if let Some(download) = &self.pending {
             let result = match download.result.try_recv() {
                 Ok(result) => result,
@@ -1201,6 +1237,13 @@ impl ModelInstall {
                     app.auto.add_response("roughCut.model.progress", &bar, &text);
                     if total > 0 {
                         ui.label(if done >= total { "Verifying model files…" } else { &status });
+                    } else {
+                        ui.label(&status);
+                    }
+                    let cancel = ui.button("Cancel installation");
+                    app.auto.add_response("roughCut.model.cancel", &cancel, "Cancel installation");
+                    if cancel.clicked() {
+                        download.progress.cancel.store(true, Ordering::Relaxed);
                     }
                     ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
                     return;
@@ -1211,12 +1254,13 @@ impl ModelInstall {
         }
         match &self.result {
             Some(Ok(())) => {
-                let status = ui.label("Whisper base installed");
-                app.auto.add_response("roughCut.model.installed", &status, "Whisper base installed");
+                let label = format!("{} installed", info.name);
+                let status = ui.label(&label);
+                app.auto.add_response("roughCut.model.installed", &status, &label);
                 return;
             }
             Some(Err(error)) => {
-                ui.label(format!("Could not install Whisper base. {error}"));
+                ui.label(format!("Could not install {}. {error}", info.name));
             }
             None => {}
         }
@@ -1227,12 +1271,15 @@ impl ModelInstall {
             self.confirm = response.clicked();
         }
         if self.confirm {
-            ui.label("Whisper base · 293 MB · OpenAI via Hugging Face · MIT weights, Apache 2.0 conversion");
+            ui.label(format!("{} · {:.0} MB · {}", info.name, info.size() as f64 / 1e6, info.license));
+            if selected.starts_with("faster-whisper-") {
+                ui.label("Installs an isolated Python CPU speech runtime and the selected model. Inference stays on this device.");
+            }
             ui.horizontal(|ui| {
                 let response = ui.button("Download model");
                 app.auto.add_response("roughCut.model.download", &response, "Download model");
                 if response.clicked() {
-                    self.start(ui.ctx().clone());
+                    self.start(ui.ctx().clone(), selected.clone());
                 }
                 if ui.button("Cancel").clicked() {
                     self.confirm = false;
@@ -1241,16 +1288,16 @@ impl ModelInstall {
         }
     }
 
-    fn start(&mut self, ctx: egui::Context) {
+    fn start(&mut self, ctx: egui::Context, model: String) {
         let (send, result) = mpsc::channel();
         let progress = Arc::new(shotclutch_export::Progress::default());
         let worker = progress.clone();
         let started = std::thread::Builder::new().name("rough-cut-model".into()).spawn(move || {
-            let result = shotclutch_engine::transcript::install_model("whisper-base", &mut |done, total, file| {
+            let result = shotclutch_engine::transcript::install_model(&model, &mut |done, total, file| {
                 worker.done.store(done, Ordering::Relaxed);
                 worker.total.store(total, Ordering::Relaxed);
-                *worker.status.lock().unwrap_or_else(std::sync::PoisonError::into_inner) = format!("Downloading {file}");
-                true
+                *worker.status.lock().unwrap_or_else(std::sync::PoisonError::into_inner) = if total == 0 { file.into() } else { format!("Downloading {file}") };
+                !worker.cancel.load(Ordering::Relaxed)
             });
             let _ = send.send(result.map(|_| ()).map_err(|error| error.to_string()));
             ctx.request_repaint();
@@ -1277,6 +1324,8 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
             model_install: std::mem::take(&mut workspace.model_install),
             document: Some(document),
             language: "en".into(),
+            local_model: "faster-whisper-tiny.en".into(),
+            cleanup: CleanupSettings { mode: CleanupMode::GlingCompatible, ..Default::default() },
             show_cuts: true,
             zoom: 1.0,
             original: true,
@@ -1422,6 +1471,9 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                 workspace.handle_ms = settings.handle_ms.unwrap_or(workspace.handle_ms);
             }
             workspace.assemblyai = analysis.unwrap().settings.model.as_deref() == Some("assemblyai");
+            if let Some(model) = analysis.unwrap().settings.model.as_ref().filter(|m| m.as_str() != "assemblyai") {
+                workspace.local_model = model.clone();
+            }
             workspace.cleanup_initialized = true;
             workspace.seen_analysis = Some(analysis_mode);
             workspace.original = duration == Tick::ZERO || map.automatic.is_none();
@@ -1531,6 +1583,13 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                             format!("{phase} · {} / {}", time_label(covered), time_label(a.source.range.duration))
                         })
                         .unwrap_or_else(|| "Preparing analysis…".into());
+                    let status = app
+                        .session
+                        .preedit_job
+                        .as_ref()
+                        .and_then(|j| j.progress.as_ref())
+                        .map(|p| format!("{} · {} / {}", p.phase, time_label(p.processed), time_label(p.total)))
+                        .unwrap_or(status);
                     ui.label(status);
                     let cancel = ui.small_button("Cancel");
                     app.auto.add_response("roughCut.cancelAnalysis", &cancel, "Cancel analysis");

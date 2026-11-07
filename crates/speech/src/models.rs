@@ -3,7 +3,7 @@
 //! Models are downloaded on first use, after the user confirms (the dialog shows the size, the
 //! source URL and the licence), into `<data dir>/models/<id>/`. They are never bundled with
 //! ShotClutch or committed to the repository. Every file is pinned to a Hugging Face revision of
-//! OpenAI's own repositories and checked against its SHA-256 before it is used.
+//! an OpenAI or SYSTRAN conversion repository and checked against its SHA-256 before it is used.
 //!
 //! Licence: OpenAI released the Whisper code and model weights under the MIT licence
 //! (<https://github.com/openai/whisper/blob/main/LICENSE>); the safetensors conversions OpenAI
@@ -58,6 +58,78 @@ macro_rules! hf {
 const TOKENIZER_MULTI: &str = "27fc476bfe7f17299480be2273fc0608e4d5a99aba2ab5dec5374b4482d1a566";
 
 static CATALOGUE: &[ModelInfo] = &[
+    ModelInfo {
+        id: "faster-whisper-tiny.en",
+        name: "Tiny English · Fast",
+        multilingual: false,
+        description: "OpenGling-compatible CPU INT8 profile with speech filtering and word timing.",
+        license: "MIT (OpenAI Whisper weights and CTranslate2 conversion)",
+        license_url: LICENSE_URL,
+        author: "OpenAI / SYSTRAN",
+        source: "https://huggingface.co/Systran/faster-whisper-tiny.en",
+        files: &[
+            ModelFile {
+                name: "config.json",
+                url: "https://huggingface.co/Systran/faster-whisper-tiny.en/resolve/0d3d19a32d3338f10357c0889762bd8d64bbdeba/config.json",
+                sha256: "14b1b421a90349bc551b881461426b561a874049cb9e4c4864f2ca384f6a7cc5",
+                size: 2317,
+            },
+            ModelFile {
+                name: "model.bin",
+                url: "https://huggingface.co/Systran/faster-whisper-tiny.en/resolve/0d3d19a32d3338f10357c0889762bd8d64bbdeba/model.bin",
+                sha256: "1a5afae06a4db91c975c9a9d78be5cc110ee4ea022ad57d55492e4550e936b2a",
+                size: 75537502,
+            },
+            ModelFile {
+                name: "tokenizer.json",
+                url: "https://huggingface.co/Systran/faster-whisper-tiny.en/resolve/0d3d19a32d3338f10357c0889762bd8d64bbdeba/tokenizer.json",
+                sha256: "929c5252409436dce1b38a75d1abbcb5e132d170d8e324e4e04ed915fa2d22df",
+                size: 2128466,
+            },
+            ModelFile {
+                name: "vocabulary.txt",
+                url: "https://huggingface.co/Systran/faster-whisper-tiny.en/resolve/0d3d19a32d3338f10357c0889762bd8d64bbdeba/vocabulary.txt",
+                sha256: "ff77588746d3a2595d32ab5b69ffd7b95ce2441ac57533cb66fc3eb575a115cf",
+                size: 422309,
+            },
+        ],
+    },
+    ModelInfo {
+        id: "faster-whisper-base.en",
+        name: "Base English · Quality",
+        multilingual: false,
+        description: "Higher quality English CPU INT8 profile; more inference time than Tiny.",
+        license: "MIT (OpenAI Whisper weights and CTranslate2 conversion)",
+        license_url: LICENSE_URL,
+        author: "OpenAI / SYSTRAN",
+        source: "https://huggingface.co/Systran/faster-whisper-base.en",
+        files: &[
+            ModelFile {
+                name: "config.json",
+                url: "https://huggingface.co/Systran/faster-whisper-base.en/resolve/3d3d5dee26484f91867d81cb899cfcf72b96be6c/config.json",
+                sha256: "f3bc3821e9fc76a27bae538e11ae5b677dcdd352b4600429ce7951d398569aeb",
+                size: 2227,
+            },
+            ModelFile {
+                name: "model.bin",
+                url: "https://huggingface.co/Systran/faster-whisper-base.en/resolve/3d3d5dee26484f91867d81cb899cfcf72b96be6c/model.bin",
+                sha256: "2a166925539a16005f14ff328359f9b9adb9dc4fb631bb3b227526862e93e2ef",
+                size: 145216508,
+            },
+            ModelFile {
+                name: "tokenizer.json",
+                url: "https://huggingface.co/Systran/faster-whisper-base.en/resolve/3d3d5dee26484f91867d81cb899cfcf72b96be6c/tokenizer.json",
+                sha256: "929c5252409436dce1b38a75d1abbcb5e132d170d8e324e4e04ed915fa2d22df",
+                size: 2128466,
+            },
+            ModelFile {
+                name: "vocabulary.txt",
+                url: "https://huggingface.co/Systran/faster-whisper-base.en/resolve/3d3d5dee26484f91867d81cb899cfcf72b96be6c/vocabulary.txt",
+                sha256: "ff77588746d3a2595d32ab5b69ffd7b95ce2441ac57533cb66fc3eb575a115cf",
+                size: 422309,
+            },
+        ],
+    },
     ModelInfo {
         id: "whisper-tiny",
         name: "Whisper tiny (multilingual)",
@@ -326,14 +398,21 @@ mod tests {
     fn catalogue_is_pinned_and_checksummed() {
         assert!(find(DEFAULT_MODEL).is_some());
         for m in catalogue() {
-            assert!(m.size() > 100_000_000, "{}", m.id);
+            assert!(m.size() > 50_000_000, "{}", m.id);
             for f in m.files {
-                assert!(f.url.starts_with("https://huggingface.co/openai/whisper-"), "{}", f.url);
+                assert!(
+                    f.url.starts_with("https://huggingface.co/openai/whisper-") || f.url.starts_with("https://huggingface.co/Systran/faster-whisper-"),
+                    "{}",
+                    f.url
+                );
                 assert!(f.url.contains("/resolve/") && f.url.ends_with(f.name));
                 assert_eq!(f.sha256.len(), 64);
                 assert!(f.sha256.bytes().all(|b| b.is_ascii_hexdigit()));
                 if f.name == "tokenizer.json" {
-                    assert_eq!(f.sha256, shared_tokenizer_sha());
+                    assert_eq!(
+                        f.sha256,
+                        if m.multilingual { shared_tokenizer_sha() } else { "929c5252409436dce1b38a75d1abbcb5e132d170d8e324e4e04ed915fa2d22df" }
+                    );
                 }
             }
         }

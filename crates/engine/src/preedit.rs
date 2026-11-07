@@ -3,6 +3,7 @@
 mod analysis;
 mod assembly;
 mod cleanup;
+mod gling;
 #[cfg(test)]
 mod tests;
 
@@ -32,6 +33,14 @@ pub struct PendingAnalysis {
     receiver: mpsc::Receiver<Message>,
     cancel: Cancellation,
     checkpoint: Option<Checkpoint>,
+    pub progress: Option<AnalysisProgress>,
+}
+
+#[derive(Clone, Serialize)]
+pub struct AnalysisProgress {
+    pub processed: Tick,
+    pub total: Tick,
+    pub phase: String,
 }
 
 struct Checkpoint {
@@ -78,6 +87,7 @@ enum Message {
     Started(PreEditAnalysis),
     Chunk(Arc<AnalysisChunk>),
     Finished(std::result::Result<Option<Arc<Vec<Override>>>, String>),
+    Progress(AnalysisProgress),
 }
 
 fn fail(text: impl Into<String>) -> EngineError {
@@ -211,6 +221,9 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
     }
     let settings =
         AnalysisSettings { model: req.model, language, min_pause: Tick::from_units(i64::from(pause), 1000), handle: Tick::from_units(i64::from(handle), 1000) };
+    if settings.model.as_deref().and_then(shotclutch_speech::models::find).is_some_and(|m| !m.multilingual) && settings.language != "en" {
+        return Err(fail("INVALID_ARGUMENT: select a multilingual speech profile for this language"));
+    }
     if settings.model.as_deref() == Some("assemblyai")
         && req.reuse_transcript.is_none()
         && req.api_key.as_ref().is_none_or(|key| key.trim().is_empty())
@@ -308,6 +321,7 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
         receiver,
         cancel,
         checkpoint: None,
+        progress: None,
     });
     Ok(json!({"state": "running"}))
 }
@@ -366,6 +380,14 @@ pub(crate) fn poll(s: &mut Session) {
         }
         Err(mpsc::TryRecvError::Disconnected) => Message::Finished(Err("INTERNAL_ERROR: rough-cut worker stopped".into())),
     };
+    let message = match message {
+        Message::Progress(progress) => {
+            job.progress = Some(progress);
+            s.preedit_job = Some(job);
+            return;
+        }
+        other => other,
+    };
     let original_analysis = job.analysis;
     let canceled = stopped(&job.cancel).is_err();
     match publish(s, &mut job, message.clone()) {
@@ -382,6 +404,7 @@ fn publish(s: &Session, job: &mut PendingAnalysis, message: Message) -> Result<(
     project.next_id = project.next_id.max(s.id_watermark);
     let mut terminal = None;
     match message {
+        Message::Progress(_) => return Err(fail("INTERNAL_ERROR: progress is not a durable checkpoint")),
         Message::Started(analysis) => {
             let id = job.analysis.unwrap_or_else(|| project.alloc_id());
             job.analysis = Some(id);
@@ -652,6 +675,29 @@ fn automatic_cuts(map: &PreEditMap, analysis: &PreEditAnalysis, source: &dyn sho
     let Some(audio) = source.info().audio_streams.get(analysis.source.audio_stream) else { return Arc::default() };
     let rate = audio.sample_rate;
     let available = analysis.source.range;
+    if settings.mode == CleanupMode::GlingCompatible {
+        // Classification already identifies the selected words and checks overlapping speech.
+        // Round inward to realizable presentation boundaries without consuming neighboring words.
+        let alternatives: std::collections::BTreeSet<_> = map.takes.iter().filter_map(|group| group.alternatives.last().copied()).collect();
+        return Arc::new(
+            map.candidates
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| !alternatives.contains(i))
+                .filter_map(|(_, c)| {
+                    let enabled = match c.kind {
+                        CandidateKind::Pause => settings.cut_pauses,
+                        CandidateKind::Filler => settings.cut_fillers,
+                        CandidateKind::Restart | CandidateKind::Take => settings.cut_bad_takes,
+                    };
+                    enabled
+                        .then(|| assembly::snap_decision(video, rate, available, c.range, true).ok())
+                        .flatten()
+                        .map(|range| Override { range, decision: Decision::Remove })
+                })
+                .collect(),
+        );
+    }
     let words: Vec<_> = analysis.chunks.iter().filter_map(|c| c.transcript.as_ref()).flat_map(|t| &t.words).collect();
     let quiet = cleanup::quiet_ranges(analysis);
     // Each group records the earlier and later attempts selected by the transcript rules.
@@ -980,7 +1026,9 @@ pub(crate) fn commands() -> Vec<CommandSpec> {
             Ok(json!({"state":"cancel_requested"}))
         }),
         command("preedit.inspect", "Inspect Smart Cut", "{}", |s, _| {
-            Ok(json!({"running":s.preedit_job.is_some(),"revision":s.revision.to_string(),"preedit":s.project.preedit}))
+            Ok(
+                json!({"running":s.preedit_job.is_some(),"progress":s.preedit_job.as_ref().and_then(|j|j.progress.as_ref()),"revision":s.revision.to_string(),"preedit":s.project.preedit}),
+            )
         }),
         command("preedit.review", "Review Smart Cut", r#"{"map":string,"expectedRevision":string,"action":object}"#, review),
         command("preedit.exportClip", "Export Transcript Clip", r#"{"map":string,"range":object,"path":string}"#, export_clip),

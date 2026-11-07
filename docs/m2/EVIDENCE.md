@@ -2,6 +2,46 @@
 
 This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## OpenGling transcript and inference parity — 2026-11-08
+
+Audited OpenGling 0.12.0 source and its matching packaged cleanup module. New Smart Cut workspaces explicitly select Tiny English · Fast and Gling-compatible cleanup. Saved profiles/modes are preserved; Update cut reuses saved timed words, while changing recognition profiles requires fresh transcription. Conservative and Legacy transcript modes retain the earlier behavior. [Scope and differences](OPENGLING_CLEANUP_ASSESSMENT.md), [pinned runtime/model decision](DEC-005_SPEECH_PROVIDERS.md).
+
+The same 4,031 saved timed words and 500 ms pause threshold isolated cleanup behavior from recognition differences:
+
+| Cleanup | Retained duration |
+| --- | --- |
+| Earlier Natural / Conservative | 1,866.464 s (31:06.464) |
+| Earlier Transcript / Legacy transcript | 1,537.054 s (25:37.054) |
+| OpenGling raw English transcript rules | 1,055.950 s (17:35.950) |
+| New native Gling-compatible result | 1,058.523 s (17:38.523) |
+
+All **220 raw removal intervals and types** matched on that transcript before presentation-grid snapping: 86 bad takes, one filler and 133 pauses. The native result rounds removal boundaries inward to certified video/sample points and contains 179 retained intervals. This accounts for the small retained-duration increase. These are raw transcript-rule results, not the reference's optional acoustic refinement and not a second fresh recognition run. The input project was not overwritten.
+
+The synthetic differential regression also matches the reference on **196 cases** without committing private speech. The new restoration regression verifies that an explicit Keep range survives Gling-compatible regeneration and save/reopen. The unchanged M1 runner passed all library/integration checks plus 81 engine and five automation regressions. The expanded M2 runner passed 28 engine regressions, one indexed-boundary check and **20 speech tests**, including fast-worker decoding, invalid timing/confidence, pre-load cancellation, catalogue hashes and AssemblyAI parsing. Full-recording qualification then exposed a stale 20-second waveform validation limit. Decode and project validation now share a typed model-specific checkpoint bound; the expanded **29 engine regressions** include five-minute Tiny/Base English/AssemblyAI coverage and reject oversized or legacy-profile checkpoints. Private real-model checks remain separately invoked.
+
+The longer recognition pass also exposed Windows pipe encoding of non-ASCII transcript characters. Worker output now uses standard ASCII-escaped JSON with explicit UTF-8 process encoding and rejects nonfinite JSON values. Two standard-library-only Python regressions cover Unicode round trips through a legacy Windows encoding and invalid numeric payloads; the M2 runner includes them. Project/time/edit/format and all 81 M1 engine regressions were rechecked after the shared-bound change.
+
+Fresh full-recording inference then completed on the same Windows Ryzen 7 4800H host, selected main audio, English, CPU INT8, beam five, VAD and word timestamps. Both runs used the same pinned Python packages and Tiny English weights, ran serially without compilation, and kept audio/transcripts local:
+
+| Measurement | Smart Cut bounded inference | OpenGling reference whole-file inference |
+| --- | --- | --- |
+| Recording coverage | 2,271.551 s, eight completed checkpoints | 2,271.531 s reported by its audio decoder |
+| Timed words | 3,935 | 3,831 |
+| Wrapper wall time | 87.484 s | 73.375 s |
+| Sampled peak process-tree working set | 570.4 MiB | 1,541.3 MiB |
+| Raw-rule retained duration | 746.140 s | 767.120 s |
+| Native frame-aligned result | 750.384 s (12:30.384) | Not a Shotclutch assembly |
+
+Smart Cut's test-reported analysis/verification time was 86.4 seconds. Its run also measures audio/waveform data and writes acknowledged durable checkpoints; the reference run transcribes the whole file and writes its result. Memory was sampled every 0.5 seconds and includes each owned Python worker. These are single local development-build observations with ordinary background host activity, not a controlled release benchmark. The earlier 1,076.5-second Candle base run below is historical, with different model/load conditions.
+
+Running OpenGling's rules on the new 3,935-word Shotclutch transcript matched all **337 raw removal ranges/types** exactly. The native result adds 4.244 seconds through inward presentation-boundary snapping. Fresh whole-file recognition differs from bounded recognition in words/alignment and therefore in heuristic take boundaries. Both fresh raw-rule results are more aggressive than the user's reported 18-minute result. The comparison does not establish that those extra cuts are editorially correct, nor does it target an arbitrary duration; every cut remains available for review/restoration. The saved base transcript can generate the separate 17:38.523 result above without retranscription.
+
+The final native walkthrough passed pause restoration, take comparison/retention, highlighted phrase Cut / Uncut, transport, full audio refresh preserving decisions and preview/control layout, durable apply, save/reopen, grouped undo/redo, duplicate-apply identity, edited-target rejection and fresh-sequence creation. Audio refresh took 38.47 seconds; the sampled cleanup command round trip was 16.49 ms. The source review project checksum remained unchanged and the final workspace screenshot was inspected locally. The new private worksheet has 16 unreviewed rows: human review coverage is 0%, and restoration/adjustment/accepted-removal rates remain null.
+
+Final native candidate: `shotclutch-smart-cut-parity.exe`, SHA-256 `b07746d623767c2d20bd294ab83d656da6d86670996db8fa4ffb30f812d8ce8f`. It is a Windows development qualification build with engine/UI optimization overridden to zero, not a release package. Superseded task executable/debug artifacts are removed after verification. Human editorial acceptance and optional live AssemblyAI qualification remain open.
+
+A bounded private Tiny English excerpt completed recognition and automatic cutting. A fresh native video excerpt produced 34 timed words, persisted the new default model/mode and displayed the result picture, captions and icon transport. Screenshots were inspected locally. Native installation against already cached artifacts displayed progress, verified the pinned runtime/model and reached Installed; this does not claim a new network transfer. During real fast-model analysis, volatile progress left project revision unchanged; cancellation completed in 0.172 seconds with no owned Python worker remaining. The longest sampled control query in that short check was 16 ms, not a rendered-frame measurement. Detailed transcripts, source intervals, native logs and screenshots remain ignored. Removal quantity and exact rule parity do not establish editorial accuracy; the human acceptance gate remains open.
+
 ## Transcription responsiveness and preview layout — 2026-11-08
 
 Reproduced Transcribe & cut from the saved full-recording result. Three coupled faults were found: checkpoint publication waited for atomic snapshot writes on the UI thread; each checkpoint's global revision discarded the unchanged result preview; and the processing-state toolbar's fallback layout consumed the viewer's available height. The existing transcript could also leave its selection popup visible when a new run started.

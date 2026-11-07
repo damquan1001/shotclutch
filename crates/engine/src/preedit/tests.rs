@@ -63,6 +63,76 @@ fn review_action(session: &mut Session, map: u64, action: Value) -> u64 {
 }
 
 #[test]
+fn m2_gling_compatible_matches_opengling_synthetic_corpus() {
+    let corpus: Value = serde_json::from_str(include_str!("../../test-data/opengling-cleanup-v2.json")).unwrap();
+    for case in corpus.as_array().unwrap() {
+        let tick = |value: &Value| Tick::from_seconds_f64(value.as_f64().unwrap());
+        let duration = tick(&case["duration"]);
+        let words = case["segments"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .flat_map(|s| s["words"].as_array().unwrap())
+            .map(|w| shotclutch_project::Word::new(w["word"].as_str().unwrap(), tick(&w["start"]), tick(&w["end"])))
+            .collect();
+        let analysis = PreEditAnalysis {
+            source: SourceBinding {
+                item: ItemId(1),
+                range: TimeRange::new(Tick::ZERO, duration),
+                audio_stream: 0,
+                channel: None,
+                sha256: "0".repeat(64),
+                bytes: 1,
+            },
+            settings: AnalysisSettings { model: None, language: "en".into(), min_pause: Tick::from_units(500, 1000), handle: Tick::from_units(150, 1000) },
+            analyzer_version: 3,
+            model_digest: None,
+            status: AnalysisStatus::Complete,
+            chunks: vec![Arc::new(AnalysisChunk {
+                coverage: TimeRange::new(Tick::ZERO, duration),
+                transcript: Some(shotclutch_project::Transcript { language: "en".into(), words, ..Default::default() }),
+                quiet: Vec::new(),
+                edge_quiet: Vec::new(),
+                peaks: Vec::new(),
+            })],
+        };
+        let result = gling::propose(1, &analysis, CleanupSettings { mode: CleanupMode::GlingCompatible, ..Default::default() });
+        let retained: std::collections::BTreeSet<_> = result.takes.iter().filter_map(|g| g.alternatives.last().copied()).collect();
+        let kind = |kind| match kind {
+            CandidateKind::Pause => 0,
+            CandidateKind::Filler => 1,
+            _ => 2,
+        };
+        let mut got: Vec<_> = result
+            .candidates
+            .iter()
+            .enumerate()
+            .filter(|(i, _)| !retained.contains(i))
+            .map(|(_, c)| (c.range.start.0, c.range.end().0, kind(c.kind)))
+            .collect();
+        let mut expected: Vec<_> = case["expected"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|p| {
+                (
+                    tick(&p["start"]).0,
+                    tick(&p["end"]).0,
+                    match p["type"].as_str().unwrap() {
+                        "silence" => 0,
+                        "filler" => 1,
+                        _ => 2,
+                    },
+                )
+            })
+            .collect();
+        got.sort_unstable();
+        expected.sort_unstable();
+        assert_eq!(got, expected, "{}", case["name"]);
+    }
+}
+
+#[test]
 fn m2_map_restores_nested_ranges_and_maps_half_open_joins() {
     let map = PreEditMap {
         analysis: 1,
@@ -365,10 +435,20 @@ fn m2_linked_cut_preview_and_export_preserve_frame_and_sample_counts() {
 #[test]
 #[ignore = "requires the pinned model and the operator's private footage"]
 fn m2_private_whisper_qualification() {
+    private_speech_qualification("whisper-base", false);
+}
+
+#[test]
+#[ignore = "requires pinned fast runtime, model and private footage"]
+fn m2_private_fast_whisper_qualification() {
+    private_speech_qualification("faster-whisper-tiny.en", true);
+}
+
+fn private_speech_qualification(model_id: &str, auto_cut: bool) {
     let footage = std::env::var_os("SHOTCLUTCH_M2_FOOTAGE").map(PathBuf::from).expect("set private footage path");
     let stream: usize = std::env::var("SHOTCLUTCH_M2_STREAM").expect("select the audited audio stream").parse().unwrap();
     let model_dir = crate::transcript::models_dir().expect("set the private data directory");
-    let model = shotclutch_speech::models::find("whisper-base").unwrap();
+    let model = shotclutch_speech::models::find(model_id).unwrap();
     assert!(shotclutch_speech::models::installed(&model_dir, model), "pinned model is missing or invalid");
     let recovery = tempfile::tempdir().unwrap();
     let mut session = Session::default();
@@ -386,7 +466,8 @@ fn m2_private_whisper_qualification() {
         .execute(
             "preedit.analyze",
             json!({
-                "item":item.id.0.to_string(),"audioStream":stream,"model":"whisper-base","language":"en","range":range
+                "item":item.id.0.to_string(),"audioStream":stream,"model":model_id,"language":"en","range":range,
+                "autoCut":auto_cut,"cleanup":{"mode":"glingCompatible","minPauseMs":500,"handleMs":150}
             }),
         )
         .unwrap();
@@ -417,7 +498,10 @@ fn m2_private_whisper_qualification() {
     let (map_id, map) = session.project.preedit.maps.last_key_value().expect("no proposal");
     let (draft, sequence) = preview(&session, *map_id).expect("rough-cut preview failed");
     let result = draft.sequence(sequence).unwrap();
-    assert_eq!(result.duration(), analysis.source.range.duration);
+    assert_eq!(result.duration(), map.segments(analysis.source.range).unwrap().last().unwrap().output.end());
+    if auto_cut {
+        assert!(result.duration() < analysis.source.range.duration);
+    }
     assert_eq!(result.audio_tracks[0].items[0].audio_stream, stream);
     println!(
         "M2 local qualification · {:.3}s source · {:.3}s coverage · stream {} · {} chunks · {} words · {} candidates · {} take groups · {:.1}s elapsed · preview {}",
@@ -431,6 +515,7 @@ fn m2_private_whisper_qualification() {
         started.elapsed().as_secs_f64(),
         sequence.0
     );
+    println!("M2 profile {} · result {:.3}s", model_id, result.duration().0 as f64 / TICKS_PER_SECOND as f64);
     if let Some(path) = std::env::var_os("SHOTCLUTCH_M2_REVIEW_PROJECT") {
         session.execute("file.saveAs", json!({"path":PathBuf::from(path)})).map_err(|_| "could not save private review project").unwrap();
     }
@@ -647,6 +732,67 @@ fn m2_audio_refresh_reuses_words_preserves_restoration_and_checks_binding() {
     let mut wrong = args;
     wrong["language"] = json!("fr");
     assert!(session.execute("preedit.analyze", wrong).unwrap_err().to_string().contains("same source"));
+}
+
+#[test]
+fn m2_gling_recut_preserves_manual_restoration_and_saved_mode() {
+    let (dir, _, mut session, item) = fixture();
+    let id = analyze(&mut session, item, None);
+    let analysis_id = session.project.preedit.maps[&id].analysis;
+    session
+        .edit("Timed Gling fixture", |project, _| {
+            let analysis = Arc::make_mut(project.preedit.analyses.get_mut(&analysis_id).unwrap());
+            Arc::make_mut(&mut analysis.chunks[0]).transcript = Some(shotclutch_project::Transcript {
+                words: [("this", 200, 400), ("camera", 400, 800), ("this", 2000, 2200), ("camera", 2200, 2600), ("works", 2600, 3200)]
+                    .into_iter()
+                    .map(|(text, start, end)| shotclutch_project::Word::new(text, Tick::from_units(start, 1000), Tick::from_units(end, 1000)))
+                    .collect(),
+                ..Default::default()
+            });
+            Ok(())
+        })
+        .unwrap();
+    let options = json!({"mode":"glingCompatible","minPauseMs":500});
+    let cut = review_action(&mut session, id, json!({"kind":"cleanUp","options":options}));
+    let removed = session.project.preedit.maps[&cut].segments(range(0, 4)).unwrap();
+    assert_eq!(removed[0].source.start, seconds(2));
+    let restored = review_action(&mut session, cut, json!({"kind":"range","decision":"Keep","range":{"start":"0","end":seconds(1).0.to_string()}}));
+    let recut = review_action(&mut session, restored, json!({"kind":"cleanUp","options":options}));
+    assert_eq!(session.project.preedit.maps[&recut].segments(range(0, 4)).unwrap()[0].source, range(0, 1));
+    let path = dir.path().join("gling.scproj");
+    session.execute("file.saveAs", json!({"path":path})).unwrap();
+    let mut reopened = Session::default();
+    reopened.execute("file.open", json!({"path":path})).unwrap();
+    assert_eq!(reopened.project.preedit.maps[&recut], session.project.preedit.maps[&recut]);
+    assert_eq!(reopened.project.preedit.maps[&recut].cleanup.as_ref().unwrap().mode, CleanupMode::GlingCompatible);
+    assert!(!session.project.preedit.maps[&cut].takes.is_empty());
+}
+
+#[test]
+fn m2_fast_profile_checkpoint_bound_matches_project_validation() {
+    let (_dir, _, mut session, item) = fixture();
+    let id = analyze(&mut session, item, None);
+    let analysis_id = session.project.preedit.maps[&id].analysis;
+    let mut preedit = session.project.preedit.clone();
+    preedit.maps.clear();
+    let analysis = Arc::make_mut(preedit.analyses.get_mut(&analysis_id).unwrap());
+    analysis.source.range = range(0, 300);
+    let chunk = Arc::make_mut(&mut analysis.chunks[0]);
+    chunk.coverage = range(0, 300);
+    chunk.edge_quiet.clear();
+    chunk.peaks = vec![0; 6000];
+    for model in ["faster-whisper-tiny.en", "faster-whisper-base.en", "assemblyai"] {
+        Arc::make_mut(preedit.analyses.get_mut(&analysis_id).unwrap()).settings.model = Some(model.into());
+        assert!(preedit.check().is_ok(), "{model}");
+    }
+    let analysis = Arc::make_mut(preedit.analyses.get_mut(&analysis_id).unwrap());
+    Arc::make_mut(&mut analysis.chunks[0]).peaks.resize(6002, 0);
+    assert!(preedit.check().is_err());
+    let analysis = Arc::make_mut(preedit.analyses.get_mut(&analysis_id).unwrap());
+    Arc::make_mut(&mut analysis.chunks[0]).peaks.resize(6000, 0);
+    analysis.settings.model = Some("whisper-base".into());
+    assert_eq!(analysis.settings.chunk_seconds(), 20);
+    assert!(preedit.check().is_err());
 }
 
 #[test]

@@ -34,6 +34,16 @@ pub struct AnalysisSettings {
     pub handle: Tick,
 }
 
+impl AnalysisSettings {
+    /// Shared decode/checkpoint bound; recognition context is added outside this coverage.
+    pub fn chunk_seconds(&self) -> i64 {
+        match self.model.as_deref() {
+            Some("assemblyai" | "faster-whisper-tiny.en" | "faster-whisper-base.en") => 300,
+            _ => 20,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum AnalysisStatus {
     Running,
@@ -106,6 +116,8 @@ pub struct Override {
 pub enum CleanupMode {
     Natural,
     Transcript,
+    #[serde(alias = "gling-compatible")]
+    GlingCompatible,
 }
 
 impl Default for CleanupMode {
@@ -308,7 +320,8 @@ impl PreEdit {
             for chunk in &analysis.chunks {
                 if chunk.coverage.start != end
                     || !encloses(analysis.source.range, chunk.coverage)
-                    || chunk.peaks.len() > if analysis.settings.model.as_deref() == Some("assemblyai") { 6001 } else { 401 }
+                    || chunk.coverage.duration > Tick::from_units(analysis.settings.chunk_seconds(), 1)
+                    || chunk.peaks.len() > (analysis.settings.chunk_seconds() * 20 + 1) as usize
                     || chunk.quiet.iter().any(|range| !encloses(chunk.coverage, *range))
                     || chunk.edge_quiet.len() > 2
                     || chunk.edge_quiet.iter().any(|range| {

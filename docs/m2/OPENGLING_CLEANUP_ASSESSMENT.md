@@ -2,7 +2,21 @@
 
 ## Local reference assessment
 
-Reviewed the local OpenGling 0.12.0 source on 2026-11-06, specifically `src/speech-cleanup.js`, `src/acoustic-cleanup.js`, `src/cleanup-state.js`, `public/app.js`, and the natural-cleanup and speech-cleanup tests. These are implementation references. The requested Shotclutch workflow remains automatic cutting followed by review. This assessment was updated 2026-11-07 for source-edge measurements and take safety guards.
+Reviewed the local OpenGling 0.12.0 source, specifically `src/speech-cleanup.js`, `src/acoustic-cleanup.js`, `src/cleanup-state.js`, `src/transcribe.py`, `src/transcription.js`, `public/app.js`, and their tests. These are implementation references. The requested workflow remains automatic cutting followed by review. Updated 2026-11-08 after the user's parity request.
+
+## Parity implementation
+
+New Smart Cut workspaces select **Gling compatible** (`glingCompatible`) and **Tiny English · Fast** (`faster-whisper-tiny.en`). Existing saved modes and model selections remain unchanged. The earlier Natural behavior is labeled Conservative; the earlier Transcript behavior is labeled Legacy transcript. Omitted command/project mode fields still default to Natural for backward compatibility.
+
+The new transcript rules follow the reference's English hesitation vocabulary, single trailing-punctuation normalization, pause-based take grouping, five-take lookback, five-word opening membership/consecutive-match tests, removal of intervening abandoned attempts, repeated-token/question patterns, longest contiguous pattern matching, cross-take suffix matching, merged same-kind removals, neighboring word boundaries and overlapping-speech suppression. Leading/trailing gaps and interior gaps greater than the selected pause threshold are cut without added padding. Retained alternatives are stored separately for native comparison and are excluded from automatic removals. Unknown confidence stays unknown. Source presentation/sample boundaries round removals inward; this can retain at most the boundary quantization around a reference interval.
+
+This mode intentionally follows the reference's broader text rules, including single-word suffix matches and take matches without the conservative numeric/negation guards. It is deterministic transcript cleanup, not semantic assessment. Every automatic cut remains restorable. The existing conservative behavior below remains a separate choice rather than silently weakening parity rules.
+
+The Rust rule implementation matches the reference's removal intervals and types on 196 synthetic cases stored in `crates/engine/test-data/opengling-cleanup-v2.json`. The fixture contains no private transcript. Local source and packaged reference modules had the same SHA-256: `bfd5a3f49ccd65fa54ef0e960ee7a178bb973af016253559f53869162c93b0f1`. Exact differential coverage is for the raw English transcript rules on one source with timed words; it does not establish parity for paragraph/media grouping, custom filler lexicons, unsupported languages or optional acoustic refinement.
+
+The reference uses faster-whisper/CTranslate2 CPU INT8 with the 75.5 MB Tiny English model binary, Silero VAD, word timing, beam size five and no previous-text conditioning. Shotclutch now offers that pinned inference profile through an isolated offline worker. A persistent model and five-minute bounded requests replace the legacy profile's 20-second recognition calls. The same decoded PCM feeds recognition, acoustic measurements and waveform peaks. See [DEC-005](DEC-005_SPEECH_PROVIDERS.md) for installation, dependency versions and cancellation. Whole-recording reference inference can still differ from bounded inference around chunk boundaries; identical model settings do not guarantee identical recognized words.
+
+## Earlier conservative adaptation
 
 | Area | OpenGling behavior | Previous Shotclutch limitation | Adaptation |
 | --- | --- | --- | --- |
@@ -17,9 +31,9 @@ Reviewed the local OpenGling 0.12.0 source on 2026-11-06, specifically `src/spee
 
 ## Intentional differences and limits
 
-Natural is the default. Transcript rules is an explicit option for more direct, Gling-like timing behavior. It can remove untranscribed sounds within a word gap, so users can inspect the original from the cut review panel. Neither mode provides semantic judgment of which performance is best.
+The following describes the retained Conservative and Legacy transcript modes. Both can be selected explicitly or loaded from saved projects. No cleanup mode provides semantic judgment of which performance is best.
 
-The adaptation uses integer source ticks, immutable map revisions, the existing indexed video/sample boundary checks, and ordinary linked timeline clips. It does not embed an OpenGling runtime. The 20-second checkpoints, cancellation, source fingerprint checks, manual override precedence, and scoped-client permissions remain in force.
+All modes use integer source ticks, immutable map revisions, indexed video/sample boundary checks and ordinary linked timeline clips. Shotclutch does not embed the OpenGling application. Bounded checkpoints, cancellation, source fingerprint checks, manual override precedence and scoped-client permissions remain in force.
 
 Natural quiet detection uses 10 ms per-channel RMS, rolling four-second distributions, a chunk-level fallback, and a minimum 12 dB separation. The threshold is the smaller of noise +6 dB and speech −12 dB. This adapts the reference's more conservative speech −18 dB threshold to quieter dialogue recordings. Constant low-dynamic-range audio remains untouched unless it falls below −70 dBFS. A long noise-only chunk with no identifiable speech/noise separation can still remain uncut. Transcript mode is available for timed gaps in that situation.
 
@@ -31,7 +45,7 @@ Analyzer v3 independently measures near-silent source edges: contiguous 10 ms bi
 
 ## Saved projects and commands
 
-`cleanup.mode` accepts `natural` and `transcript`, defaulting to `natural` when omitted. Existing project files remain readable. Regeneration creates a new map and preserves compatible manual overrides. Existing saved maps are not silently reclassified when opened.
+`cleanup.mode` accepts `glingCompatible` (also the input alias `gling-compatible`), `natural` and `transcript`. It defaults to `natural` when omitted for backward compatibility; the native new-workspace default explicitly selects `glingCompatible`. Existing project files remain readable. Regeneration creates a new map and preserves compatible manual overrides. Existing saved maps are not silently reclassified when opened.
 
 `preedit.analyze.reuseTranscript` takes a decimal analysis ID. It requires completed coverage of the same asset, range, stream, channel, language, model, and source fingerprint. It decodes bounded audio chunks and copies the saved timed words without loading Whisper or uploading audio. The new analysis uses analyzer version 3. The native Update cut action refreshes older acoustic measurements when Natural is selected. Refresh audio & cut explicitly requests this pass for any completed analysis.
 

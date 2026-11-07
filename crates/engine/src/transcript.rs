@@ -22,6 +22,9 @@ use shotclutch_time::{TICKS_PER_SECOND, Tick, TimeRange};
 use crate::commands::{CommandSpec, always, bad, bool_p, f64_p, has_seq, str_p, u64_p};
 use crate::{EngineError, Result, Session};
 
+/// Local speech profiles exposed to frontends without depending on an inference backend.
+pub use shotclutch_speech::models::{catalogue as model_catalogue, find as speech_model};
+
 type Run = fn(&mut Session, &Value) -> Result<Value>;
 type Enabled = fn(&Session) -> std::result::Result<(), String>;
 
@@ -430,6 +433,10 @@ pub fn install_model(id: &str, progress: &mut dyn FnMut(u64, u64, &str) -> bool)
     let dir = models_dir().ok_or_else(|| EngineError::Other("no data directory for speech models".into()))?;
     #[cfg(feature = "speech-download")]
     {
+        #[cfg(not(target_arch = "wasm32"))]
+        if shotclutch_speech::fast_whisper::supports(id) {
+            shotclutch_speech::fast_whisper::install_runtime(&dir, progress).map_err(speech_err)?;
+        }
         shotclutch_speech::models::download(&dir, model, progress).map_err(speech_err)?;
         Ok(shotclutch_speech::models::model_dir(&dir, model))
     }

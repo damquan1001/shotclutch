@@ -1,10 +1,12 @@
 # DEC-009 — Native Smart Cut workspace
 
-Selected and implemented on `codex/m2-smart-rough-cut`; updated 2026-11-07. The user renamed Smart Rough Cut to Smart Cut and requested the Gling/OpenGling cut-first workflow. Existing data and command names remain compatible.
+Selected and implemented on `codex/m2-smart-rough-cut`; updated 2026-11-08. The user renamed Smart Rough Cut to Smart Cut and requested the Gling/OpenGling cut-first workflow. Existing data and command names remain compatible.
 
 The workspace is native egui: Transcript / Review cuts / Setup on the left, a large preview on the right, and a source-time waveform across the bottom. It uses the same desktop frame/audio workers, device-clock playback and GPU monitor path as Editing. It does not create a separate player. Transcript paragraphs and waveform lookups are cached/indexed so review does not rebuild all text or hash the generated sequence on every frame.
 
 Transcribe & cut creates the automatic logical result immediately. Transcribe only leaves the source intact. Review changes that result directly; there is no candidate approval queue. Open in editor is the explicit durable commit to an ordinary linked-clip sequence. Result preview and application share the assembly builder.
+
+New workspaces select Tiny English · Fast and Gling compatible cleanup. Setup exposes the model profile and independent bad-take, filler and pause switches. Gling-compatible cleanup follows the reference's broader abandoned-take and restart rules and uses word-gap boundaries without padding. Conservative cleanup retains the previous acoustic and take-safety behavior. Legacy transcript mode remains for saved settings. Opening a project preserves its recorded profile and cleanup mode; Update cut explicitly regenerates from saved words. Changing recognition profiles requires a new transcription, rather than silently reusing words from another model.
 
 Icon media controls sit below the picture. Preview mode and undo/redo/More/Open in editor share the viewer toolbar. Removed timeline intervals and waveform are gray. Cut and uncut intervals can both be selected, trimmed by their edges, and right-clicked for Cut / Uncut. Skip cuts toggles original/result playback while preserving the source position. Highlighted transcript words expose Cut / Uncut / Correct / Export clip actions.
 
