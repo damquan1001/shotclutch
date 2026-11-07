@@ -191,7 +191,10 @@ fn defaults(app: &ShotClutchApp, id: &str) -> (Value, Value) {
                 Some(m) => {
                     let n = m.info.audio().map_or(2, |a| a.channels) as u16;
                     let map = m.interpret.audio_channels.clone().unwrap_or_else(|| AudioChannelMap::for_format(AudioChannels::Stereo, n));
-                    (json!({"format": format_name(map.format), "clips": map.clips}), json!({"channels": n, "items": true}))
+                    (
+                        json!({"format": format_name(map.format), "clips": map.clips, "includeAllStreams": m.includes_all_audio_streams()}),
+                        json!({"channels": n, "items": true, "audioStreams": m.info.audio_streams.len()}),
+                    )
                 }
                 None => (json!({"channels": [0, 1]}), json!({"channels": 2, "items": false})),
             }
@@ -412,6 +415,11 @@ pub fn show(app: &mut ShotClutchApp, ctx: &egui::Context) {
             "clip.audioChannels" => {
                 let n = d.info["channels"].as_u64().unwrap_or(2).max(1) as u16;
                 if d.info["items"].as_bool().unwrap_or(false) {
+                    if d.info["audioStreams"].as_u64().unwrap_or(1) > 1 {
+                        check(ui, &mut elems, pre, p, "includeAllStreams", "Include additional source audio tracks", true);
+                        ui.label("Applies when adding this source to a sequence.");
+                        ui.separator();
+                    }
                     ui.horizontal(|ui| {
                         ui.label(tl!("Clip Channel Format:"));
                         for (k, l) in formats() {

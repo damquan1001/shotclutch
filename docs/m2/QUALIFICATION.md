@@ -16,7 +16,7 @@ If a running app locks the default executable, link the same source to a distinc
 
 ## Local real-model run
 
-Install the catalogue-pinned Whisper base explicitly through Setup. Use an isolated data directory for qualification. Audition all source audio tracks before selecting a dialogue stream; level scans alone cannot establish intelligibility. Commands use zero-based streams, while the UI labels them from one.
+Install the catalogue-pinned Whisper base explicitly through Setup. Use an isolated data directory for qualification. Listen to the main source audio to verify intelligibility. Video placement uses that main audio by default; additional container tracks are an explicit choice in Audio Channels. Smart Cut exposes track selection only under Advanced source settings. Commands use zero-based stream indices; the first track is Main audio in the UI. Empty auxiliary tracks are not a requirement to audition or add to a sequence.
 
 ```powershell
 $env:SHOTCLUTCH_DATA_DIR = '<private-data-folder>'

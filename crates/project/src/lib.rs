@@ -178,6 +178,10 @@ pub struct Interpretation {
     /// is edited into a sequence. None = one stereo clip of the first two channels.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub audio_channels: Option<AudioChannelMap>,
+    /// Include secondary container audio tracks in new timeline placements. Movies default to
+    /// their main audio; audio-only sources retain all tracks unless explicitly overridden.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub include_all_audio_streams: Option<bool>,
 }
 
 /// Modify ▸ Audio Channels: the clip channel format and, per audio clip, the source channels it
@@ -246,6 +250,14 @@ mod hex_u64 {
 }
 
 impl MediaClip {
+    pub fn includes_all_audio_streams(&self) -> bool {
+        self.interpret.include_all_audio_streams.unwrap_or(self.info.video.is_none())
+    }
+
+    pub fn placement_audio_stream_count(&self) -> usize {
+        if self.includes_all_audio_streams() { self.info.audio_streams.len() } else { self.info.audio_streams.len().min(1) }
+    }
+
     pub fn frame_rate(&self) -> FrameRate {
         self.interpret.frame_rate.unwrap_or_else(|| self.info.frame_rate())
     }

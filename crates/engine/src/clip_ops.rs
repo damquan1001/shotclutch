@@ -142,7 +142,7 @@ pub(crate) fn commands() -> Vec<CommandSpec> {
             "Audio Channels…",
             &["Clip", "Modify"],
             Some("Shift+G"),
-            r#"{"items":[id]?,"format":"mono|stereo|5.1|adaptive","clips":[[channel]]?,"channels":[channel]?}"#,
+            r#"{"items":[id]?,"format":"mono|stereo|5.1|adaptive"?,"clips":[[channel]]?,"channels":[channel]?,"includeAllStreams":bool?}"#,
             has_audio_target,
             audio_channels,
         ),
@@ -649,7 +649,8 @@ fn sequence_from_clip(s: &mut Session, p: &Value) -> Result<Value> {
     let channels = media_root(&s.project, first).and_then(|(_, m, _)| m.info.audio().map(|a| a.channels)).unwrap_or(2);
     let n_audio = media_root(&s.project, first)
         .map(|(_, m, _)| {
-            crate::commands::audio_placement_specs(m.interpret.audio_channels.as_ref().map_or(&[], |a| a.clips.as_slice()), m.info.audio_streams.len()).len()
+            crate::commands::audio_placement_specs(m.interpret.audio_channels.as_ref().map_or(&[], |a| a.clips.as_slice()), m.placement_audio_stream_count())
+                .len()
         })
         .unwrap_or(1);
     let n0 = s.history.undo.len();
@@ -1236,6 +1237,8 @@ fn parse_format(f: &str) -> Option<AudioChannels> {
 }
 
 fn audio_channels(s: &mut Session, p: &Value) -> Result<Value> {
+    let include_all =
+        p.get("includeAllStreams").map(|value| value.as_bool().ok_or_else(|| bad("clip.audioChannels", "includeAllStreams must be a boolean"))).transpose()?;
     let items: Vec<ItemId> =
         items_p(s, p).into_iter().filter(|i| s.project.item(*i).and_then(|it| it.as_media()).is_some_and(|m| m.info.has_audio())).collect();
     // `channels` is the only thing the timeline-clip branch below reads, so it alone decides
@@ -1288,9 +1291,11 @@ fn audio_channels(s: &mut Session, p: &Value) -> Result<Value> {
                 }
                 AudioChannelMap { format: fmt, clips: c.clone() }
             }
+            None if include_all.is_some() && format.is_none() => m.interpret.audio_channels.clone().unwrap_or_else(|| AudioChannelMap::for_format(fmt, n)),
             None => AudioChannelMap::for_format(fmt, n),
         };
-        out.push(json!({"item": i.0, "format": format!("{:?}", map.format), "clips": map.clips}));
+        out.push(json!({"item": i.0, "format": format!("{:?}", map.format), "clips": map.clips,
+                       "includeAllStreams": include_all.unwrap_or_else(|| m.includes_all_audio_streams())}));
         maps.push((*i, map));
     }
     s.edit("Modify Audio Channels", |pr, _| {
@@ -1298,6 +1303,9 @@ fn audio_channels(s: &mut Session, p: &Value) -> Result<Value> {
             if let Some(m) = pr.item_mut(i).and_then(|it| it.as_media_mut()) {
                 // the default stereo pair is no override
                 m.interpret.audio_channels = if map == AudioChannelMap::for_format(AudioChannels::Stereo, 2) { None } else { Some(map) };
+                if let Some(include) = include_all {
+                    m.interpret.include_all_audio_streams = Some(include);
+                }
             }
         }
         Ok(())

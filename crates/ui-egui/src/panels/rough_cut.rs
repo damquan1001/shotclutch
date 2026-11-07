@@ -320,13 +320,9 @@ impl Workspace {
         self.stream = self.stream.min(streams.len().saturating_sub(1));
         ui.horizontal_wrapped(|ui| {
             ui.add_enabled_ui(!running, |ui| {
-                egui::ComboBox::from_id_salt("rough-cut-audio").selected_text(format!("Audio stream {}", self.stream + 1)).show_ui(ui, |ui| {
-                    for (index, stream) in streams.iter().enumerate() {
-                        ui.selectable_value(&mut self.stream, index, format!("{} · {} channels · {} Hz", index + 1, stream.channels, stream.sample_rate));
-                    }
-                });
+                ui.label(if self.stream == 0 { "Source audio".into() } else { format!("Source audio · Track {}", self.stream + 1) });
                 ui.checkbox(&mut self.silence_only, "Silence only");
-                if ui.button("Audition stream").clicked() {
+                if ui.button("Listen to source audio").clicked() {
                     let start = if app.session.state.source_item == Some(item) { app.session.state.source_playhead } else { Tick::ZERO };
                     let end = (start + Tick(10 * TICKS_PER_SECOND)).min(duration);
                     if end > start {
@@ -337,6 +333,22 @@ impl Workspace {
         });
         ui.add_enabled_ui(!running, |ui| {
             ui.collapsing("Advanced source settings", |ui| {
+                if streams.len() > 1 {
+                    ui.horizontal_wrapped(|ui| {
+                        ui.label("Audio track");
+                        let selected = if self.stream == 0 { "Main audio".into() } else { format!("Track {}", self.stream + 1) };
+                        let response = egui::ComboBox::from_id_salt("rough-cut-audio")
+                            .selected_text(selected)
+                            .show_ui(ui, |ui| {
+                                for (index, stream) in streams.iter().enumerate() {
+                                    let name = if index == 0 { "Main audio".into() } else { format!("Track {}", index + 1) };
+                                    ui.selectable_value(&mut self.stream, index, format!("{name} · {} channels · {} Hz", stream.channels, stream.sample_rate));
+                                }
+                            })
+                            .response;
+                        app.auto.add_response("roughCut.source.audioTrack", &response, "Audio track");
+                    });
+                }
                 ui.horizontal_wrapped(|ui| {
                     ui.label("Source start / end (seconds)");
                     ui.add(egui::TextEdit::singleline(&mut self.selection_start).desired_width(55.0));

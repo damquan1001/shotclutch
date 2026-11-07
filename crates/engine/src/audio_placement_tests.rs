@@ -49,7 +49,7 @@ fn specs_append_container_streams_after_channel_map_clips() {
 }
 
 #[test]
-fn placing_media_with_two_streams_expands_tracks_and_keeps_stream_indices() {
+fn m2_video_places_main_audio_by_default_and_expands_only_when_requested() {
     let mut s = Session::default();
     let mut p = (*s.project).clone();
     let rate = FrameRate::FPS_24;
@@ -79,6 +79,18 @@ fn placing_media_with_two_streams_expands_tracks_and_keeps_stream_indices() {
     };
     s.project = std::sync::Arc::new(p);
     s.state.active_sequence = Some(seq);
+    let default =
+        crate::commands::place_item(&mut s, item, TimeRange::new(Tick::ZERO, rate.tick_of(24)), Tick::ZERO, Some(vdest), Some(adest), false, "test", None)
+            .unwrap();
+    assert_eq!(default.len(), 2, "one picture and one main audio clip");
+    assert_eq!(s.project.sequence(seq).unwrap().audio_tracks.len(), 1);
+    assert_eq!(s.project.sequence(seq).unwrap().audio_tracks[0].items[0].audio_stream, 0);
+    s.undo().unwrap();
+    let revision = s.revision;
+    assert!(s.execute("clip.audioChannels", json!({"items":[item.0],"includeAllStreams":"yes"})).is_err());
+    assert_eq!(s.revision, revision);
+    let params = json!({"items":[item.0],"includeAllStreams":true});
+    s.execute("clip.audioChannels", params).unwrap();
     let ids =
         crate::commands::place_item(&mut s, item, TimeRange::new(Tick::ZERO, rate.tick_of(24)), Tick::ZERO, Some(vdest), Some(adest), false, "test", None)
             .unwrap();
@@ -92,6 +104,27 @@ fn placing_media_with_two_streams_expands_tracks_and_keeps_stream_indices() {
     assert_ne!(a.id, b.id);
     assert_eq!(a.source_in, b.source_in);
     assert_eq!(a.start, b.start);
+    // This source preference is undoable and survives save/reopen.
+    s.undo().unwrap();
+    s.undo().unwrap();
+    assert!(!s.project.item(item).unwrap().as_media().unwrap().includes_all_audio_streams());
+    s.redo().unwrap();
+    s.redo().unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("audio-preference.scproj");
+    s.execute("file.saveAs", json!({"path":path})).unwrap();
+    s.execute("file.open", json!({"path":path})).unwrap();
+    assert!(s.project.item(item).unwrap().as_media().unwrap().includes_all_audio_streams());
+    s.execute("clip.audioChannels", json!({"items":[item.0],"includeAllStreams":false})).unwrap();
+    s.execute("file.newSequenceFromClip", json!({"items":[item.0]})).unwrap();
+    assert_eq!(s.active_sequence().unwrap().audio_tracks.len(), 1);
+    assert_eq!(s.active_sequence().unwrap().audio_tracks[0].items[0].audio_stream, 0);
+    assert_eq!(s.project.item(item).unwrap().as_media().unwrap().info.audio_streams.len(), 2, "container metadata stays accurate");
+    s.execute("file.newSequence", json!({"fromItem":item.0,"video":1,"audio":1})).unwrap();
+    assert_eq!(s.active_sequence().unwrap().audio_tracks.len(), 1);
+    s.execute("clip.audioChannels", json!({"items":[item.0],"clips":[[1,0]]})).unwrap();
+    s.execute("clip.audioChannels", json!({"items":[item.0],"includeAllStreams":true})).unwrap();
+    assert_eq!(s.project.item(item).unwrap().as_media().unwrap().interpret.audio_channels.as_ref().unwrap().clips, vec![vec![1, 0]]);
 }
 
 #[test]
@@ -125,6 +158,7 @@ fn clip_peaks_measure_the_stream_the_clip_plays() {
     };
     s.project = std::sync::Arc::new(p);
     s.state.active_sequence = Some(seq);
+    s.execute("clip.audioChannels", json!({"items":[item.0],"includeAllStreams":true})).unwrap();
     let ids =
         crate::commands::place_item(&mut s, item, TimeRange::new(Tick::ZERO, rate.tick_of(24)), Tick::ZERO, Some(vdest), Some(adest), false, "test", None)
             .unwrap();

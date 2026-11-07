@@ -2,6 +2,14 @@
 
 This record retains historical runs below. The 2026-11-07 closeout qualification is the current implementation result. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## Main source audio default — 2026-11-07
+
+Independent local container inspection confirms four encoded stereo AAC tracks in the acceptance MKV. That physical metadata is distinct from the one main audio clip expected in an editing workflow. The prior default expanded every container track, including unused auxiliary tracks, on timeline placement. Video sources now place the main audio only by default, including drag/insert and both sequence-from-clip paths. Audio Channels exposes an explicit Include additional source audio tracks option; the choice is persisted per source, undoable, and applies to future placements. Existing clips and source bytes retain their original stream indices. Audio-only multi-track sources preserve their previous default. The added interpretation field is optional and old v18 documents remain readable.
+
+Smart Cut presents Source audio in ordinary Setup. Track selection is under Advanced source settings for intentional alternate-track analysis. Qualification no longer asks the reviewer to audition unused auxiliary tracks.
+
+Native verification imported the actual MKV into a separate instance, created one linked picture/audio pair by default, enabled the additional-track option through the Audio Channels dialog and confirmed four audio clips, then disabled it and confirmed one audio clip again. Setup's extra-track selector remained hidden in the normal view; screenshots were inspected locally. Nine placement, 12 source-placement, 33 clip-operation, 81 M1 engine and 23 M2 regressions passed, together with project/format persistence checks. The new main-audio regression is included in the M2 CI filter and checks explicit opt-in, channel mapping, invalid parameters, save/reopen, grouped history and sequence creation. Private native artifacts remain ignored. The corrected native candidate is `shotclutch-smart-cut-main-audio.exe`.
+
 ## Closeout qualification — 2026-11-07
 
 The final audit added protection for take matches that change negation or numeric tokens. Natural automatic take removal now requires identical words or an unfinished earlier prefix; ambiguous endings remain reviewable. Reject grouping restores every alternative in one undoable revision. The native take panel exposes Keep all and grouping rejection/splitting.

@@ -169,6 +169,7 @@ fn subclip_placement_keeps_parent_channel_map_and_all_audio_streams() {
     let parent = s.project.resolve_media(sub).unwrap().0;
     let m = std::sync::Arc::make_mut(&mut s.project).item_mut(parent).unwrap().as_media_mut().unwrap();
     m.info.audio_streams.push(m.info.audio_streams[0].clone());
+    m.interpret.include_all_audio_streams = Some(true);
     m.interpret.audio_channels = Some(shotclutch_project::AudioChannelMap { format: shotclutch_project::AudioChannels::Mono, clips: vec![vec![1], vec![0]] });
     s.execute("timeline.place", json!({"item":sub.0,"track":"V1","audioTrack":"A1","time":0})).unwrap();
     assert_eq!(counts(&s), (1, 3));
