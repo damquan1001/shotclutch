@@ -1,7 +1,7 @@
 //! AssemblyAI asynchronous transcription of bounded mono PCM chunks.
-use crate::{Options, ProgressFn, SpeechError, Transcriber};
 #[cfg(any(feature = "download", test))]
 use crate::SAMPLE_RATE;
+use crate::{Options, ProgressFn, SpeechError, Transcriber};
 #[cfg(any(feature = "download", test))]
 use serde::Deserialize;
 use shotclutch_project::Transcript;
@@ -44,7 +44,9 @@ struct Response {
 
 #[cfg(any(feature = "download", test))]
 fn transcript(response: Response, opts: &Options, samples: usize) -> Result<Transcript, SpeechError> {
-    if response.status != "completed" { return Err(SpeechError::Model("AssemblyAI transcript is incomplete".into())); }
+    if response.status != "completed" {
+        return Err(SpeechError::Model("AssemblyAI transcript is incomplete".into()));
+    }
     let end = crate::sample_tick(samples as i64);
     let mut result = Transcript { source: "assemblyai".into(), language: opts.language.clone().unwrap_or_default(), ..Default::default() };
     for word in response.words.unwrap_or_default() {

@@ -139,6 +139,27 @@ fn word_range(words: &[&Word]) -> TimeRange {
     TimeRange::from_bounds(words[0].start, words.last().unwrap().end)
 }
 
+/// Opening similarity is insufficient evidence when facts or negation change.
+pub(super) fn semantic_markers(words: &[String]) -> Vec<String> {
+    words
+        .iter()
+        .filter(|word| {
+            word.chars().any(|c| c.is_numeric())
+                || matches!(word.as_str(), "no" | "not" | "never" | "neither" | "nor" | "without" | "cannot")
+                || word.ends_with("n't")
+                || word.ends_with("n’t")
+        })
+        .cloned()
+        .collect()
+}
+
+pub(super) fn safe_take_removal(earlier: &[String], later: &[String], natural: bool) -> bool {
+    if semantic_markers(earlier) != semantic_markers(later) {
+        return false;
+    }
+    !natural || earlier == later || (earlier.len() >= 2 && later.starts_with(earlier))
+}
+
 pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, cleanup: Option<CleanupSettings>) -> PreEditMap {
     let settings = cleanup.unwrap_or_default();
     let threshold = settings.min_pause_ms.map_or(analysis.settings.min_pause, |v| ms(i64::from(v)));

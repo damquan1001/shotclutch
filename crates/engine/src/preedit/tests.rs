@@ -648,3 +648,116 @@ fn m2_source_edges_ignore_overlong_alignment_but_protect_real_words() {
     let protected = analysis::propose(map.analysis, &saved, None);
     assert!(!protected.candidates.iter().any(|cut| cut.range.start == Tick::ZERO && cut.range.end() > seconds(1)));
 }
+
+#[test]
+fn m2_automatic_take_cleanup_preserves_changed_negation_numbers_and_uncertain_endings() {
+    let words = |text: &str| text.split_whitespace().map(str::to_owned).collect::<Vec<_>>();
+    for (earlier, later) in [
+        ("this camera is good", "this camera is not good"),
+        ("this camera costs 549 dollars", "this camera costs 399 dollars"),
+        ("this camera isn't working", "this camera is working"),
+    ] {
+        assert!(!cleanup::safe_take_removal(&words(earlier), &words(later), true));
+        assert!(!cleanup::safe_take_removal(&words(earlier), &words(later), false));
+    }
+    assert!(!cleanup::safe_take_removal(&words("this camera looks very good"), &words("this camera looks really great"), true));
+    assert!(cleanup::safe_take_removal(&words("this camera looks good"), &words("this camera looks good"), true));
+    assert!(cleanup::safe_take_removal(&words("this camera"), &words("this camera looks good"), true));
+}
+
+#[test]
+fn m2_reject_group_restores_alternatives_and_undo_is_one_action() {
+    let (_dir, _, mut session, item) = fixture();
+    let id = analyze(&mut session, item, None);
+    session
+        .edit("Take group fixture", |project, _| {
+            let map = Arc::make_mut(project.preedit.maps.get_mut(&id).unwrap());
+            map.candidates = Arc::new(vec![
+                Candidate { range: range(0, 1), kind: CandidateKind::Take, reason: "earlier".into(), confidence: None },
+                Candidate { range: range(3, 4), kind: CandidateKind::Take, reason: "later".into(), confidence: None },
+            ]);
+            map.takes = Arc::new(vec![TakeGroup { alternatives: vec![0, 1], explanation: "comparison".into() }]);
+            map.automatic = Some(Arc::new(vec![Override { range: range(0, 1), decision: Decision::Remove }]));
+            Ok(())
+        })
+        .unwrap();
+    let before = session.project.preedit.maps[&id].clone();
+    let rejected = review_action(&mut session, id, json!({"kind":"rejectGroup","group":0}));
+    let map = &session.project.preedit.maps[&rejected];
+    assert!(map.takes.is_empty());
+    assert_eq!(map.segments(range(0, 4)).unwrap()[0].source, range(0, 4));
+    session.undo().unwrap();
+    assert_eq!(session.project.preedit.maps[&id], before);
+    assert!(!session.project.preedit.maps.contains_key(&rejected));
+    session.redo().unwrap();
+    assert!(session.project.preedit.maps[&rejected].takes.is_empty());
+}
+
+#[test]
+fn m2_collection_and_relink_keep_removed_source_available_for_restoration() {
+    let (dir, source, mut session, item) = fixture();
+    let original = std::fs::read(&source).unwrap();
+    let id = analyze(&mut session, item, None);
+    let cut =
+        review_action(&mut session, id, json!({"kind":"range","decision":"Remove","range":{"start":seconds(1).0.to_string(),"end":seconds(3).0.to_string()}}));
+    let map = review_action(&mut session, cut, json!({"kind":"markReviewed"}));
+    session.execute("preedit.apply", json!({"map":map.to_string(),"expectedRevision":session.revision.to_string(),"operationId":"collect-cut"})).unwrap();
+    let output = session.execute("file.projectManager", json!({"destination":dir.path().join("Collected"),"wait":true})).unwrap();
+    session.media.clear();
+    std::fs::remove_file(source).unwrap();
+    let mut reopened = Session::default();
+    reopened.start_autosave(crate::autosave::AutosaveConfig::new(&dir.path().join("reopened-data"))).unwrap();
+    reopened.execute("file.open", json!({"path":output["project"]})).unwrap();
+    assert_eq!(reopened.project.preedit.maps[&map], session.project.preedit.maps[&map]);
+    let shotclutch_project::MediaRef::File { path } = &reopened.project.item(item).unwrap().as_media().unwrap().media else {
+        panic!("missing collected original")
+    };
+    let collected = PathBuf::from(output["project"].as_str().unwrap()).parent().unwrap().join(path);
+    assert_eq!(std::fs::read(&collected).unwrap(), original);
+    let moved = dir.path().join("Relinked");
+    std::fs::create_dir(&moved).unwrap();
+    let moved = moved.join(collected.file_name().unwrap());
+    std::fs::rename(&collected, &moved).unwrap();
+    reopened.media.clear();
+    reopened.execute("media.relink", json!({"item":item.0,"path":moved})).unwrap();
+    let restored =
+        review_action(&mut reopened, map, json!({"kind":"range","decision":"Keep","range":{"start":seconds(1).0.to_string(),"end":seconds(3).0.to_string()}}));
+    let restored = review_action(&mut reopened, restored, json!({"kind":"markReviewed"}));
+    let (draft, preview_id) = preview(&reopened, restored).unwrap();
+    let result = reopened
+        .execute("preedit.apply", json!({"map":restored.to_string(),"expectedRevision":reopened.revision.to_string(),"operationId":"restore-after-relink"}))
+        .unwrap();
+    let sequence = ItemId(result["sequenceId"].as_str().unwrap().parse().unwrap());
+    assert_eq!(reopened.project.sequence(sequence).unwrap().duration(), seconds(4));
+    assert_eq!(draft.sequence(preview_id).unwrap().duration(), reopened.project.sequence(sequence).unwrap().duration());
+    assert_eq!(std::fs::read(moved).unwrap(), original);
+}
+
+#[test]
+fn m2_scoped_clients_cannot_access_owner_preedit_commands() {
+    let (_dir, _, mut session, item) = fixture();
+    let id = analyze(&mut session, item, None);
+    let map = review_action(&mut session, id, json!({"kind":"markReviewed"}));
+    let result =
+        session.execute("preedit.apply", json!({"map":map.to_string(),"expectedRevision":session.revision.to_string(),"operationId":"scope-fixture"})).unwrap();
+    let sequence = ItemId(result["sequenceId"].as_str().unwrap().parse().unwrap());
+    let mut scope = crate::service::EditorScope::sequence(sequence);
+    scope.allow_edits = true;
+    let client = session.authorize_editor("scoped-editor", scope).unwrap();
+    let before = session.project.clone();
+    let revision = session.revision;
+    for name in [
+        "preedit.inspect",
+        "preedit.analyze",
+        "preedit.cancel",
+        "preedit.review",
+        "preedit.preview",
+        "preedit.apply",
+        "preedit.applyBackground",
+        "preedit.cancelApply",
+    ] {
+        assert_eq!(session.execute_as(&client, name, json!({})).unwrap_err().code, crate::service::ErrorCode::PermissionDenied);
+    }
+    assert_eq!(session.revision, revision);
+    assert!(Arc::ptr_eq(&before, &session.project));
+}

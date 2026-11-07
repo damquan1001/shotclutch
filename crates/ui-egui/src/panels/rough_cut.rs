@@ -874,10 +874,26 @@ impl Workspace {
                             action = Some(json!({"kind":"chooseTake","group":group_index,"retain":[index]}));
                         }
                     }
-                    let response = ui.button("Keep both");
-                    app.auto.add_response("roughCut.review.keepBoth", &response, "Keep both takes");
+                    let response = ui.button("Keep all");
+                    app.auto.add_response("roughCut.review.keepBoth", &response, "Keep all takes");
                     if response.clicked() {
                         action = Some(json!({"kind":"chooseTake","group":group_index,"retain":group.alternatives}));
+                    }
+                });
+                ui.menu_button("Group options", |ui| {
+                    let reject = ui.button("Reject grouping and keep all takes");
+                    app.auto.add_response("roughCut.review.rejectGroup", &reject, "Reject grouping");
+                    if reject.clicked() {
+                        action = Some(json!({"kind":"rejectGroup","group":group_index}));
+                        ui.close();
+                    }
+                    if group.alternatives.len() > 2 {
+                        for at in 1..group.alternatives.len() {
+                            if ui.button(format!("Split after take {at}")).clicked() {
+                                action = Some(json!({"kind":"splitGroup","group":group_index,"at":at}));
+                                ui.close();
+                            }
+                        }
                     }
                 });
             }

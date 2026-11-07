@@ -519,8 +519,10 @@ fn review(s: &mut Session, value: &Value) -> Result<Value> {
             }
         }
         Action::RejectGroup { group } => {
-            if group >= map.takes.len() {
-                return Err(fail("NOT_FOUND: take group"));
+            let selected = map.takes.get(group).ok_or_else(|| fail("NOT_FOUND: take group"))?;
+            for &index in &selected.alternatives {
+                let range = snap(map.candidates[index].range, false)?;
+                map.overrides.push(Override { range, decision: Decision::Keep });
             }
             Arc::make_mut(&mut map.takes).remove(group);
         }
@@ -603,7 +605,25 @@ fn automatic_cuts(map: &PreEditMap, analysis: &PreEditAnalysis, source: &dyn sho
     let words: Vec<_> = analysis.chunks.iter().filter_map(|c| c.transcript.as_ref()).flat_map(|t| &t.words).collect();
     let quiet = cleanup::quiet_ranges(analysis);
     // Each group records the earlier and later attempts selected by the transcript rules.
-    let duplicates: std::collections::BTreeSet<_> = map.takes.iter().flat_map(|g| g.alternatives.iter().rev().skip(1).copied()).collect();
+    let phrase = |range: TimeRange| {
+        words
+            .iter()
+            .filter(|word| word.start >= range.start && word.end <= range.end())
+            .map(|word| word.normalized())
+            .filter(|word| !analysis::is_filler(word))
+            .collect::<Vec<_>>()
+    };
+    let mut duplicates = std::collections::BTreeSet::new();
+    for group in map.takes.iter() {
+        if let Some((&last, earlier)) = group.alternatives.split_last() {
+            let retained = phrase(map.candidates[last].range);
+            for &index in earlier {
+                if cleanup::safe_take_removal(&phrase(map.candidates[index].range), &retained, settings.mode == CleanupMode::Natural) {
+                    duplicates.insert(index);
+                }
+            }
+        }
+    }
     let cuts: Vec<_> = map
         .candidates
         .iter()
@@ -618,6 +638,9 @@ fn automatic_cuts(map: &PreEditMap, analysis: &PreEditAnalysis, source: &dyn sho
                 return None;
             }
             if candidate.kind == CandidateKind::Take && !duplicates.contains(&index) {
+                return None;
+            }
+            if candidate.kind == CandidateKind::Restart && !cleanup::semantic_markers(&phrase(candidate.range)).is_empty() {
                 return None;
             }
             let proposed = if settings.mode == CleanupMode::Natural && candidate.kind != CandidateKind::Pause {
