@@ -41,6 +41,8 @@ pub struct Workspace {
     cursor: Tick,
     zoom: f32,
     window_start: Tick,
+    zoom_drag: Option<ZoomDrag>,
+    follow_cursor: bool,
     mark_in: Option<Tick>,
     mark_out: Option<Tick>,
     timeline: TimelineSelection,
@@ -1162,6 +1164,7 @@ impl Workspace {
 
     fn seek(&mut self, app: &mut ShotClutchApp, item: ItemId, segments: &[Segment], time: Tick) {
         self.cursor = time;
+        self.follow_cursor = true;
         if self.original {
             self.seek_source(app, item, time);
         } else {
@@ -1703,7 +1706,6 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                     workspace.toggle_requested = playing;
                     ui.ctx().request_repaint();
                 }
-                ui.add(egui::Slider::new(&mut workspace.zoom, 1.0..=64.0).logarithmic(true).show_value(false).text("Zoom"));
             });
             if toggle && !changed {
                 workspace.toggle(app, &viewer, item, stream, source_range, duration);
@@ -1754,14 +1756,19 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                 if let Some(analysis) = analysis {
                     let span = Tick((source_range.duration.0 as f64 / f64::from(workspace.zoom.max(1.0))) as i64).max(Tick(1));
                     let start = workspace.window_start.clamp(source_range.start, source_range.end() - span);
-                    workspace.window_start = if workspace.cursor < start || workspace.cursor > start + span {
+                    let follow = (playing || std::mem::take(&mut workspace.follow_cursor)) && workspace.zoom_drag.is_none();
+                    workspace.window_start = if follow && (workspace.cursor < start || workspace.cursor > start + span) {
                         (workspace.cursor - Tick(span.0 / 2)).clamp(source_range.start, source_range.end() - span)
                     } else {
                         start
                     };
                     let window = TimeRange::from_bounds(workspace.window_start, workspace.window_start + span);
+                    let area = transport.available_rect_before_wrap();
+                    let wave_area = Rect::from_min_max(area.min, pos2(area.right(), (area.bottom() - 18.0).max(area.top())));
+                    let mut wave_ui = transport.new_child(egui::UiBuilder::new().max_rect(wave_area));
+                    wave_ui.set_clip_rect(wave_area);
                     let (seek, edit) = waveform(
-                        &mut transport,
+                        &mut wave_ui,
                         app,
                         map.analysis,
                         analysis,
@@ -1782,6 +1789,8 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                     if let Some(edit) = edit {
                         workspace.review(app, id, edit);
                     }
+                    let bar = Rect::from_min_max(pos2(area.left() + 72.0_f32.min(area.width() * 0.2), area.bottom() - 12.0), area.max);
+                    zoom_bar(&mut transport, app, bar, source_range, &mut workspace);
                 }
             } else if map.is_none() {
                 let elapsed = ((workspace.cursor - source_range.start).0 as f64 / TICKS_PER_SECOND as f64).max(0.0);
@@ -1804,6 +1813,96 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
 fn review_reason(reason: &str) -> String {
     // Old saved analyses retain their original metadata; keep visible copy product-neutral.
     reason.replace(" (Gling-compatible)", "").replace("Gling-compatible", "Transcript").replace("OpenGling", "Smart Cut")
+}
+
+struct ZoomDrag {
+    pointer: f32,
+    start: f64,
+    end: f64,
+    per_point: f64,
+    mode: u8,
+}
+
+fn zoom_bar(ui: &mut Ui, app: &mut ShotClutchApp, bar: Rect, source: TimeRange, workspace: &mut Workspace) {
+    let total = source.duration.seconds();
+    if bar.width() <= 0.0 || total <= 0.0 {
+        return;
+    }
+    let visible = (total / f64::from(workspace.zoom.max(1.0))).min(total);
+    let mut start = (workspace.window_start - source.start).seconds().clamp(0.0, (total - visible).max(0.0));
+    let width = (bar.width() * (visible / total) as f32).clamp(34.0_f32.min(bar.width()), bar.width());
+    let travel = (bar.width() - width).max(0.0);
+    let range = (total - visible).max(0.0);
+    let per_point = if travel > 0.5 { range / f64::from(travel) } else { 0.0 };
+    let left = bar.left() + if range > 0.0 { (start / range) as f32 * travel } else { 0.0 };
+    let thumb = Rect::from_min_max(pos2(left, bar.top()), pos2(left + width, bar.bottom()));
+    let t = app.tokens;
+    ui.painter().rect_filled(bar, bar.height() / 2.0, t.separator);
+    ui.painter().rect_filled(thumb, thumb.height() / 2.0, if ui.rect_contains_pointer(thumb) { t.scroll_thumb_hover } else { t.scroll_thumb });
+    for (name, x) in [("start", thumb.left() + thumb.height() / 2.0), ("end", thumb.right() - thumb.height() / 2.0)] {
+        ui.painter().circle_filled(pos2(x, thumb.center().y), 4.5, t.panel_bg);
+        ui.painter().circle_stroke(pos2(x, thumb.center().y), 4.5, (1.5, t.icon_active));
+        app.auto.add(&format!("roughCut.zoomBar.{name}"), Rect::from_center_size(pos2(x, thumb.center().y), vec2(12.0, bar.height())), "Drag to zoom");
+    }
+    app.auto.add("roughCut.zoomBar", thumb, "Drag to scroll; drag either end to zoom");
+    app.auto.add("roughCut.zoomBar.track", bar, "Timeline zoom bar");
+    let response = ui.interact(bar, ui.make_persistent_id("rough-cut-zoom-bar"), egui::Sense::click_and_drag());
+    let jump = |x: f32| ((f64::from(x - bar.left() - width / 2.0)) * per_point).clamp(0.0, range);
+    let mut next = None;
+    if response.double_clicked() {
+        next = Some((0.0, total));
+        workspace.zoom_drag = None;
+    } else if response.clicked()
+        && let Some(pointer) = response.interact_pointer_pos().filter(|p| !thumb.contains(*p))
+    {
+        next = Some((jump(pointer.x), visible));
+    }
+    if response.drag_started()
+        && let Some(pointer) = ui.input(|i| i.pointer.press_origin()).or(response.interact_pointer_pos())
+    {
+        let mode = if !thumb.expand2(vec2(0.0, 4.0)).contains(pointer) {
+            start = jump(pointer.x);
+            0
+        } else if pointer.x - thumb.left() < 12.0 {
+            1
+        } else if thumb.right() - pointer.x < 12.0 {
+            2
+        } else {
+            0
+        };
+        workspace.zoom_drag = Some(ZoomDrag { pointer: pointer.x, start, end: start + visible, per_point, mode });
+    }
+    if let Some(drag) = &workspace.zoom_drag {
+        if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
+            next = Some((drag.start, drag.end - drag.start));
+            workspace.zoom_drag = None;
+        } else if response.dragged()
+            && let Some(pointer) = response.interact_pointer_pos()
+        {
+            let dx = f64::from(pointer.x - drag.pointer);
+            let minimum = (f64::from(bar.width()) / 24_000.0).max(0.05).min(total).min((drag.end - drag.start).max(0.000001));
+            next = Some(match drag.mode {
+                1 => {
+                    let left = (drag.start + dx / f64::from(bar.width()) * total).clamp(0.0, drag.end - minimum);
+                    (left, drag.end - left)
+                }
+                2 => {
+                    let end = (drag.end + dx / f64::from(bar.width()) * total).clamp(drag.start + minimum, total);
+                    (drag.start, end - drag.start)
+                }
+                _ => ((drag.start + dx * drag.per_point).clamp(0.0, (total - visible).max(0.0)), visible),
+            });
+        }
+    }
+    if let Some((start, span)) = next {
+        workspace.window_start = source.start + Tick::from_seconds_f64(start);
+        workspace.zoom = (total / span.max(0.000001)) as f32;
+        workspace.follow_cursor = false;
+        ui.ctx().request_repaint();
+    }
+    if response.drag_stopped() || !ui.input(|i| i.pointer.primary_down()) {
+        workspace.zoom_drag = None;
+    }
 }
 
 fn section_title(ui: &mut Ui, tokens: &crate::theme::Tokens, number: &str, label: &str) {

@@ -10,6 +10,8 @@ New workspaces select Tiny English · Fast and Automatic cleanup with Preserve n
 
 Icon media controls sit below the picture. Preview mode and undo/redo/More/Open in editor share the viewer toolbar. Removed timeline intervals and waveform are gray. Cut and uncut intervals can both be selected, trimmed by their edges, and right-clicked for Cut / Uncut. Skip cuts toggles original/result playback while preserving the source position. Highlighted transcript words expose Cut / Uncut / Correct / Export clip actions.
 
+The source timeline's bottom zoom bar follows Editing's interaction pattern: resize the visible range with either circular end handle, pan by dragging the middle, or reposition through the track. Resizing anchors the opposite end. Manual scrolling stays where placed while paused; seeking/playback can follow the cursor. This replaces the small toolbar slider and uses workspace-local view state.
+
 Review cuts provides category/status filters, original-context listening, take auditions, choosing one or retaining all takes, grouping rejection/splitting, restoration and boundary marks. Unknown confidence stays visible. Reject grouping restores all alternatives in one undoable action. Manual choices remain authoritative through compatible cleanup and reanalysis.
 
 Map edits use the canonical command path with immutable revisions and asynchronous recovery serialization. Full source verification and durable application run outside normal map interaction. Replacement is allowed only while the earlier generated sequence is unchanged; edited results require a new sequence. Scoped clients retain their existing permissions.

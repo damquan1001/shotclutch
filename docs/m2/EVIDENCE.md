@@ -2,6 +2,12 @@
 
 This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## Editing-style zoom bar — 2026-11-08
+
+Smart Cut now uses a bottom range bar with the Editing workspace's visual/interaction pattern: drag either circular end handle to zoom with the opposite end anchored, drag the middle to scroll, and click the track to reposition the view. It replaces the small toolbar zoom slider. Waveform height reserves only the bar and its spacing. Paused manual scrolling no longer recenters on an offscreen playhead; explicit seeking and playback still follow the cursor.
+
+Native checks passed right-handle zoom, left-handle anchoring, persistent middle scrolling, track repositioning, dragging back to the full source range and compact bottom alignment. Wide and compact screenshots were inspected locally; the saved input project checksum stayed unchanged. Desktop build, formatting and whitespace checks passed. The workspace retains its own view state, independent of the Editing timeline's zoom/scroll state.
+
 ## Responsive timeline and neutral UI wording — 2026-11-08
 
 The source timeline previously allocated a fixed 94 px strip inside a taller bottom panel, leaving unused space. It now fills the remaining panel height after controls/status, scales its cut/audio lanes and centers their labels. Dragging, selection, cursor painting and seeking share the expanded bounds. Application status is laid out before the waveform so its actual height is reserved.
