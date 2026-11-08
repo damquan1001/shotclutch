@@ -1,6 +1,6 @@
 # Smart Cut speech accuracy plan
 
-Assessment: 2026-11-09. The first local benchmark and Tiny/Base comparison slice is implemented; recognition and cleanup improvements below remain proposed and unqualified. Branch: `codex/m2-smart-rough-cut`. The existing automatic-cut-then-review workflow remains the product contract. See the [benchmark procedure](../../scripts/m2/SPEECH_BENCHMARK.md) and [redacted results](EVIDENCE.md#speech-accuracy-benchmark--2026-11-09).
+Assessment: 2026-11-09. The local benchmark/Tiny–Base comparison and an opt-in ordered take matcher are implemented. Verbatim/acoustic filler recovery and semantic adjudication remain proposed; editorial accuracy remains unqualified. Branch: `codex/m2-smart-rough-cut`. The existing automatic-cut-then-review workflow remains the product contract. See the [benchmark procedure](../../scripts/m2/SPEECH_BENCHMARK.md) and [redacted results](EVIDENCE.md).
 
 ## Diagnosis from the current implementation
 
@@ -31,6 +31,8 @@ Add bounded audio verification around uncertain utterances, cut-off syllables, v
 Merge verified events into source-time evidence with provenance. Distinguish filler sounds from breaths, laughter, acknowledgments and meaningful words. Do not globally blacklist words such as “like”, “so” or “you know”. A transcription prompt alone is not a reliable recovery mechanism.
 
 ### 3. Replace short opening heuristics with utterance alignment and take ranking
+
+**Implemented preview: `takeMatching: "orderedV1"`.** Setup → Automatic → Context-aware takes (preview) → Update cut runs on existing saved words, without recognition or an upload. It uses independent utterance boundaries, ordered prefix/sequence matching, a 120-second/48-utterance lookback and a 96-word bound. It removes only a matched attempt, preserves intervening material and unequal content-bearing tokens, resolves superseded alternatives, and ranks completion/recognized hesitations before a stable earlier-attempt tie. Recognizer confidence is not used as a delivery score. Existing maps default to legacy matching and opening a project does not recut it. The preview preserves the existing automatic result/review/apply pipeline and manual decisions. This lexical implementation does not solve paraphrases, factual corrections, omitted fillers or subjective delivery quality; the broader work below remains open.
 
 Build utterance spans from timing, syntax and acoustic cues, independently of pause-pacing settings. Retrieve possible retakes over a wider bounded context, then align ordered token sequences using edit distance/local sequence alignment. Track repeated prefixes, abandoned continuations, partial restarts and later corrections without deleting unrelated intervening material.
 

@@ -4,6 +4,7 @@ mod analysis;
 mod assembly;
 mod cleanup;
 mod gling;
+mod ordered_takes;
 #[cfg(test)]
 mod tests;
 

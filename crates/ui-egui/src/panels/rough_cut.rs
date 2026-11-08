@@ -4,7 +4,7 @@ use std::sync::{Arc, atomic::Ordering, mpsc};
 
 use egui::{Rect, Ui, pos2, vec2};
 use serde_json::{Value, json};
-use shotclutch_project::preedit::{AnalysisStatus, CandidateKind, CleanupMode, CleanupSettings, PreEditAnalysis, PreEditMap, Segment};
+use shotclutch_project::preedit::{AnalysisStatus, CandidateKind, CleanupMode, CleanupSettings, PreEditAnalysis, PreEditMap, Segment, TakeMatching};
 use shotclutch_project::{ItemId, Project};
 use shotclutch_time::{TICKS_PER_SECOND, Tick, TimeRange};
 
@@ -31,6 +31,7 @@ pub struct Workspace {
     local_model: String,
     cleanup: CleanupSettings,
     cleanup_initialized: bool,
+    applied_cleanup: Option<CleanupSettings>,
     language: String,
     selection_start: String,
     selection_end: String,
@@ -176,12 +177,27 @@ impl Workspace {
     fn cleanup_options(&self, cut: bool) -> CleanupSettings {
         CleanupSettings {
             mode: self.cleanup.mode,
+            take_matching: self.cleanup.take_matching,
             cut_bad_takes: cut && !self.silence_only && self.cleanup.cut_bad_takes,
             cut_fillers: cut && !self.silence_only && self.cleanup.cut_fillers,
             cut_pauses: cut && self.cleanup.cut_pauses,
             min_pause_ms: Some(self.pause_ms),
             handle_ms: Some(self.handle_ms),
             preserve_pauses_ms: self.cleanup.preserve_pauses_ms,
+        }
+    }
+
+    fn sync_cleanup(&mut self, saved: Option<CleanupSettings>, defaults: (u32, u32)) {
+        let current = self.cleanup_options(true);
+        // Follow undo/reopen/external updates only when the form is clean, or when
+        // the new map acknowledges this form's Update cut. Preserve pending edits.
+        if let Some(settings) = saved
+            && (!self.cleanup_initialized || self.applied_cleanup.is_none_or(|previous| previous == current) || settings == current)
+        {
+            self.cleanup = settings;
+            self.pause_ms = settings.min_pause_ms.unwrap_or(defaults.0);
+            self.handle_ms = settings.handle_ms.unwrap_or(defaults.1);
+            self.applied_cleanup = Some(self.cleanup_options(true));
         }
     }
 
@@ -442,7 +458,17 @@ impl Workspace {
                 .color(tokens.text_dim),
             );
             ui.add_enabled_ui(!self.silence_only, |ui| {
-                cleanup_option(ui, &tokens, &mut self.cleanup.cut_bad_takes, "Remove repeated takes", "Keep later attempts and cut repeated phrase patterns.");
+                cleanup_option(ui, &tokens, &mut self.cleanup.cut_bad_takes, "Remove repeated takes", "Detect repeated attempts. Compare or restore alternatives in Review cuts.");
+                if self.cleanup.mode == CleanupMode::GlingCompatible {
+                    ui.add_enabled_ui(self.cleanup.cut_bad_takes, |ui| {
+                        let mut ordered = self.cleanup.take_matching == TakeMatching::OrderedV1;
+                        let response = ui.checkbox(&mut ordered, "Context-aware takes (preview)").on_hover_text("Match ordered phrases across a wider context. Preserve changed facts and unrelated passages; prefer complete attempts. Apply with Update cut. Existing cuts stay unchanged until then.");
+                        app.auto.add_response("roughCut.takes.ordered", &response, "Context-aware takes");
+                        if response.changed() {
+                            self.cleanup.take_matching = if ordered { TakeMatching::OrderedV1 } else { TakeMatching::Legacy };
+                        }
+                    });
+                }
                 cleanup_option(ui, &tokens, &mut self.cleanup.cut_fillers, "Remove fillers", "Cut hesitation sounds such as “um” and “uh.”");
             });
             let pause_help = if self.cleanup.mode == CleanupMode::GlingCompatible {
@@ -927,9 +953,13 @@ impl Workspace {
                 }
             });
             if let Some((group_index, group)) = map.takes.iter().enumerate().find(|(_, g)| g.alternatives.contains(&row.0)) {
+                // Storage ends with the selected alternative, which may now be the earlier
+                // performance. Number audition/choice buttons in source order for review.
+                let mut display = group.alternatives.clone();
+                display.sort_by_key(|&index| map.candidates[index].range.start);
                 ui.horizontal_wrapped(|ui| {
                     ui.label("Compare");
-                    for (n, &index) in group.alternatives.iter().enumerate() {
+                    for (n, &index) in display.iter().enumerate() {
                         let response = ui.button(format!("Take {}", n + 1));
                         app.auto.add_response(&format!("roughCut.review.take.{n}"), &response, "Audition take");
                         if response.clicked() {
@@ -938,7 +968,7 @@ impl Workspace {
                     }
                 });
                 ui.horizontal_wrapped(|ui| {
-                    for (n, &index) in group.alternatives.iter().enumerate() {
+                    for (n, &index) in display.iter().enumerate() {
                         let response = ui.button(format!("Keep take {}", n + 1));
                         app.auto.add_response(&format!("roughCut.review.keepTake.{n}"), &response, "Keep this take");
                         if response.clicked() {
@@ -1495,16 +1525,12 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
         if workspace.map != Some(id) {
             workspace.timeline.trim = None;
         }
+        let settings = &analysis.unwrap().settings;
+        let milliseconds = |tick: Tick| (tick.0 / Tick::from_units(1, 1000).0).max(0) as u32;
+        workspace.sync_cleanup(map.cleanup, (milliseconds(settings.min_pause), milliseconds(settings.handle)));
         workspace.map = Some(id);
         let analysis_mode = (map.analysis, map.automatic.is_some());
         if workspace.seen_analysis != Some(analysis_mode) {
-            if !workspace.cleanup_initialized
-                && let Some(settings) = map.cleanup
-            {
-                workspace.cleanup = settings;
-                workspace.pause_ms = settings.min_pause_ms.unwrap_or(workspace.pause_ms);
-                workspace.handle_ms = settings.handle_ms.unwrap_or(workspace.handle_ms);
-            }
             workspace.assemblyai = analysis.unwrap().settings.model.as_deref() == Some("assemblyai");
             if let Some(model) = analysis.unwrap().settings.model.as_ref().filter(|m| m.as_str() != "assemblyai") {
                 workspace.local_model = model.clone();
@@ -1811,8 +1837,63 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
 }
 
 fn review_reason(reason: &str) -> String {
+    match reason {
+        "Context-aware v1: ordered-prefix-restart" => return "Incomplete repeated attempt".into(),
+        "Context-aware v1: ordered-equivalent-take" => return "Repeated statement".into(),
+        "Context-aware v1: filler-lexicon" => return "Recognized hesitation".into(),
+        "Retained alternative (context-aware v1)" => return "Selected alternative".into(),
+        _ => {}
+    }
     // Old saved analyses retain their original metadata; keep visible copy product-neutral.
     reason.replace(" (Gling-compatible)", "").replace("Gling-compatible", "Transcript").replace("OpenGling", "Smart Cut")
+}
+
+#[cfg(test)]
+mod cleanup_form_tests {
+    use super::*;
+
+    fn workspace() -> Workspace {
+        let mut w = Workspace { pause_ms: 500, handle_ms: 150, ..Default::default() };
+        w.sync_cleanup(Some(CleanupSettings { mode: CleanupMode::GlingCompatible, ..Default::default() }), (500, 150));
+        w.cleanup_initialized = true;
+        w
+    }
+
+    #[test]
+    fn smart_cut_cleanup_form_follows_saved_updates_and_undo() {
+        let mut w = workspace();
+        let old = w.cleanup;
+        let saved = CleanupSettings { take_matching: TakeMatching::OrderedV1, preserve_pauses_ms: Some(800), ..old };
+        w.sync_cleanup(Some(saved), (500, 150));
+        assert_eq!(w.cleanup, saved);
+        w.sync_cleanup(Some(old), (500, 150));
+        assert_eq!(w.cleanup, old);
+    }
+
+    #[test]
+    fn smart_cut_cleanup_form_preserves_dirty_options_and_acknowledges_update() {
+        let mut w = workspace();
+        let old = w.cleanup;
+        w.cleanup.take_matching = TakeMatching::OrderedV1;
+        w.pause_ms = 900;
+        w.sync_cleanup(Some(old), (500, 150));
+        assert_eq!(w.cleanup.take_matching, TakeMatching::OrderedV1);
+        assert_eq!(w.pause_ms, 900);
+        let updated = w.cleanup_options(true);
+        w.sync_cleanup(Some(updated), (500, 150));
+        w.sync_cleanup(Some(old), (500, 150));
+        assert_eq!(w.cleanup, old);
+        assert_eq!(w.pause_ms, 500);
+    }
+
+    #[test]
+    fn smart_cut_cleanup_form_does_not_undo_pending_pacing_changes() {
+        let mut w = workspace();
+        let old = w.cleanup;
+        w.handle_ms = 400;
+        w.sync_cleanup(Some(old), (500, 150));
+        assert_eq!(w.handle_ms, 400);
+    }
 }
 
 struct ZoomDrag {

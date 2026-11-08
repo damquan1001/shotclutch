@@ -1,6 +1,6 @@
 # DEC-009 — Native Smart Cut workspace
 
-Selected and implemented on `codex/m2-smart-rough-cut`; updated 2026-11-08. The user renamed Smart Rough Cut to Smart Cut and requested the Gling/OpenGling cut-first workflow. Existing data and command names remain compatible.
+Selected and implemented on `codex/m2-smart-rough-cut`; updated 2026-11-09. The user renamed Smart Rough Cut to Smart Cut and requested the Gling/OpenGling cut-first workflow. Existing data and command names remain compatible.
 
 The workspace is native egui: Transcript / Review cuts / Setup on the left, a large preview on the right, and a source-time waveform across the bottom. It uses the same desktop frame/audio workers, device-clock playback and GPU monitor path as Editing. It does not create a separate player. Transcript paragraphs and waveform lookups are cached/indexed so review does not rebuild all text or hash the generated sequence on every frame.
 
@@ -13,6 +13,8 @@ Icon media controls sit below the picture. Preview mode and undo/redo/More/Open 
 The source timeline's bottom zoom bar follows Editing's interaction pattern: resize the visible range with either circular end handle, pan by dragging the middle, or reposition through the track. Resizing anchors the opposite end. Manual scrolling stays where placed while paused; seeking/playback can follow the cursor. This replaces the small toolbar slider and uses workspace-local view state.
 
 Review cuts provides category/status filters, original-context listening, take auditions, choosing one or retaining all takes, grouping rejection/splitting, restoration and boundary marks. Unknown confidence stays visible. Reject grouping restores all alternatives in one undoable action. Manual choices remain authoritative through compatible cleanup and reanalysis.
+
+Context-aware takes (preview) is an explicit Automatic cleanup option using versioned ordered transcript matching. It may retain an earlier complete attempt; audition/choice buttons therefore follow source order independently of stored selection order. It uses the existing automatic-result workflow, not an approval queue, and remains opt-in pending editorial qualification. Setup follows clean saved settings on undo/reopen/external updates, preserves pending form edits, and acknowledges Update cut so later operations cannot silently reapply stale pacing or take settings.
 
 Map edits use the canonical command path with immutable revisions and asynchronous recovery serialization. Full source verification and durable application run outside normal map interaction. Replacement is allowed only while the earlier generated sequence is unchanged; edited results require a new sequence. Scoped clients retain their existing permissions.
 

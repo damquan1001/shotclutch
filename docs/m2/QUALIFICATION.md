@@ -4,6 +4,8 @@ Windows x64 / Rust 1.95.0, branch `codex/m2-smart-rough-cut`. Updated 2026-11-09
 
 For local source/human-export audio matching, identical-excerpt Tiny/Base comparisons and verified-label scoring, follow the [speech benchmark procedure](../../scripts/m2/SPEECH_BENCHMARK.md). This optional diagnostic requires NumPy and FFmpeg; it is separate from the standard-library CI gates below. Automatic audio anchors and transcript counts do not establish editorial accuracy or close M2 acceptance.
 
+For the ordered take-matching preview, enable Context-aware takes under Automatic in Setup and click Update cut. The existing saved transcript is sufficient. Reopen the saved project and verify that the setting, manual overrides and alternatives survive. The native `scripts/m2/qualify-workspace.py` harness accepts `--ordered-takes` to exercise this toggle and the normal review/refresh/apply walkthrough; it also saves an untouched automatic-baseline map for local comparison. Compare verified performance conflicts separately from total duration and leave uncertain matches unlabelled.
+
 ## Correctness and build
 
 ```powershell
@@ -12,7 +14,7 @@ python scripts/ci/m2-checks.py
 cargo build --locked -p shotclutch
 ```
 
-The M1 gate retains its original coverage. The M2 runner checks map/analysis/apply behavior, the 196-case synthetic OpenGling differential corpus, edit boundary timestamps, speech catalogue/worker parsing and cancellation, Windows-compatible Unicode JSON transport, and AssemblyAI errors. It needs only the runner's Python standard library, not speech packages, private media, model downloads, credentials or a live provider. CI invokes both runners. Stop on a nonzero result; do not interpret a compile or empty filter as qualification.
+The M1 gate retains its original coverage. The M2 runner checks map/analysis/apply behavior, the 196-case synthetic OpenGling differential corpus, bounded ordered take matching, cleanup-form synchronization, edit boundary timestamps, speech catalogue/worker parsing and cancellation, Windows-compatible Unicode JSON transport, and AssemblyAI errors. It needs only the runner's Python standard library, not speech packages, private media, model downloads, credentials or a live provider. CI invokes both runners. Stop on a nonzero result; do not interpret a compile or empty filter as qualification.
 
 If a running app locks the default executable, link the same source to a distinct candidate path using `cargo rustc --locked -p shotclutch --bin shotclutch -- -o <absolute-candidate.exe>`. Do not terminate the user's editor. After successful qualification, delete only superseded task-generated executable files in the verified build folder. Leave locked files for removal after the user closes them.
 

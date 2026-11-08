@@ -10,6 +10,7 @@ def main():
     commands = [
         [sys.executable, "-m", "unittest", "discover", "-s", "crates/speech/tests", "-p", "test_fast_whisper_protocol.py"],
         ["cargo", "test", "--locked", "-p", "shotclutch-engine", "--lib", "m2_"],
+        ["cargo", "test", "--locked", "-p", "shotclutch-ui-egui", "--lib", "smart_cut_cleanup_form"],
         ["cargo", "test", "--locked", "-p", "shotclutch-codecs", "--lib",
          "edit_boundaries_handle_reordered_and_repeated_timestamps"],
         ["cargo", "test", "--locked", "-p", "shotclutch-speech", "--features", "download",

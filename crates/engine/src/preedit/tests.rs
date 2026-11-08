@@ -930,6 +930,64 @@ fn m2_gling_pacing_merges_adjoining_removals_before_video_frame_snapping() {
 }
 
 #[test]
+fn m2_ordered_cleanup_is_explicit_durable_and_preserves_manual_actions() {
+    let legacy: CleanupSettings = serde_json::from_value(json!({"mode":"glingCompatible"})).unwrap();
+    assert_eq!(legacy.take_matching, TakeMatching::Legacy);
+    assert!(serde_json::to_value(legacy).unwrap().get("takeMatching").is_none());
+    assert!(serde_json::from_value::<CleanupSettings>(json!({"takeMatching":"unqualifiedFutureVersion"})).is_err());
+    let (_dir, _, mut session, item) = fixture();
+    let id = analyze(&mut session, item, None);
+    let analysis_id = session.project.preedit.maps[&id].analysis;
+    let mut analysis = (*session.project.preedit.analyses[&analysis_id]).clone();
+    let t = |v| Tick::from_units(v, 1000);
+    let old = ["this", "camera", "records"];
+    let fresh = ["this", "camera", "records", "clear", "video."];
+    let words = old
+        .iter()
+        .enumerate()
+        .map(|(i, key)| shotclutch_project::Word::new(*key, t(200 + i as i64 * 200), t(350 + i as i64 * 200)))
+        .chain(fresh.iter().enumerate().map(|(i, key)| shotclutch_project::Word::new(*key, t(1700 + i as i64 * 200), t(1850 + i as i64 * 200))))
+        .collect();
+    Arc::make_mut(&mut analysis.chunks[0]).transcript = Some(shotclutch_project::Transcript { words, ..Default::default() });
+    Arc::make_mut(&mut session.project).preedit.analyses.insert(analysis_id, Arc::new(analysis));
+    let map = review_action(&mut session, id, json!({"kind":"range","decision":"Keep","range":{"start":t(300).0.to_string(),"end":t(500).0.to_string()}}));
+    let before = session.project.preedit.maps[&map].clone();
+    let options = CleanupSettings {
+        mode: CleanupMode::GlingCompatible,
+        take_matching: TakeMatching::OrderedV1,
+        cut_pauses: false,
+        preserve_pauses_ms: Some(800),
+        ..Default::default()
+    };
+    let recut = review_action(&mut session, map, json!({"kind":"cleanUp","options":options}));
+    let changed = session.project.preedit.maps[&recut].clone();
+    assert_eq!(changed.overrides, before.overrides);
+    assert_eq!(session.project.preedit.maps[&map], before, "old immutable map must remain unchanged");
+    assert_eq!(changed.takes.len(), 1);
+    assert!(changed.candidates.iter().all(|c| c.confidence.is_none()), "rule evidence is not calibrated probability");
+    let segments = changed.segments(range(0, 4)).unwrap();
+    assert!(segments.iter().any(|s| s.source.contains(t(400))), "manual restoration must win");
+    assert!(!segments.iter().any(|s| s.source.contains(t(650))), "matched abandoned attempt must be cut");
+    session.undo().unwrap();
+    assert!(!session.project.preedit.maps.contains_key(&recut));
+    session.redo().unwrap();
+    assert_eq!(session.project.preedit.maps[&recut], changed);
+    let path = _dir.path().join("ordered.scproj");
+    session.execute("file.saveAs", json!({"path":path})).unwrap();
+    let mut reopened = Session::default();
+    reopened.execute("file.open", json!({"path":path})).unwrap();
+    assert_eq!(reopened.project.preedit.maps[&recut], changed);
+    assert_eq!(changed.cleanup.unwrap().take_matching, TakeMatching::OrderedV1);
+    // Independent pacing settings must not reclassify takes.
+    let saved = &reopened.project.preedit.analyses[&analysis_id];
+    let a = analysis::propose(analysis_id, saved, Some(options));
+    let b = analysis::propose(analysis_id, saved, Some(CleanupSettings { min_pause_ms: Some(3000), preserve_pauses_ms: Some(1000), ..options }));
+    assert_eq!(a.takes.len(), b.takes.len());
+    let pairs = |m: &PreEditMap| m.takes.iter().map(|g| g.alternatives.iter().map(|&i| m.candidates[i].range).collect::<Vec<_>>()).collect::<Vec<_>>();
+    assert_eq!(pairs(&a), pairs(&b));
+}
+
+#[test]
 fn m2_automatic_union_matches_ordered_edits_with_manual_overrides() {
     let (_dir, _, mut session, item) = fixture();
     let id = analyze(&mut session, item, None);

@@ -126,10 +126,27 @@ impl Default for CleanupMode {
     }
 }
 
+/// Versioned take classification. Missing fields retain the original saved-map rules.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum TakeMatching {
+    #[default]
+    Legacy,
+    OrderedV1,
+}
+
+impl TakeMatching {
+    fn is_legacy(&self) -> bool {
+        *self == Self::Legacy
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase", deny_unknown_fields)]
 pub struct CleanupSettings {
     pub mode: CleanupMode,
+    #[serde(default, skip_serializing_if = "TakeMatching::is_legacy")]
+    pub take_matching: TakeMatching,
     pub cut_bad_takes: bool,
     pub cut_fillers: bool,
     pub cut_pauses: bool,
@@ -144,6 +161,7 @@ impl Default for CleanupSettings {
     fn default() -> Self {
         Self {
             mode: CleanupMode::Natural,
+            take_matching: TakeMatching::Legacy,
             cut_bad_takes: true,
             cut_fillers: true,
             cut_pauses: true,

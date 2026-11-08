@@ -114,12 +114,30 @@ def run(args):
                         raise ValueError("Pause preservation must be 0 (exact rules) or 200–10000 ms")
                     options["preservePausesMs"] = args.preserve_pauses_ms
                 review({"kind": "cleanUp", "options": options})
+                if args.ordered_takes:
+                    if args.cleanup_mode != "glingCompatible":
+                        raise ValueError("Context-aware takes requires Automatic cleanup")
+                    click("roughCut.tab.files")
+                    click("roughCut.takes.ordered")
+                    call("ui.screenshot", {"path": str(output / "context-settings-private.png")})
+                    click("roughCut.cleanUpSaved")
+                    assert latest()[2]["cleanup"]["takeMatching"] == "orderedV1"
+                    assert latest()[2]["cleanup"].get("preservePausesMs", 0) == args.preserve_pauses_ms
+                    review({"kind": "cleanUp", "options": latest()[2]["cleanup"]})
+                    results["ordered_recut_roundtrip_ms"] = review_latency[-1]
+                    results["automated"]["context_aware_takes_ui"] = True
                 state, key, record = latest()
                 analysis = state["preedit"]["analyses"][str(record["analysis"])]
                 assert analysis["status"] == "Complete"
                 assert record["automatic"]
                 baseline = record
                 segments = command("preedit.preview", {"map": key})["segments"]
+                results["automatic_baseline"] = {
+                    "take_matching": record["cleanup"].get("takeMatching", "legacy"),
+                    "take_groups": len(record["takes"]),
+                    "result_seconds": sum(int(s["output"]["end"]) - int(s["output"]["start"]) for s in segments) / TICKS,
+                }
+                command("file.saveAs", {"path": str(output / "automatic-baseline.scproj")})
                 results["coverage"] = {"status": analysis["status"], "chunks": len(analysis["chunks"]),
                                        "seconds": analysis["source"]["range"]["duration"] / TICKS,
                                        "words": sum(len(c.get("transcript", {}).get("words", []))
@@ -227,6 +245,7 @@ def run(args):
                     time.sleep(.5)
                 assert not state["running"]
                 assert record["overrides"] == expected
+                assert record["cleanup"].get("takeMatching", "legacy") == baseline["cleanup"].get("takeMatching", "legacy")
                 results["automated"]["refresh_preserves_decisions"] = True
                 assert ui_checks > 0
                 results["automated"]["analysis_keeps_preview_and_transport"] = True
@@ -316,5 +335,6 @@ if __name__ == "__main__":
     parser.add_argument("--project", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--cleanup-mode", choices=["glingCompatible", "natural", "transcript"], default="glingCompatible")
+    parser.add_argument("--ordered-takes", action="store_true", help="Exercise the context-aware take toggle and update saved analysis")
     parser.add_argument("--preserve-pauses-ms", type=int, default=800, help="Keep pauses up to this duration; 0 uses exact unpadded Gling rules")
     run(parser.parse_args())
