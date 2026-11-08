@@ -2,6 +2,18 @@
 
 This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## Speech accuracy benchmark — 2026-11-09
+
+Implemented the first slice of the [speech accuracy plan](SPEECH_ACCURACY_PLAN.md): private source/reference audio matching, temporally separated review excerpts, identical-input Tiny/Base inference, paired local listening pages and scoring from explicitly verified labels. The Rust example exports the canonical model catalogue; acquisition is explicit, pinned and checksum verified. Inference uses the desktop's unchanged offline worker. [Reproduction and labeling procedure](../../scripts/m2/SPEECH_BENCHMARK.md).
+
+The supplied human export yielded 346 two-second windows: 297 automatic source matches covering 594 seconds, zero ambiguous windows and 49 unmatched windows. Matching took 34.516 seconds including decoding and input verification. These are unverified hypotheses, not a reconstructed human edit list. Of the automatic matches, 28 windows overlap the current cut map by more than 200 ms, with 27.097 seconds of total provisional overlap. Multiple windows may represent one editorial decision; neither these counts nor unmatched audio establish bad-take errors. They provide specific listening targets for investigating take selection.
+
+The final comparison used 24 identical PCM excerpts totaling 479.989 seconds, with 22 development and two holdout excerpts in disjoint 120-second temporal blocks. This small, unbalanced single-recording holdout must expand before generalization or model-selection claims. Tiny returned 914 words in 27.265 seconds of summed inference; Base returned 969 in 66.033 seconds. Initial worker/model loads took 1.281 and 1.141 seconds respectively. Both returned zero lexical filler candidates. Counts do not measure accuracy or establish whether fillers were absent or omitted. These are one local CPU run, ordinary background load and short-excerpt contexts, not full-recording throughput guarantees.
+
+All transcript, event and alignment labels remain unreviewed. Accuracy, filler precision/recall and verified reference-conflict scores therefore remain unknown. The scorer records word substitutions/deletions/insertions, one-to-one filler events and matched boundary error; it does not yet score a new restart/take classifier. Saved inference can be rescored after local labeling without rerunning recognition. Media, audio clips, hypotheses and detailed timing evidence remain ignored and local.
+
+The 14 synthetic benchmark regressions passed with host NumPy 2.5.1 and the pinned speech environment's NumPy 2.2.6. They cover reordered/ambiguous/unmatched audio, temporal separation, source binding, ordered manual overrides, output privacy, unknown labels, filler omissions/false positives, one-to-one matching, boundary error, event bounds and pinned artifact constraints. No production cleanup rules or desktop binary changed in this slice. Human editorial review and M2 closure remain open.
+
 ## Editing-style zoom bar — 2026-11-08
 
 Smart Cut now uses a bottom range bar with the Editing workspace's visual/interaction pattern: drag either circular end handle to zoom with the opposite end anchored, drag the middle to scroll, and click the track to reposition the view. It replaces the small toolbar zoom slider. Waveform height reserves only the bar and its spacing. Paused manual scrolling no longer recenters on an offscreen playhead; explicit seeking and playback still follow the cursor.

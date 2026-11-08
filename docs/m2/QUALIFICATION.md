@@ -1,6 +1,8 @@
 # M2 qualification procedure
 
-Windows x64 / Rust 1.95.0, branch `codex/m2-smart-rough-cut`. Updated 2026-11-08. Run from the repository root. Keep originals, transcripts, projects, screenshots, detailed labels and runtime logs outside tracked files. `target/m2-qualification` is ignored local storage. Commit only redacted aggregate results to [EVIDENCE.md](EVIDENCE.md).
+Windows x64 / Rust 1.95.0, branch `codex/m2-smart-rough-cut`. Updated 2026-11-09. Run from the repository root. Keep originals, transcripts, projects, screenshots, detailed labels and runtime logs outside tracked files. `target/m2-qualification` is ignored local storage. Commit only redacted aggregate results to [EVIDENCE.md](EVIDENCE.md).
+
+For local source/human-export audio matching, identical-excerpt Tiny/Base comparisons and verified-label scoring, follow the [speech benchmark procedure](../../scripts/m2/SPEECH_BENCHMARK.md). This optional diagnostic requires NumPy and FFmpeg; it is separate from the standard-library CI gates below. Automatic audio anchors and transcript counts do not establish editorial accuracy or close M2 acceptance.
 
 ## Correctness and build
 

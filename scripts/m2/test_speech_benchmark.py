@@ -1,0 +1,142 @@
+import unittest
+from pathlib import Path
+import numpy as np
+
+from speech_benchmark import Matcher, sample_windows, removals, private_output
+from compare_speech import score, event_counts, edit_counts, alignment_score, validate_events, model_files
+
+
+class AlignmentTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        rng = np.random.default_rng(831)
+        t = np.arange(80000) / 8000
+        cls.audio = (rng.normal(0, 0.08, len(t)) * (0.7 + 0.3 * np.sin(t * 7))).astype(np.float32)
+        cls.matcher = Matcher(cls.audio, 1.5)
+
+    def test_reordered_exact_performances_match_independently(self):
+        for seconds in [7, 1.25]:
+            result = self.matcher.match(self.audio[int(seconds * 8000) : int((seconds + 1.5) * 8000)])
+            self.assertEqual(result["status"], "auto_match")
+            self.assertAlmostEqual(result["source_start"], seconds, places=3)
+
+    def test_identical_repeated_audio_is_ambiguous(self):
+        clip = self.audio[8000:24000]
+        source = np.concatenate([self.audio[:8000], clip, self.audio[40000:56000], clip, self.audio[64000:]])
+        result = Matcher(source, 2).match(clip)
+        self.assertEqual(result["status"], "ambiguous")
+        self.assertGreater(result["runner_up"], 0.99)
+
+    def test_silence_and_unrelated_audio_are_unmatched(self):
+        self.assertEqual(self.matcher.match(np.zeros(12000, dtype=np.float32))["status"], "unmatched")
+        other = np.random.default_rng(19).normal(0, 0.1, 12000).astype(np.float32)
+        self.assertEqual(self.matcher.match(other)["status"], "unmatched")
+
+    def test_holdout_blocks_have_no_overlapping_excerpts(self):
+        samples = sample_windows([], 720, count=24)
+        self.assertEqual(len(samples), 24)
+        for a in samples:
+            self.assertGreaterEqual(a["start"], a["block"] * 120)
+            self.assertLessEqual(a["end"], (a["block"] + 1) * 120)
+            for b in samples:
+                if a["split"] != b["split"]:
+                    self.assertTrue(a["end"] <= b["start"] or b["end"] <= a["start"])
+
+    def test_private_output_cannot_land_in_tracked_source_directories(self):
+        with self.assertRaises(ValueError):
+            private_output(Path(__file__).parent / "private-output-must-fail")
+
+    def test_manual_override_order_and_source_binding(self):
+        cut = lambda a, b, d: {
+            "range": {"start": int(a * 254016000000), "duration": int((b - a) * 254016000000)},
+            "decision": d,
+        }
+        p = {
+            "project": {
+                "preedit": {
+                    "analyses": {"1": {"source": {"sha256": "a" * 64}}},
+                    "maps": {
+                        "2": {
+                            "analysis": 1,
+                            "automatic": [cut(1, 4, "Remove")],
+                            "overrides": [cut(2, 3, "Keep"), cut(2.5, 3.5, "Remove")],
+                        }
+                    },
+                }
+            }
+        }
+        self.assertEqual(removals(p, "a" * 64), [[1, 2], [2.5, 4]])
+        with self.assertRaises(ValueError):
+            removals(p, "b" * 64)
+
+
+class ScoringTests(unittest.TestCase):
+    def test_automatic_alignment_is_not_a_human_verdict(self):
+        rows = [{"human_verified": "unreviewed", "reference_start": "0", "reference_end": "2", "source_start": "1"}]
+        self.assertIsNone(alignment_score(rows, [[1, 3]])["reference_performance_conflict_seconds"])
+        rows[0]["human_verified"] = "yes"
+        self.assertEqual(alignment_score(rows, [[2, 3]])["reference_performance_conflict_seconds"], 1)
+
+    def test_event_times_must_stay_in_their_labeled_excerpt(self):
+        with self.assertRaises(ValueError):
+            validate_events(
+                [{"sample_id": "s001", "category": "filler", "start": 0, "end": 1}],
+                [{"id": "s001", "start": 100, "end": 120}],
+            )
+
+    def test_unreviewed_is_not_zero_error_ground_truth(self):
+        label = {
+            "id": "s001",
+            "verbatim_text": "hello um",
+            "transcript_verified": "unreviewed",
+            "events_verified": "unreviewed",
+        }
+        self.assertEqual(score(label, [], []), {"word_errors": None, "fillers": None})
+
+    def test_verified_negative_window_counts_false_fillers(self):
+        label = {"id": "s001", "verbatim_text": "", "transcript_verified": "yes", "events_verified": "yes"}
+        result = score(label, [{"text": "um", "start": 1, "end": 1.2}], [])
+        self.assertEqual(result["fillers"]["fp"], 1)
+        self.assertEqual(result["word_errors"]["insertions"], 1)
+        self.assertIsNone(result["word_errors"]["wer"])
+
+    def test_missing_filler_counts_as_deletion(self):
+        result = edit_counts(["hello", "um", "world"], ["hello", "world"])
+        self.assertEqual(result["deletions"], 1)
+        self.assertAlmostEqual(result["wer"], 1 / 3)
+
+    def test_predictions_cannot_reuse_a_gold_event(self):
+        gold = [{"start": 1, "end": 1.2}]
+        result = event_counts(gold, [{"start": 1, "end": 1.2}, {"start": 1.01, "end": 1.21}])
+        self.assertEqual((result["tp"], result["fp"], result["fn"]), (1, 1, 0))
+
+    def test_matched_event_timing_error_is_separate_from_detection(self):
+        result = event_counts([{"start": 1, "end": 1.2}], [{"start": 1.05, "end": 1.25}])
+        self.assertEqual(result["tp"], 1)
+        self.assertAlmostEqual(result["boundary_mae_seconds"], 0.05)
+
+    def test_catalogue_rejects_paths_and_unpinned_or_remote_urls(self):
+        names = ["config.json", "model.bin", "tokenizer.json", "vocabulary.txt"]
+        files = [
+            {
+                "name": n,
+                "url": "https://huggingface.co/Systran/faster-whisper-tiny.en/resolve/" + "a" * 40 + "/" + n,
+                "size": 3,
+                "sha256": "b" * 64,
+            }
+            for n in names
+        ]
+        self.assertEqual(
+            len(model_files([{"id": "faster-whisper-tiny.en", "files": files}], "faster-whisper-tiny.en")), 4
+        )
+        files[0]["name"] = "../escape"
+        with self.assertRaises(ValueError):
+            model_files([{"id": "faster-whisper-tiny.en", "files": files}], "faster-whisper-tiny.en")
+        files[0]["name"] = "config.json"
+        files[0]["url"] = "https://example.invalid/config.json"
+        with self.assertRaises(ValueError):
+            model_files([{"id": "faster-whisper-tiny.en", "files": files}], "faster-whisper-tiny.en")
+
+
+if __name__ == "__main__":
+    unittest.main()

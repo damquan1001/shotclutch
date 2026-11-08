@@ -1,6 +1,6 @@
 # Smart Cut speech accuracy plan
 
-Assessment: 2026-11-09. Proposed work, not implemented or qualified. Branch: `codex/m2-smart-rough-cut`. The existing automatic-cut-then-review workflow remains the product contract.
+Assessment: 2026-11-09. The first local benchmark and Tiny/Base comparison slice is implemented; recognition and cleanup improvements below remain proposed and unqualified. Branch: `codex/m2-smart-rough-cut`. The existing automatic-cut-then-review workflow remains the product contract. See the [benchmark procedure](../../scripts/m2/SPEECH_BENCHMARK.md) and [redacted results](EVIDENCE.md#speech-accuracy-benchmark--2026-11-09).
 
 ## Diagnosis from the current implementation
 
