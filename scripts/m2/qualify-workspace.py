@@ -108,7 +108,12 @@ def run(args):
                 command("file.open", {"path": str(source)})
                 call("ui.resize", {"width": 1440, "height": 950})
                 call("ui.set", {"workspace": "Smart Cut"})
-                review({"kind": "cleanUp", "options": {"mode": args.cleanup_mode, "minPauseMs": 500, "handleMs": 150}})
+                options = {"mode": args.cleanup_mode, "minPauseMs": 500, "handleMs": 150}
+                if args.cleanup_mode == "glingCompatible" and args.preserve_pauses_ms:
+                    if not 200 <= args.preserve_pauses_ms <= 10_000:
+                        raise ValueError("Pause preservation must be 0 (exact rules) or 200–10000 ms")
+                    options["preservePausesMs"] = args.preserve_pauses_ms
+                review({"kind": "cleanUp", "options": options})
                 state, key, record = latest()
                 analysis = state["preedit"]["analyses"][str(record["analysis"])]
                 assert analysis["status"] == "Complete"
@@ -311,4 +316,5 @@ if __name__ == "__main__":
     parser.add_argument("--project", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--cleanup-mode", choices=["glingCompatible", "natural", "transcript"], default="glingCompatible")
+    parser.add_argument("--preserve-pauses-ms", type=int, default=800, help="Keep pauses up to this duration; 0 uses exact unpadded Gling rules")
     run(parser.parse_args())

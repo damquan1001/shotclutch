@@ -195,7 +195,15 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, cleanup: Option<Clean
         if end <= start || (!boundary && end - start <= threshold) {
             return;
         }
-        let (left, right) = if settings.mode == CleanupMode::Transcript && !words.is_empty() {
+        let paced_audio = words.is_empty() && settings.mode == CleanupMode::GlingCompatible && settings.preserve_pauses_ms.is_some();
+        if paced_audio && settings.preserve_pauses_ms.is_some_and(|floor| end - start <= ms(i64::from(floor))) {
+            return;
+        }
+        let (left, right) = if paced_audio {
+            let covered = analysis.chunks.last().map_or(analysis.source.range.start, |chunk| chunk.coverage.end());
+            let half = Tick(handle.0 / 2);
+            (if start > analysis.source.range.start { half } else { Tick::ZERO }, if end < covered { half } else { Tick::ZERO })
+        } else if settings.mode == CleanupMode::Transcript && !words.is_empty() {
             (Tick::ZERO, Tick::ZERO)
         } else {
             let sentence = previous.is_some_and(|w| w.text.trim_end_matches(['"', '\'', ')', '”']).ends_with(['.', '!', '?']));

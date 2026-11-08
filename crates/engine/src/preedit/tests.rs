@@ -796,6 +796,140 @@ fn m2_fast_profile_checkpoint_bound_matches_project_validation() {
 }
 
 #[test]
+fn m2_gling_natural_pacing_preserves_short_pauses_and_sentence_context() {
+    let (dir, _, mut session, item) = fixture();
+    let id = analyze(&mut session, item, None);
+    let analysis_id = session.project.preedit.maps[&id].analysis;
+    let t = |value| Tick::from_units(value, 1000);
+    session
+        .edit("Natural pause fixture", |project, _| {
+            let analysis = Arc::make_mut(project.preedit.analyses.get_mut(&analysis_id).unwrap());
+            Arc::make_mut(&mut analysis.chunks[0]).transcript = Some(shotclutch_project::Transcript {
+                words: [("one", 200, 400), ("two", 920, 1100), ("three.", 1740, 1900), ("four", 3000, 3200)]
+                    .into_iter()
+                    .map(|(text, start, end)| shotclutch_project::Word::new(text, t(start), t(end)))
+                    .collect(),
+                ..Default::default()
+            });
+            Ok(())
+        })
+        .unwrap();
+    let options = json!({"mode":"glingCompatible","minPauseMs":500,"handleMs":150,"preservePausesMs":800});
+    let paced = review_action(&mut session, id, json!({"kind":"cleanUp","options":options}));
+    let map = &session.project.preedit.maps[&paced];
+    let cuts = map.automatic.as_ref().unwrap();
+    for time in [150, 400, 600, 920, 1100, 1500, 1740, 1950, 2000, 2950, 3200, 3250] {
+        assert!(!cuts.iter().any(|cut| cut.range.contains(t(time))), "speech/pause context removed at {time} ms");
+    }
+    assert!(cuts.iter().any(|cut| cut.range.start == t(2050) && cut.range.end() == t(2900)));
+    assert!(cuts.iter().any(|cut| cut.range.start == t(3275) && cut.range.end() == t(4000)));
+    assert!(cuts.iter().all(|cut| cut.range.duration >= t(120)));
+    let restored =
+        review_action(&mut session, paced, json!({"kind":"range","decision":"Keep","range":{"start":t(1900).0.to_string(),"end":t(3000).0.to_string()}}));
+    let recut = review_action(&mut session, restored, json!({"kind":"cleanUp","options":options}));
+    assert!(
+        session.project.preedit.maps[&recut]
+            .segments(range(0, 4))
+            .unwrap()
+            .iter()
+            .any(|segment| segment.source.start <= t(1900) && segment.source.end() >= t(3000))
+    );
+    let path = dir.path().join("paced.scproj");
+    session.execute("file.saveAs", json!({"path":path})).unwrap();
+    let mut reopened = Session::default();
+    reopened.execute("file.open", json!({"path":path})).unwrap();
+    assert_eq!(reopened.project.preedit.maps[&recut].cleanup.unwrap().preserve_pauses_ms, Some(800));
+}
+
+#[test]
+fn m2_gling_pacing_keeps_take_detection_and_only_restores_quiet_word_handles() {
+    let (_dir, _, mut session, item) = fixture();
+    let id = analyze(&mut session, item, None);
+    let analysis_id = session.project.preedit.maps[&id].analysis;
+    let mut analysis = (*session.project.preedit.analyses[&analysis_id]).clone();
+    let t = |value| Tick::from_units(value, 1000);
+    let transcript = |values: &[(&str, i64, i64)]| shotclutch_project::Transcript {
+        words: values.iter().map(|(text, start, end)| shotclutch_project::Word::new(*text, t(*start), t(*end))).collect(),
+        ..Default::default()
+    };
+    Arc::make_mut(&mut analysis.chunks[0]).transcript =
+        Some(transcript(&[("this", 200, 400), ("camera", 400, 800), ("this", 2000, 2200), ("camera", 2200, 2600), ("works", 2600, 3200)]));
+    let raw_options = CleanupSettings { mode: CleanupMode::GlingCompatible, handle_ms: Some(150), ..Default::default() };
+    let paced_options = CleanupSettings { preserve_pauses_ms: Some(800), ..raw_options };
+    let raw = analysis::propose(analysis_id, &analysis, Some(raw_options));
+    let paced = analysis::propose(analysis_id, &analysis, Some(paced_options));
+    assert!(!raw.takes.is_empty());
+    assert_eq!(raw.takes, paced.takes);
+    assert_eq!(
+        raw.candidates.iter().filter(|c| c.kind != CandidateKind::Pause).collect::<Vec<_>>(),
+        paced.candidates.iter().filter(|c| c.kind != CandidateKind::Pause).collect::<Vec<_>>()
+    );
+    let reader = session.media.full_res_source(&session.project, item, &*session.services).unwrap();
+    let mut result = paced.clone();
+    result.automatic = Some(automatic_cuts(&paced, &analysis, &*reader));
+    let segments = result.segments(analysis.source.range).unwrap();
+    assert_eq!(segments.len(), 1, "discarded takes must not leave isolated quiet clips");
+    assert_eq!(segments[0].source, TimeRange::from_bounds(t(1925), t(3275)));
+    Arc::make_mut(&mut analysis.chunks[0]).transcript = Some(transcript(&[
+        ("um", 200, 400),
+        ("um", 500, 700),
+        ("this", 800, 1000),
+        ("camera", 1100, 1300),
+        ("this", 1400, 1600),
+        ("camera", 1700, 1900),
+        ("works", 2000, 2200),
+    ]));
+    let adjacent = analysis::propose(analysis_id, &analysis, Some(paced_options));
+    assert!(adjacent.candidates.iter().any(|c| c.kind == CandidateKind::Filler));
+    let mut joined = adjacent.clone();
+    joined.automatic = Some(automatic_cuts(&adjacent, &analysis, &*reader));
+    let segments = joined.segments(analysis.source.range).unwrap();
+    assert_eq!(segments.len(), 1, "adjacent filler/take cuts must not retain padding between discarded words");
+    assert_eq!(segments[0].source, TimeRange::from_bounds(t(1325), t(2275)));
+    Arc::make_mut(&mut analysis.chunks[0]).transcript = Some(transcript(&[("hello", 0, 200), ("um", 400, 600), ("world", 800, 1000)]));
+    let paced = analysis::propose(analysis_id, &analysis, Some(paced_options));
+    let filler = paced.candidates.iter().find(|c| c.kind == CandidateKind::Filler).unwrap();
+    assert_eq!(filler.range, TimeRange::from_bounds(t(275), t(725)));
+    assert!(filler.range.contains(t(500)));
+    let options = CleanupSettings { handle_ms: Some(800), preserve_pauses_ms: Some(200), ..paced_options };
+    Arc::make_mut(&mut analysis.chunks[0]).transcript = Some(transcript(&[("before", 0, 200), ("after", 1050, 1300)]));
+    let paced = analysis::propose(analysis_id, &analysis, Some(options));
+    assert!(!paced.candidates.iter().any(|c| c.kind == CandidateKind::Pause && c.range.start < t(1050)));
+    assert!(!serde_json::from_value::<CleanupSettings>(json!({"preservePausesMs":0})).unwrap().valid());
+    let chunk = Arc::make_mut(&mut analysis.chunks[0]);
+    chunk.transcript = None;
+    chunk.quiet = vec![TimeRange::from_bounds(t(400), t(920)), TimeRange::from_bounds(t(1100), t(1740)), TimeRange::from_bounds(t(1900), t(3000))];
+    let paced = analysis::propose(analysis_id, &analysis, Some(paced_options));
+    assert!(!paced.candidates.iter().any(|c| c.kind == CandidateKind::Pause && c.range.start < t(1900)));
+    assert!(paced.candidates.iter().any(|c| c.range == TimeRange::from_bounds(t(1975), t(2925))));
+}
+
+#[test]
+fn m2_gling_pacing_merges_adjoining_removals_before_video_frame_snapping() {
+    let dir = tempfile::tempdir().unwrap();
+    let file = dir.path().join("joined.mov");
+    crate::media_test_util::make_movie(&file, shotclutch_media::DemoScene::Aurora, 32, 18, 8);
+    let mut session = Session::default();
+    session.start_autosave(crate::autosave::AutosaveConfig::new(&dir.path().join("data"))).unwrap();
+    let imported = session.execute("file.import", json!({"paths":[file]})).unwrap();
+    let item = ItemId(imported["items"][0].as_u64().unwrap());
+    let id = analyze(&mut session, item, None);
+    let mut map = (*session.project.preedit.maps[&id]).clone();
+    let analysis = session.project.preedit.analyses[&map.analysis].clone();
+    let t = |value| Tick::from_units(value, 1000);
+    map.cleanup = Some(CleanupSettings { mode: CleanupMode::GlingCompatible, preserve_pauses_ms: Some(800), ..Default::default() });
+    map.candidates = Arc::new(vec![
+        Candidate { range: TimeRange::from_bounds(t(10), t(140)), kind: CandidateKind::Take, reason: "discarded words".into(), confidence: None },
+        Candidate { range: TimeRange::from_bounds(t(140), t(210)), kind: CandidateKind::Pause, reason: "adjoining discarded gap".into(), confidence: None },
+    ]);
+    map.takes = Arc::default();
+    let source = session.media.full_res_source(&session.project, item, &*session.services).unwrap();
+    let cuts = automatic_cuts(&map, &analysis, &*source);
+    let rate = shotclutch_time::FrameRate::FPS_24;
+    assert_eq!(cuts.as_slice(), &[Override { range: TimeRange::from_bounds(rate.tick_of(1), rate.tick_of(5)), decision: Decision::Remove }]);
+}
+
+#[test]
 fn m2_automatic_union_matches_ordered_edits_with_manual_overrides() {
     let (_dir, _, mut session, item) = fixture();
     let id = analyze(&mut session, item, None);

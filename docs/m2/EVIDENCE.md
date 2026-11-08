@@ -2,6 +2,18 @@
 
 This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## Short pause preservation and clean joins — 2026-11-08
+
+The user's overcutting report was reproduced in the saved Tiny English result: exact transcript rules removed entire 520 ms and 640 ms gaps. The supplied human-edited reference was inspected locally (692.011 seconds, 4K H.264 with stereo 48 kHz AAC). At a fixed −42 dBFS threshold it contains 357 quiet intervals of at least 100 ms; median duration is 135 ms and the 95th percentile is 305 ms. These are audio-level observations, not word alignment, human cut labels or an accuracy score. Media and detailed measurements remain private.
+
+New native workspaces enable Preserve natural pauses: keep gaps up to 800 ms between retained words, independently of take detection. Longer gaps keep 150 ms total breathing room by default; sentence gaps keep at least 250 ms. Padding is retained only beside surviving words. Discarded takes and their intervening gaps are joined before frame snapping, avoiding isolated quiet clips and one-frame remnants. Standalone pause removals shorter than 120 ms are skipped. Existing exact settings remain available and saved maps are unchanged until explicit Update cut.
+
+An initial blanket-padding pass lengthened the result to 14:06 and was rejected as too loose. The final context-aware result is **778.359 seconds (12:58.359)**, compared with 750.384 seconds (12:30.384) for the earlier exact result. Both reported short gaps are preserved. All **123 take groups** and word-removal classifications remain unchanged. One previously selected discarded-word fragment, left by separate frame rounding, is now removed correctly. Pause candidates change from 214 to 193; that count includes gaps inside discarded takes and is not an editorial quality score. No new analysis was created and the input project checksum stayed unchanged.
+
+**32 M2 engine regressions passed**, including the unchanged 196-case exact-rule corpus, short/sentence pause preservation, silence-only pacing, tiny-edit suppression, manual restoration, saved settings, adjacent filler/take removals and adjoining video-boundary quantization. The 81 M1 engine checks, five automation checks, and project/format checks passed. Native validation exercised the actual Preserve natural pauses / Update cut controls, wide and compact layouts, save/reopen, durable apply and grouped undo/redo. The primary processing action remains above the scrollable Setup settings. The final settings screenshot was inspected locally.
+
+Candidate: `shotclutch-smart-cut-pacing.exe`, SHA-256 `523addd265d5b09c6f0ee4ea123716ebc5540cfa2af49330f36a40e1bfd24a90`. This is the same development qualification profile as the earlier candidate. The optional `preservePausesMs` field preserves old v18 exact maps when absent. Enable Preserve natural pauses and use Update cut for existing analysis; no transcription or upload is required. Human review of the final automatic result remains open.
+
 ## OpenGling transcript and inference parity — 2026-11-08
 
 Audited OpenGling 0.12.0 source and its matching packaged cleanup module. New Smart Cut workspaces explicitly select Tiny English · Fast and Gling-compatible cleanup. Saved profiles/modes are preserved; Update cut reuses saved timed words, while changing recognition profiles requires fresh transcription. Conservative and Legacy transcript modes retain the earlier behavior. [Scope and differences](OPENGLING_CLEANUP_ASSESSMENT.md), [pinned runtime/model decision](DEC-005_SPEECH_PROVIDERS.md).

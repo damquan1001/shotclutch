@@ -679,20 +679,44 @@ fn automatic_cuts(map: &PreEditMap, analysis: &PreEditAnalysis, source: &dyn sho
         // Classification already identifies the selected words and checks overlapping speech.
         // Round inward to realizable presentation boundaries without consuming neighboring words.
         let alternatives: std::collections::BTreeSet<_> = map.takes.iter().filter_map(|group| group.alternatives.last().copied()).collect();
+        let mut intervals: Vec<_> = map
+            .candidates
+            .iter()
+            .enumerate()
+            .filter(|(i, _)| !alternatives.contains(i))
+            .filter_map(|(_, c)| {
+                let enabled = match c.kind {
+                    CandidateKind::Pause => settings.cut_pauses,
+                    CandidateKind::Filler => settings.cut_fillers,
+                    CandidateKind::Restart | CandidateKind::Take => settings.cut_bad_takes,
+                };
+                enabled.then_some((c.range, c.kind != CandidateKind::Pause))
+            })
+            .collect();
+        if settings.preserve_pauses_ms.is_some() {
+            // Join discarded words and their intervening gaps before quantization. Snapping
+            // each adjoining proposal separately can leave a one-frame phantom clip.
+            intervals.sort_by_key(|(range, _)| (range.start, range.end()));
+            let mut merged: Vec<(TimeRange, bool)> = Vec::new();
+            for (range, word) in intervals {
+                if let Some((last, has_word)) = merged.last_mut()
+                    && range.start <= last.end()
+                {
+                    *last = TimeRange::from_bounds(last.start, last.end().max(range.end()));
+                    *has_word |= word;
+                } else {
+                    merged.push((range, word));
+                }
+            }
+            intervals = merged;
+        }
         return Arc::new(
-            map.candidates
-                .iter()
-                .enumerate()
-                .filter(|(i, _)| !alternatives.contains(i))
-                .filter_map(|(_, c)| {
-                    let enabled = match c.kind {
-                        CandidateKind::Pause => settings.cut_pauses,
-                        CandidateKind::Filler => settings.cut_fillers,
-                        CandidateKind::Restart | CandidateKind::Take => settings.cut_bad_takes,
-                    };
-                    enabled
-                        .then(|| assembly::snap_decision(video, rate, available, c.range, true).ok())
-                        .flatten()
+            intervals
+                .into_iter()
+                .filter_map(|(range, word)| {
+                    assembly::snap_decision(video, rate, available, range, true)
+                        .ok()
+                        .filter(|range| word || settings.preserve_pauses_ms.is_none() || range.duration >= Tick::from_units(120, 1000))
                         .map(|range| Override { range, decision: Decision::Remove })
                 })
                 .collect(),

@@ -179,6 +179,7 @@ impl Workspace {
             cut_pauses: cut && self.cleanup.cut_pauses,
             min_pause_ms: Some(self.pause_ms),
             handle_ms: Some(self.handle_ms),
+            preserve_pauses_ms: self.cleanup.preserve_pauses_ms,
         }
     }
 
@@ -268,7 +269,7 @@ impl Workspace {
         );
     }
 
-    fn inputs(&mut self, app: &mut ShotClutchApp, ui: &mut Ui, compact: bool) {
+    fn inputs(&mut self, app: &mut ShotClutchApp, ui: &mut Ui, primary_above_settings: bool) {
         let items: Vec<_> = app
             .session
             .project
@@ -431,7 +432,7 @@ impl Workspace {
                 egui::RichText::new(if self.cleanup.mode == CleanupMode::Natural {
                     "Use audio levels to protect speech and keep natural pacing."
                 } else if self.cleanup.mode == CleanupMode::GlingCompatible {
-                    "Match Gling transcript rules for takes, fillers and pauses. Review and restore any cut."
+                    "Gling transcript rules for takes and fillers. Choose pause pacing below."
                 } else {
                     "Use the earlier transcript cleanup rules. Review and restore any cut."
                 })
@@ -449,13 +450,30 @@ impl Workspace {
             };
             cleanup_option(ui, &tokens, &mut self.cleanup.cut_pauses, "Trim silences and pauses", pause_help);
             ui.add_enabled_ui(self.cleanup.cut_pauses, |ui| {
+                if self.cleanup.mode == CleanupMode::GlingCompatible {
+                    let mut preserve = self.cleanup.preserve_pauses_ms.is_some();
+                    let response = ui.checkbox(&mut preserve, "Preserve natural pauses");
+                    app.auto.add_response("roughCut.pause.preserve", &response, "Preserve natural pauses");
+                    if response.changed() {
+                        self.cleanup.preserve_pauses_ms = preserve.then_some(800);
+                    }
+                    if let Some(floor) = &mut self.cleanup.preserve_pauses_ms {
+                        ui.add(egui::DragValue::new(floor).range(200..=10_000).prefix("Keep pauses up to ").suffix(" ms"));
+                        ui.label(egui::RichText::new("Between kept speech. Longer gaps retain breathing room; take detection stays unchanged.").small().color(tokens.text_dim));
+                    }
+                }
                 ui.horizontal_wrapped(|ui| {
-                    ui.add(egui::DragValue::new(&mut self.pause_ms).range(200..=10_000).prefix("Minimum pause ").suffix(" ms"));
+                    let threshold_label = if self.cleanup.mode == CleanupMode::GlingCompatible && self.cleanup.preserve_pauses_ms.is_some() {
+                        "Take separation "
+                    } else {
+                        "Minimum pause "
+                    };
+                    ui.add(egui::DragValue::new(&mut self.pause_ms).range(200..=10_000).prefix(threshold_label).suffix(" ms"));
                     ui.add_enabled(
-                        self.cleanup.mode != CleanupMode::GlingCompatible,
-                        egui::DragValue::new(&mut self.handle_ms).range(0..=1000).prefix("Padding ").suffix(" ms"),
+                        self.cleanup.mode != CleanupMode::GlingCompatible || self.cleanup.preserve_pauses_ms.is_some(),
+                        egui::DragValue::new(&mut self.handle_ms).range(0..=1000).prefix(if self.cleanup.mode==CleanupMode::GlingCompatible && self.cleanup.preserve_pauses_ms.is_some() {"Breathing room "} else {"Padding "}).suffix(" ms"),
                     )
-                    .on_hover_text("Conservative and legacy modes keep padding. Gling-compatible mode uses word boundaries.");
+                    .on_hover_text("Natural pauses keep this total space around a join, with at least 250 ms after sentences. Other modes use per-edge padding; exact Gling rules use none.");
                 });
             });
         });
@@ -469,7 +487,7 @@ impl Workspace {
                     self.command(app, "preedit.cancel", json!({}));
                 }
             } else {
-                if let Some(id) = saved.filter(|_| !compact) {
+                if let Some(id) = saved.filter(|_| !primary_above_settings) {
                     let recut = ui
                         .add(primary_button(&tokens, "Update cut", true))
                         .on_hover_text("Apply these settings to the saved analysis without transcribing again");
@@ -491,7 +509,7 @@ impl Workspace {
                     }
                 }
                 let label = if self.silence_only { "Analyze & cut pauses" } else { "Transcribe & cut" };
-                if !compact || saved.is_some() {
+                if !primary_above_settings || saved.is_some() {
                     let cut = ui.add(primary_button(&tokens, label, saved.is_none()));
                     app.auto.add_response("roughCut.transcribeAndCut", &cut, label);
                     if cut.clicked() {
@@ -1325,7 +1343,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
             document: Some(document),
             language: "en".into(),
             local_model: "faster-whisper-tiny.en".into(),
-            cleanup: CleanupSettings { mode: CleanupMode::GlingCompatible, ..Default::default() },
+            cleanup: CleanupSettings { mode: CleanupMode::GlingCompatible, preserve_pauses_ms: Some(800), ..Default::default() },
             show_cuts: true,
             zoom: 1.0,
             original: true,
@@ -1512,8 +1530,8 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
     } else if let (ReviewTab::Cuts, Some((id, map)), Some(analysis)) = (&workspace.tab, map, analysis) {
         workspace.cut_review(app, &mut left_ui, id, map, analysis, &segments);
     } else {
-        let compact = left.height() < 510.0;
-        if compact && workspace.source.is_some() && app.session.preedit_job.is_none() {
+        let primary_above_settings = workspace.source.is_some() && app.session.preedit_job.is_none();
+        if primary_above_settings {
             let saved = workspace.saved_analysis_map(app);
             let (id, label) = if saved.is_some() {
                 ("roughCut.cleanUpSaved", "Update cut")
@@ -1534,7 +1552,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
             left_ui.add_space(5.0);
         }
         egui::ScrollArea::vertical().id_salt("rough-cut-files").show(&mut left_ui, |ui| {
-            workspace.inputs(app, ui, compact);
+            workspace.inputs(app, ui, primary_above_settings);
         });
     }
 

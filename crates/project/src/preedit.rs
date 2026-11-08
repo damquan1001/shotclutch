@@ -135,17 +135,30 @@ pub struct CleanupSettings {
     pub cut_pauses: bool,
     pub min_pause_ms: Option<u32>,
     pub handle_ms: Option<u32>,
+    /// Optional independent pacing floor for Gling rules. None preserves exact legacy rules.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub preserve_pauses_ms: Option<u32>,
 }
 
 impl Default for CleanupSettings {
     fn default() -> Self {
-        Self { mode: CleanupMode::Natural, cut_bad_takes: true, cut_fillers: true, cut_pauses: true, min_pause_ms: None, handle_ms: None }
+        Self {
+            mode: CleanupMode::Natural,
+            cut_bad_takes: true,
+            cut_fillers: true,
+            cut_pauses: true,
+            min_pause_ms: None,
+            handle_ms: None,
+            preserve_pauses_ms: None,
+        }
     }
 }
 
 impl CleanupSettings {
     pub fn valid(self) -> bool {
-        self.min_pause_ms.is_none_or(|ms| (200..=10_000).contains(&ms)) && self.handle_ms.is_none_or(|ms| ms <= 1000)
+        self.min_pause_ms.is_none_or(|ms| (200..=10_000).contains(&ms))
+            && self.handle_ms.is_none_or(|ms| ms <= 1000)
+            && self.preserve_pauses_ms.is_none_or(|ms| (200..=10_000).contains(&ms))
     }
 }
 

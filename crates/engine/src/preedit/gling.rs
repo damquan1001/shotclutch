@@ -6,6 +6,26 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::ops::Range;
 use std::sync::Arc;
 
+fn ms(value: u32) -> Tick {
+    Tick::from_units(i64::from(value), 1000)
+}
+
+/// Independent of take grouping: preserve conversational gaps and avoid tiny edits.
+fn paced_pause(start: Tick, end: Tick, previous: Option<&Word>, next: Option<&Word>, settings: CleanupSettings, handle: Tick) -> Option<TimeRange> {
+    let floor = ms(settings.preserve_pauses_ms?);
+    if previous.is_some() && next.is_some() && end - start <= floor {
+        return None;
+    }
+    let sentence = previous.is_some_and(|word| word.text.trim_end_matches(['"', '\'', ')', '”']).ends_with(['.', '!', '?']));
+    // This pacing control is the total context at a join, rather than per-edge padding.
+    let half = Tick(handle.0 / 2);
+    let left = if previous.is_some() { half.max(ms(if sentence { 150 } else { 0 })) } else { Tick::ZERO };
+    let right = if next.is_some() { half.max(ms(if sentence { 100 } else { 0 })) } else { Tick::ZERO };
+    let (start, end) = (start + left, end - right);
+    // Dead space between discarded words joins their removals; it is not a standalone edit.
+    (end > start && ((previous.is_none() && next.is_none()) || end - start >= ms(120))).then(|| TimeRange::from_bounds(start, end))
+}
+
 #[derive(Clone, Copy)]
 struct Mark {
     bad_take: bool,
@@ -57,6 +77,7 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
     ends.sort_unstable();
     let keys: Vec<_> = words.iter().map(|w| normalized(&w.text)).collect();
     let threshold = settings.min_pause_ms.map_or(analysis.settings.min_pause, |v| Tick::from_units(i64::from(v), 1000));
+    let handle = settings.handle_ms.map_or(analysis.settings.handle, ms);
     let mut takes = Vec::new();
     let mut start = 0;
     let mut end = words.first().map_or(Tick::ZERO, |w| w.end);
@@ -161,6 +182,8 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
     }
     let mut candidates = Vec::new();
     let mut groups = Vec::new();
+    let mut removed_words = vec![false; words.len()];
+    let mut word_spans = Vec::new();
     for take in &takes {
         let mut i = take.start;
         while i < take.end {
@@ -178,7 +201,9 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
             let intersects = words.partition_point(|w| w.start < end).saturating_sub(ends.partition_point(|e| *e <= start));
             let safe = end > start && words[own.clone()].iter().all(|w| w.start >= start && w.end <= end) && intersects == own.len();
             if safe {
+                removed_words[own.clone()].fill(true);
                 let candidate = candidates.len();
+                word_spans.push((candidate, own));
                 candidates.push(Candidate {
                     range: TimeRange::from_bounds(start, end),
                     kind: if state.bad_take { CandidateKind::Take } else { CandidateKind::Filler },
@@ -199,27 +224,59 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
             i += 1;
         }
     }
+    if settings.preserve_pauses_ms.is_some() {
+        // Classify first, then keep context only beside words that actually survive. Padding
+        // both sides of two adjacent removals would resurrect a tiny silent video fragment.
+        let half = Tick(handle.0 / 2);
+        for (index, own) in word_spans {
+            let range = candidates[index].range;
+            let start = if own.start > 0 && !removed_words[own.start - 1] { (range.start + half).min(words[own.start].start) } else { range.start };
+            let end = if own.end < words.len() && !removed_words[own.end] { (range.end() - half).max(words[own.end - 1].end) } else { range.end() };
+            candidates[index].range = TimeRange::from_bounds(start, end);
+        }
+    }
     if settings.cut_pauses {
         let covered = analysis.chunks.last().map_or(analysis.source.range.start, |c| c.coverage.end());
         let mut cursor = analysis.source.range.start;
+        let mut previous: Option<usize> = None;
         for (i, word) in words.iter().enumerate() {
-            if word.start > cursor && (i == 0 || word.start - cursor > threshold) {
-                candidates.push(Candidate {
-                    range: TimeRange::from_bounds(cursor, word.start),
-                    kind: CandidateKind::Pause,
-                    reason: "Gling-compatible: timed speech gap".into(),
-                    confidence: None,
-                });
+            let kept_previous = previous.filter(|&index| !removed_words[index]).map(|index| words[index]);
+            let kept_next = (!removed_words[i]).then_some(*word);
+            let pause_threshold = if kept_previous.is_some() && kept_next.is_some() { settings.preserve_pauses_ms.map_or(threshold, ms) } else { threshold };
+            if word.start > cursor && (i == 0 || word.start - cursor > pause_threshold) {
+                let range = if settings.preserve_pauses_ms.is_some() {
+                    paced_pause(cursor, word.start, kept_previous, kept_next, settings, handle)
+                } else {
+                    Some(TimeRange::from_bounds(cursor, word.start))
+                };
+                if let Some(range) = range {
+                    candidates.push(Candidate {
+                        range,
+                        kind: CandidateKind::Pause,
+                        reason: if settings.preserve_pauses_ms.is_some() {
+                            "Natural pacing: longer gap with speech padding"
+                        } else {
+                            "Gling-compatible: timed speech gap"
+                        }
+                        .into(),
+                        confidence: None,
+                    });
+                }
             }
-            cursor = cursor.max(word.end);
+            if word.end >= cursor {
+                cursor = word.end;
+                previous = Some(i);
+            }
         }
         if covered > cursor {
-            candidates.push(Candidate {
-                range: TimeRange::from_bounds(cursor, covered),
-                kind: CandidateKind::Pause,
-                reason: "Gling-compatible: trailing speech gap".into(),
-                confidence: None,
-            });
+            let range = if settings.preserve_pauses_ms.is_some() {
+                paced_pause(cursor, covered, previous.filter(|&index| !removed_words[index]).map(|index| words[index]), None, settings, handle)
+            } else {
+                Some(TimeRange::from_bounds(cursor, covered))
+            };
+            if let Some(range) = range {
+                candidates.push(Candidate { range, kind: CandidateKind::Pause, reason: "Trailing speech gap".into(), confidence: None });
+            }
         }
     }
     PreEditMap {
