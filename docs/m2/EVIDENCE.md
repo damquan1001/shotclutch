@@ -2,6 +2,14 @@
 
 This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## Responsive timeline and neutral UI wording — 2026-11-08
+
+The source timeline previously allocated a fixed 94 px strip inside a taller bottom panel, leaving unused space. It now fills the remaining panel height after controls/status, scales its cut/audio lanes and centers their labels. Dragging, selection, cursor painting and seeking share the expanded bounds. Application status is laid out before the waveform so its actual height is reserved.
+
+Native checks at 1920×1080, 1440×950, 1024×720 and 1440×1080 measured waveform heights of 150, 131.844, 100 and 150 px. Each leaves only the intended 8 px panel padding at the bottom. Clicking near the expanded waveform's lower edge correctly sought the original source. Setup and Review cuts screenshots were inspected locally, and the input project checksum stayed unchanged.
+
+Visible cleanup mode wording is **Automatic**. Help/tooltips, the speech-profile description and rendered legacy detection reasons no longer name the reference application. Existing serialized mode IDs and analysis metadata remain compatible; technical provenance in source/docs is retained. The native desktop build, formatting and whitespace checks passed. No cutting or playback algorithms changed in this UI-only pass.
+
 ## Short pause preservation and clean joins — 2026-11-08
 
 The user's overcutting report was reproduced in the saved Tiny English result: exact transcript rules removed entire 520 ms and 640 ms gaps. The supplied human-edited reference was inspected locally (692.011 seconds, 4K H.264 with stereo 48 kHz AAC). At a fixed −42 dBFS threshold it contains 357 quiet intervals of at least 100 ms; median duration is 135 ms and the 95th percentile is 305 ms. These are audio-level observations, not word alignment, human cut labels or an accuracy score. Media and detailed measurements remain private.

@@ -62,7 +62,7 @@ static CATALOGUE: &[ModelInfo] = &[
         id: "faster-whisper-tiny.en",
         name: "Tiny English · Fast",
         multilingual: false,
-        description: "OpenGling-compatible CPU INT8 profile with speech filtering and word timing.",
+        description: "Fast CPU INT8 profile with speech filtering and word timing.",
         license: "MIT (OpenAI Whisper weights and CTranslate2 conversion)",
         license_url: LICENSE_URL,
         author: "OpenAI / SYSTRAN",

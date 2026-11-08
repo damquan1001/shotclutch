@@ -420,7 +420,7 @@ impl Workspace {
         ui.add_enabled_ui(!running, |ui| {
             ui.horizontal_wrapped(|ui| {
                 for (mode, label, id) in [
-                    (CleanupMode::GlingCompatible, "Gling compatible", "gling"),
+                    (CleanupMode::GlingCompatible, "Automatic", "gling"),
                     (CleanupMode::Natural, "Conservative", "natural"),
                     (CleanupMode::Transcript, "Legacy transcript", "transcript"),
                 ] {
@@ -432,7 +432,7 @@ impl Workspace {
                 egui::RichText::new(if self.cleanup.mode == CleanupMode::Natural {
                     "Use audio levels to protect speech and keep natural pacing."
                 } else if self.cleanup.mode == CleanupMode::GlingCompatible {
-                    "Gling transcript rules for takes and fillers. Choose pause pacing below."
+                    "Detect repeated takes and fillers from the transcript. Choose pause pacing below."
                 } else {
                     "Use the earlier transcript cleanup rules. Review and restore any cut."
                 })
@@ -473,7 +473,7 @@ impl Workspace {
                         self.cleanup.mode != CleanupMode::GlingCompatible || self.cleanup.preserve_pauses_ms.is_some(),
                         egui::DragValue::new(&mut self.handle_ms).range(0..=1000).prefix(if self.cleanup.mode==CleanupMode::GlingCompatible && self.cleanup.preserve_pauses_ms.is_some() {"Breathing room "} else {"Padding "}).suffix(" ms"),
                     )
-                    .on_hover_text("Natural pauses keep this total space around a join, with at least 250 ms after sentences. Other modes use per-edge padding; exact Gling rules use none.");
+                    .on_hover_text("Natural pauses keep this total space around a join, with at least 250 ms after sentences. Other modes use per-edge padding; exact transcript rules use none.");
                 });
             });
         });
@@ -996,7 +996,8 @@ impl Workspace {
                 if response.clicked() {
                     self.review_index = Some(row.0);
                 }
-                ui.add(egui::Label::new(egui::RichText::new(&candidate.reason).small().color(tokens.text_dim)).truncate()).on_hover_text(&candidate.reason);
+                let reason = review_reason(&candidate.reason);
+                ui.add(egui::Label::new(egui::RichText::new(&reason).small().color(tokens.text_dim)).truncate()).on_hover_text(&reason);
                 let text = analysis
                     .chunks
                     .iter()
@@ -1473,6 +1474,19 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
     viewer.set_clip_rect(right);
     let mut transport = ui.new_child(egui::UiBuilder::new().max_rect(bottom.shrink2(vec2(10.0, 8.0))));
     transport.set_clip_rect(bottom);
+    // Status consumes its actual height before the timeline takes the remaining space.
+    if app.session.preedit_apply.is_some() {
+        transport.horizontal(|ui| {
+            ui.spinner();
+            ui.label("Verifying original before applying…");
+            if ui.button("Cancel apply").clicked() {
+                workspace.command(app, "preedit.cancelApply", json!({}));
+            }
+        });
+    }
+    if !workspace.message.is_empty() {
+        transport.label(&workspace.message);
+    }
 
     if let Some((id, map)) = map {
         if workspace.map != Some(id) {
@@ -1784,19 +1798,12 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
             ui.label("Import media to preview it here.");
         });
     }
-    if app.session.preedit_apply.is_some() {
-        transport.horizontal(|ui| {
-            ui.spinner();
-            ui.label("Verifying original before applying…");
-            if ui.button("Cancel apply").clicked() {
-                workspace.command(app, "preedit.cancelApply", json!({}));
-            }
-        });
-    }
-    if !workspace.message.is_empty() {
-        transport.label(&workspace.message);
-    }
     app.rough_cut = workspace;
+}
+
+fn review_reason(reason: &str) -> String {
+    // Old saved analyses retain their original metadata; keep visible copy product-neutral.
+    reason.replace(" (Gling-compatible)", "").replace("Gling-compatible", "Transcript").replace("OpenGling", "Smart Cut")
 }
 
 fn section_title(ui: &mut Ui, tokens: &crate::theme::Tokens, number: &str, label: &str) {
@@ -1901,7 +1908,7 @@ fn waveform(
     show_cuts: bool,
     selection: &mut TimelineSelection,
 ) -> (Option<Tick>, Option<Value>) {
-    let (strip, _) = ui.allocate_exact_size(vec2(ui.available_width(), 94.0), egui::Sense::hover());
+    let (strip, _) = ui.allocate_exact_size(ui.available_size_before_wrap().max(vec2(0.0, 0.0)), egui::Sense::hover());
     let tokens = app.tokens;
     let label_width = 72.0_f32.min(strip.width() * 0.2);
     let rect = Rect::from_min_max(pos2(strip.left() + label_width, strip.top()), strip.max);
@@ -1909,18 +1916,26 @@ fn waveform(
     app.auto.add_response("roughCut.waveform", &response, "Source waveform");
     let painter = ui.painter().with_clip_rect(strip);
     painter.rect_filled(strip, 2.0, tokens.field_bg);
-    for (label, y) in [("Cuts", 35.0), ("Audio", 68.0)] {
-        painter.text(pos2(strip.left() + 8.0, strip.top() + y), egui::Align2::LEFT_CENTER, label, egui::FontId::proportional(12.0), tokens.text_dim);
-    }
     painter.line_segment([rect.left_top(), rect.left_bottom()], (1.0, tokens.separator));
     let painter = painter.with_clip_rect(rect);
     let x = |t: Tick| rect.left() + rect.width() * (t - window.start).0 as f32 / window.duration.0 as f32;
     let time_at =
         |pointer: egui::Pos2| window.start + Tick((window.duration.0 as f64 * f64::from(((pointer.x - rect.left()) / rect.width()).clamp(0.0, 1.0))) as i64);
-    let lane_top = rect.top() + 25.0;
-    let audio_top = rect.top() + 46.0;
-    let cuts_lane = Rect::from_min_max(pos2(rect.left(), lane_top), pos2(rect.right(), audio_top - 3.0));
+    let lane_top = rect.top() + 25.0_f32.min(rect.height() * 0.35);
+    let lane_height = (rect.bottom() - lane_top).max(0.0);
+    let cuts_height = (lane_height * 0.28).clamp(12.0, 36.0).min(lane_height);
+    let audio_top = (lane_top + cuts_height + 3.0).min(rect.bottom());
+    let cuts_lane = Rect::from_min_max(pos2(rect.left(), lane_top), pos2(rect.right(), lane_top + cuts_height));
     let audio_lane = Rect::from_min_max(pos2(rect.left(), audio_top), rect.right_bottom());
+    for (label, y) in [("Cuts", cuts_lane.center().y), ("Audio", audio_lane.center().y)] {
+        ui.painter().with_clip_rect(strip).text(
+            pos2(strip.left() + 8.0, y),
+            egui::Align2::LEFT_CENTER,
+            label,
+            egui::FontId::proportional(12.0),
+            tokens.text_dim,
+        );
+    }
     // The gaps between retained segments are removed time, including gaps with no audio peaks.
     painter.rect_filled(cuts_lane, 1.0, if show_cuts { tokens.control_border } else { tokens.control_well });
     if show_cuts {
