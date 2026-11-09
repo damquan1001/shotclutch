@@ -114,8 +114,9 @@ def run(args):
                     if not 200 <= args.preserve_pauses_ms <= 10_000:
                         raise ValueError("Pause preservation must be 0 (exact rules) or 200–10000 ms")
                     options["preservePausesMs"] = args.preserve_pauses_ms
-                if args.ordered_takes and (opened_map.get("cleanup") or {}).get("takeMatching") == "orderedV1":
-                    options["takeMatching"] = "orderedV1"
+                saved_matcher = (opened_map.get("cleanup") or {}).get("takeMatching", "legacy")
+                if args.ordered_takes and saved_matcher != "legacy":
+                    options["takeMatching"] = saved_matcher
                 review({"kind": "cleanUp", "options": options})
                 if args.ordered_takes:
                     if args.cleanup_mode != "glingCompatible":
@@ -125,7 +126,7 @@ def run(args):
                         click("roughCut.takes.ordered")
                     call("ui.screenshot", {"path": str(output / "context-settings-private.png")})
                     click("roughCut.cleanUpSaved")
-                    assert latest()[2]["cleanup"]["takeMatching"] == "orderedV2"
+                    assert latest()[2]["cleanup"]["takeMatching"] == "orderedV3"
                     assert latest()[2]["cleanup"].get("preservePausesMs", 0) == args.preserve_pauses_ms
                     review({"kind": "cleanUp", "options": latest()[2]["cleanup"]})
                     results["ordered_recut_roundtrip_ms"] = review_latency[-1]

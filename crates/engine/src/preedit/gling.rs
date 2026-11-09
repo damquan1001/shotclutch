@@ -10,17 +10,29 @@ fn ms(value: u32) -> Tick {
     Tick::from_units(i64::from(value), 1000)
 }
 
+fn sentence_end(word: &Word) -> bool {
+    word.text.trim_end_matches(['"', '\'', ')', '”']).ends_with(['.', '!', '?'])
+}
+
 /// Independent of take grouping: preserve conversational gaps and avoid tiny edits.
-fn paced_pause(start: Tick, end: Tick, previous: Option<&Word>, next: Option<&Word>, settings: CleanupSettings, handle: Tick) -> Option<TimeRange> {
+fn paced_pause(
+    start: Tick,
+    end: Tick,
+    previous: Option<&Word>,
+    next: Option<&Word>,
+    after_discarded_sentence: bool,
+    settings: CleanupSettings,
+    handle: Tick,
+) -> Option<TimeRange> {
     let floor = ms(settings.preserve_pauses_ms?);
     if previous.is_some() && next.is_some() && end - start <= floor {
         return None;
     }
-    let sentence = previous.is_some_and(|word| word.text.trim_end_matches(['"', '\'', ')', '”']).ends_with(['.', '!', '?']));
+    let sentence = previous.is_some_and(sentence_end);
     // This pacing control is the total context at a join, rather than per-edge padding.
     let half = Tick(handle.0 / 2);
     let left = if previous.is_some() { half.max(ms(if sentence { 150 } else { 0 })) } else { Tick::ZERO };
-    let right = if next.is_some() { half.max(ms(if sentence { 100 } else { 0 })) } else { Tick::ZERO };
+    let right = if next.is_some() { half.max(ms(if sentence || after_discarded_sentence { 100 } else { 0 })) } else { Tick::ZERO };
     let (start, end) = (start + left, end - right);
     // Dead space between discarded words joins their removals; it is not a standalone edit.
     (end > start && ((previous.is_none() && next.is_none()) || end - start >= ms(120))).then(|| TimeRange::from_bounds(start, end))
@@ -109,6 +121,7 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
     if settings.cut_bad_takes && ordered {
         if analysis.settings.language == "en" {
             let removals = match settings.take_matching {
+                TakeMatching::OrderedV3 => super::ordered_takes::broader::detect_restarts(&words),
                 TakeMatching::OrderedV2 => super::ordered_takes::broader::detect(&words),
                 _ => super::ordered_takes::detect(&words),
             };
@@ -223,12 +236,11 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
                 candidates.push(Candidate {
                     range: TimeRange::from_bounds(start, end),
                     kind: if state.bad_take { CandidateKind::Take } else { CandidateKind::Filler },
-                    reason: if settings.take_matching == TakeMatching::OrderedV2 {
-                        format!("Context-aware v2: {}", state.rule)
-                    } else if ordered {
-                        format!("Context-aware v1: {}", state.rule)
-                    } else {
-                        format!("Gling-compatible: {}", state.rule)
+                    reason: match settings.take_matching {
+                        TakeMatching::OrderedV3 => format!("Context-aware v3: {}", state.rule),
+                        TakeMatching::OrderedV2 => format!("Context-aware v2: {}", state.rule),
+                        TakeMatching::OrderedV1 => format!("Context-aware v1: {}", state.rule),
+                        TakeMatching::Legacy => format!("Gling-compatible: {}", state.rule),
                     },
                     confidence: None,
                 });
@@ -237,7 +249,7 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
                     candidates.push(Candidate {
                         range: keep,
                         kind: CandidateKind::Take,
-                        reason: if ordered { "Retained alternative (context-aware v1)" } else { "Retained alternative (Gling-compatible)" }.into(),
+                        reason: if ordered { "Retained alternative (context-aware)" } else { "Retained alternative (Gling-compatible)" }.into(),
                         confidence: None,
                     });
                     groups.push(TakeGroup { alternatives: vec![candidate, alternative], explanation: state.rule.into() });
@@ -267,7 +279,13 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
             let pause_threshold = if kept_previous.is_some() && kept_next.is_some() { settings.preserve_pauses_ms.map_or(threshold, ms) } else { threshold };
             if word.start > cursor && (i == 0 || word.start - cursor > pause_threshold) {
                 let range = if settings.preserve_pauses_ms.is_some() {
-                    paced_pause(cursor, word.start, kept_previous, kept_next, settings, handle)
+                    // Removing a retry cue must not shave the original lead-in to the next word.
+                    let after_discarded_sentence = previous.is_some_and(|index| {
+                        removed_words[index]
+                            && sentence_end(words[index])
+                            && marks[index].is_some_and(|mark| matches!(mark.rule, "isolated-retry-cue" | "short-restart-continuation"))
+                    });
+                    paced_pause(cursor, word.start, kept_previous, kept_next, after_discarded_sentence, settings, handle)
                 } else {
                     Some(TimeRange::from_bounds(cursor, word.start))
                 };
@@ -292,7 +310,7 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
         }
         if covered > cursor {
             let range = if settings.preserve_pauses_ms.is_some() {
-                paced_pause(cursor, covered, previous.filter(|&index| !removed_words[index]).map(|index| words[index]), None, settings, handle)
+                paced_pause(cursor, covered, previous.filter(|&index| !removed_words[index]).map(|index| words[index]), None, false, settings, handle)
             } else {
                 Some(TimeRange::from_bounds(cursor, covered))
             };
@@ -312,5 +330,21 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
         overrides: Vec::new(),
         corrections: Default::default(),
         conflicts: Vec::new(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn m2_restart_pause_keeps_the_next_word_lead_in() {
+        let cue = Word::new("time.", ms(250), ms(500));
+        let next = Word::new("And", ms(2300), ms(2400));
+        let settings = CleanupSettings { preserve_pauses_ms: Some(800), ..Default::default() };
+        let before = paced_pause(cue.end, next.start, Some(&cue), Some(&next), false, settings, ms(150)).unwrap();
+        let after = paced_pause(cue.end, next.start, None, Some(&next), true, settings, ms(150)).unwrap();
+        assert_eq!(after.start, cue.end);
+        assert_eq!(after.end(), before.end());
     }
 }

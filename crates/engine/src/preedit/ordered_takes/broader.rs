@@ -367,11 +367,112 @@ pub(in crate::preedit) fn detect(words: &[&Word]) -> Vec<Removal> {
     result
 }
 
+pub(in crate::preedit) fn detect_restarts(words: &[&Word]) -> Vec<Removal> {
+    let mut result = detect(words);
+    let keys: Vec<_> = words.iter().map(|w| w.normalized().replace('’', "'")).collect();
+    let edges = edges(words, &keys);
+    let mut discarded = vec![false; words.len()];
+    let mut kept = vec![false; words.len()];
+    for cut in &result {
+        discarded[cut.discard.clone()].fill(true);
+        kept[cut.keep.clone()].fill(true);
+    }
+    for (i, pair) in edges.windows(2).enumerate() {
+        let old = pair[0]..pair[1];
+        if old.end == words.len()
+            || gap(words, old.start) < ms(700)
+            || gap(words, old.end) < ms(700)
+            || discarded[old.clone()].contains(&true)
+            || kept[old.clone()].contains(&true)
+        {
+            continue;
+        }
+        let speaker = words[old.start].speaker;
+        if words[old.clone()].iter().any(|word| word.speaker != speaker) {
+            continue;
+        }
+        let cue = keys[old.clone()] == ["one", "more", "time"];
+        let first = old.start + usize::from(matches!(keys[old.start].as_str(), "and" | "now"));
+        let stem = &keys[first..old.end];
+        let pickup = stem.len() == 1 && old.len() == 1 && stem[0].len() >= 5 && anchor(&stem[0]) && !protected(&stem[0]) && !closed(words[old.start]);
+        if !cue
+            && !pickup
+            && (!(5..=7).contains(&stem.len())
+                || stem.iter().filter(|key| anchor(key)).count() < 2
+                || words[old.end - 1].text.trim_end_matches(['"', '”']).ends_with(['?', '!']))
+        {
+            continue;
+        }
+        for pair in edges[i + 1..].windows(2).take(4) {
+            let fresh = pair[0]..pair[1];
+            if words[fresh.start].start - words[old.end - 1].end > ms(8000) {
+                break;
+            }
+            let opening = fresh.start + usize::from(matches!(keys[fresh.start].as_str(), "and" | "now"));
+            let alternative = if cue {
+                // Retry language is ordinary speech unless the surrounding attempts actually
+                // share a phrase. Keep those attempts available as separate decisions.
+                let context = edges[i.saturating_sub(3)]..old.start;
+                let Some(lead) = keys.get(opening..opening + 4).filter(|_| opening + 4 <= fresh.end) else { continue };
+                if lead.iter().filter(|key| anchor(key)).count() < 2
+                    || !keys[context.clone()]
+                        .windows(4)
+                        .enumerate()
+                        .any(|(offset, window)| window == lead && words[old.start].start - words[context.start + offset + 3].end <= ms(12_000))
+                    || words[context].iter().any(|word| word.speaker != speaker)
+                {
+                    continue;
+                }
+                fresh.start..opening + 4
+            } else if pickup {
+                // Require a broken lead followed by the real opening, not a single
+                // word used as an intentional heading before a sentence.
+                let restart = if keys.get(opening) == stem.first() { opening } else { opening + 1 };
+                if restart <= old.end
+                    || restart + 3 > fresh.end
+                    || keys[restart] != stem[0]
+                    || keys[restart - 1] != keys[restart + 1]
+                    || gap(words, restart) > ms(250)
+                    || words[restart - 1].speaker != speaker
+                {
+                    continue;
+                }
+                // The broader pass may have discarded this intervening attempt. Use
+                // its surviving alternative only if it repeats the same opening.
+                result
+                    .iter()
+                    .find_map(|cut| {
+                        (cut.discard.contains(&restart) && keys[cut.keep.clone()].starts_with(&keys[restart..restart + 3])).then(|| cut.keep.clone())
+                    })
+                    .unwrap_or(restart..restart + 3)
+            } else {
+                let end = opening + stem.len();
+                if end + 2 > fresh.end || keys[opening..end] != *stem || closed(words[end - 1]) || gap(words, end) > ms(300) {
+                    continue;
+                }
+                fresh.start..end + 2
+            };
+            if discarded[alternative.clone()].contains(&true) || words[alternative.clone()].iter().any(|word| word.speaker != speaker) {
+                continue;
+            }
+            discarded[old.clone()].fill(true);
+            kept[alternative.clone()].fill(true);
+            result.push(Removal { discard: old.clone(), keep: alternative, rule: if cue { "isolated-retry-cue" } else { "short-restart-continuation" } });
+            break;
+        }
+    }
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     fn analyze(attempts: &[&str]) -> Vec<Removal> {
+        analyze_with(attempts, 550, detect)
+    }
+
+    fn analyze_with(attempts: &[&str], pause: i64, matcher: fn(&[&Word]) -> Vec<Removal>) -> Vec<Removal> {
         let mut words = Vec::new();
         let mut time = 0;
         for attempt in attempts {
@@ -379,9 +480,31 @@ mod tests {
                 words.push(Word::new(key, ms(time), ms(time + 220)));
                 time += 250;
             }
-            time += 550;
+            time += pause;
         }
-        detect(&words.iter().collect::<Vec<_>>())
+        matcher(&words.iter().collect::<Vec<_>>())
+    }
+
+    #[test]
+    fn m2_restart_continuation_keeps_the_extended_attempt_and_intervening_line() {
+        let cuts =
+            analyze_with(&["Now I'm testing the new camera.", "Good luck.", "And I'm testing the new camera with two lenses today."], 750, detect_restarts);
+        assert!(cuts.iter().any(|cut| cut.discard == (0..6) && cut.keep.start == 8));
+    }
+
+    #[test]
+    fn m2_restart_cues_need_local_corroboration_and_pickups_need_a_broken_lead() {
+        let cuts = analyze_with(&["The zoom ring feels smooth", "One more time.", "The zoom ring feels smooth even at the far end."], 750, detect_restarts);
+        assert!(cuts.iter().any(|cut| cut.discard == (5..8) && cut.rule == "isolated-retry-cue"));
+        let cuts = analyze_with(&["Focus", "ring focus ring turns freely."], 750, detect_restarts);
+        assert!(cuts.iter().any(|cut| cut.discard == (0..1) && cut.keep.start == 2));
+        for attempts in [
+            &["Set the dial to zero.", "One more time.", "Now test a fresh battery."][..],
+            &["Focus", "Focus on the leaves in the foreground."][..],
+            &["Are you testing the new camera?", "Are you testing the new camera with two lenses?"][..],
+        ] {
+            assert!(analyze_with(attempts, 750, detect_restarts).is_empty(), "{attempts:?}");
+        }
     }
 
     #[test]

@@ -2,6 +2,14 @@
 
 This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## Context-aware restart matching V3 — 2026-11-10
+
+V3 adds short abandoned openings with an immediate continuation, single-word pickups backed by a broken lead and a surviving matching opening, and isolated retry cues backed by repeated wording nearby. Updating the Context-aware takes preview uses V3. Older saved map revisions retain their stored rule version. An initial native run exposed one frame of audible lead-in loss when a sentence-ending retry cue was removed. The final rule preserves the lead-in padding and has a focused regression test.
+
+The Windows candidate reapplied cleanup to the full saved Tiny English transcript with the same pause settings. The automatic result changed from 1,211.602 to 1,202.186 seconds. Four new spans removed 9.416 seconds, including 8.616 seconds in three labeled bad-take clips. There was zero additional overlap with labeled keeps, uncertain clips, or the reference audio windows matched at 0.95 or higher. The final recut took 76 ms over the control channel. Save and reopen reproduced the result, and updating the separately reviewed project preserved its manual overrides and earlier map. This is one recording and a small improvement over V2. The remaining gap to the reference is open.
+
+The final focused matcher and pacing suite passed 14 tests and the benchmark suite passed 20. The engine regression run before the final lead-in fix passed 81 M1 tests and 46 M2 tests with one private model rerun ignored. The final desktop candidate is `shotclutch-smart-cut-restarts.exe`, SHA-256 `4882c93617d08304353b27d7574e6a63d85e7bd0bf29fdd90f2b03bcfd1fd4e8`. This is a Windows qualification build with engine/UI development optimization set to zero.
+
 ## Remaining retake gap review — 2026-11-10
 
 Fresh decodes of the original and reference revalidated 295 waveform placements. At the stricter 0.86 waveform threshold, 41 source skips between adjacent reference excerpts contain 242.093 seconds still retained by the 18:49 reviewed map. The runner excludes all source ranges matched elsewhere in the export and protects 26.852 retained seconds inside explicitly chosen takes.

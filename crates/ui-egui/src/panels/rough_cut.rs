@@ -264,8 +264,8 @@ impl Workspace {
             return;
         }
         let mut options = self.cleanup_options(true);
-        if options.mode == CleanupMode::GlingCompatible && options.take_matching == TakeMatching::OrderedV1 {
-            options.take_matching = TakeMatching::OrderedV2;
+        if options.mode == CleanupMode::GlingCompatible && options.take_matching != TakeMatching::Legacy {
+            options.take_matching = TakeMatching::OrderedV3;
         }
         self.review(app, id, json!({"kind":"cleanUp","options":options}));
         if self.map != Some(id) {
@@ -470,7 +470,7 @@ impl Workspace {
                         let response = ui.checkbox(&mut ordered, "Context-aware takes (preview)").on_hover_text("Match repeated phrases across sentence breaks and small wording differences. Update cut uses the latest preview rules.");
                         app.auto.add_response("roughCut.takes.ordered", &response, "Context-aware takes");
                         if response.changed() {
-                            self.cleanup.take_matching = if ordered { TakeMatching::OrderedV2 } else { TakeMatching::Legacy };
+                            self.cleanup.take_matching = if ordered { TakeMatching::OrderedV3 } else { TakeMatching::Legacy };
                         }
                     });
                 }
@@ -1842,13 +1842,13 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
 }
 
 fn review_reason(reason: &str) -> String {
-    match reason {
-        "Context-aware v1: ordered-prefix-restart" | "Context-aware v2: ordered-prefix-restart" => return "Incomplete repeated attempt".into(),
-        "Context-aware v1: ordered-equivalent-take" | "Context-aware v2: ordered-equivalent-take" | "Context-aware v2: aligned-retake" => {
-            return "Repeated statement".into();
-        }
-        "Context-aware v1: filler-lexicon" | "Context-aware v2: filler-lexicon" => return "Recognized hesitation".into(),
-        "Retained alternative (context-aware v1)" => return "Selected alternative".into(),
+    let detail = reason.strip_prefix("Context-aware v").and_then(|s| s.split_once(": ")).map_or(reason, |(_, detail)| detail);
+    match detail {
+        "ordered-prefix-restart" | "short-restart-continuation" => return "Incomplete repeated attempt".into(),
+        "ordered-equivalent-take" | "aligned-retake" => return "Repeated statement".into(),
+        "isolated-retry-cue" => return "Retry cue between attempts".into(),
+        "filler-lexicon" => return "Recognized hesitation".into(),
+        "Retained alternative (context-aware v1)" | "Retained alternative (context-aware)" => return "Selected alternative".into(),
         _ => {}
     }
     // Old saved analyses retain their original metadata; keep visible copy product-neutral.
