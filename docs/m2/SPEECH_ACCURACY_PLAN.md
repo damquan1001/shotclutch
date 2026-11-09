@@ -44,6 +44,8 @@ Separate detection (these spans may be retakes) from selection (which attempt sh
 
 The first local entailment trial found two candidates on the saved and Base transcripts. One had a change in certainty and point of view that the model accepted as equivalent. Use the paired listening clips to qualify editorial choices and validate explicit fact and certainty guards before integrating automatic removal. [Trial evidence](EVIDENCE.md#selective-speech-verification--2026-11-09)
 
+The multi-clause review set contains six reference-backed candidate pairs and one control with audio from both alternatives in the export. The waveform placements have been rechecked. Listening decisions will establish which complete spans can be removed and which lines or boundaries need protection. [Review set evidence](EVIDENCE.md#multi-clause-retake-review-set--2026-11-10)
+
 For ambiguous/rephrased matches, evaluate a bounded language-model verifier using nearby transcript context and optional audio-derived evidence. Its output must reference existing word/utterance IDs and relations such as duplicate, restart, correction, complementary content or intentional repetition. Validate coverage and factual changes deterministically. A text-only model cannot judge delivery or hear an omitted filler.
 
 The verifier must not invent text, timestamps, clip lengths or arbitrary deletion spans. An uncertain decision leaves the source retained in the automatic result and accessible through existing review controls; it does not introduce an approval queue. Calibrate automation thresholds from held-out labels rather than treating heuristic scores or model self-confidence as probabilities. Keep any remote processing an explicit provider choice.

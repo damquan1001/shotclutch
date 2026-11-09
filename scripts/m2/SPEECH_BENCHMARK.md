@@ -82,3 +82,13 @@ Run the approved ONNX artifact from the local qualification folder using the pin
 The runner scores the full recording in fixed windows, retaining a single prediction per 20 ms frame. It reports uninterrupted spans of at least 120 ms for total filler scores at 0.65 and 0.75 and for the combined `uh` and `um` score at 0.75. This is a direct ONNX trial with its own windowing and span rules. The input report supplies the same 48 scored gaps used for the speech comparison. Timed word controls and the two Flite voices reproduce the earlier Vosk cohorts.
 
 Use `review.html` to listen to the strict `uh` and `um` candidates. The overlap screen excludes spans that touch a saved word with a 40 ms margin, a provisional reference match, or a current cut. Use `review.csv` to record listening labels. A passing span is available for review and still needs editorial validation.
+
+## Multi-clause retake review
+
+Prepare a listening set from the current automatic result, the legacy map and the source/export benchmark. The runner verifies both original media hashes and rechecks the existing reference placements against fresh waveform decodes. It retrieves spans of up to four adjacent clauses, ranks the retained earlier spans by duration and checks that the later performance has matching excerpts in the export. It searches several earlier excerpts in the export and includes a control with audio from both alternatives when available.
+
+```powershell
+python scripts/m2/prepare_retake_review.py --benchmark target/m2-qualification/accuracy-run --project '<current cut.scproj>' --legacy-project '<legacy cut.scproj>' --output target/m2-qualification/retake-review
+```
+
+Open the local listening page to compare A and B. Mark A, B, both or unsure in `labels.csv` after listening. Use the relation and notes columns for changed claims, complementary lines or performance differences. Add exact source times for any boundary adjustment. The export audio confirms specific performances in the edit. The nearby unmatched audio and the reason for each deletion still require editorial labels.

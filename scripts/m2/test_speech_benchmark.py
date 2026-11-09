@@ -5,6 +5,24 @@ import numpy as np
 from speech_benchmark import Matcher, sample_windows, removals, private_output
 from compare_speech import score, event_counts, edit_counts, alignment_score, validate_events, model_files
 from benchmark_uhm import CORE_FRAMES, HOP, probabilities, intervals, screen
+from prepare_retake_review import checked_anchors, disjoint_pair
+
+
+class RetakeReviewTests(unittest.TestCase):
+    def test_export_anchor_is_checked_against_actual_waveforms(self):
+        original = np.random.default_rng(41).normal(0, 0.08, 32000).astype(np.float32)
+        reference = original[4000:20000] * 0.8
+        anchor = {"status": "auto_match", "score": 0.96, "reference_start": 0, "reference_end": 2}
+        checked = checked_anchors(
+            [dict(anchor, source_start=0), dict(anchor, source_start=3999 / 8000)], original, reference
+        )
+        self.assertEqual(len(checked), 1)
+        self.assertGreater(checked[0]["waveform_score"], 0.99)
+
+    def test_no_performance_is_reused_on_either_side_of_a_case(self):
+        chosen = {"A": {"range": [1, 4]}, "B": {"range": [9, 12]}}
+        self.assertFalse(disjoint_pair({"A": {"range": [11, 14]}, "B": {"range": [17, 20]}}, [chosen]))
+        self.assertTrue(disjoint_pair({"A": {"range": [4, 8]}, "B": {"range": [12, 15]}}, [chosen]))
 
 
 class AcousticWindowTests(unittest.TestCase):

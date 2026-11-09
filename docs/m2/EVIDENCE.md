@@ -2,6 +2,14 @@
 
 This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## Multi-clause retake review set — 2026-11-10
+
+The runner verified the original and edited export hashes and rechecked 295 source placements against fresh waveform decodes. It found 35 possible pairs across runs of up to four adjacent clauses in the 20:12 preview. Six non-overlapping cases have at least two matching excerpts from take B in the export. At least two probes from each earlier take were searched in the export, with no strong matches found in those probes. The current map retains 65.57 seconds across those six earlier spans. Safe removal duration depends on the editorial labels.
+
+The set includes a case with certainty and point-of-view differences and a control with matching export excerpts from both alternatives. An independent Base English pass on all seven pairs reproduced the certainty and point-of-view flags for the sensitive case. Each pair has local source audio, optional saved words and up to three matching export excerpts per side. The 14 main clips total 141.6 seconds. All 36 review audio links were verified. Editorial keep choices remain unreviewed.
+
+All 18 benchmark tests passed in both Python environments. New checks verify the waveform at a recorded placement and prevent source audio from appearing in multiple cases. [Reproduction and labeling procedure](../../scripts/m2/SPEECH_BENCHMARK.md#multi-clause-retake-review)
+
 ## Uhm acoustic filler trial — 2026-11-10
 
 The approved local benchmark used the published Uhm ONNX model at revision `a0ab78540d724afa6d8caf09090936ffbfbbf3d1` with SHA-256 `fbd19765def76893841e0c70e498bf632d6c68175ceae5a2da8fe3bf7d9d0314`. The graph returned six probabilities per frame. Its bundled label file lists five classes, so the strict screen uses only the documented `uh` and `um` indices. The model and vendor notices are stored in the private qualification folder. [Pinned model and notices](https://huggingface.co/desert-ant-labs/uhm/tree/a0ab78540d724afa6d8caf09090936ffbfbbf3d1) · [Published class mapping](https://huggingface.co/desert-ant-labs/uhm/blob/a0ab78540d724afa6d8caf09090936ffbfbbf3d1/README.md)
