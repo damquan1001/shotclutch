@@ -24,6 +24,8 @@ Measure event precision/recall by category, retained-word preservation, wrong-ta
 
 ### 2. Recover verbatim speech and detect fillers from audio
 
+The bounded Tiny/Base trial returned zero filler hypotheses in the selected gaps. The Vosk check produced one weak hypothesis that disappeared with competing words. A dedicated detector is the next candidate for evaluation with natural positive and negative labels. Uhm publishes ONNX weights under terms that say downloading accepts the license. Get explicit approval for that acquisition before benchmarking it. [Trial evidence](EVIDENCE.md#selective-speech-verification--2026-11-09) · [Uhm model card](https://huggingface.co/desert-ant-labs/uhm) · [Desert Ant Labs license](https://license.desertant.com/1.0)
+
 Keep Tiny as the fast first pass. Benchmark the existing Base English profile on a labeled excerpt set, and evaluate a specialist verbatim ASR or acoustic disfluency detector. Evaluate disfluency recall separately from ordinary word error rate. Check runtime, distribution terms and deployment requirements before selecting an additional model; do not silently install or upload media.
 
 Add bounded audio verification around uncertain utterances, cut-off syllables, voiced regions unexplained by the transcript and plausible hesitation events. Candidate discovery must use acoustic evidence as well as ASR text: restricting verification to Tiny's recognized fillers would preserve its blind spots. Include random/complete labeled spans to measure missed events outside triggered windows. Widen to full verbatim recognition if selective verification cannot meet recall targets.
@@ -39,6 +41,8 @@ Build utterance spans from timing, syntax and acoustic cues, independently of pa
 Separate detection (these spans may be retakes) from selection (which attempt should survive). Prefer complete coverage of the intended statement; preserve differences in negation, numbers, names and additional facts. Use clipping, masking noise and interrupted delivery as measurable signals, while acknowledging that confidence/loudness do not establish the best performance. Preserve complementary content and intentional emphasis. The final attempt must not win merely because it is last.
 
 ### 4. Add semantic adjudication only where it improves the benchmark
+
+The first local entailment trial found two candidates on the saved and Base transcripts. One had a change in certainty and point of view that the model accepted as equivalent. Use the paired listening clips to qualify editorial choices and validate explicit fact and certainty guards before integrating automatic removal. [Trial evidence](EVIDENCE.md#selective-speech-verification--2026-11-09)
 
 For ambiguous/rephrased matches, evaluate a bounded language-model verifier using nearby transcript context and optional audio-derived evidence. Its output must reference existing word/utterance IDs and relations such as duplicate, restart, correction, complementary content or intentional repetition. Validate coverage and factual changes deterministically. A text-only model cannot judge delivery or hear an omitted filler.
 

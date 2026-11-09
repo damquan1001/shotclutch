@@ -52,3 +52,21 @@ Scoring writes a new hash-addressed score artifact, leaving inference evidence u
 Verified source/export matches can also report overlap with a supplied cut map. This is a **reference-performance conflict**, not automatically a semantic error or a bad-take label: another performance could convey the same content. Unreviewed matches and unmatched reference audio never become negative ground truth. Multiple windows may describe one editorial decision; do not count them as independent bad takes.
 
 All media, excerpts, transcripts, notes, labels and detailed alignments belong in ignored local storage. Tools reject private output into non-ignored repository folders. Commit only code, synthetic tests and redacted aggregate evidence. Optional cloud recognition remains a separate explicitly selected workflow.
+
+## Short-window verification
+
+Run the trial with the pinned speech interpreter and existing Tiny and Base English weights. The current project supplies the saved words and cuts. The earlier project supplies pairs that legacy cleanup would have treated as repeated takes. Both must bind the same original and main audio track.
+
+```powershell
+& '<private runtime>/Scripts/python.exe' scripts/m2/verify_speech.py --benchmark target/m2-qualification/accuracy-run --project '<current cut.scproj>' --legacy-project '<legacy cut.scproj>' --catalogue target/m2-qualification/speech-catalogue.json --models '<private data>/models' --output target/m2-qualification/verification-run
+```
+
+The runner samples up to 36 periodic gaps, 12 quiet controls and 20 retained take pairs. It compares plain and filler-seeded decoding on the same short PCM excerpts with VAD disabled. The report records input hashes, the installed model pins, hypotheses and lexical overlap. Open `review.html` to listen locally. Voicing and word overlap are screening evidence. A missing hypothesis leaves filler recall unknown until the audio is labeled.
+
+The optional text trial reads a completed report and checks entailment in both directions on the saved words and both new transcriptions. It also tests known paraphrases, changed facts, added details and changes in certainty. Install the published `onnx/model_quint8_avx2.onnx`, `tokenizer.json` and `config.json` as separate local files from the pinned model revision. The runner verifies their hashes and uses the pinned interpreter's ONNX Runtime and tokenizer. [Pinned DeBERTa model revision](https://huggingface.co/cross-encoder/nli-deberta-v3-xsmall/tree/03d06b2f6f06023bd596151a16477e2fcec601fb)
+
+```powershell
+& '<private runtime>/Scripts/python.exe' scripts/m2/verify_take_meaning.py --speech-report target/m2-qualification/verification-run/report.json --model '<private DeBERTa folder>' --output target/m2-qualification/verification-run/meaning.json
+```
+
+Use the reported pair numbers to find the corresponding audio on the listening page. The reported 0.85 and 0.95 thresholds describe this trial. Editorial decisions also require checking the words, context and performance.
