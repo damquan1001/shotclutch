@@ -133,6 +133,7 @@ pub enum TakeMatching {
     #[default]
     Legacy,
     OrderedV1,
+    OrderedV2,
 }
 
 impl TakeMatching {

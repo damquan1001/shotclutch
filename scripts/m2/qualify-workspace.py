@@ -108,20 +108,24 @@ def run(args):
                 command("file.open", {"path": str(source)})
                 call("ui.resize", {"width": 1440, "height": 950})
                 call("ui.set", {"workspace": "Smart Cut"})
+                _, _, opened_map = latest()
                 options = {"mode": args.cleanup_mode, "minPauseMs": 500, "handleMs": 150}
                 if args.cleanup_mode == "glingCompatible" and args.preserve_pauses_ms:
                     if not 200 <= args.preserve_pauses_ms <= 10_000:
                         raise ValueError("Pause preservation must be 0 (exact rules) or 200–10000 ms")
                     options["preservePausesMs"] = args.preserve_pauses_ms
+                if args.ordered_takes and (opened_map.get("cleanup") or {}).get("takeMatching") == "orderedV1":
+                    options["takeMatching"] = "orderedV1"
                 review({"kind": "cleanUp", "options": options})
                 if args.ordered_takes:
                     if args.cleanup_mode != "glingCompatible":
                         raise ValueError("Context-aware takes requires Automatic cleanup")
                     click("roughCut.tab.files")
-                    click("roughCut.takes.ordered")
+                    if "takeMatching" not in options:
+                        click("roughCut.takes.ordered")
                     call("ui.screenshot", {"path": str(output / "context-settings-private.png")})
                     click("roughCut.cleanUpSaved")
-                    assert latest()[2]["cleanup"]["takeMatching"] == "orderedV1"
+                    assert latest()[2]["cleanup"]["takeMatching"] == "orderedV2"
                     assert latest()[2]["cleanup"].get("preservePausesMs", 0) == args.preserve_pauses_ms
                     review({"kind": "cleanUp", "options": latest()[2]["cleanup"]})
                     results["ordered_recut_roundtrip_ms"] = review_latency[-1]

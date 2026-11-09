@@ -4,6 +4,8 @@ use shotclutch_project::Word;
 use shotclutch_time::Tick;
 use std::ops::Range;
 
+pub(super) mod broader;
+
 const MAX_WORDS: usize = 96;
 const LOOKBACK: usize = 48;
 

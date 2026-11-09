@@ -263,8 +263,13 @@ impl Workspace {
             self.refresh_audio(app, id, analysis_id, &analysis);
             return;
         }
-        self.review(app, id, json!({"kind":"cleanUp","options":self.cleanup_options(true)}));
+        let mut options = self.cleanup_options(true);
+        if options.mode == CleanupMode::GlingCompatible && options.take_matching == TakeMatching::OrderedV1 {
+            options.take_matching = TakeMatching::OrderedV2;
+        }
+        self.review(app, id, json!({"kind":"cleanUp","options":options}));
         if self.map != Some(id) {
+            self.cleanup.take_matching = options.take_matching;
             self.original = false;
             self.tab = ReviewTab::Script;
         }
@@ -461,11 +466,11 @@ impl Workspace {
                 cleanup_option(ui, &tokens, &mut self.cleanup.cut_bad_takes, "Remove repeated takes", "Detect repeated attempts. Compare or restore alternatives in Review cuts.");
                 if self.cleanup.mode == CleanupMode::GlingCompatible {
                     ui.add_enabled_ui(self.cleanup.cut_bad_takes, |ui| {
-                        let mut ordered = self.cleanup.take_matching == TakeMatching::OrderedV1;
-                        let response = ui.checkbox(&mut ordered, "Context-aware takes (preview)").on_hover_text("Match ordered phrases across a wider context. Preserve changed facts and unrelated passages; prefer complete attempts. Apply with Update cut. Existing cuts stay unchanged until then.");
+                        let mut ordered = self.cleanup.take_matching != TakeMatching::Legacy;
+                        let response = ui.checkbox(&mut ordered, "Context-aware takes (preview)").on_hover_text("Match repeated phrases across sentence breaks and small wording differences. Update cut uses the latest preview rules.");
                         app.auto.add_response("roughCut.takes.ordered", &response, "Context-aware takes");
                         if response.changed() {
-                            self.cleanup.take_matching = if ordered { TakeMatching::OrderedV1 } else { TakeMatching::Legacy };
+                            self.cleanup.take_matching = if ordered { TakeMatching::OrderedV2 } else { TakeMatching::Legacy };
                         }
                     });
                 }
@@ -1838,9 +1843,11 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
 
 fn review_reason(reason: &str) -> String {
     match reason {
-        "Context-aware v1: ordered-prefix-restart" => return "Incomplete repeated attempt".into(),
-        "Context-aware v1: ordered-equivalent-take" => return "Repeated statement".into(),
-        "Context-aware v1: filler-lexicon" => return "Recognized hesitation".into(),
+        "Context-aware v1: ordered-prefix-restart" | "Context-aware v2: ordered-prefix-restart" => return "Incomplete repeated attempt".into(),
+        "Context-aware v1: ordered-equivalent-take" | "Context-aware v2: ordered-equivalent-take" | "Context-aware v2: aligned-retake" => {
+            return "Repeated statement".into();
+        }
+        "Context-aware v1: filler-lexicon" | "Context-aware v2: filler-lexicon" => return "Recognized hesitation".into(),
         "Retained alternative (context-aware v1)" => return "Selected alternative".into(),
         _ => {}
     }

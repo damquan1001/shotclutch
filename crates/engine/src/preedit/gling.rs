@@ -79,7 +79,8 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
     let threshold = settings.min_pause_ms.map_or(analysis.settings.min_pause, |v| Tick::from_units(i64::from(v), 1000));
     let handle = settings.handle_ms.map_or(analysis.settings.handle, ms);
     let mut takes = Vec::new();
-    let take_threshold = if settings.take_matching == TakeMatching::OrderedV1 { ms(700) } else { threshold };
+    let ordered = settings.take_matching != TakeMatching::Legacy;
+    let take_threshold = if ordered { ms(700) } else { threshold };
     let mut start = 0;
     let mut end = words.first().map_or(Tick::ZERO, |w| w.end);
     for i in 1..words.len() {
@@ -105,9 +106,13 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
         }
     }
     let mut retired: Vec<_> = takes.iter().map(|r| marks[r.clone()].iter().all(Option::is_some)).collect();
-    if settings.cut_bad_takes && settings.take_matching == TakeMatching::OrderedV1 {
+    if settings.cut_bad_takes && ordered {
         if analysis.settings.language == "en" {
-            for removal in super::ordered_takes::detect(&words) {
+            let removals = match settings.take_matching {
+                TakeMatching::OrderedV2 => super::ordered_takes::broader::detect(&words),
+                _ => super::ordered_takes::detect(&words),
+            };
+            for removal in removals {
                 mark(&mut marks, removal.discard, Mark { bad_take: true, rule: removal.rule, keeper: Some(bounds(&words[removal.keep])) });
             }
         }
@@ -218,7 +223,9 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
                 candidates.push(Candidate {
                     range: TimeRange::from_bounds(start, end),
                     kind: if state.bad_take { CandidateKind::Take } else { CandidateKind::Filler },
-                    reason: if settings.take_matching == TakeMatching::OrderedV1 {
+                    reason: if settings.take_matching == TakeMatching::OrderedV2 {
+                        format!("Context-aware v2: {}", state.rule)
+                    } else if ordered {
                         format!("Context-aware v1: {}", state.rule)
                     } else {
                         format!("Gling-compatible: {}", state.rule)
@@ -230,12 +237,7 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
                     candidates.push(Candidate {
                         range: keep,
                         kind: CandidateKind::Take,
-                        reason: if settings.take_matching == TakeMatching::OrderedV1 {
-                            "Retained alternative (context-aware v1)"
-                        } else {
-                            "Retained alternative (Gling-compatible)"
-                        }
-                        .into(),
+                        reason: if ordered { "Retained alternative (context-aware v1)" } else { "Retained alternative (Gling-compatible)" }.into(),
                         confidence: None,
                     });
                     groups.push(TakeGroup { alternatives: vec![candidate, alternative], explanation: state.rule.into() });

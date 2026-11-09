@@ -4,7 +4,7 @@ Windows x64 / Rust 1.95.0, branch `codex/m2-smart-rough-cut`. Updated 2026-11-09
 
 For local source/human-export audio matching, identical-excerpt Tiny/Base comparisons and verified-label scoring, follow the [speech benchmark procedure](../../scripts/m2/SPEECH_BENCHMARK.md). This optional diagnostic requires NumPy and FFmpeg; it is separate from the standard-library CI gates below. Automatic audio anchors and transcript counts do not establish editorial accuracy or close M2 acceptance.
 
-For the ordered take-matching preview, enable Context-aware takes under Automatic in Setup and click Update cut. The existing saved transcript is sufficient. Reopen the saved project and verify that the setting, manual overrides and alternatives survive. The native `scripts/m2/qualify-workspace.py` harness accepts `--ordered-takes` to exercise this toggle and the normal review/refresh/apply walkthrough; it also saves an untouched automatic-baseline map for local comparison. Compare verified performance conflicts separately from total duration and leave uncertain matches unlabelled.
+For the ordered take-matching preview, enable Context-aware takes under Automatic in Setup and click Update cut. If the preview is already enabled in a V1 project, Update cut applies V2 to the saved transcript. Reopen the saved project and verify that the setting, manual overrides and alternatives survive. The native `scripts/m2/qualify-workspace.py` harness accepts `--ordered-takes` to exercise the toggle or upgrade and the normal review/refresh/apply walkthrough. It saves an untouched automatic baseline for local comparison. Compare verified performance conflicts separately from total duration and leave uncertain matches unlabelled.
 
 ## Correctness and build
 

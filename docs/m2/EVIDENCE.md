@@ -2,6 +2,16 @@
 
 This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## Broader retake matching — 2026-11-09
+
+The saved V1 result missed repeated attempts when recognition changed sentence boundaries, dropped opening words or produced a few different tokens. V2 compares ordered spans of neighboring clauses and uses surviving later spans or the original ordered matcher to resolve alternatives. It bounds the search by word count, boundary count and time. It checks speaker, protected values and names, leading subject, clause coverage and reliable unmatched words. An unfinished attempt can contain one low-confidence unmatched word when most of the ordered wording is shared. Exact ties can use the earlier complete take when the later performance offers no better join.
+
+Both versions used the same 3,935 saved words from the 2,271.551-second recording with 800 ms pause preservation and 150 ms breathing room. The V2 result is 1,211.602 seconds versus 1,324.622 for V1, a reduction of 113.020 seconds. Take groups increased from 19 to 51. Against the same 297 automatically matched reference anchors, provisional removal overlap fell from 23 windows and 22.207 seconds to 19 windows and 13.364 seconds. Human alignment and editorial labels remain pending. The evidence supports broader lexical recall on this recording, with semantic retakes, filler recovery and audible-join review still open.
+
+All 44 focused engine tests passed, with one private inference case ignored. New fixtures cover shifted sentence breaks, small opening differences and preservation of distinct material, including changed prices, names, numbers, subject and negation. The legacy differential corpus still passes.
+
+The desktop walkthrough opened the V1 project and upgraded it with Update cut. It passed take comparison, pause and phrase restoration, result playback, refresh with manual decisions preserved, save/reopen, apply, undo/redo and edited-target rejection. The input project stayed byte-identical. Saved-transcript recut took 14.40 ms over the control channel. The audio refresh took 40.48 seconds with the same recognized words. Candidate `shotclutch-smart-cut-retakes.exe` has SHA-256 `be0805b4658df61c7c72e2ac4b9295cf8a02461d95f09958a7e0beff92e72b70`.
+
 ## Ordered take-matching preview — 2026-11-09
 
 Added explicit `cleanup.takeMatching: "orderedV1"`, exposed as Context-aware takes (preview) under Automatic in Setup. Existing projects and new workspaces retain the legacy default. Update cut uses saved timed words; no inference, model acquisition or upload is needed. Classification uses independent utterance boundaries, ordered prefixes and bounded sequence alignment over up to 48 utterances/120 seconds, excluding artificial splits of long utterances. Changed content-bearing tokens, known speaker differences, short emphasis and unmatched passages remain retained. Only matched attempts are cut; unrelated intervening material is preserved. Completion and recognized hesitation counts precede an earlier-attempt tie; this is not a subjective delivery score. Alternative chains resolve to survivors and review buttons follow source order.
