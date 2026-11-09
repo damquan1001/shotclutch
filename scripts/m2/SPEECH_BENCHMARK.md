@@ -92,3 +92,13 @@ python scripts/m2/prepare_retake_review.py --benchmark target/m2-qualification/a
 ```
 
 Open the local listening page to compare A and B. Mark A, B, both or unsure in `labels.csv` after listening. Use the relation and notes columns for changed claims, complementary lines or performance differences. Add exact source times for any boundary adjustment. The export audio confirms specific performances in the edit. The nearby unmatched audio and the reason for each deletion still require editorial labels.
+
+## Confirmed retake cuts
+
+Use the baseline project from the review set, its confirmed `labels.csv`, and the completed short-window verification folder from the same baseline. The private `verified-preferences.json` must record the SHA-256 hashes of the baseline project, `cases.json` and `labels.csv` in the `baseline_sha256`, `cases_sha256` and `labels_sha256` fields. Each case must have one human-verified A or B choice and a blank boundary adjustment. Choose a fresh ignored output folder.
+
+```powershell
+python scripts/m2/qualify_retake_joins.py --exe '<native candidate.exe>' --project '<automatic baseline.scproj>' --review target/m2-qualification/retake-review --verification target/m2-qualification/verification-run --output target/m2-qualification/labeled-retake-joins
+```
+
+The runner opens a separate native instance and removes the alternate take using the ordinary Smart Cut review command. It checks the snapped cut against saved word timings, verifies that every chosen range remains intact and checks the result again after reopening `reviewed.scproj`. Listen to the seven join proxies in `review.html` and record any clipping, pacing or continuity issues in `join-labels.csv`. Open the private project in Shotclutch to hear the native result. Keep the projects, audio, labels and detailed reports local.

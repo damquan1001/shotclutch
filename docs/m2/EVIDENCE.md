@@ -2,6 +2,12 @@
 
 This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## Confirmed retake cuts — 2026-11-10
+
+The native candidate applied the seven confirmed choices as manual range edits to a private project copy. The exact preview duration fell from 1,211.602 to 1,147.803 seconds (20:12 to 19:08 rounded). The seven alternate ranges lost 63.799 seconds of previously retained material, including frame snapping at their edges. All seven chosen ranges stayed fully retained. No timed word outside the alternate ranges lost coverage. The preview segments and duration matched after save and reopen, and the input project hash stayed the same.
+
+Seven local listening clips use the actual preview join positions with three seconds of context on either side. The clips use mono source audio and approximate the native fades. Take choice is confirmed. The new joins still need listening review. The private result provides a reference for comparing future automatic take ranking on this recording. [Reproduction procedure](../../scripts/m2/SPEECH_BENCHMARK.md#confirmed-retake-cuts)
+
 ## Multi-clause retake review set — 2026-11-10
 
 The runner verified the original and edited export hashes and rechecked 295 source placements against fresh waveform decodes. It found 35 possible pairs across runs of up to four adjacent clauses in the 20:12 preview. Six non-overlapping cases have at least two matching excerpts from take B in the export. At least two probes from each earlier take were searched in the export, with no strong matches found in those probes. The current map retains 65.57 seconds across those six earlier spans. Safe removal duration depends on the editorial labels.
