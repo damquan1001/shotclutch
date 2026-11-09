@@ -6,9 +6,25 @@ from speech_benchmark import Matcher, sample_windows, removals, private_output
 from compare_speech import score, event_counts, edit_counts, alignment_score, validate_events, model_files
 from benchmark_uhm import CORE_FRAMES, HOP, probabilities, intervals, screen
 from prepare_retake_review import checked_anchors, disjoint_pair
+from prepare_gap_review import best_counterpart, ranked_gaps
 
 
 class RetakeReviewTests(unittest.TestCase):
+    def test_skipped_gap_excludes_reordered_export_audio_and_confirmed_takes(self):
+        anchors = [{"source": (0, 2), "reference": (0, 2)},
+                   {"source": (20, 22), "reference": (2, 4)},
+                   {"source": (8, 10), "reference": (4, 6)}]
+        gaps = ranked_gaps(anchors, [(3, 17)], [(6, 7), (15, 18)])
+        self.assertEqual([g["retained_seconds"] for g in gaps], [7, 5])
+        self.assertEqual([g["eligible"] for g in gaps], [[(10, 15)], [(3, 6), (7, 8)]])
+
+    def test_comparison_requires_ordered_words_and_distinct_source(self):
+        item = {"tokens": "head over to instagram and follow the account".split(), "range": (2, 8)}
+        match = {**item, "range": (18, 24), "text": "same phrase", "basis": "reference"}
+        scrambled = {**match, "tokens": list(reversed(item["tokens"]))}
+        self.assertIsNone(best_counterpart(item, [scrambled, {**match, "range": (3, 9)}]))
+        self.assertEqual(best_counterpart(item, [match])["ordered_coverage"], 1)
+
     def test_export_anchor_is_checked_against_actual_waveforms(self):
         original = np.random.default_rng(41).normal(0, 0.08, 32000).astype(np.float32)
         reference = original[4000:20000] * 0.8

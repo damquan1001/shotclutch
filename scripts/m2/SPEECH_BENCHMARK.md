@@ -102,3 +102,13 @@ python scripts/m2/qualify_retake_joins.py --exe '<native candidate.exe>' --proje
 ```
 
 The runner opens a separate native instance and removes the alternate take using the ordinary Smart Cut review command. It checks the snapped cut against saved word timings, verifies that every chosen range remains intact and checks the result again after reopening `reviewed.scproj`. Listen to the seven join proxies in `review.html` and record any clipping, pacing or continuity issues in `join-labels.csv`. Open the private project in Shotclutch to hear the native result. Keep the projects, audio, labels and detailed reports local.
+
+## Remaining retake gaps
+
+Compare the latest reviewed project with the same reference benchmark. Use the earlier confirmed choices report beside its saved project. The runner verifies the source and reference from the benchmark and checks that the confirmed map exists in the reviewed project's history.
+
+```powershell
+python scripts/m2/prepare_gap_review.py --benchmark target/m2-qualification/accuracy-v2 --project '<latest reviewed.scproj>' --choices '<confirmed choices folder>/report.json' --output target/m2-qualification/remaining-retake-review
+```
+
+Review begins with the six regions that retain the most material after excluding confirmed takes. Adjacent export anchors identify possible omissions. A placement anywhere else in the export protects its source interval from this set. Some clips have a comparison found by ordered transcript overlap, either from matched export audio or another retained source performance. Mark repeat, restart, off-script chatter, keep or unsure in the private worksheet and note partial boundaries. Treat the comparisons as listening leads.

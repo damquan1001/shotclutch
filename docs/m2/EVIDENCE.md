@@ -2,6 +2,12 @@
 
 This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## Remaining retake gap review — 2026-11-10
+
+Fresh decodes of the original and reference revalidated 295 waveform placements. At the stricter 0.86 waveform threshold, 41 source skips between adjacent reference excerpts contain 242.093 seconds still retained by the 18:49 reviewed map. The runner excludes all source ranges matched elsewhere in the export and protects 26.852 retained seconds inside explicitly chosen takes.
+
+The six largest eligible regions produced 29 listening clips covering 153.303 seconds. Fifteen clips covering 67.905 seconds have a plausible ordered transcript comparison. The comparisons include full-phrase repeats, partial restarts and cases where wording differs. They are review leads. The reference skips and transcript similarity do not establish editorial removal decisions. Twenty benchmark tests passed. The review audio, transcripts, exact ranges and labels remain local. [Reproduction procedure](../../scripts/m2/SPEECH_BENCHMARK.md#remaining-retake-gaps)
+
 ## Confirmed retake cuts — 2026-11-10
 
 The native candidate applied the seven confirmed choices as manual range edits to a private project copy. The exact preview duration fell from 1,211.602 to 1,147.803 seconds (20:12 to 19:08 rounded). The seven alternate ranges lost 63.799 seconds of previously retained material, including frame snapping at their edges. All seven chosen ranges stayed fully retained. No timed word outside the alternate ranges lost coverage. The preview segments and duration matched after save and reopen, and the input project hash stayed the same.
