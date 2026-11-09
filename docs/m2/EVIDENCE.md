@@ -8,6 +8,8 @@ The native candidate applied the seven confirmed choices as manual range edits t
 
 Seven local listening clips use the actual preview join positions with three seconds of context on either side. The clips use mono source audio and approximate the native fades. Take choice is confirmed. The new joins still need listening review. The private result provides a reference for comparing future automatic take ranking on this recording. [Reproduction procedure](../../scripts/m2/SPEECH_BENCHMARK.md#confirmed-retake-cuts)
 
+The editor subsequently flagged bad-take material in four clips. Three clips flagged only the lead-in. Two clips shared source audio, so the follow-up used three manual edits. One edit trimmed the newly flagged tail of a previously chosen take. Another preserved the lead-in to a chosen take that also appeared in the adjacent flagged clip. The other chosen takes kept full coverage. The revised private project saved and reopened at 1,136.884 seconds, an additional 10.919 seconds removed. Three revised joins are available for listening. The comments and exact source ranges remain local.
+
 ## Multi-clause retake review set — 2026-11-10
 
 The runner verified the original and edited export hashes and rechecked 295 source placements against fresh waveform decodes. It found 35 possible pairs across runs of up to four adjacent clauses in the 20:12 preview. Six non-overlapping cases have at least two matching excerpts from take B in the export. At least two probes from each earlier take were searched in the export, with no strong matches found in those probes. The current map retains 65.57 seconds across those six earlier spans. Safe removal duration depends on the editorial labels.
