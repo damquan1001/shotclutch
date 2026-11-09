@@ -70,3 +70,15 @@ The optional text trial reads a completed report and checks entailment in both d
 ```
 
 Use the reported pair numbers to find the corresponding audio on the listening page. The reported 0.85 and 0.95 thresholds describe this trial. Editorial decisions also require checking the words, context and performance.
+
+## Uhm acoustic filler trial
+
+Run the approved ONNX artifact from the local qualification folder using the pinned speech interpreter. Keep the vendor license and notices beside the weights. The runner checks the model hash and binds the saved cut map and cached PCM to the completed short-window verification report. [Pinned Uhm weights](https://huggingface.co/desert-ant-labs/uhm/tree/a0ab78540d724afa6d8caf09090936ffbfbbf3d1) · [Desert Ant Labs license](https://license.desertant.com/1.0)
+
+```powershell
+& '<private runtime>/Scripts/python.exe' scripts/m2/benchmark_uhm.py --model '<private weights>/uhm.onnx' --benchmark target/m2-qualification/accuracy-run --verification target/m2-qualification/verification-run --project '<current cut.scproj>' --output target/m2-qualification/uhm-run
+```
+
+The runner scores the full recording in fixed windows, retaining a single prediction per 20 ms frame. It reports uninterrupted spans of at least 120 ms for total filler scores at 0.65 and 0.75 and for the combined `uh` and `um` score at 0.75. This is a direct ONNX trial with its own windowing and span rules. The input report supplies the same 48 scored gaps used for the speech comparison. Timed word controls and the two Flite voices reproduce the earlier Vosk cohorts.
+
+Use `review.html` to listen to the strict `uh` and `um` candidates. The overlap screen excludes spans that touch a saved word with a 40 ms margin, a provisional reference match, or a current cut. Use `review.csv` to record listening labels. A passing span is available for review and still needs editorial validation.

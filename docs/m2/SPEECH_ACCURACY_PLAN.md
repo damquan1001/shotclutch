@@ -24,7 +24,7 @@ Measure event precision/recall by category, retained-word preservation, wrong-ta
 
 ### 2. Recover verbatim speech and detect fillers from audio
 
-The bounded Tiny/Base trial returned zero filler hypotheses in the selected gaps. The Vosk check produced one weak hypothesis that disappeared with competing words. A dedicated detector is the next candidate for evaluation with natural positive and negative labels. Uhm publishes ONNX weights under terms that say downloading accepts the license. Get explicit approval for that acquisition before benchmarking it. [Trial evidence](EVIDENCE.md#selective-speech-verification--2026-11-09) · [Uhm model card](https://huggingface.co/desert-ant-labs/uhm) · [Desert Ant Labs license](https://license.desertant.com/1.0)
+The bounded Tiny/Base trial returned zero filler hypotheses in the selected gaps. The Vosk check produced one weak hypothesis that disappeared with competing words. The approved local Uhm trial also returned zero in the selected gaps. Its five full-recording candidates all overlapped saved words. The candidate clips and natural positive and negative labels remain the basis for a further editorial accuracy check. [Uhm trial evidence](EVIDENCE.md#uhm-acoustic-filler-trial--2026-11-10) · [Earlier trial evidence](EVIDENCE.md#selective-speech-verification--2026-11-09)
 
 Keep Tiny as the fast first pass. Benchmark the existing Base English profile on a labeled excerpt set, and evaluate a specialist verbatim ASR or acoustic disfluency detector. Evaluate disfluency recall separately from ordinary word error rate. Check runtime, distribution terms and deployment requirements before selecting an additional model; do not silently install or upload media.
 

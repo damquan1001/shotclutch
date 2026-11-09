@@ -2,6 +2,16 @@
 
 This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## Uhm acoustic filler trial — 2026-11-10
+
+The approved local benchmark used the published Uhm ONNX model at revision `a0ab78540d724afa6d8caf09090936ffbfbbf3d1` with SHA-256 `fbd19765def76893841e0c70e498bf632d6c68175ceae5a2da8fe3bf7d9d0314`. The graph returned six probabilities per frame. Its bundled label file lists five classes, so the strict screen uses only the documented `uh` and `um` indices. The model and vendor notices are stored in the private qualification folder. [Pinned model and notices](https://huggingface.co/desert-ant-labs/uhm/tree/a0ab78540d724afa6d8caf09090936ffbfbbf3d1) · [Published class mapping](https://huggingface.co/desert-ant-labs/uhm/blob/a0ab78540d724afa6d8caf09090936ffbfbbf3d1/README.md)
+
+CPU inference covered 2,271.53 seconds of verified PCM in 121.25 seconds. With a minimum span of 120 ms, the total filler score flagged five spans at 0.65 and five at 0.75, covering 1.30 and 1.18 seconds respectively. The combined `uh` and `um` score at 0.75 flagged three spans totaling 0.66 seconds. Every flagged span overlapped saved word timings before the 40 ms safety margin. One also overlapped a provisional match to the edited reference. Zero spans passed the overlap screen.
+
+None of the three score variants produced a hypothesis in the 36 voiced gaps, 12 quiet gaps or 24 timed word controls used for the earlier comparison. On the same two-voice synthetic controls, the 0.75 total score flagged 2 of 6 intended filler clips and the strict score flagged 1 of 6. Both returned zero hits on six ordinary word clips. These observations leave natural filler recall and precision unknown. The three strict candidates are available in a private listening page with unreviewed label rows.
+
+All 16 benchmark tests passed in both Python environments. The new tests cover the join between overlapping inference windows, the partial source frame at the end and the saved speech overlap veto. [Reproduction procedure](../../scripts/m2/SPEECH_BENCHMARK.md#uhm-acoustic-filler-trial)
+
 ## Selective speech verification — 2026-11-09
 
 The local trial scanned 230 bounded gaps between saved words and found 37 with enough periodic audio to screen. It sampled 36 of those gaps, 12 quiet controls and 20 pairs retained by the broader matcher. Pinned Tiny and Base English each decoded identical excerpts with VAD disabled, both with and without a filler prompt. Both produced zero filler hypotheses inside the sampled gaps. Mean ordered word overlap on the 20 take pairs fell from 0.535 on the saved transcript to 0.473 for Tiny and 0.466 for Base. Each improved one pair by at least 0.15. The complete runs took 79.0 and 302.8 seconds respectively on this host. These cohorts have no verified speech labels. The observed counts leave filler recall and editorial accuracy unknown.

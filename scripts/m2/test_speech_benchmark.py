@@ -4,6 +4,29 @@ import numpy as np
 
 from speech_benchmark import Matcher, sample_windows, removals, private_output
 from compare_speech import score, event_counts, edit_counts, alignment_score, validate_events, model_files
+from benchmark_uhm import CORE_FRAMES, HOP, probabilities, intervals, screen
+
+
+class AcousticWindowTests(unittest.TestCase):
+    def test_window_join_preserves_every_frame_through_partial_tail(self):
+        expected = np.linspace(0, 1, CORE_FRAMES + 3, dtype=np.float32)
+        pcm = np.repeat(expected, HOP)[: -HOP // 2]
+
+        def infer(window):
+            scores = np.zeros((1, 1499, 6), dtype=np.float32)
+            scores[0, :, 0] = window[0, : 1499 * HOP : HOP]
+            scores[0, :, 1] = 1 - scores[0, :, 0]
+            return scores
+
+        np.testing.assert_array_equal(probabilities(pcm, infer)[:, 0], expected)
+
+    def test_short_tail_and_saved_speech_are_excluded_from_screen(self):
+        scores = np.r_[np.zeros(4), np.ones(6)]
+        self.assertEqual(intervals(scores, 0.75, 0.19), [])
+        events = intervals(scores, 0.75, 0.2)
+        self.assertEqual(len(events), 1)
+        self.assertTrue(screen(events, [(0, 0.08)], [], [])[0]["passes_overlap_screen"])
+        self.assertFalse(screen(events, [(0.19, 0.23)], [], [])[0]["passes_overlap_screen"])
 
 
 class AlignmentTests(unittest.TestCase):
