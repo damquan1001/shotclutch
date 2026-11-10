@@ -1,7 +1,7 @@
 //! Align repeated clauses across sentence breaks and small recognition differences.
 use super::{Removal, aligned, hesitation, terminal};
 use shotclutch_project::Word;
-use shotclutch_time::Tick;
+use shotclutch_time::{Tick, TimeRange};
 use std::collections::{BTreeMap, BTreeSet};
 use std::ops::Range;
 
@@ -464,6 +464,130 @@ pub(in crate::preedit) fn detect_restarts(words: &[&Word]) -> Vec<Removal> {
     result
 }
 
+/// Use the fast rules to find speech worth checking. A confirmed continuation
+/// may replace an abandoned fragment, regardless of which legacy take led here.
+pub(in crate::preedit) fn detect_screened(words: &[&Word], suggested: &[bool], quiet: &[TimeRange]) -> Vec<Removal> {
+    screen(words, suggested, quiet, detect_restarts(words))
+}
+
+fn screen(words: &[&Word], suggested: &[bool], quiet: &[TimeRange], mut result: Vec<Removal>) -> Vec<Removal> {
+    let keys: Vec<_> = words.iter().map(|w| w.normalized().replace('’', "'")).collect();
+    let edges = edges(words, &keys);
+    let mut discarded = vec![false; words.len()];
+    for cut in &result {
+        discarded[cut.discard.clone()].fill(true);
+    }
+
+    for (i, &start) in edges.iter().enumerate() {
+        // Opening discovery can insert an edge inside a stutter. Use the next
+        // spoken boundary to check the whole attempt before deciding what to cut.
+        let Some(&end) = edges[i + 1..]
+            .iter()
+            .take(4)
+            .find(|&&edge| edge == words.len() || gap(words, edge) >= ms(500) || closed(words[edge - 1]) || words[edge].speaker != words[edge - 1].speaker)
+        else {
+            continue;
+        };
+        let old = start..end;
+        if !(6..=24).contains(&old.len())
+            || old.end == words.len()
+            || gap(words, old.start) < ms(350)
+            || gap(words, old.end) < ms(500)
+            || closed(words[old.end - 1])
+            || !matches!(keys[old.end - 1].as_str(), "the" | "a" | "an" | "to" | "of" | "on" | "and" | "with" | "in" | "for")
+            || suggested[old.clone()].contains(&false)
+            || discarded[old.clone()].contains(&true)
+        {
+            continue;
+        }
+        let speaker = words[old.start].speaker;
+        if words[old.clone()].iter().any(|word| word.speaker != speaker) {
+            continue;
+        }
+
+        let stem = &keys[old.clone()];
+        let echo_end = (2..=4).find_map(|size| {
+            let next = size + usize::from(matches!(stem[size].as_str(), "and" | "but"));
+            (stem.len() >= next + size && stem[..size] == stem[next..next + size]).then_some(next)
+        });
+        let stem = &stem[echo_end.unwrap_or(0)..];
+        if stem.len() < if echo_end.is_some() { 4 } else { 8 } || stem.iter().filter(|key| anchor(key)).collect::<BTreeSet<_>>().len() < 2 {
+            continue;
+        }
+
+        // A keeper must repeat the complete fragment in order and carry it into
+        // actual speech. A shared opening, reordered words, or a silent gap is
+        // insufficient. Never accept anything between the two performances.
+        let touches_old = |range: &Range<usize>| range.start < old.end && old.start < range.end;
+        let keep = (old.end..(old.end + 36).min(words.len())).take_while(|&start| words[start].start - words[old.end - 1].end <= ms(9000)).find_map(|start| {
+            let continuation = start + stem.len();
+            let end = continuation + 2;
+            if end > words.len()
+                || &keys[start..continuation] != stem
+                || (start..end - 1).any(|i| closed(words[i]))
+                || (start + 1..end).any(|i| gap(words, i) > ms(500))
+                || words[start..end].iter().any(|word| word.speaker != speaker)
+                || discarded[start..end].contains(&true)
+                || result.iter().filter(|cut| touches_old(&cut.keep)).any(|cut| {
+                    // Move an existing link only when the whole fragment it
+                    // replaced is also present verbatim in this keeper.
+                    let previously_cut = &keys[cut.discard.clone()];
+                    !keys[start..end].windows(previously_cut.len()).any(|phrase| phrase == previously_cut)
+                })
+            {
+                return None;
+            }
+            Some(start..end)
+        });
+        if let Some(keep) = keep {
+            discarded[old.clone()].fill(true);
+            for cut in result.iter_mut().filter(|cut| touches_old(&cut.keep)) {
+                cut.keep = keep.clone();
+            }
+            result.push(Removal { discard: old, keep, rule: "screened-restart" });
+        }
+    }
+    // A copula plus an adverb is an incomplete lead. Require an immediate
+    // restatement of the modifier and a splice inside measured quiet.
+    for &start in &edges {
+        let Some([copula, modifier, next_subject, next_verb]) = keys.get(start..start + 4) else { continue };
+        if !matches!(copula.as_str(), "that's" | "it's" | "there's")
+            || !matches!(
+                modifier.as_str(),
+                "actually" | "almost" | "always" | "basically" | "generally" | "mostly" | "probably" | "really" | "sometimes" | "typically" | "usually"
+            )
+            || !words[start + 1].text.ends_with([',', '—', '-'])
+            || gap(words, start) < ms(350)
+            || suggested[start..start + 2].contains(&false)
+        {
+            continue;
+        }
+        let repeat = match (next_subject.as_str(), next_verb.as_str()) {
+            ("there" | "it", "is") => start + 4,
+            ("there's" | "it's", _) => start + 3,
+            _ => continue,
+        };
+        let end = repeat + 3;
+        let seam = words[start + 2].start;
+        let quiet_index = quiet.partition_point(|span| span.end() <= seam);
+        if end > words.len()
+            || &keys[repeat] != modifier
+            || words[start + 1].end > seam
+            || seam - words[start + 1].end > ms(400)
+            || !quiet.get(quiet_index).is_some_and(|span| span.start + ms(40) <= seam && seam + ms(40) <= span.end())
+            || discarded[start..end].contains(&true)
+            || words[start..end].iter().any(|word| word.speaker != words[start].speaker)
+            || (start + 3..end).any(|i| gap(words, i) > ms(500) || closed(words[i - 1]))
+            || result.iter().any(|cut| cut.keep.start < start + 2 && cut.keep.end > start)
+        {
+            continue;
+        }
+        discarded[start..start + 2].fill(true);
+        result.push(Removal { discard: start..start + 2, keep: start + 2..end, rule: "screened-quiet-restart" });
+    }
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -505,6 +629,50 @@ mod tests {
         ] {
             assert!(analyze_with(attempts, 750, detect_restarts).is_empty(), "{attempts:?}");
         }
+    }
+
+    #[test]
+    fn m2_screened_restart_checks_the_full_fragment_and_preserves_intervening_speech() {
+        let attempts = ["the panel and the panel accepts the", "The battery is removable.", "For reference, the panel accepts the larger display."];
+        let cuts = analyze_with(&attempts, 750, |words| detect_screened(words, &vec![true; words.len()], &[]));
+        let cut = cuts.iter().find(|cut| cut.rule == "screened-restart").unwrap();
+        assert_eq!(cut.discard, 0..7);
+        assert_eq!(cut.keep, 13..19);
+        let without_hint = analyze_with(&attempts, 750, |words| detect_screened(words, &vec![false; words.len()], &[]));
+        assert!(without_hint.iter().all(|cut| cut.rule != "screened-restart"));
+        for older in ["the panel and the panel rejects the", "the panel and the panel accepts a small display."] {
+            let cuts = analyze_with(&[older, attempts[1], attempts[2]], 750, |words| detect_screened(words, &vec![true; words.len()], &[]));
+            assert!(cuts.iter().all(|cut| cut.rule != "screened-restart"));
+        }
+    }
+
+    #[test]
+    fn m2_screened_restart_relinks_only_when_the_earlier_fragment_survives() {
+        for (lead, expected) in [("the panel accepts", true), ("the speaker accepts", false)] {
+            let cuts = analyze_with(
+                &[lead, "the panel and the panel accepts the", "The battery is removable.", "For reference, the panel accepts the larger display."],
+                750,
+                |words| {
+                    let prior = Removal { discard: 0..3, keep: 6..10, rule: "aligned-retake" };
+                    screen(words, &vec![true; words.len()], &[], vec![prior])
+                },
+            );
+            assert_eq!(cuts.len(), 1 + usize::from(expected));
+            assert_eq!(cuts[0].keep, if expected { 16..22 } else { 6..10 });
+        }
+    }
+
+    #[test]
+    fn m2_screened_quiet_restart_keeps_the_spoken_modifier() {
+        let run = |line: &str, quiet: &[TimeRange]| {
+            let words: Vec<_> = line.split_whitespace().enumerate().map(|(i, text)| Word::new(text, ms(i as i64 * 250), ms(i as i64 * 250 + 220))).collect();
+            detect_screened(&words.iter().collect::<Vec<_>>(), &vec![true; words.len()], quiet)
+        };
+        let quiet = [TimeRange::from_bounds(ms(450), ms(550))];
+        let cuts = run("That's usually, there is usually a delay.", &quiet);
+        assert!(cuts.iter().any(|cut| cut.discard == (0..2) && cut.keep == (2..7)));
+        assert!(run("That's usually, there is usually a delay.", &[]).is_empty());
+        assert!(run("That's usually, there is always a delay.", &quiet).is_empty());
     }
 
     #[test]

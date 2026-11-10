@@ -2,6 +2,14 @@
 
 This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## Screened Context-aware take matching V4 — 2026-11-10
+
+V4 uses legacy repeat detection to find candidate speech. A discarded fragment needs an exact nearby continuation after removing an opening echo. An existing take link moves only if its previously discarded words all survive in the new keeper. An aborted lead with a repeated modifier also qualifies when the splice falls inside measured quiet. V4 keeps the existing pause settings and preserves earlier saved rule versions.
+
+The native recut used the same complete Tiny English transcript and pause settings as V3. The result fell from 1,202.186 to 1,195.636 seconds. All 6.550 additional removed seconds overlap two previously labeled bad-take clips. There was no additional removal in the confirmed keeps, uncertain clips or the waveform matches at 0.95 or higher. Save and reopen reproduced the result, and recalculating the reviewed project preserved its overrides and earlier map. The recut took 159 ms over the local control channel. This comparison covers one recording and the existing editorial labels. A substantial gap to the reference remains.
+
+The engine checks passed 81 M1 and 50 M2 tests, with one private model rerun ignored. The 20 benchmark tests also passed. The Windows qualification executable is `shotclutch-smart-cut-screened.exe`, SHA-256 `b8f3fa1cab6067893729e683ca0cae5ebef845f2bfad09ff84d7014e7d156690`. The engine and UI were built with development optimization set to zero.
+
 ## Context-aware restart matching V3 — 2026-11-10
 
 V3 adds short abandoned openings with an immediate continuation, single-word pickups backed by a broken lead and a surviving matching opening, and isolated retry cues backed by repeated wording nearby. Updating the Context-aware takes preview uses V3. Older saved map revisions retain their stored rule version. An initial native run exposed one frame of audible lead-in loss when a sentence-ending retry cue was removed. The final rule preserves the lead-in padding and has a focused regression test.

@@ -82,17 +82,8 @@ fn mark(marks: &mut [Option<Mark>], range: Range<usize>, value: Mark) {
     }
 }
 
-pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSettings) -> PreEditMap {
-    let mut words: Vec<_> = analysis.chunks.iter().filter_map(|c| c.transcript.as_ref()).flat_map(|t| &t.words).filter(|w| w.end > w.start).collect();
-    words.sort_by_key(|w| w.start);
-    let mut ends: Vec<_> = words.iter().map(|w| w.end).collect();
-    ends.sort_unstable();
-    let keys: Vec<_> = words.iter().map(|w| normalized(&w.text)).collect();
-    let threshold = settings.min_pause_ms.map_or(analysis.settings.min_pause, |v| Tick::from_units(i64::from(v), 1000));
-    let handle = settings.handle_ms.map_or(analysis.settings.handle, ms);
+fn split_takes(words: &[&Word], take_threshold: Tick) -> Vec<Range<usize>> {
     let mut takes = Vec::new();
-    let ordered = settings.take_matching != TakeMatching::Legacy;
-    let take_threshold = if ordered { ms(700) } else { threshold };
     let mut start = 0;
     let mut end = words.first().map_or(Tick::ZERO, |w| w.end);
     for i in 1..words.len() {
@@ -107,6 +98,97 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
     if !words.is_empty() {
         takes.push(start..words.len());
     }
+    takes
+}
+
+fn mark_legacy(words: &[&Word], keys: &[String], takes: &[Range<usize>], marks: &mut [Option<Mark>]) {
+    let mut retired: Vec<_> = takes.iter().map(|r| marks[r.clone()].iter().all(Option::is_some)).collect();
+    for (index, current) in takes.iter().enumerate() {
+        let keeper = Some(bounds(&words[current.clone()]));
+        for previous in (index.saturating_sub(5)..index).rev() {
+            if retired[previous] || !opening(&keys[takes[previous].clone()], &keys[current.clone()]) {
+                continue;
+            }
+            for abandoned in previous..index {
+                mark(marks, takes[abandoned].clone(), Mark { bad_take: true, rule: "repeated-take-opening", keeper });
+                retired[abandoned] = true;
+            }
+        }
+        let mut patterns = Vec::new();
+        let mut first = current.start;
+        let mut seen = BTreeSet::new();
+        for i in current.clone() {
+            let key = pattern_key(&words[i].text);
+            if seen.contains(&key) {
+                patterns.push(first..i);
+                first = i;
+                seen.clear();
+            }
+            seen.insert(key);
+            if words[i].text.ends_with('?') && i + 1 < current.end {
+                patterns.push(first..i + 1);
+                first = i + 1;
+                seen.clear();
+            }
+        }
+        if first < current.end {
+            patterns.push(first..current.end);
+        }
+        for pair in patterns.windows(2) {
+            let (old, fresh) = (&pair[0], &pair[1]);
+            let positions: BTreeMap<_, _> = fresh.clone().enumerate().map(|(i, w)| (pattern_key(&words[w].text), i)).collect();
+            let (mut run, mut last) = (0usize, None);
+            let (mut best, mut old_at, mut new_at) = (0, 0, 0);
+            for (i, w) in old.clone().enumerate() {
+                let Some(&p) = positions.get(&pattern_key(&words[w].text)) else {
+                    run = 0;
+                    last = None;
+                    continue;
+                };
+                run = if last.is_some_and(|last| last + 1 == p) { run + 1 } else { 1 };
+                last = Some(p);
+                let candidate = (i + 1 - run, p + 1 - run);
+                if run > best || (run == best && candidate < (old_at, new_at)) {
+                    best = run;
+                    old_at = candidate.0;
+                    new_at = candidate.1;
+                }
+            }
+            if best >= 4
+                || (best >= 2
+                    && best * 5 >= old.len() * 2
+                    && old_at + best == old.len()
+                    && pattern_key(&words[old.start + old_at].text) == pattern_key(&words[fresh.start].text))
+            {
+                mark(marks, old.clone(), Mark { bad_take: true, rule: "repeated-within-take-pattern", keeper: Some(bounds(&words[fresh.clone()])) });
+            }
+        }
+        retired[index] = marks[current.clone()].iter().all(Option::is_some);
+        if index > 0 {
+            let previous = &takes[index - 1];
+            if let Some(relative) = keys[previous.clone()].iter().rposition(|key| *key == keys[current.start]) {
+                let suffix = previous.start + relative..previous.end;
+                let membership: BTreeSet<_> = keys[suffix.clone()].iter().collect();
+                let matched = keys[current.clone()].iter().take(suffix.len()).filter(|word| membership.contains(*word)).count();
+                if matched * 2 >= suffix.len() {
+                    mark(marks, suffix, Mark { bad_take: true, rule: "repeated-cross-take-suffix", keeper });
+                }
+            }
+            retired[index - 1] = marks[previous.clone()].iter().all(Option::is_some);
+        }
+    }
+}
+
+pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSettings) -> PreEditMap {
+    let mut words: Vec<_> = analysis.chunks.iter().filter_map(|c| c.transcript.as_ref()).flat_map(|t| &t.words).filter(|w| w.end > w.start).collect();
+    words.sort_by_key(|w| w.start);
+    let mut ends: Vec<_> = words.iter().map(|w| w.end).collect();
+    ends.sort_unstable();
+    let keys: Vec<_> = words.iter().map(|w| normalized(&w.text)).collect();
+    let threshold = settings.min_pause_ms.map_or(analysis.settings.min_pause, |v| Tick::from_units(i64::from(v), 1000));
+    let handle = settings.handle_ms.map_or(analysis.settings.handle, ms);
+    let ordered = settings.take_matching != TakeMatching::Legacy;
+    let takes = split_takes(&words, if ordered { ms(700) } else { threshold });
     let mut marks = vec![None; words.len()];
     if settings.cut_fillers && analysis.settings.language == "en" {
         let fillers =
@@ -117,10 +199,15 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
             }
         }
     }
-    let mut retired: Vec<_> = takes.iter().map(|r| marks[r.clone()].iter().all(Option::is_some)).collect();
     if settings.cut_bad_takes && ordered {
         if analysis.settings.language == "en" {
             let removals = match settings.take_matching {
+                TakeMatching::OrderedV4 => {
+                    let mut hints = marks.clone();
+                    mark_legacy(&words, &keys, &split_takes(&words, threshold), &mut hints);
+                    let suggested: Vec<_> = hints.iter().map(|mark| mark.is_some_and(|m| m.bad_take)).collect();
+                    super::ordered_takes::broader::detect_screened(&words, &suggested, &super::cleanup::quiet_ranges(analysis))
+                }
                 TakeMatching::OrderedV3 => super::ordered_takes::broader::detect_restarts(&words),
                 TakeMatching::OrderedV2 => super::ordered_takes::broader::detect(&words),
                 _ => super::ordered_takes::detect(&words),
@@ -130,80 +217,7 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
             }
         }
     } else if settings.cut_bad_takes {
-        for (index, current) in takes.iter().enumerate() {
-            let keeper = Some(bounds(&words[current.clone()]));
-            for previous in (index.saturating_sub(5)..index).rev() {
-                if retired[previous] || !opening(&keys[takes[previous].clone()], &keys[current.clone()]) {
-                    continue;
-                }
-                for abandoned in previous..index {
-                    mark(&mut marks, takes[abandoned].clone(), Mark { bad_take: true, rule: "repeated-take-opening", keeper });
-                    retired[abandoned] = true;
-                }
-            }
-            let mut patterns = Vec::new();
-            let mut first = current.start;
-            let mut seen = BTreeSet::new();
-            for i in current.clone() {
-                let key = pattern_key(&words[i].text);
-                if seen.contains(&key) {
-                    patterns.push(first..i);
-                    first = i;
-                    seen.clear();
-                }
-                seen.insert(key);
-                if words[i].text.ends_with('?') && i + 1 < current.end {
-                    patterns.push(first..i + 1);
-                    first = i + 1;
-                    seen.clear();
-                }
-            }
-            if first < current.end {
-                patterns.push(first..current.end);
-            }
-            for pair in patterns.windows(2) {
-                let (old, fresh) = (&pair[0], &pair[1]);
-                let positions: BTreeMap<_, _> = fresh.clone().enumerate().map(|(i, w)| (pattern_key(&words[w].text), i)).collect();
-                let (mut run, mut last) = (0usize, None);
-                let (mut best, mut old_at, mut new_at) = (0, 0, 0);
-                for (i, w) in old.clone().enumerate() {
-                    let Some(&p) = positions.get(&pattern_key(&words[w].text)) else {
-                        run = 0;
-                        last = None;
-                        continue;
-                    };
-                    run = if last.is_some_and(|last| last + 1 == p) { run + 1 } else { 1 };
-                    last = Some(p);
-                    let candidate = (i + 1 - run, p + 1 - run);
-                    if run > best || (run == best && candidate < (old_at, new_at)) {
-                        best = run;
-                        old_at = candidate.0;
-                        new_at = candidate.1;
-                    }
-                }
-                if best >= 4
-                    || (best >= 2
-                        && best * 5 >= old.len() * 2
-                        && old_at + best == old.len()
-                        && pattern_key(&words[old.start + old_at].text) == pattern_key(&words[fresh.start].text))
-                {
-                    mark(&mut marks, old.clone(), Mark { bad_take: true, rule: "repeated-within-take-pattern", keeper: Some(bounds(&words[fresh.clone()])) });
-                }
-            }
-            retired[index] = marks[current.clone()].iter().all(Option::is_some);
-            if index > 0 {
-                let previous = &takes[index - 1];
-                if let Some(relative) = keys[previous.clone()].iter().rposition(|key| *key == keys[current.start]) {
-                    let suffix = previous.start + relative..previous.end;
-                    let membership: BTreeSet<_> = keys[suffix.clone()].iter().collect();
-                    let matched = keys[current.clone()].iter().take(suffix.len()).filter(|word| membership.contains(*word)).count();
-                    if matched * 2 >= suffix.len() {
-                        mark(&mut marks, suffix, Mark { bad_take: true, rule: "repeated-cross-take-suffix", keeper });
-                    }
-                }
-                retired[index - 1] = marks[previous.clone()].iter().all(Option::is_some);
-            }
-        }
+        mark_legacy(&words, &keys, &takes, &mut marks);
     }
     let mut candidates = Vec::new();
     let mut groups = Vec::new();
@@ -237,6 +251,7 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
                     range: TimeRange::from_bounds(start, end),
                     kind: if state.bad_take { CandidateKind::Take } else { CandidateKind::Filler },
                     reason: match settings.take_matching {
+                        TakeMatching::OrderedV4 => format!("Context-aware v4: {}", state.rule),
                         TakeMatching::OrderedV3 => format!("Context-aware v3: {}", state.rule),
                         TakeMatching::OrderedV2 => format!("Context-aware v2: {}", state.rule),
                         TakeMatching::OrderedV1 => format!("Context-aware v1: {}", state.rule),
