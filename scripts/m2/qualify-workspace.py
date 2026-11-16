@@ -126,7 +126,7 @@ def run(args):
                         click("roughCut.takes.ordered")
                     call("ui.screenshot", {"path": str(output / "context-settings-private.png")})
                     click("roughCut.cleanUpSaved")
-                    assert latest()[2]["cleanup"]["takeMatching"] == "orderedV4"
+                    assert latest()[2]["cleanup"]["takeMatching"] == "orderedV5"
                     assert latest()[2]["cleanup"].get("preservePausesMs", 0) == args.preserve_pauses_ms
                     review({"kind": "cleanUp", "options": latest()[2]["cleanup"]})
                     results["ordered_recut_roundtrip_ms"] = review_latency[-1]

@@ -470,6 +470,87 @@ pub(in crate::preedit) fn detect_screened(words: &[&Word], suggested: &[bool], q
     screen(words, suggested, quiet, detect_restarts(words))
 }
 
+pub(in crate::preedit) fn resolve_restart_chains(words: &[&Word], mut cuts: Vec<Removal>) -> Vec<Removal> {
+    let keys: Vec<_> = words.iter().map(|w| w.normalized().replace('’', "'")).collect();
+    let mut discarded = vec![false; words.len()];
+    for cut in &cuts {
+        discarded[cut.discard.clone()].fill(true);
+    }
+    let original_links = cuts.len();
+    for i in 0..original_links {
+        let old = cuts[i].keep.clone();
+        if cuts[i].rule != "ordered-prefix-restart"
+            || !(8..=18).contains(&old.len())
+            || old.end == words.len()
+            || discarded[old.clone()].contains(&true)
+            || gap(words, old.start) < ms(500)
+            || gap(words, old.end) < ms(700)
+            || closed(words[old.end - 1])
+            || !matches!(keys[old.end - 1].as_str(), "of" | "the" | "a" | "an" | "to" | "with")
+            || words[old.end - 1].confidence >= 0.45
+        {
+            continue;
+        }
+        // An independently detected shorter attempt corroborates the restart.
+        // Every link must have the same opening and fit in the replacement.
+        let same_chain = |cut: &Removal| cut.keep.start < old.end && old.start < cut.keep.end;
+        if cuts
+            .iter()
+            .filter(|cut| same_chain(cut))
+            .any(|cut| cut.keep != old || cut.discard.len() < 4 || !keys[old.clone()].starts_with(&keys[cut.discard.clone()]))
+        {
+            continue;
+        }
+        let speaker = words[old.start].speaker;
+        let replacement = (old.end..words.len())
+            .take(96)
+            .take_while(|&start| words[start].start - words[old.end - 1].end <= ms(38_000))
+            .filter(|&start| gap(words, start) >= ms(500))
+            .find_map(|start| {
+                // The recognizer may spell a term differently across takes.
+                // Allow one internal substitution between exact phrases, and
+                // one trailing dangling word that the full take replaces.
+                let stem = &keys[old.start..old.end - 1];
+                let opening = keys.get(start..start + stem.len())?;
+                if stem[..4] != opening[..4] || stem.iter().take(4).filter(|key| anchor(key)).collect::<BTreeSet<_>>().len() < 2 {
+                    return None;
+                }
+                let mut differences = stem.iter().zip(opening).enumerate().filter(|(_, (a, b))| a != b);
+                if let Some((at, (a, b))) = differences.next()
+                    && (at + 2 >= stem.len()
+                        || protected(a)
+                        || protected(b)
+                        || differences.next().is_some()
+                        || a.len() < 3
+                        || b.len() < 3
+                        || !anchor(a)
+                        || !anchor(b))
+                {
+                    return None;
+                }
+                let min_end = start + stem.len() + 4;
+                let end = (min_end..=(start + 36).min(words.len())).find(|&end| closed(words[end - 1]))?;
+                let keep = start..end;
+                if discarded[keep.clone()].contains(&true)
+                    || words[keep.clone()].iter().any(|word| word.speaker != speaker)
+                    || (start + 1..end).any(|at| gap(words, at) > ms(500) || closed(words[at - 1]))
+                    || words[old.clone()].iter().any(|word| word.speaker != speaker)
+                {
+                    return None;
+                }
+                Some(keep)
+            });
+        if let Some(keep) = replacement {
+            for cut in cuts.iter_mut().filter(|cut| same_chain(cut)) {
+                cut.keep = keep.clone();
+            }
+            discarded[old.clone()].fill(true);
+            cuts.push(Removal { discard: old, keep, rule: "completed-restart-chain" });
+        }
+    }
+    cuts
+}
+
 fn screen(words: &[&Word], suggested: &[bool], quiet: &[TimeRange], mut result: Vec<Removal>) -> Vec<Removal> {
     let keys: Vec<_> = words.iter().map(|w| w.normalized().replace('’', "'")).collect();
     let edges = edges(words, &keys);
@@ -673,6 +754,40 @@ mod tests {
         assert!(cuts.iter().any(|cut| cut.discard == (0..2) && cut.keep == (2..7)));
         assert!(run("That's usually, there is usually a delay.", &[]).is_empty());
         assert!(run("That's usually, there is always a delay.", &quiet).is_empty());
+    }
+
+    #[test]
+    fn m2_restart_chain_uses_completed_take_across_recognition_differences() {
+        let run = |term: &str, first_term: &str, last_confidence: f32| {
+            let attempts = [
+                format!("These camera lenses use {first_term} built right to"),
+                format!("These camera lenses use {first_term},"),
+                format!("These camera lenses use {term} built right inside the body and need no adapter."),
+            ];
+            let words: Vec<_> = attempts
+                .iter()
+                .enumerate()
+                .flat_map(|(attempt, line)| {
+                    line.split_whitespace().enumerate().map(move |(i, text)| {
+                        let at = attempt as i64 * 3500 + i as i64 * 200;
+                        let mut word = Word::new(text, ms(at), ms(at + 200));
+                        if attempt == 0 && i == 7 {
+                            word.confidence = last_confidence;
+                        }
+                        word
+                    })
+                })
+                .collect();
+            let refs = words.iter().collect::<Vec<_>>();
+            resolve_restart_chains(&refs, vec![Removal { discard: 8..13, keep: 0..8, rule: "ordered-prefix-restart" }])
+        };
+        let cuts = run("stabilization", "stabilisation", 0.2);
+        assert_eq!(cuts.len(), 2);
+        assert_eq!(cuts[1].discard, 0..8);
+        assert_eq!(cuts[0].keep, cuts[1].keep);
+        assert_eq!(cuts[1].keep.start, 13);
+        assert_eq!(run("thirty", "sixty", 0.2).len(), 1);
+        assert_eq!(run("stabilization", "stabilisation", 0.9).len(), 1);
     }
 
     #[test]

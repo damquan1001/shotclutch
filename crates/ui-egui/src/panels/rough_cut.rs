@@ -265,7 +265,7 @@ impl Workspace {
         }
         let mut options = self.cleanup_options(true);
         if options.mode == CleanupMode::GlingCompatible && options.take_matching != TakeMatching::Legacy {
-            options.take_matching = TakeMatching::OrderedV4;
+            options.take_matching = TakeMatching::OrderedV5;
         }
         self.review(app, id, json!({"kind":"cleanUp","options":options}));
         if self.map != Some(id) {
@@ -470,7 +470,7 @@ impl Workspace {
                         let response = ui.checkbox(&mut ordered, "Context-aware takes (preview)").on_hover_text("Match repeated phrases across sentence breaks and small wording differences. Update cut uses the latest preview rules.");
                         app.auto.add_response("roughCut.takes.ordered", &response, "Context-aware takes");
                         if response.changed() {
-                            self.cleanup.take_matching = if ordered { TakeMatching::OrderedV4 } else { TakeMatching::Legacy };
+                            self.cleanup.take_matching = if ordered { TakeMatching::OrderedV5 } else { TakeMatching::Legacy };
                         }
                     });
                 }
@@ -1844,7 +1844,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
 fn review_reason(reason: &str) -> String {
     let detail = reason.strip_prefix("Context-aware v").and_then(|s| s.split_once(": ")).map_or(reason, |(_, detail)| detail);
     match detail {
-        "ordered-prefix-restart" | "short-restart-continuation" | "screened-restart" | "screened-quiet-restart" => {
+        "ordered-prefix-restart" | "short-restart-continuation" | "screened-restart" | "screened-quiet-restart" | "completed-restart-chain" => {
             return "Incomplete repeated attempt".into();
         }
         "ordered-equivalent-take" | "aligned-retake" => return "Repeated statement".into(),

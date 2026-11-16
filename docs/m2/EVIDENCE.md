@@ -2,6 +2,12 @@
 
 This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## Linking unfinished attempts to a complete take — 2026-11-16
+
+Context-aware V5 follows an existing prefix-restart link when its selected attempt also trails off. A nearby complete take can replace both attempts when the opening and continuation agree in order. The matcher allows one internal recognition difference with exact words around it and preserves the numeric and negation guards.
+
+Native recuts of the full V4 benchmark and the separately transcribed review project both removed 4.150 additional seconds. The new removal covered the flagged unfinished opening. No confirmed keep range or high-confidence export match lost coverage. The review copy saved and reopened at 1,189.084 seconds with all 14 manual decisions. Eighteen focused matcher and pacing checks and 20 benchmark tests passed. The Windows qualification executable is `target/m2-qualification/shotclutch-smart-cut-restart-chains.exe`, SHA-256 `e31ae4f53f399152230bc300a9826009ef66d2b56133ec3eefd2c4839c1a4150`.
+
 ## Screened Context-aware take matching V4 — 2026-11-10
 
 V4 uses legacy repeat detection to find candidate speech. A discarded fragment needs an exact nearby continuation after removing an opening echo. An existing take link moves only if its previously discarded words all survive in the new keeper. An aborted lead with a repeated modifier also qualifies when the splice falls inside measured quiet. V4 keeps the existing pause settings and preserves earlier saved rule versions.
