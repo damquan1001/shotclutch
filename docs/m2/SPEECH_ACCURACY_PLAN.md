@@ -2,6 +2,16 @@
 
 Assessment updated 2026-11-16. The local benchmark, Context-aware V6 matcher and bounded local audio recheck are implemented. Verbatim filler recovery, audio-based take ranking and semantic adjudication remain proposed. Branch `codex/m2-smart-rough-cut` retains the automatic-cut-then-review workflow. See the [benchmark procedure](../../scripts/m2/SPEECH_BENCHMARK.md) and [redacted results](EVIDENCE.md).
 
+## Gap audit — 2026-11-17
+
+The current V6 benchmark retained 1,186.401 seconds against a 692.011-second reference. Its history omitted the separate reviewed copy's 25 manual removals. Those approved ranges still covered 118.452 seconds of retained audio. Reconcile them with the latest selected takes before measuring progress on the user's cut. Keep the automatic baseline available for detector scoring. The reusable `scripts/m2/audit_cut_gap.py` checks this history difference and partitions the retained audio by reference evidence.
+
+Reproducing the audio-recheck selector on this transcript yielded ten windows totaling 140.580 seconds. They overlapped only two of the reviewed J removal ranges, both already removed from the current cut. The selector therefore missed every still-retained labeled failure. Increasing transcription accuracy within these same windows cannot recover the missed passages.
+
+The next detector change should select retained clusters of repeated clauses across the recording for audio verification. Rank them by repeated content and evidence of interruption, then measure how much labeled retained speech the selected windows cover before running inference. The existing long-word trigger remains useful for merged words. Completion checks need to support paraphrased continuations and preserve unique clauses, facts and selected takes. Full-take ranking requires further qualification because the prior broad retrieval experiment also matched many explicit keeps.
+
+Reference placement alone leaves 420.901 seconds of the current retained source unresolved. Another 213.466 seconds falls between adjacent matched reference excerpts, and 552.034 seconds overlaps matched source placements. These three categories partition the retained source duration. The net duration difference also depends on the reference audio absent from those placements. Continue alignment and transcript comparison on the largest remaining regions before attributing the entire gap to bad takes.
+
 ## Diagnosis from the current implementation
 
 `crates/engine/src/preedit/gling.rs` detects English fillers through a fixed vocabulary applied to recognized words. A hesitation omitted by ASR cannot reach that detector. The qualified Tiny English recording produced 3,935 words and zero raw filler candidates. This is evidence of a detection-coverage problem to investigate, not proof of how many fillers were spoken.

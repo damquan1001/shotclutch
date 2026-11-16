@@ -2,6 +2,14 @@
 
 This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## Reconciled reviewed cut and duration audit — 2026-11-17
+
+The latest V6 qualification copy and the earlier browser-reviewed copy had different project histories for the same source binding. The V6 copy omitted the earlier 25 removal decisions, leaving 118.452 seconds of those ranges retained. A separate current copy reapplied those decisions through the native review command while protecting the selected takes. Its 39 manual decisions reduced the cut from 1,186.401 to 1,070.700 seconds, a 115.701-second reduction. The remaining 2.751 seconds of older removal ranges were retained around selected takes. Confirmed keep coverage had zero additional loss. These gains restore reviewed decisions and carry no automatic detection credit.
+
+The reference lasts 692.011 seconds, leaving a 378.689-second difference. The reconciled cut contains 534.279 seconds overlapping high-confidence reference source placements, 145.174 seconds between adjacent reference excerpts, and 391.247 seconds with unresolved placement. These categories partition retained source audio. The audit does not assign an editorial deletion reason to unmatched audio. The executable remains the November 16 audio-recheck build.
+
+The new `scripts/m2/audit_cut_gap.py` reports both missing reviewed removals and reference coverage. Its partition regression includes reordered source audio. All 21 speech benchmark tests passed. The private project is `target/m2-qualification/reconciled-review-current/Smart Cut - Reconciled Review.scproj`.
+
 ## Local audio recheck — 2026-11-16
 
 Setup offers **Recheck retakes** for saved English speech with Automatic and Context-aware takes enabled. Base English · Fast transcribes up to ten short windows around unusually long words that contain quiet audio. The cut requires a repeated opening with a complete continuation, nearby timing agreement with the saved transcript, and measured quiet at the join. The project stores the resulting ranges and the model fingerprint. Captions still use the primary transcript.

@@ -7,9 +7,19 @@ from compare_speech import score, event_counts, edit_counts, alignment_score, va
 from benchmark_uhm import CORE_FRAMES, HOP, probabilities, intervals, screen
 from prepare_retake_review import checked_anchors, disjoint_pair
 from prepare_gap_review import best_counterpart, ranked_gaps
+from audit_cut_gap import account
 
 
 class RetakeReviewTests(unittest.TestCase):
+    def test_gap_accounting_partitions_retained_audio_and_preserves_reordered_matches(self):
+        anchors = [{"source": (0, 2), "reference": (0, 2)},
+                   {"source": (20, 22), "reference": (2, 4)},
+                   {"source": (8, 10), "reference": (4, 6)}]
+        result = account([(0, 25)], anchors)
+        self.assertEqual(result["matched_source_seconds"], 6)
+        self.assertEqual(result["between_adjacent_reference_anchors_seconds"], 16)
+        self.assertEqual(result["unresolved_source_seconds"], 3)
+
     def test_skipped_gap_excludes_reordered_export_audio_and_confirmed_takes(self):
         anchors = [{"source": (0, 2), "reference": (0, 2)},
                    {"source": (20, 22), "reference": (2, 4)},

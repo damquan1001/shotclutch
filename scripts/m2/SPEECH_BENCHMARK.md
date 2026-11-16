@@ -105,6 +105,14 @@ The runner opens a separate native instance and removes the alternate take using
 
 ## Remaining retake gaps
 
+Before comparing a new detector with a reviewed cut, account for its project history and duration. Pass the reviewed copy containing the approved removals to detect decisions missing from the new branch of project history.
+
+```powershell
+python scripts/m2/audit_cut_gap.py --benchmark target/m2-qualification/accuracy-v2/benchmark.json --project '<current.scproj>' --reviewed '<reviewed.scproj>' --output target/m2-qualification/gap-accounting.json
+```
+
+The report partitions retained audio into matched source placements, gaps between adjacent reference anchors, and unresolved audio. It also measures approved manual removals still present in the current cut, after applying the reviewed copy's ordered Keep reversals. Reconcile missing decisions through the native review command before measuring further progress on the user's cut. Score automatic detection against a separate unchanged baseline to avoid counting manual edits as detection gains.
+
 Compare the latest reviewed project with the same reference benchmark. Use the earlier confirmed choices report beside its saved project. The runner verifies the source and reference from the benchmark and checks that the confirmed map exists in the reviewed project's history.
 
 ```powershell
