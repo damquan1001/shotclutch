@@ -137,6 +137,7 @@ pub enum TakeMatching {
     OrderedV3,
     OrderedV4,
     OrderedV5,
+    OrderedV6,
 }
 
 impl TakeMatching {

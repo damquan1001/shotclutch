@@ -5,6 +5,8 @@ use shotclutch_time::{Tick, TimeRange};
 use std::collections::{BTreeMap, BTreeSet};
 use std::ops::Range;
 
+pub(in crate::preedit) mod indexed;
+
 const MAX_ATTEMPT: usize = 70;
 const MAX_ALTERNATIVE: usize = 90;
 const LOOKAHEAD: usize = 55;

@@ -2,6 +2,14 @@
 
 This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## Indexed restart continuations — 2026-11-16
+
+Context-aware V6 searches indexed phrase openings up to 150 seconds apart. The alternative must preserve the entire earlier passage in order and continue through a complete sentence. A distant match also requires evidence that the shorter attempt broke off. A short immediate retry can qualify when the audio is quiet at the seam and the new reading completes the same sentence.
+
+The native recut of the latest Tiny English review copy removed 2.683 additional seconds inside one labeled bad-take range. Confirmed keeps and high-confidence reference audio retained their coverage. The copy saved and reopened at 1,186.401 seconds with all 14 manual decisions. The older Tiny English benchmark returned the V5 result at 1,191.486 seconds. Its transcript merged the two readings at the newly detected restart. Twenty focused matcher and pacing tests and twenty benchmark tests passed.
+
+A separate local Whisper Base English run rechecked 123 seconds across seven windows in 37.11 wall seconds. It recovered both readings in the missed restart and recognized a retry cue misheard in the saved transcript. This was a diagnostic run. The production matcher uses saved words and measured quiet. The Windows qualification executable is `target/m2-qualification/shotclutch-smart-cut-indexed.exe`, SHA-256 `66bbca5ca10fdda497d3a72633e1893d78f5c60cfc6b1194acb3463d60294c9d`.
+
 ## Linking unfinished attempts to a complete take — 2026-11-16
 
 Context-aware V5 follows an existing prefix-restart link when its selected attempt also trails off. A nearby complete take can replace both attempts when the opening and continuation agree in order. The matcher allows one internal recognition difference with exact words around it and preserves the numeric and negation guards.

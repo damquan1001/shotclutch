@@ -202,12 +202,22 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
     if settings.cut_bad_takes && ordered {
         if analysis.settings.language == "en" {
             let removals = match settings.take_matching {
-                TakeMatching::OrderedV4 | TakeMatching::OrderedV5 => {
+                TakeMatching::OrderedV4 | TakeMatching::OrderedV5 | TakeMatching::OrderedV6 => {
                     let mut hints = marks.clone();
                     mark_legacy(&words, &keys, &split_takes(&words, threshold), &mut hints);
                     let suggested: Vec<_> = hints.iter().map(|mark| mark.is_some_and(|m| m.bad_take)).collect();
-                    let cuts = super::ordered_takes::broader::detect_screened(&words, &suggested, &super::cleanup::quiet_ranges(analysis));
-                    if settings.take_matching == TakeMatching::OrderedV5 { super::ordered_takes::broader::resolve_restart_chains(&words, cuts) } else { cuts }
+                    let quiet = super::cleanup::quiet_ranges(analysis);
+                    let cuts = super::ordered_takes::broader::detect_screened(&words, &suggested, &quiet);
+                    if settings.take_matching == TakeMatching::OrderedV4 {
+                        cuts
+                    } else {
+                        let cuts = super::ordered_takes::broader::resolve_restart_chains(&words, cuts);
+                        if settings.take_matching == TakeMatching::OrderedV6 {
+                            super::ordered_takes::broader::indexed::extend(&words, &quiet, cuts)
+                        } else {
+                            cuts
+                        }
+                    }
                 }
                 TakeMatching::OrderedV3 => super::ordered_takes::broader::detect_restarts(&words),
                 TakeMatching::OrderedV2 => super::ordered_takes::broader::detect(&words),
@@ -252,6 +262,7 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
                     range: TimeRange::from_bounds(start, end),
                     kind: if state.bad_take { CandidateKind::Take } else { CandidateKind::Filler },
                     reason: match settings.take_matching {
+                        TakeMatching::OrderedV6 => format!("Context-aware v6: {}", state.rule),
                         TakeMatching::OrderedV5 => format!("Context-aware v5: {}", state.rule),
                         TakeMatching::OrderedV4 => format!("Context-aware v4: {}", state.rule),
                         TakeMatching::OrderedV3 => format!("Context-aware v3: {}", state.rule),
