@@ -8,7 +8,7 @@ The latest V6 qualification copy and the earlier browser-reviewed copy had diffe
 
 The reference lasts 692.011 seconds, leaving a 378.689-second difference. The reconciled cut contains 534.279 seconds overlapping high-confidence reference source placements, 145.174 seconds between adjacent reference excerpts, and 391.247 seconds with unresolved placement. These categories partition retained source audio. The audit does not assign an editorial deletion reason to unmatched audio. The executable remains the November 16 audio-recheck build.
 
-The new `scripts/m2/audit_cut_gap.py` reports both missing reviewed removals and reference coverage. Its partition regression includes reordered source audio. All 21 speech benchmark tests passed. The private project is `target/m2-qualification/reconciled-review-current/Smart Cut - Reconciled Review.scproj`.
+The new `scripts/m2/audit_cut_gap.py` reports both missing reviewed removals and reference coverage. Its partition regression includes reordered source audio. All 21 speech benchmark tests passed. The private project is `target/m2-qualification/reconciled-review-current/Smart Cut - Reconciled Review.scproj`. A separate native instance reopened it and verified the 1,070.700-second result. Saving this 345 MB history exceeded the control server's response timeout, so qualification waited for the pending save and verified the resulting file independently.
 
 ## Local audio recheck — 2026-11-16
 
