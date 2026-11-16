@@ -2,6 +2,16 @@
 
 This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## Local audio recheck — 2026-11-16
+
+Setup offers **Recheck retakes** for saved English speech with Automatic and Context-aware takes enabled. Base English · Fast transcribes up to ten short windows around unusually long words that contain quiet audio. The cut requires a repeated opening with a complete continuation, nearby timing agreement with the saved transcript, and measured quiet at the join. The project stores the resulting ranges and the model fingerprint. Captions still use the primary transcript.
+
+In the native Windows app, the older Tiny English transcript had merged two readings into one. Rechecking ten windows took 58.36 seconds and removed 2.600 seconds of labeled bad-take audio. The cut went from 1,191.486 to 1,188.886 seconds with zero new loss in confirmed keep ranges. The original transcript, original benchmark file and existing manual Keep were preserved. The saved copy reopened with identical cuts. Update cut reused the result in 203 ms.
+
+The newer reviewed V6 copy already cut that restart. Its native recheck found zero additional confirmed restarts across ten windows. The 1,186.401-second cut and all 14 manual decisions were preserved.
+
+The 54 Smart Cut engine tests, 81 M1 engine tests, 3 Setup tests and 20 speech benchmark tests passed. The Windows qualification executable is `target/m2-qualification/shotclutch-smart-cut-audio-recheck.exe`, SHA-256 `b16c22f0ff6b9365401566e261c52e2e453f1f25455b249dd0bed15b5586ab1d`.
+
 ## Indexed restart continuations — 2026-11-16
 
 Context-aware V6 searches indexed phrase openings up to 150 seconds apart. The alternative must preserve the entire earlier passage in order and continue through a complete sentence. A distant match also requires evidence that the shorter attempt broke off. A short immediate retry can qualify when the audio is quiet at the seam and the new reading completes the same sentence.

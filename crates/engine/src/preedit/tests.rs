@@ -88,6 +88,7 @@ fn m2_gling_compatible_matches_opengling_synthetic_corpus() {
             analyzer_version: 3,
             model_digest: None,
             status: AnalysisStatus::Complete,
+            retake_recheck: None,
             chunks: vec![Arc::new(AnalysisChunk {
                 coverage: TimeRange::new(Tick::ZERO, duration),
                 transcript: Some(shotclutch_project::Transcript { language: "en".into(), words, ..Default::default() }),

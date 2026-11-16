@@ -74,6 +74,23 @@ pub struct PreEditAnalysis {
     pub model_digest: Option<String>,
     pub status: AnalysisStatus,
     pub chunks: Vec<Arc<AnalysisChunk>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub retake_recheck: Option<RetakeRecheck>,
+}
+
+pub const MAX_RETAKE_RECHECK_WINDOWS: usize = 10;
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct RetakeRecheck {
+    pub model_digest: String,
+    pub checked_windows: u8,
+    pub restarts: Vec<RecheckedRestart>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct RecheckedRestart {
+    pub discard: TimeRange,
+    pub keep: TimeRange,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -376,6 +393,19 @@ impl PreEdit {
             }
             if analysis.status == AnalysisStatus::Complete && end != analysis.source.range.end() {
                 return Err("complete rough-cut analysis has missing coverage".into());
+            }
+            if let Some(recheck) = &analysis.retake_recheck
+                && (recheck.model_digest.len() != 64
+                    || !recheck.model_digest.bytes().all(|byte| byte.is_ascii_hexdigit())
+                    || usize::from(recheck.checked_windows) > MAX_RETAKE_RECHECK_WINDOWS
+                    || recheck.restarts.len() > usize::from(recheck.checked_windows)
+                    || recheck
+                        .restarts
+                        .iter()
+                        .any(|r| !encloses(analysis.source.range, r.discard) || !encloses(analysis.source.range, r.keep) || r.discard.end() > r.keep.start)
+                    || recheck.restarts.windows(2).any(|r| r[0].keep.end() > r[1].discard.start))
+            {
+                return Err("invalid Smart Cut audio recheck".into());
             }
         }
         for (id, map) in &self.maps {

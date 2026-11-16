@@ -276,9 +276,17 @@ impl Workspace {
     }
 
     fn refresh_audio(&mut self, app: &mut ShotClutchApp, map: u64, id: u64, analysis: &PreEditAnalysis) {
+        self.reuse_analysis(app, map, id, analysis, false);
+    }
+
+    fn reuse_analysis(&mut self, app: &mut ShotClutchApp, map: u64, id: u64, analysis: &PreEditAnalysis, recheck: bool) {
         self.stop(app.audio.as_deref_mut());
         app.stop_source();
         let source = &analysis.source;
+        let mut cleanup = self.cleanup_options(true);
+        if recheck {
+            cleanup.take_matching = TakeMatching::OrderedV6;
+        }
         self.command(
             app,
             "preedit.analyze",
@@ -287,7 +295,7 @@ impl Workspace {
                 "model":analysis.settings.model, "language":analysis.settings.language,
                 "range":{"start":source.range.start.0.to_string(),"end":source.range.end().0.to_string()},
                 "reuseTranscript":id.to_string(),"previousMap":map.to_string(),"autoCut":true,
-                "minPauseMs":self.pause_ms,"handleMs":self.handle_ms,"cleanup":self.cleanup_options(true)
+                "minPauseMs":self.pause_ms,"handleMs":self.handle_ms,"cleanup":cleanup,"recheckRetakes":recheck
             }),
         );
     }
@@ -539,6 +547,23 @@ impl Workspace {
                         let analysis_id = map.analysis;
                         let analysis = app.session.project.preedit.analyses[&analysis_id].clone();
                         self.refresh_audio(app, id, analysis_id, &analysis);
+                    }
+                    let map = &app.session.project.preedit.maps[&id];
+                    let analysis_id = map.analysis;
+                    let analysis = app.session.project.preedit.analyses[&analysis_id].clone();
+                    let cleanup = self.cleanup_options(true);
+                    if cleanup.mode == CleanupMode::GlingCompatible
+                        && cleanup.take_matching != TakeMatching::Legacy
+                        && cleanup.cut_bad_takes
+                        && analysis.settings.model.is_some()
+                        && analysis.settings.language == "en"
+                    {
+                        let response =
+                            ui.button("Recheck retakes").on_hover_text("Recheck short sections of the original audio with Base English · Fast on this device.");
+                        app.auto.add_response("roughCut.recheckRetakes", &response, "Recheck retakes");
+                        if response.clicked() {
+                            self.reuse_analysis(app, id, analysis_id, &analysis, true);
+                        }
                     }
                 }
                 let label = if self.silence_only { "Analyze & cut pauses" } else { "Transcribe & cut" };

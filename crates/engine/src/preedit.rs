@@ -5,6 +5,7 @@ mod assembly;
 mod cleanup;
 mod gling;
 mod ordered_takes;
+mod recheck;
 #[cfg(test)]
 mod tests;
 
@@ -120,6 +121,8 @@ struct Start {
     resume: Option<u64>,
     #[serde(default, with = "optional_decimal")]
     reuse_transcript: Option<u64>,
+    #[serde(default)]
+    recheck_retakes: bool,
     #[serde(default)]
     auto_cut: bool,
     cleanup: Option<CleanupSettings>,
@@ -248,6 +251,16 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
     {
         return Err(fail("INVALID_ARGUMENT: audio refresh requires a completed analysis of the same source, stream, range and speech model"));
     }
+    if req.recheck_retakes
+        && (reuse.as_ref().is_none_or(|saved| saved.settings.model.is_none() || saved.settings.language != "en")
+            || !req.auto_cut
+            || !req.cleanup.is_some_and(|settings| {
+                settings.mode == CleanupMode::GlingCompatible && settings.take_matching == TakeMatching::OrderedV6 && settings.cut_bad_takes
+            })
+            || req.previous_map.and_then(|id| s.project.preedit.maps.get(&id)).is_none_or(|map| Some(map.analysis) != req.reuse_transcript))
+    {
+        return Err(fail("INVALID_ARGUMENT: retake recheck requires saved English speech and Context-aware takes"));
+    }
     if let Some(saved) = &resume
         && (saved.status == AnalysisStatus::Complete
             || saved.settings != settings
@@ -295,9 +308,17 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
                     analyzer_version: analysis::ANALYZER_VERSION,
                     status: AnalysisStatus::Running,
                     chunks: resume.map_or_else(Vec::new, |a| a.chunks.clone()),
+                    retake_recheck: reuse.as_ref().and_then(|a| a.retake_recheck.clone()),
                 };
-                send.send(Message::Started(analysis.clone())).map_err(|_| "CANCELED: project closed")?;
-                analysis::run(decoded.clone(), &mut analysis, reuse.as_deref(), req.api_key, &signal, &send)?;
+                if req.recheck_retakes {
+                    let saved = reuse.as_ref().ok_or("INVALID_ARGUMENT: saved transcript required")?;
+                    analysis.analyzer_version = saved.analyzer_version;
+                    analysis.retake_recheck = Some(recheck::run(&decoded, saved, &signal, &send)?);
+                    analysis.chunks.clone_from(&saved.chunks);
+                } else {
+                    send.send(Message::Started(analysis.clone())).map_err(|_| "CANCELED: project closed")?;
+                    analysis::run(decoded.clone(), &mut analysis, reuse.as_deref(), req.api_key, &signal, &send)?;
+                }
                 let cuts = req.auto_cut.then(|| {
                     let map = analysis::propose(0, &analysis, req.cleanup);
                     automatic_cuts(&map, &analysis, &*decoded)
@@ -305,6 +326,9 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
                 let after = verify_original(worker_path, identity, &signal)?;
                 if after.fingerprint.0 != analysis.source.sha256 || after.modified != verified.modified {
                     return Err("MEDIA_CHANGED: original changed during rough-cut analysis".into());
+                }
+                if req.recheck_retakes {
+                    send.send(Message::Started(analysis)).map_err(|_| "CANCELED: project closed")?;
                 }
                 Ok(cuts)
             })();
@@ -1042,7 +1066,7 @@ pub(crate) fn commands() -> Vec<CommandSpec> {
         command(
             "preedit.analyze",
             "Analyze Smart Cut",
-            r#"{"item":string,"audioStream":integer,"model":string?,"language":string?,"channel":integer?,"range":object?,"resume":string?,"previousMap":string?}"#,
+            r#"{"item":string,"audioStream":integer,"model":string?,"language":string?,"channel":integer?,"range":object?,"resume":string?,"previousMap":string?,"recheckRetakes":boolean?}"#,
             start,
         ),
         command("preedit.cancel", "Cancel Rough Cut Analysis", "{}", |s, _| {

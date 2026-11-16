@@ -1,10 +1,12 @@
 # M2 qualification procedure
 
-Windows x64 / Rust 1.95.0, branch `codex/m2-smart-rough-cut`. Updated 2026-11-09. Run from the repository root. Keep originals, transcripts, projects, screenshots, detailed labels and runtime logs outside tracked files. `target/m2-qualification` is ignored local storage. Commit only redacted aggregate results to [EVIDENCE.md](EVIDENCE.md).
+Windows x64 / Rust 1.95.0, branch `codex/m2-smart-rough-cut`. Updated 2026-11-16. Run from the repository root. Keep originals, transcripts, projects, screenshots, detailed labels and runtime logs outside tracked files. `target/m2-qualification` is ignored local storage. Commit only redacted aggregate results to [EVIDENCE.md](EVIDENCE.md).
 
 For local source/human-export audio matching, identical-excerpt Tiny/Base comparisons and verified-label scoring, follow the [speech benchmark procedure](../../scripts/m2/SPEECH_BENCHMARK.md). This optional diagnostic requires NumPy and FFmpeg; it is separate from the standard-library CI gates below. Automatic audio anchors and transcript counts do not establish editorial accuracy or close M2 acceptance.
 
 For the ordered take-matching preview, enable Context-aware takes under Automatic in Setup and click Update cut. Updating a saved V1–V5 preview applies V6 to the saved transcript. V6 indexes repeated openings and checks for a full continuation and a quiet boundary. Reopen the saved project and verify that the setting, manual overrides and alternatives survive. The native `scripts/m2/qualify-workspace.py` harness accepts `--ordered-takes` to exercise the toggle or upgrade and the normal review/refresh/apply walkthrough. It saves an untouched automatic baseline for local comparison. Compare verified performance conflicts separately from total duration and leave uncertain matches unlabelled.
+
+For the local audio recheck, install Base English · Fast and use a saved English transcript with Automatic and Context-aware takes enabled. Save a comparison copy after Update cut, then run **Recheck retakes** with the same settings. It checks at most ten short windows around unusually long words containing quiet audio. Compare the new cut against confirmed keep and discard labels, and verify that manual decisions carry forward. Reopen the copy and run Update cut again to verify that it reuses the saved findings. Canceling during the recheck leaves the previous cut available.
 
 ## Correctness and build
 

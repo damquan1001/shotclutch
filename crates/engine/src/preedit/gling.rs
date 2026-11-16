@@ -347,6 +347,28 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
             }
         }
     }
+    if settings.take_matching == TakeMatching::OrderedV6
+        && settings.cut_bad_takes
+        && let Some(recheck) = &analysis.retake_recheck
+    {
+        let keepers: BTreeSet<_> = groups.iter().filter_map(|group| group.alternatives.last().copied()).collect();
+        for restart in &recheck.restarts {
+            if candidates.iter().enumerate().any(|(i, candidate)| {
+                if keepers.contains(&i) {
+                    candidate.range.overlaps(&restart.discard)
+                } else {
+                    candidate.kind != CandidateKind::Pause && candidate.range.overlaps(&restart.keep)
+                }
+            }) {
+                continue;
+            }
+            let discard = candidates.len();
+            candidates.push(Candidate { range: restart.discard, kind: CandidateKind::Restart, reason: "Locally rechecked restart".into(), confidence: None });
+            let keep = candidates.len();
+            candidates.push(Candidate { range: restart.keep, kind: CandidateKind::Take, reason: "Completed reading".into(), confidence: None });
+            groups.push(TakeGroup { alternatives: vec![discard, keep], explanation: "Local audio recheck".into() });
+        }
+    }
     PreEditMap {
         analysis: id,
         previous: None,

@@ -76,7 +76,7 @@ fn anchor(key: &str) -> bool {
         )
 }
 
-fn protected(key: &str) -> bool {
+pub(in crate::preedit) fn protected(key: &str) -> bool {
     key.chars().any(char::is_numeric)
         || key.ends_with("n't")
         || matches!(
@@ -177,7 +177,7 @@ fn appears_named(word: &Word, key: &str, at_sentence_start: bool) -> bool {
     !glue(key) && uppercase.chars().next().is_some_and(char::is_uppercase) && (!at_sentence_start || uppercase.chars().filter(|c| c.is_uppercase()).count() > 1)
 }
 
-fn marker_text(word: &Word) -> String {
+pub(in crate::preedit) fn marker_text(word: &Word) -> String {
     // Retain signs and currencies as well as the number itself.
     word.text.trim_matches(|c: char| !c.is_alphanumeric() && !matches!(c, '$' | '€' | '£' | '¥' | '%' | '+' | '-' | '−')).to_lowercase().replace('’', "'")
 }

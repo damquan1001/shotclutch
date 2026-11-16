@@ -79,12 +79,12 @@ pub(in crate::preedit) fn extend(words: &[&Word], quiet: &[TimeRange], mut cuts:
     cuts
 }
 
-fn has_quiet_boundary(quiet: &[TimeRange], start: Tick, end: Tick) -> bool {
+pub(in crate::preedit) fn has_quiet_boundary(quiet: &[TimeRange], start: Tick, end: Tick) -> bool {
     let first = quiet.partition_point(|range| range.end() <= start);
     quiet[first..].iter().take_while(|range| range.start < end).any(|range| range.end().min(end) - range.start.max(start) >= ms(70))
 }
 
-fn continuation(words: &[&Word], keys: &[String], old: Range<usize>, start: usize, immediate: bool) -> Option<Range<usize>> {
+pub(in crate::preedit) fn continuation(words: &[&Word], keys: &[String], old: Range<usize>, start: usize, immediate: bool) -> Option<Range<usize>> {
     let repeated_end = start + old.len();
     if repeated_end + 3 > words.len()
         || (start < old.end && old.start < repeated_end + 3)
