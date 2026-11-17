@@ -8,9 +8,22 @@ from benchmark_uhm import CORE_FRAMES, HOP, probabilities, intervals, screen
 from prepare_retake_review import checked_anchors, disjoint_pair
 from prepare_gap_review import best_counterpart, ranked_gaps
 from audit_cut_gap import account
+from select_retake_windows import select_windows
+from speech_benchmark import TICKS
 
 
 class RetakeReviewTests(unittest.TestCase):
+    def test_verification_windows_follow_retained_repeats(self):
+        phrase = "This compact camera records clear footage inside the waterproof housing."
+        timed = [{"text": word, "start": round((start + i * .3) * TICKS),
+                  "end": round((start + i * .3 + .2) * TICKS)}
+                 for start in (0, 20) for i, word in enumerate(phrase.split())]
+        selected = select_windows(timed, [(19, 24)])
+        self.assertEqual(len(selected), 1)
+        self.assertGreater(selected[0]["range"][0], 19)
+        self.assertLess(selected[0]["counterpart"][0], 1)
+        self.assertEqual(select_windows(timed, []), [])
+
     def test_gap_accounting_partitions_retained_audio_and_preserves_reordered_matches(self):
         anchors = [{"source": (0, 2), "reference": (0, 2)},
                    {"source": (20, 22), "reference": (2, 4)},

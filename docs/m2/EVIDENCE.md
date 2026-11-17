@@ -2,6 +2,12 @@
 
 This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## Retained repeated-passage selection — 2026-11-18
+
+Added `scripts/m2/select_retake_windows.py` as a qualification-stage selector. It retrieves ordered phrase matches across nearby clauses, considers both directions, ranks currently retained passages by covered duration, and selects up to ten disjoint windows. It records the counterpart and detected meaning differences for subsequent audio verification. It applies no cuts.
+
+On the unchanged V6 benchmark, ten windows totaling 180.240 seconds covered 8.517 seconds of still-retained labeled bad takes. The previous long-word selector covered zero seconds of those failures. The new selector still missed other labeled failures and can nominate intentional repeats. These are retrieval measurements from the existing recording, not validated automatic removals. All 22 speech benchmark tests passed, including a regression requiring selection of the retained attempt when its counterpart has already been removed. Production integration and broader audio confirmation remain pending.
+
 ## Reconciled reviewed cut and duration audit — 2026-11-17
 
 The latest V6 qualification copy and the earlier browser-reviewed copy had different project histories for the same source binding. The V6 copy omitted the earlier 25 removal decisions, leaving 118.452 seconds of those ranges retained. A separate current copy reapplied those decisions through the native review command while protecting the selected takes. Its 39 manual decisions reduced the cut from 1,186.401 to 1,070.700 seconds, a 115.701-second reduction. The remaining 2.751 seconds of older removal ranges were retained around selected takes. Confirmed keep coverage had zero additional loss. These gains restore reviewed decisions and carry no automatic detection credit.

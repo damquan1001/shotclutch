@@ -105,6 +105,12 @@ The runner opens a separate native instance and removes the alternate take using
 
 ## Remaining retake gaps
 
+To nominate retained repeated passages for a subsequent local audio pass, run the qualification selector. Its output includes source windows, counterpart ranges and detected meaning differences. Keep this output local and measure candidate coverage separately from actual removals.
+
+```powershell
+python scripts/m2/select_retake_windows.py --project '<current.scproj>' --output target/m2-qualification/repeat-windows.json
+```
+
 Before comparing a new detector with a reviewed cut, account for its project history and duration. Pass the reviewed copy containing the approved removals to detect decisions missing from the new branch of project history.
 
 ```powershell
