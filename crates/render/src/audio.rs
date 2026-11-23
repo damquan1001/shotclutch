@@ -134,9 +134,24 @@ pub(crate) fn track_input_at(
         }
         let dur = (tr.end() - tr.start).to_units_floor(sr as i64).max(1) as f32;
         let base = (s0 - tr.start.to_units_floor(sr as i64)) as f32;
+        let edge_fade = tr.from.is_none() != tr.to.is_none();
+        let edge_samples = tr.end().to_units_floor(sr as i64) - tr.start.to_units_floor(sr as i64);
         for i in 0..n {
-            let p = (base + i as f32) / dur;
-            let (ga, gb) = transitions::audio_gains(&tr.effect.effect, p);
+            // A one-sided fade must include both endpoints of its actual sample
+            // span. Dividing by the duration leaves the last sample audible;
+            // a one-sample fade-out could otherwise retain its full amplitude.
+            let p = if edge_fade {
+                if edge_samples > 1 {
+                    (base + i as f32) / (edge_samples - 1) as f32
+                } else if tr.to.is_some() {
+                    0.0
+                } else {
+                    1.0
+                }
+            } else {
+                (base + i as f32) / dur
+            };
+            let (ga, gb) = if edge_fade && p >= 1.0 { (0.0, 1.0) } else { transitions::audio_gains(&tr.effect.effect, p) };
             for c in 0..w {
                 tbuf.channels[c][off + i] += a.channels[c][i] * ga + b.channels[c][i] * gb;
             }

@@ -62,8 +62,27 @@ pub struct Workspace {
     preview_attempt: Option<(u64, u64)>,
     model_install: ModelInstall,
     document: Option<String>,
+    local_review: bool,
+    review_install: ModelInstall,
+    pending_rule_cut: Option<(ItemId, u64)>,
+    review_job: Option<LocalJob>,
+    evidence_install: ModelInstall,
 }
 
+struct LocalJob {
+    evidence: bool,
+    progress: Option<Arc<std::sync::Mutex<shotclutch_engine::preedit::take_review::ReviewProgress>>>,
+    pairs: bool,
+    map: u64,
+    revision: u64,
+    cancel: Arc<std::sync::atomic::AtomicBool>,
+    result: mpsc::Receiver<Result<(Value, String), String>>,
+}
+impl Drop for LocalJob {
+    fn drop(&mut self) {
+        self.cancel.store(true, Ordering::Relaxed)
+    }
+}
 #[derive(Default)]
 struct TimelineSelection {
     range: Option<TimeRange>,
@@ -163,6 +182,9 @@ impl Workspace {
         let revision = app.session.revision.to_string();
         if let Some(reply) = self.command(app, "preedit.review", json!({"map":map.to_string(),"expectedRevision":revision,"action":action})) {
             self.map = reply["map"].as_str().and_then(|value| value.parse().ok());
+            if let Some(s) = reply["reviewSummary"].as_str() {
+                self.message = s.into()
+            }
         }
     }
 
@@ -231,6 +253,7 @@ impl Workspace {
             )
             .is_some()
         {
+            self.pending_rule_cut=(cut && self.local_review && self.cleanup.cut_bad_takes && !self.silence_only).then(||(item,app.session.project.preedit.maps.keys().next_back().copied().unwrap_or(0)));
             self.cleanup_initialized = true;
             self.tab = ReviewTab::Script;
         }
@@ -264,17 +287,96 @@ impl Workspace {
             return;
         }
         let mut options = self.cleanup_options(true);
-        if options.mode == CleanupMode::GlingCompatible && options.take_matching != TakeMatching::Legacy {
+        if options.mode == CleanupMode::GlingCompatible
+            && !matches!(options.take_matching, TakeMatching::Legacy | TakeMatching::OrderedV7 | TakeMatching::OrderedV8)
+        {
             options.take_matching = TakeMatching::OrderedV6;
         }
         self.review(app, id, json!({"kind":"cleanUp","options":options}));
         if self.map != Some(id) {
+            if self.local_review
+                && options.cut_bad_takes
+                && let Some(checkpoint) = self.map
+            {
+                self.begin_review(app, checkpoint, false);
+            }
             self.cleanup.take_matching = options.take_matching;
             self.original = false;
             self.tab = ReviewTab::Script;
         }
     }
 
+    fn begin_review(&mut self, app: &ShotClutchApp, id: u64, pairs: bool) {
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let map = app.session.project.preedit.maps[&id].clone();
+            let analysis = app.session.project.preedit.analyses[&map.analysis].clone();
+            let cancel = Arc::new(std::sync::atomic::AtomicBool::new(false));
+            let worker = cancel.clone();
+            let (send, result) = mpsc::channel();
+            match std::thread::Builder::new().name("local-take-review".into()).spawn(move || {
+                let reply = if pairs {
+                    shotclutch_engine::preedit::pair_review::run(id, &map, &analysis, &worker).map(|(r, s)| (json!(r), s))
+                } else {
+                    shotclutch_engine::preedit::local_review::run(id, &map, &analysis, &worker).map(|(r, s)| (json!(r), s))
+                };
+                let _ = send.send(reply);
+            }) {
+                Ok(_) => {
+                    self.review_job = Some(LocalJob { evidence: false, progress: None, pairs, map: id, revision: app.session.revision, cancel, result });
+                    self.message = "Reviewing takes locally…".into();
+                }
+                Err(e) => self.message = e.to_string(),
+            }
+        }
+    }
+    fn begin_evidence_review(&mut self, app: &mut ShotClutchApp, id: u64) {
+        let mut settings = self.cleanup_options(true);
+        settings.mode = CleanupMode::GlingCompatible;
+        settings.take_matching = TakeMatching::OrderedV6;
+        settings.cut_bad_takes = true;
+        self.review(app, id, json!({"kind":"cleanUp","options":settings}));
+        let Some(checkpoint) = self.map.filter(|&v| v != id) else { return };
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let map = app.session.project.preedit.maps[&checkpoint].clone();
+            let analysis = app.session.project.preedit.analyses[&map.analysis].clone();
+            let cancel = Arc::new(std::sync::atomic::AtomicBool::new(false));
+            let worker = cancel.clone();
+            let (send, result) = mpsc::channel();
+            let progress = Arc::new(std::sync::Mutex::new(Default::default()));
+            let worker_progress = progress.clone();
+            let stamp = match shotclutch_engine::preedit::take_review_stamp(&app.session, checkpoint) {
+                Ok(s) => s,
+                Err(e) => {
+                    self.message = e.to_string();
+                    return;
+                }
+            };
+            let model = shotclutch_engine::preedit::local_review::MODEL.id;
+            match std::thread::Builder::new().name("evidence-take-review".into()).spawn(move || {
+                let result = shotclutch_engine::preedit::take_review::run(checkpoint, &map, &analysis, model, &worker, &worker_progress).map(|mut r| {
+                    r.source_stamp = Some(stamp);
+                    (json!(r), "Evidence review completed".into())
+                });
+                let _ = send.send(result);
+            }) {
+                Ok(_) => {
+                    self.review_job = Some(LocalJob {
+                        evidence: true,
+                        progress: Some(progress),
+                        pairs: false,
+                        map: checkpoint,
+                        revision: app.session.revision,
+                        cancel,
+                        result,
+                    });
+                    self.message = "Reviewing spoken attempts locally…".into();
+                }
+                Err(e) => self.message = e.to_string(),
+            }
+        }
+    }
     fn refresh_audio(&mut self, app: &mut ShotClutchApp, map: u64, id: u64, analysis: &PreEditAnalysis) {
         self.reuse_analysis(app, map, id, analysis, false);
     }
@@ -284,7 +386,7 @@ impl Workspace {
         app.stop_source();
         let source = &analysis.source;
         let mut cleanup = self.cleanup_options(true);
-        if recheck {
+        if recheck && !matches!(cleanup.take_matching, TakeMatching::OrderedV7 | TakeMatching::OrderedV8) {
             cleanup.take_matching = TakeMatching::OrderedV6;
         }
         self.command(
@@ -480,7 +582,19 @@ impl Workspace {
                         if response.changed() {
                             self.cleanup.take_matching = if ordered { TakeMatching::OrderedV6 } else { TakeMatching::Legacy };
                         }
+                        if ordered {
+                            let mut verify=self.cleanup.take_matching==TakeMatching::OrderedV8;
+                            if ui.checkbox(&mut verify,"Require coverage by the later reading (experimental)").on_hover_text("Keep unique words after a repeated opening. This stricter check can also keep genuine retakes.").changed(){self.cleanup.take_matching=if verify{TakeMatching::OrderedV8}else{TakeMatching::OrderedV6};}
+                            let mut reference_first=matches!(self.cleanup.take_matching,TakeMatching::OrderedV7|TakeMatching::OrderedV8);
+                            if ui.checkbox(&mut reference_first,"Apply transcript rules first (experimental)").on_hover_text("Keeps the broad transcript-rule cuts before context matching. A repeated opening can remove intervening speech, including good takes.").changed(){
+                                self.cleanup.take_matching=if reference_first {TakeMatching::OrderedV7} else {TakeMatching::OrderedV6};
+                            }
+                        }
                     });
+                }
+                if self.cleanup.cut_bad_takes {
+                    ui.checkbox(&mut self.local_review,"Review takes with a local model (experimental)");
+                    if self.local_review { ui.label("Requires llama.cpp (llama-completion). The transcript stays on this device during review."); self.review_install.show(app,ui,shotclutch_engine::preedit::local_review::MODEL.id); }
                 }
                 cleanup_option(ui, &tokens, &mut self.cleanup.cut_fillers, "Remove fillers", "Cut hesitation sounds such as “um” and “uh.”");
             });
@@ -551,6 +665,36 @@ impl Workspace {
                     let map = &app.session.project.preedit.maps[&id];
                     let analysis_id = map.analysis;
                     let analysis = app.session.project.preedit.analyses[&analysis_id].clone();
+                    if map.automatic.is_some()
+                        && self.review_job.is_none()
+                        && ui
+                            .button("Compare remaining takes (experimental)")
+                            .on_hover_text("Compare nearby surviving readings with the local review model. Keeps existing edit decisions.")
+                            .clicked()
+                    {
+                        self.begin_review(app, id, true);
+                    }
+                    ui.separator();
+                    ui.label("Evidence-based take review (experimental)");
+                    ui.label("Local reviewer: Granite 2B");
+                    self.evidence_install.show(app, ui, shotclutch_engine::preedit::local_review::MODEL.id);
+                    if self.review_job.is_none()
+                        && ui
+                            .button("Review takes with evidence")
+                            .on_hover_text("Starts from conservative rules, then compares attempts and independently checks proposed cuts.")
+                            .clicked()
+                    {
+                        self.begin_evidence_review(app, id);
+                    }
+                    if let Some(job) = &self.review_job {
+                        if let Some(progress) = &job.progress {
+                            let p = progress.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+                            ui.label(format!("{} · {}/{} groups", p.phase, p.completed, p.total));
+                        }
+                        if ui.button("Cancel take review").clicked() {
+                            job.cancel.store(true, Ordering::Relaxed);
+                        }
+                    }
                     let cleanup = self.cleanup_options(true);
                     if cleanup.mode == CleanupMode::GlingCompatible
                         && cleanup.take_matching != TakeMatching::Legacy
@@ -1297,7 +1441,7 @@ impl ModelInstall {
             self.result = None;
         }
         let selected = self.model.as_deref().unwrap_or(model).to_owned();
-        let Some(info) = shotclutch_engine::transcript::speech_model(&selected) else {
+        let Some(info) = shotclutch_engine::preedit::take_review::model(&selected).or_else(|| shotclutch_engine::transcript::speech_model(&selected)) else {
             ui.label("Select a supported speech profile.");
             return;
         };
@@ -1347,13 +1491,21 @@ impl ModelInstall {
             None => {}
         }
         if !self.confirm {
-            let label = if self.result.is_some() { "Retry model download…" } else { "Install local speech model…" };
+            let label = if self.result.is_some() {
+                "Retry model download…"
+            } else if selected == shotclutch_engine::preedit::local_review::MODEL.id {
+                "Install local review model…"
+            } else {
+                "Install local speech model…"
+            };
             let response = ui.button(label);
             app.auto.add_response("roughCut.model.install", &response, label);
             self.confirm = response.clicked();
         }
         if self.confirm {
             ui.label(format!("{} · {:.0} MB · {}", info.name, info.size() as f64 / 1e6, info.license));
+            ui.hyperlink_to("Model source", info.source);
+            ui.hyperlink_to("Model license", info.license_url);
             if selected.starts_with("faster-whisper-") {
                 ui.label("Installs an isolated Python CPU speech runtime and the selected model. Inference stays on this device.");
             }
@@ -1417,6 +1569,52 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
         };
     }
 
+    if let Some(job) = &workspace.review_job {
+        let source_changed = app
+            .session
+            .project
+            .preedit
+            .maps
+            .get(&job.map)
+            .and_then(|m| app.session.project.preedit.analyses.get(&m.analysis))
+            .is_none_or(|a| Some(a.source.item) != workspace.source);
+        if source_changed
+            || app.session.revision != job.revision
+            || (!job.evidence && !job.pairs && (!workspace.local_review || !workspace.cleanup.cut_bad_takes))
+        {
+            workspace.review_job = None;
+            workspace.message = "Review stopped because the edit or settings changed.".into();
+        } else {
+            let result = job.result.try_recv();
+            let id = job.map;
+            let kind = if job.evidence {
+                "evidenceReview"
+            } else if job.pairs {
+                "pairReview"
+            } else {
+                "localTakeReview"
+            };
+            match result {
+                Ok(result) => {
+                    workspace.review_job = None;
+                    match result {
+                        Ok((response, status)) => {
+                            workspace.review(app, id, json!({"kind":kind,"response":response}));
+                            if workspace.message.is_empty() {
+                                workspace.message = status
+                            }
+                        }
+                        Err(e) => workspace.message = e,
+                    }
+                }
+                Err(mpsc::TryRecvError::Empty) => ui.ctx().request_repaint_after(std::time::Duration::from_millis(200)),
+                Err(_) => {
+                    workspace.review_job = None;
+                    workspace.message = "Local review stopped; kept the rule cut.".into();
+                }
+            }
+        }
+    }
     let bounds = rect.shrink2(vec2(10.0, 8.0));
     if let Some(result) = app.session.preedit_apply_result.take() {
         match result {
@@ -1443,6 +1641,17 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
         }
     } else {
         workspace.segments = None;
+    }
+    if app.session.preedit_job.is_none()
+        && let Some((source, previous)) = workspace.pending_rule_cut.take()
+        && let Some((id, map)) = map
+        && id > previous
+        && map.automatic.is_some()
+        && workspace.source == Some(source)
+        && workspace.local_review
+        && map.cleanup.is_some_and(|c| c.cut_bad_takes)
+    {
+        workspace.begin_review(app, id, false);
     }
     let segments = workspace.segments.as_ref().map(|(_, segments)| segments.clone()).unwrap_or_default();
     let duration = segments.last().map_or(Tick::ZERO, |segment| segment.output.end());

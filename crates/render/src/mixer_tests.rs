@@ -407,6 +407,59 @@ fn audio_transition_curves() {
     }
 }
 
+#[test]
+fn audio_short_edge_fades_reach_silence_and_ignore_render_block_size() {
+    fn left(_: i64, channel: usize) -> f32 {
+        if channel == 0 { 0.6 } else { -0.35 }
+    }
+    fn right(_: i64, channel: usize) -> f32 {
+        if channel == 0 { -0.4 } else { 0.2 }
+    }
+    for sr in [44_100, 48_000] {
+        for frames in [1, 2, 8, 1920] {
+            let mut r = Rig::new(&[left, right]);
+            r.p.sequence_mut(r.seq).unwrap().settings.sample_rate = sr as u32;
+            let duration = Tick::from_units(frames, sr);
+            let mut a = r.track(0).items[0].clone();
+            let mut b = r.track(1).items[0].clone();
+            a.duration = duration;
+            b.start = duration;
+            b.duration = duration;
+            r.track(1).items.clear();
+            r.track(0).items = vec![a.clone(), b.clone()];
+            let fade = Tick::from_units(5, 1000).min(Tick(duration.0 / 2));
+            for clip in [a, b] {
+                for (start, from, to) in [(clip.start, None, Some(clip.id)), (clip.end() - fade, Some(clip.id), None)] {
+                    let id = TransitionId(r.p.alloc_id());
+                    r.track(0).transitions.push(Transition {
+                        id,
+                        effect: shotclutch_project::find_effect("constant_power").unwrap().instance(),
+                        start,
+                        duration: fade,
+                        from,
+                        to,
+                        align: Default::default(),
+                        reverse: false,
+                    });
+                }
+            }
+            let count = frames as usize;
+            let whole = r.mix(0, 2 * count);
+            let blocks = r.mix_cut(0, 2 * count, &[1, 7, 64, 257], None);
+            for (signal, blocked) in whole.iter().zip(&blocks) {
+                for edge in [0, count - 1, count, 2 * count - 1] {
+                    assert_eq!(signal[edge], 0.0, "{sr} Hz, {frames}-sample clip, edge {edge}");
+                }
+                assert!(signal.iter().zip(blocked).all(|(a, b)| close(*a, *b, 1e-6)), "fade changed across render blocks");
+                if frames == 1920 {
+                    assert!(signal.windows(2).all(|s| (s[1] - s[0]).abs() < 0.01), "edge click in opposite-polarity splice");
+                    assert!(signal[count / 2].abs() > 0.3, "fade changed the clip interior");
+                }
+            }
+        }
+    }
+}
+
 /// A transition centred on a cut mixes both clips across its whole length: the outgoing clip plays
 /// on past its out point and the incoming one starts before its in point (their handles), as the
 /// picture does, so the two overlap instead of each just dipping at the cut. The incoming source is

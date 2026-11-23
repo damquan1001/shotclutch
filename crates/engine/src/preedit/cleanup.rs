@@ -366,6 +366,7 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, cleanup: Option<Clean
         }
     }
     PreEditMap {
+        take_review_report: None,
         analysis: id,
         previous: None,
         reviewed: false,

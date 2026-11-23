@@ -1,6 +1,6 @@
 # M2 qualification procedure
 
-Windows x64 / Rust 1.95.0, branch `codex/m2-smart-rough-cut`. Updated 2026-11-16. Run from the repository root. Keep originals, transcripts, projects, screenshots, detailed labels and runtime logs outside tracked files. `target/m2-qualification` is ignored local storage. Commit only redacted aggregate results to [EVIDENCE.md](EVIDENCE.md).
+Windows x64 / Rust 1.95.0, branch `codex/m2-smart-rough-cut`. Updated 2026-11-24. M2 is closed under the [review-assisted acceptance](M2_COMPLETION.md); this procedure remains available for reproducing its checks and future editorial qualification. Run from the repository root. Keep originals, transcripts, projects, screenshots, detailed labels and runtime logs outside tracked files. `target/m2-qualification` is ignored local storage. Commit only redacted aggregate results to [EVIDENCE.md](EVIDENCE.md).
 
 For local source/human-export audio matching, identical-excerpt Tiny/Base comparisons and verified-label scoring, follow the [speech benchmark procedure](../../scripts/m2/SPEECH_BENCHMARK.md). This optional diagnostic requires NumPy and FFmpeg; it is separate from the standard-library CI gates below. Automatic audio anchors and transcript counts do not establish editorial accuracy or close M2 acceptance.
 
@@ -16,7 +16,9 @@ python scripts/ci/m2-checks.py
 cargo build --locked -p shotclutch
 ```
 
-The M1 gate retains its original coverage. The M2 runner checks map/analysis/apply behavior, the 196-case synthetic OpenGling differential corpus, bounded ordered take matching, cleanup-form synchronization, edit boundary timestamps, speech catalogue/worker parsing and cancellation, Windows-compatible Unicode JSON transport, and AssemblyAI errors. It needs only the runner's Python standard library, not speech packages, private media, model downloads, credentials or a live provider. CI invokes both runners. Stop on a nonzero result; do not interpret a compile or empty filter as qualification.
+The M1 gate retains its original coverage. The M2 runner retains its `m2_` filter and also runs all model-independent `preedit::` and renderer `mixer_tests::` regressions. This includes the newer local/pair/evidence reviewer validation, cancellation and restoration cases and the short-fade/sample-boundary polish. A standard-library runner test verifies that either added suite's failure stops qualification. The gate also covers cleanup-form synchronization, edit boundary timestamps, speech catalogue/worker parsing and cancellation, Windows-compatible Unicode JSON transport, and AssemblyAI errors. It needs no speech packages, private media, model downloads, credentials or live provider. CI invokes both runners. Stop on a nonzero result; do not interpret a compile or empty filter as qualification.
+
+The optional `scripts/m2/qualify_evidence_review.py` recording benchmark reads the later keeper interval from a private JSON input with `source_seconds: [start, end]`. Supply `--keeper-label <private-file>` or place it at `labels-root/surviving-pairs/keeper-label.json`. Coordinates remain outside tracked source. Its default local input preserves the exact earlier qualification label; moving that label into an input does not change the measured results or rerun the models.
 
 If a running app locks the default executable, link the same source to a distinct candidate path using `cargo rustc --locked -p shotclutch --bin shotclutch -- -o <absolute-candidate.exe>`. Do not terminate the user's editor. After successful qualification, delete only superseded task-generated executable files in the verified build folder. Leave locked files for removal after the user closes them.
 

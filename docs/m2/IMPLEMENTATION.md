@@ -1,8 +1,8 @@
 # M2 Smart Cut
 
-Branch `codex/m2-smart-rough-cut` starts from the M1 closeout `b15c6439`. M2 covers UI-002 and PRE-001–PRE-005. The milestone stays open until the Windows editorial walkthrough and real-model qualification are recorded.
+Branch `codex/m2-smart-rough-cut` starts from the M1 closeout `b15c6439`. M2 covers UI-002 and PRE-001–PRE-005 and is **Done under the review-assisted scope, 2026-11-24**. [Closeout and checkpoint](M2_COMPLETION.md) records the accepted profile, evidence and known accuracy limits. M3 remains unstarted.
 
-[Redacted verification record](EVIDENCE.md), [qualification procedure](QUALIFICATION.md), and [acceptance register](ACCEPTANCE.md). Updated 2026-11-09. The product name is Smart Cut; existing `preedit` commands, schema names and branch name remain compatible.
+[Redacted verification record](EVIDENCE.md), [qualification procedure](QUALIFICATION.md), and [acceptance register](ACCEPTANCE.md). Updated 2026-11-24. The product name is Smart Cut; existing `preedit` commands, schema names and branch name remain compatible.
 
 ## Decisions
 
@@ -11,7 +11,7 @@ Branch `codex/m2-smart-rough-cut` starts from the M1 closeout `b15c6439`. M2 cov
 
 ## Project and service contracts
 
-Automatic cleanup supports versioned English take matching. Context-aware takes enables `cleanup.takeMatching: "orderedV2"`, and Update cut upgrades an active `orderedV1` preview explicitly. Saved maps retain their stored strategy and generated ranges. Missing fields use the legacy rules, and unknown versions are rejected. V2 aligns adjacent clauses against nearby attempts and checks ordered overlap, speaker, protected terms and unmatched content before cutting. The matcher uses fixed timing boundaries independently of pause pacing. Manual overrides and selected alternatives remain in the immutable map. Acoustic filler recovery and performance-quality ranking remain unqualified.
+Automatic cleanup supports versioned English take matching. Context-aware updates use conservative V6; broader V7 and coverage-based V8 remain experimental choices. Saved maps retain their stored strategy and generated ranges. Missing fields use the legacy rules, and unknown versions are rejected. Granite 2B remains the local reviewer. The focused evidence-review workflow stays opt-in after failing its unassisted accuracy gate; the 8B research candidate is not offered in the Windows interface. Manual overrides and selected alternatives remain in the immutable map. Acoustic filler recovery, automatic performance-quality ranking and unseen-recording accuracy remain unqualified.
 
 Schema v18 adds a typed `project.preedit` field. Older projects start with empty review state and use the normal migration backup and checksum checks. Analysis records bind a local original by asset ID, full SHA-256, byte length, source time range, stream, channel selection, and model/settings. Fast-profile model digests include the pinned inference profile as well as artifact hashes. Checkpoints hold absolute source times and bounded waveform bins. Fast recognition and AssemblyAI use five-minute chunks; legacy Candle and silence-only use 20 seconds, with up to one second of context on each side. Each completed chunk uses the recovery snapshot boundary. An interrupted analysis can resume after input verification. `preedit.inspect.progress` exposes volatile processed/total ticks and phase without advancing durable coverage or project revision.
 

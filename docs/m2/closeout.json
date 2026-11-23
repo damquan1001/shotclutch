@@ -1,0 +1,40 @@
+{
+  "milestone": "M2",
+  "status": "Done",
+  "accepted_scope": "Review-assisted local English Smart Cut",
+  "closed": "2026-11-24",
+  "timezone": "Asia/Bangkok",
+  "source_branch": "codex/m2-smart-rough-cut",
+  "source_tag": "m2-closeout-2026-11-24",
+  "local_reviewer": "Granite 2B",
+  "experimental_evidence_review_promoted": false,
+  "m3_started": false,
+  "windows_candidate": {
+    "path": "target/m2-qualification/local-take-review/shotclutch-smart-cut-polished.exe",
+    "sha256": "6f1df5c954add3424d836837d7fe6b7b52c7828852fd3c6b0fe8e2f6f0b5ddef",
+    "bytes": 76945920,
+    "signed_release": false
+  },
+  "reviewed_baseline": {
+    "duration_seconds": 877.362,
+    "sha256": "e8b7fee73b103443e3fcc6f58ca92a3dc5afb322c0f6d3bfa7196b6f821bb301",
+    "stored_overrides": 49,
+    "confirmed_keep_ranges_retained": 11,
+    "confirmed_keep_seconds_missing": 0,
+    "confirmed_bad_take_seconds_remaining": 0,
+    "confirmed_bad_take_seconds": 55.517,
+    "interior_joins_checked": 80,
+    "maximum_rendered_seam_step": 0
+  },
+  "local_gate_logs": {
+    "M1": "target/m2-closeout-m1.log",
+    "M2": "target/m2-closeout-m2.log"
+  },
+  "hosted_run_claimed": false,
+  "limitations": [
+    "Automatic bad-take decisions retain false cuts and misses",
+    "Failed evidence-review accuracy gates remain failed",
+    "Unseen-recording accuracy and acoustic filler recovery unqualified",
+    "Live AssemblyAI qualification remains separate"
+  ]
+}

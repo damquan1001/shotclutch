@@ -15,6 +15,17 @@ fn sentence_end(word: &Word) -> bool {
 }
 
 /// Independent of take grouping: preserve conversational gaps and avoid tiny edits.
+fn quiet_enough(start: Tick, end: Tick, quiet: &[TimeRange]) -> bool {
+    let mut total = 0;
+    let mut sustained = false;
+    for r in quiet[quiet.partition_point(|r| r.end() <= start)..].iter().take_while(|r| r.start < end) {
+        let overlap = r.end().min(end) - r.start.max(start);
+        total += overlap.0;
+        sustained |= overlap >= ms(150);
+    }
+    sustained && total >= (end - start).0.div_euclid(2)
+}
+
 fn paced_pause(
     start: Tick,
     end: Tick,
@@ -48,6 +59,35 @@ struct Mark {
 fn normalized(text: &str) -> String {
     let text = text.trim();
     text.strip_suffix(|c: char| ".,!?;:".contains(c)).unwrap_or(text).to_lowercase()
+}
+
+fn filler_words(language: &str) -> &'static [&'static str] {
+    match language {
+        "en" => &["er", "erm", "ermm", "err", "errr", "hm", "hmm", "hmmm", "um", "umm", "ummm", "ah", "uh", "uhh", "uhhh", "mhm", "mmhm", "mm-hm", "mm-hmm"],
+        "pt" => &["ãh", "ah", "eh", "éh", "hã", "hm", "hmm"],
+        "es" => &["eh", "ehh", "mm", "mmm", "um", "umm", "ah", "ahh"],
+        "fr" => &["euh", "euuh", "heu", "heuu", "ah", "oh", "mm", "mmm"],
+        "de" => &["äh", "ähm", "ähmm", "eh", "ehm", "hm", "hmm", "mm", "mmm", "oh"],
+        "uk" => &["е", "ее", "ем", "емм", "м", "мм", "ммм"],
+        "ru" => &["э", "эм", "эмм", "а", "ах", "м", "мм", "ммм"],
+        "he" => &["אה", "אהה", "אהם", "אממ", "הממ"],
+        "iw" => &["אה", "אהה", "אהם", "אממ", "הממ"],
+        "it" => &["eh", "ehh", "mm", "mmm", "ah", "ahh", "oh", "ohh"],
+        "nl" => &["eh", "ehh", "mm", "mmm", "ah", "ahh", "oh", "ohh"],
+        "da" => &["øh", "øhh", "ah", "ahh", "mm", "mmm", "hm", "hmm"],
+        "no" => &["øh", "øhh", "eh", "ehh", "mm", "mmm", "hm", "hmm"],
+        "nb" => &["øh", "øhh", "eh", "ehh", "mm", "mmm", "hm", "hmm"],
+        "sv" => &["öh", "öhh", "eh", "ehh", "mm", "mmm", "hm", "hmm"],
+        "fi" => &["öö", "ööh", "mm", "mmm", "hmm", "hmmm", "no", "noo"],
+        "cs" => &["eh", "ehh", "mm", "mmm", "hm", "hmm", "no", "noo"],
+        "pl" => &["eee", "eem", "mm", "mmm", "hm", "hmm", "no", "noo"],
+        "sk" => &["eh", "ehh", "mm", "mmm", "hm", "hmm"],
+        "hu" => &["ö", "öö", "ööö", "öööö", "mm", "mmm", "hm", "hmm"],
+        "bg" => &["ъъъ", "ъъ", "ъм", "ъмм", "м", "мм", "ммм"],
+        "ro" => &["ăă", "ăăă", "îî", "păi", "mm", "mmm", "hm", "hmm"],
+        "tr" => &["ııı", "ıı", "ıh", "ıhh", "mm", "mmm", "hmm", "hmmm"],
+        _ => &[],
+    }
 }
 
 fn pattern_key(text: &str) -> String {
@@ -179,6 +219,50 @@ fn mark_legacy(words: &[&Word], keys: &[String], takes: &[Range<usize>], marks: 
     }
 }
 
+pub(super) fn covered_reading(earlier: &[&Word], later: &[&Word]) -> bool {
+    let compact = |words: &[&Word]| {
+        let mut out: Vec<String> = vec![];
+        for w in words {
+            let key = pattern_key(&w.text);
+            if !key.is_empty() && out.last() != Some(&key) {
+                out.push(key);
+            }
+        }
+        out
+    };
+    let a = compact(earlier);
+    let b = compact(later);
+    // Matching the whole earlier phrase prevents a repeated opening from
+    // erasing the different facts or conclusion which follow it.
+    a.len() >= 3 && a.len() <= b.len() && b.windows(a.len()).any(|w| w == a)
+}
+fn screen_coverage(words: &[&Word], marks: &mut [Option<Mark>]) {
+    let old = marks.to_vec();
+    let mut i = 0;
+    while i < old.len() {
+        let first = i;
+        let Some(m) = old[i] else {
+            i += 1;
+            continue;
+        };
+        i += 1;
+        while i < old.len() && old[i].is_some_and(|v| v.bad_take == m.bad_take && v.keeper == m.keeper && v.rule == m.rule) {
+            i += 1
+        }
+        if !m.bad_take {
+            continue;
+        }
+        let valid = m.keeper.is_some_and(|r| {
+            let start = words.partition_point(|w| w.start < r.start);
+            let end = words.partition_point(|w| w.start < r.end());
+            !sentence_end(words[i - 1]) && start >= i && end > start && covered_reading(&words[first..i], &words[start..end])
+        });
+        if !valid {
+            marks[first..i].fill(None)
+        }
+    }
+}
+
 pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSettings) -> PreEditMap {
     let mut words: Vec<_> = analysis.chunks.iter().filter_map(|c| c.transcript.as_ref()).flat_map(|t| &t.words).filter(|w| w.end > w.start).collect();
     words.sort_by_key(|w| w.start);
@@ -188,23 +272,33 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
     let threshold = settings.min_pause_ms.map_or(analysis.settings.min_pause, |v| Tick::from_units(i64::from(v), 1000));
     let handle = settings.handle_ms.map_or(analysis.settings.handle, ms);
     let ordered = settings.take_matching != TakeMatching::Legacy;
-    let takes = split_takes(&words, if ordered { ms(700) } else { threshold });
+    let reference_first = matches!(settings.take_matching, TakeMatching::OrderedV7 | TakeMatching::OrderedV8);
+    let language = analysis.settings.language.split(['-', '_']).next().unwrap_or("").to_ascii_lowercase();
+    let takes = split_takes(&words, if ordered && !reference_first { ms(700) } else { threshold });
     let mut marks = vec![None; words.len()];
-    if settings.cut_fillers && analysis.settings.language == "en" {
-        let fillers =
-            ["er", "erm", "ermm", "err", "errr", "hm", "hmm", "hmmm", "um", "umm", "ummm", "ah", "uh", "uhh", "uhhh", "mhm", "mmhm", "mm-hm", "mm-hmm"];
+    if settings.cut_fillers {
+        let fillers = filler_words(&language);
         for (i, key) in keys.iter().enumerate() {
             if fillers.contains(&key.as_str()) {
                 marks[i] = Some(Mark { bad_take: false, rule: "filler-lexicon", keeper: None });
             }
         }
     }
+    // Commit the reference classifications before considering supplemental English matches.
+    if settings.cut_bad_takes && reference_first {
+        mark_legacy(&words, &keys, &takes, &mut marks);
+        if settings.take_matching == TakeMatching::OrderedV8 {
+            screen_coverage(&words, &mut marks);
+        }
+    }
     if settings.cut_bad_takes && ordered {
-        if analysis.settings.language == "en" {
+        if language == "en" {
             let removals = match settings.take_matching {
-                TakeMatching::OrderedV4 | TakeMatching::OrderedV5 | TakeMatching::OrderedV6 => {
+                TakeMatching::OrderedV4 | TakeMatching::OrderedV5 | TakeMatching::OrderedV6 | TakeMatching::OrderedV7 | TakeMatching::OrderedV8 => {
                     let mut hints = marks.clone();
-                    mark_legacy(&words, &keys, &split_takes(&words, threshold), &mut hints);
+                    if !reference_first || settings.take_matching == TakeMatching::OrderedV8 {
+                        mark_legacy(&words, &keys, &split_takes(&words, threshold), &mut hints);
+                    }
                     let suggested: Vec<_> = hints.iter().map(|mark| mark.is_some_and(|m| m.bad_take)).collect();
                     let quiet = super::cleanup::quiet_ranges(analysis);
                     let cuts = super::ordered_takes::broader::detect_screened(&words, &suggested, &quiet);
@@ -212,7 +306,7 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
                         cuts
                     } else {
                         let cuts = super::ordered_takes::broader::resolve_restart_chains(&words, cuts);
-                        if settings.take_matching == TakeMatching::OrderedV6 {
+                        if matches!(settings.take_matching, TakeMatching::OrderedV6 | TakeMatching::OrderedV7 | TakeMatching::OrderedV8) {
                             super::ordered_takes::broader::indexed::extend(&words, &quiet, cuts)
                         } else {
                             cuts
@@ -223,7 +317,31 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
                 TakeMatching::OrderedV2 => super::ordered_takes::broader::detect(&words),
                 _ => super::ordered_takes::detect(&words),
             };
+            let mut keeper_edges = vec![0i32; words.len() + 1];
+            if reference_first {
+                for keeper in marks.iter().flatten().filter_map(|m| m.keeper) {
+                    let first = words.partition_point(|w| w.start < keeper.start);
+                    let end = words.partition_point(|w| w.start < keeper.end());
+                    keeper_edges[first] += 1;
+                    keeper_edges[end] -= 1;
+                }
+            }
+            let mut depth = 0;
+            let protected: Vec<_> = keeper_edges
+                .iter()
+                .map(|d| {
+                    depth += d;
+                    depth > 0
+                })
+                .collect();
             for removal in removals {
+                if reference_first
+                    && (removal.discard.clone().any(|i| protected[i] || marks[i].is_some_and(|m| m.bad_take))
+                        || removal.keep.clone().any(|i| marks[i].is_some_and(|m| m.bad_take)))
+                {
+                    continue;
+                }
+
                 mark(&mut marks, removal.discard, Mark { bad_take: true, rule: removal.rule, keeper: Some(bounds(&words[removal.keep])) });
             }
         }
@@ -249,8 +367,20 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
             {
                 i += 1;
             }
-            let start = if first > take.start { words[first - 1].end } else { words[take.start].start };
-            let end = if i + 1 < take.end { words[i + 1].start } else { words[take.end - 1].end };
+            let start = if settings.take_matching == TakeMatching::OrderedV8 {
+                words[first].start
+            } else if first > take.start {
+                words[first - 1].end
+            } else {
+                words[take.start].start
+            };
+            let end = if settings.take_matching == TakeMatching::OrderedV8 {
+                words[i].end
+            } else if i + 1 < take.end {
+                words[i + 1].start
+            } else {
+                words[take.end - 1].end
+            };
             let own = first..i + 1;
             let intersects = words.partition_point(|w| w.start < end).saturating_sub(ends.partition_point(|e| *e <= start));
             let safe = end > start && words[own.clone()].iter().all(|w| w.start >= start && w.end <= end) && intersects == own.len();
@@ -262,6 +392,8 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
                     range: TimeRange::from_bounds(start, end),
                     kind: if state.bad_take { CandidateKind::Take } else { CandidateKind::Filler },
                     reason: match settings.take_matching {
+                        TakeMatching::OrderedV8 => format!("Context-aware v8: {}", state.rule),
+                        TakeMatching::OrderedV7 => format!("Context-aware v7: {}", state.rule),
                         TakeMatching::OrderedV6 => format!("Context-aware v6: {}", state.rule),
                         TakeMatching::OrderedV5 => format!("Context-aware v5: {}", state.rule),
                         TakeMatching::OrderedV4 => format!("Context-aware v4: {}", state.rule),
@@ -298,14 +430,27 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
         }
     }
     if settings.cut_pauses {
+        let measured_quiet =
+            (reference_first && settings.preserve_pauses_ms.is_some() && analysis.analyzer_version >= 3 && analysis.chunks.iter().all(|c| !c.peaks.is_empty()))
+                .then(|| super::cleanup::quiet_ranges(analysis));
+        let take_cut: Vec<_> = takes.iter().map(|t| removed_words[t.clone()].iter().all(|r| *r)).collect();
+        let mut current_take = 0;
         let covered = analysis.chunks.last().map_or(analysis.source.range.start, |c| c.coverage.end());
         let mut cursor = analysis.source.range.start;
         let mut previous: Option<usize> = None;
         for (i, word) in words.iter().enumerate() {
+            while current_take + 1 < takes.len() && i >= takes[current_take].end {
+                current_take += 1;
+            }
+            let audible_gap = current_take > 0
+                && takes[current_take].start == i
+                && word.start - cursor < ms(2000)
+                && !(take_cut[current_take - 1] && take_cut[current_take])
+                && measured_quiet.as_ref().is_some_and(|q| !quiet_enough(cursor, word.start, q));
             let kept_previous = previous.filter(|&index| !removed_words[index]).map(|index| words[index]);
             let kept_next = (!removed_words[i]).then_some(*word);
             let pause_threshold = if kept_previous.is_some() && kept_next.is_some() { settings.preserve_pauses_ms.map_or(threshold, ms) } else { threshold };
-            if word.start > cursor && (i == 0 || word.start - cursor > pause_threshold) {
+            if !audible_gap && word.start > cursor && (i == 0 || word.start - cursor > pause_threshold) {
                 let range = if settings.preserve_pauses_ms.is_some() {
                     // Removing a retry cue must not shave the original lead-in to the next word.
                     let after_discarded_sentence = previous.is_some_and(|index| {
@@ -347,7 +492,7 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
             }
         }
     }
-    if settings.take_matching == TakeMatching::OrderedV6
+    if matches!(settings.take_matching, TakeMatching::OrderedV6 | TakeMatching::OrderedV7 | TakeMatching::OrderedV8)
         && settings.cut_bad_takes
         && let Some(recheck) = &analysis.retake_recheck
     {
@@ -370,6 +515,7 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
         }
     }
     PreEditMap {
+        take_review_report: None,
         analysis: id,
         previous: None,
         reviewed: false,
@@ -386,6 +532,30 @@ pub(super) fn propose(id: u64, analysis: &PreEditAnalysis, settings: CleanupSett
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_shared_opening_cannot_discard_unique_facts() {
+        let make =
+            |text: &str| text.split_whitespace().enumerate().map(|(i, s)| Word::new(s, ms(i as u32 * 250), ms(i as u32 * 250 + 200))).collect::<Vec<_>>();
+        let yes = make("we chose the blue screen");
+        let completion = make("we chose the blue screen for its contrast");
+        assert!(covered_reading(&yes.iter().collect::<Vec<_>>(), &completion.iter().collect::<Vec<_>>()));
+        for (old, new) in [
+            ("we chose blue for contrast", "we chose blue for comfort"),
+            ("skin looks less yellow", "skin looks yellow"),
+            ("battery lasts 50 minutes", "battery lasts 40 minutes"),
+            ("this does not work", "this does work"),
+        ] {
+            assert!(!covered_reading(&make(old).iter().collect::<Vec<_>>(), &make(new).iter().collect::<Vec<_>>()));
+        }
+    }
+    #[test]
+    fn short_gap_needs_half_quiet_and_one_sustained_run() {
+        let ranges = |pairs: &[(u32, u32)]| pairs.iter().map(|&(s, e)| TimeRange::from_bounds(ms(s), ms(e))).collect::<Vec<_>>();
+        assert!(quiet_enough(ms(1000), ms(2000), &ranges(&[(950, 1250), (1750, 2050)])));
+        assert!(!quiet_enough(ms(1000), ms(2000), &ranges(&[(1000, 1490)])));
+        assert!(!quiet_enough(ms(1000), ms(2000), &ranges(&[(1000, 1100), (1150, 1250), (1300, 1400), (1450, 1550), (1600, 1700)])));
+    }
 
     #[test]
     fn m2_restart_pause_keeps_the_next_word_lead_in() {

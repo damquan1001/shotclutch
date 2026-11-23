@@ -429,7 +429,9 @@ fn download_model(_: &mut Session, p: &Value) -> Result<Value> {
 /// Install a pinned model, reporting bytes transferred and the current artifact.
 /// Return false from the callback to cancel.
 pub fn install_model(id: &str, progress: &mut dyn FnMut(u64, u64, &str) -> bool) -> Result<std::path::PathBuf> {
-    let model = shotclutch_speech::models::find(id).ok_or_else(|| speech_err(SpeechError::UnknownModel(id.into())))?;
+    let model = crate::preedit::take_review::model(id)
+        .or_else(|| shotclutch_speech::models::find(id))
+        .ok_or_else(|| speech_err(SpeechError::UnknownModel(id.into())))?;
     let dir = models_dir().ok_or_else(|| EngineError::Other("no data directory for speech models".into()))?;
     #[cfg(feature = "speech-download")]
     {

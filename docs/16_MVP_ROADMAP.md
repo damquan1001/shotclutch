@@ -57,6 +57,8 @@ Scope: UI-002, PRE-001–PRE-005. Deliver manual initiation, VAD/ASR integration
 
 Exit: a user reviews an interview, keeps an intentional pause, chooses a take, restores a phrase, applies the result, saves/reopens, and undoes the group. Source mapping and captions/audio remain correct. Reanalysis cannot erase manual decisions or overwrite an edited timeline.
 
+Acceptance clarification (user, 2026-11-24): close M2 as a review-assisted Smart Cut workflow with Granite 2B retained, after join polish and the assessed CI/record/checkpoint tasks. The automatic-quality experiment remains unpromoted after failing its gates. [Closeout](m2/M2_COMPLETION.md) records the reviewed artifact, technical checks and known accuracy limits. Further speech-cleanup accuracy research is not added to M3 by implication.
+
 Risk: shortening footage at the expense of meaning. Mitigation: conservative proposals, visible uncertainty, original-context playback, human evaluation, and restoration metrics.
 
 ## M3 — Semantic media and agent workflow

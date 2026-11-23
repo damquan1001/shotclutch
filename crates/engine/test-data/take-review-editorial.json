@@ -1,0 +1,14 @@
+[
+ {"id":"start-completion","split":"development","earlier":"We chose the blue screen","later":"We chose the blue screen for its contrast.","expected":"remove","category":"incomplete"},
+ {"id":"paraphrase","split":"development","earlier":"After my normal work day the battery lasted about five hours","later":"After my normal work day I got roughly five hours from the battery.","expected":"remove","category":"paraphrase"},
+ {"id":"distinct-endings","split":"development","earlier":"We chose this for comfort.","later":"We chose this for contrast.","expected":"keep","category":"unique"},
+ {"id":"negation","split":"development","earlier":"You can use this without a cable.","later":"You cannot use this without a cable.","expected":"keep","category":"negation"},
+ {"id":"numbers","split":"development","earlier":"The screen costs fifty dollars.","later":"The screen costs forty dollars.","expected":"keep","category":"numbers"},
+ {"id":"emphasis","split":"development","earlier":"It is very very important.","later":"It is very important to remember this.","expected":"keep","category":"emphasis"},
+ {"id":"held-start","split":"held_out","earlier":"Compared with last year","later":"Compared with last year the battery lasts longer.","expected":"remove","category":"incomplete"},
+ {"id":"held-unique","split":"held_out","earlier":"The lenses work well for reading.","later":"The lenses work well for gaming.","expected":"keep","category":"unique"},
+ {"id":"held-less","split":"held_out","earlier":"Skin looks less yellow on this screen.","later":"Skin looks more yellow on this screen.","expected":"keep","category":"comparison"},
+ {"id":"held-rephrase","split":"held_out","earlier":"I got around four hours of use","later":"Around four hours of use is what I measured during a normal working day.","expected":"remove","category":"paraphrase"},
+ {"id":"held-fact","split":"held_out","earlier":"The display weighs sixty grams.","later":"The display weighs seventy grams.","expected":"keep","category":"numbers"},
+ {"id":"held-complete","split":"held_out","earlier":"Do not forget to save your work.","later":"Do not forget to save your work, it matters enough to repeat.","expected":"keep","category":"intentional"}
+]

@@ -4,8 +4,13 @@ mod analysis;
 mod assembly;
 mod cleanup;
 mod gling;
+pub mod local_review;
 mod ordered_takes;
+pub mod pair_review;
 mod recheck;
+pub mod take_review;
+#[cfg(not(target_arch = "wasm32"))]
+mod take_runtime;
 #[cfg(test)]
 mod tests;
 
@@ -255,7 +260,9 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
         && (reuse.as_ref().is_none_or(|saved| saved.settings.model.is_none() || saved.settings.language != "en")
             || !req.auto_cut
             || !req.cleanup.is_some_and(|settings| {
-                settings.mode == CleanupMode::GlingCompatible && settings.take_matching == TakeMatching::OrderedV6 && settings.cut_bad_takes
+                settings.mode == CleanupMode::GlingCompatible
+                    && matches!(settings.take_matching, TakeMatching::OrderedV6 | TakeMatching::OrderedV7)
+                    && settings.cut_bad_takes
             })
             || req.previous_map.and_then(|id| s.project.preedit.maps.get(&id)).is_none_or(|map| Some(map.analysis) != req.reuse_transcript))
     {
@@ -540,6 +547,9 @@ enum Action {
     MarkReviewed,
     AutoCut,
     CleanUp { options: CleanupSettings },
+    EvidenceReview { response: take_review::TakeReviewResult },
+    PairReview { response: pair_review::Answer },
+    LocalTakeReview { response: local_review::Response },
     ClearConflicts,
 }
 
@@ -567,6 +577,7 @@ fn review(s: &mut Session, value: &Value) -> Result<Value> {
     let snap = |range, inward| assembly::snap_decision(video.as_deref(), sample_rate, analysis.source.range, range, inward);
     map.previous = Some(req.map);
     map.reviewed = false;
+    let mut review_summary = None;
     match req.action {
         Action::Range { range, decision } => map.overrides.push(Override { range: snap(range.parse()?, false)?, decision }),
         Action::CorrectText { words } => {
@@ -669,6 +680,47 @@ fn review(s: &mut Session, value: &Value) -> Result<Value> {
             }
             let decoded = s.media.full_res_source(&s.project, analysis.source.item, &*s.services).ok_or_else(|| fail("Original media is unavailable"))?;
             map.automatic = Some(automatic_cuts(&map, analysis, &*decoded));
+            map.take_review_report = None;
+        }
+        Action::EvidenceReview { response } => {
+            let current = take_review_stamp(s, req.map)?;
+            if response.source_stamp.as_ref().is_none_or(|stamp| serde_json::to_value(stamp).ok() != serde_json::to_value(&current).ok()) {
+                return Err(fail("MEDIA_CHANGED: source changed during take review"));
+            }
+
+            let mut opts = map.cleanup.unwrap_or_default();
+            opts.cut_bad_takes = false;
+            let nonbad = analysis::propose(map.analysis, analysis, Some(opts));
+            let source = s.media.full_res_source(&s.project, analysis.source.item, &*s.services).ok_or_else(|| fail("Original media unavailable"))?;
+            let protected = automatic_cuts(&nonbad, analysis, &*source);
+            let (cuts, report, summary) = take_review::apply(req.map, &map, analysis, response, &protected, |r, inward| snap(r, inward))?;
+            map.automatic = Some(cuts);
+            map.take_review_report = Some(report);
+            review_summary = Some(summary);
+        }
+        Action::PairReview { response } => {
+            if analysis.status != AnalysisStatus::Complete {
+                return Err(fail("Finish processing the source first"));
+            }
+            let (cuts, summary) = pair_review::apply(req.map, &map, analysis, response, |r| snap(r, true))?;
+            map.automatic = Some(cuts);
+            review_summary = Some(summary);
+        }
+        Action::LocalTakeReview { response } => {
+            let mut options = map.cleanup.ok_or_else(|| fail("Generate a rule cut before reviewing"))?;
+            if !options.cut_bad_takes || analysis.status != AnalysisStatus::Complete {
+                return Err(fail("Take review requires complete speech cleanup"));
+            }
+            options.cut_bad_takes = false;
+            let protected_map = PreEditMap { cleanup: Some(options), ..map.clone() };
+            let decoded = s.media.full_res_source(&s.project, analysis.source.item, &*s.services).ok_or_else(|| fail("Original media is unavailable"))?;
+            let protected = automatic_cuts(&protected_map, analysis, &*decoded);
+            let (cuts, summary) = local_review::merge(req.map, &map, analysis, response, &protected, |r| snap(r, true))?;
+            map.automatic = Some(cuts);
+            review_summary = Some(summary);
+            if map.segments(analysis.source.range).map_err(fail)?.is_empty() {
+                return Err(fail("Review would remove the entire recording"));
+            }
         }
         Action::ClearConflicts => map.conflicts.clear(),
         Action::MarkReviewed => {
@@ -690,8 +742,35 @@ fn review(s: &mut Session, value: &Value) -> Result<Value> {
         let id = project.alloc_id();
         project.preedit.maps.insert(id, Arc::new(map));
         project.preedit.check().map_err(fail)?;
-        Ok(json!({"map":id.to_string()}))
+        let mut reply = json!({"map":id.to_string()});
+        if let Some(s) = review_summary {
+            reply["reviewSummary"] = json!(s)
+        }
+        Ok(reply)
     })
+}
+
+pub fn take_review_stamp(s: &Session, map: u64) -> Result<take_review::SourceStamp> {
+    let map = s.project.preedit.maps.get(&map).ok_or_else(|| fail("Unknown take checkpoint"))?;
+    let a = &s.project.preedit.analyses[&map.analysis];
+    let (media, path) = original(s, a.source.item)?;
+    let meta = std::fs::metadata(&path).map_err(|_| fail("Original media unavailable"))?;
+    let identity = crate::relink::identity_of(&*s.services, &path.to_string_lossy()).map_err(|_| fail("Original identity unavailable"))?;
+    if meta.len() != a.source.bytes || media.identity.is_some_and(|expected| expected != identity) {
+        return Err(fail("MEDIA_CHANGED: original no longer matches the analysis"));
+    }
+    if std::fs::metadata(&path).and_then(|m| m.modified()).ok() != meta.modified().ok() {
+        return Err(fail("MEDIA_CHANGED: original changed while verifying identity"));
+    }
+    let modified_ns = u64::try_from(
+        meta.modified()
+            .map_err(|_| fail("Missing media timestamp"))?
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_err(|_| fail("Invalid media timestamp"))?
+            .as_nanos(),
+    )
+    .map_err(|_| fail("Invalid media timestamp"))?;
+    Ok(take_review::SourceStamp { path_digest: format!("{:x}", Sha256::digest(path.to_string_lossy().as_bytes())), bytes: meta.len(), modified_ns, identity })
 }
 
 fn automatic_cuts(map: &PreEditMap, analysis: &PreEditAnalysis, source: &dyn shotclutch_media::MediaSource) -> Arc<Vec<Override>> {
@@ -1078,6 +1157,19 @@ pub(crate) fn commands() -> Vec<CommandSpec> {
             Ok(
                 json!({"running":s.preedit_job.is_some(),"progress":s.preedit_job.as_ref().and_then(|j|j.progress.as_ref()),"revision":s.revision.to_string(),"preedit":s.project.preedit}),
             )
+        }),
+        command("preedit.takeReviewInput", "Inspect Take Review Input", r#"{"map":string}"#, |s, p| {
+            #[derive(Deserialize)]
+            #[serde(deny_unknown_fields)]
+            struct Input {
+                #[serde(with = "decimal_u64")]
+                map: u64,
+            }
+            let input: Input = typed(p)?;
+            let map = s.project.preedit.maps.get(&input.map).ok_or_else(|| fail("Unknown take checkpoint"))?;
+            let a = &s.project.preedit.analyses[&map.analysis];
+            let request = take_review::request(input.map, map, a)?;
+            Ok(json!({"checkpoint":input.map.to_string(),"map":map,"analysis":a,"request":request,"source_stamp":take_review_stamp(s,input.map)?}))
         }),
         command("preedit.review", "Review Smart Cut", r#"{"map":string,"expectedRevision":string,"action":object}"#, review),
         command("preedit.exportClip", "Export Transcript Clip", r#"{"map":string,"range":object,"path":string}"#, export_clip),

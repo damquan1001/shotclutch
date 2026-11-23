@@ -1,5 +1,21 @@
 # OpenGling cleanup adaptation
 
+## Local second-pass review
+
+The reference for the reviewer is OpenGling’s src/local-llm.js (reviewBadTakesWithOllama) and src/speech-cleanup.js (analyzeReviewedSpeechCleanup). Gling’s hosted model and its production quality are unknown. Smart Cut keeps its own llama.cpp backend. Each request contains up to 200 editable words with 40 context words on each side, readable takes, index-to-text mapping, baseline bad-take indices, and protected indices. The response lists *all* words to discard, including words that the rules kept. No rule candidate is required to create a cut.
+
+The command checks the checkpoint and aligned transcript, applies only changes from the baseline, and reports reviewed, newly cut, confirmed and restored word counts. An omitted unprotected rule cut is restored; omission in an unreviewed block has no effect. Foreign, duplicate, or protected indices cause block fallback. An edit without a realizable media boundary leaves its block untouched. Removing every timed word rejects the review even if silent timeline material would remain. A conservative additional check rejects new cuts in a longer reading immediately following its exact unfinished prefix. For blocks with at least 16 editable words, selecting at least 80% as entirely new cuts also triggers fallback. On a 102-word recording excerpt, Granite confirmed all 15 supplied cut indices; with those hints withheld it selected 100 words, including 64 touching J08 (keep). The latter response is rejected. These checks are not a general semantic quality guarantee. Keep the reviewer opt-in. The model prompt stays local; the original rule map remains available via Undo.
+
+## First-pass comparison — 2026-11-20
+
+The raw word rules compare the first five words against up to five prior takes, find restarts within one take, and compare the preceding take’s suffix with the next opening. A later matching opening can discard intervening takes, including unrelated speech. These rules do not know whether repetition was intentional.
+
+With **Context-aware takes → Apply transcript rules first (experimental)** (V7) the reference word marks are applied first. Supplemental English matches cannot discard a reference keeper or rely on an already discarded reading. Take grouping uses the configured pause threshold. The reference filler lists use the base language tag. Saved automatic maps remain snapshots. Existing context-aware updates stay on V6 unless V7 is explicitly selected. On the audio-rechecked transcript, V6 retake proposals overlapped 16.860 s of the 55.517 s marked bad and 0.077 s of the 71.487 s marked keep. V7 overlapped 49.100 s bad and 65.987 s keep; reference rules alone overlapped 46.485 s bad and 65.987 s keep. These are proposed source-time intersections before snapping, manual overrides, or model review.
+
+With V7 and natural pause preservation on, an internal gap shorter than two seconds between takes needs at least 50% measured quiet and a continuous 150 ms quiet run, unless both takes were discarded. Missing audio measurements leave the transcript decision intact. This adapts OpenGling’s short-gap check to ShotClutch’s stored quiet intervals; its separate local dB estimation and edge-placement algorithm are not reproduced.
+
+The recorded Speechmatics-shaped oracle in OpenGling’s tests/fixtures/cleanup-parity-expected.json (artifact hash beginning 86db5fe6) supplies 369 authored transcripts with three settings each. The compact local fixture stores integer microseconds, per-word expected categories, and merged intervals. The regression checks raw decisions and intervals, and that V7 retains reference bad-take classifications. This is a different snapshot from the 1,128-case Gling 1.73 study; these counts do not establish full application or model parity.
+
 ## Local reference assessment
 
 Reviewed the local OpenGling 0.12.0 source, specifically `src/speech-cleanup.js`, `src/acoustic-cleanup.js`, `src/cleanup-state.js`, `src/transcribe.py`, `src/transcription.js`, `public/app.js`, and their tests. These are implementation references. The requested workflow remains automatic cutting followed by review. Updated 2026-11-08 after the user's parity request.
@@ -66,3 +82,61 @@ Take review exposes Keep all, choose one, and grouping rejection/splitting. Reje
 ## Validation
 
 See [the evidence record](EVIDENCE.md) for aggregate test and recording results. Footage, transcripts, review projects, detailed measurements, and screenshots remain in ignored local qualification storage. More detected silence or more cuts alone does not establish editorial accuracy. Human listening and labeled false-cut/restoration measurements remain required for M2 closeout.
+
+## Surviving take pairs — 2026-11-23
+
+“Compare remaining takes (experimental)” works on the selected saved cut. It scans fully retained timed words across ordinary review-block boundaries. It compares an earlier phrase with a nearby longer reading, preserving numbers, negation, and other differing words. The local reviewer sees both readings and surrounding retained speech, and chooses the later reading or keeps both. Only the proposed earlier phrase is eligible. Application revalidates the project revision and transcript, protects manual edits and keeper spans, and snaps the deletion inward after checking measured quiet handles. The action creates an undoable map.
+
+On the 812.579-second recording snapshot (map 1921), one pair qualified: the abandoned glasses comparison. Its exact source interval remains in the private qualification report. The native frame-aligned result was 809.946 s, a reduction of 2.633 s with no further loss in the checked keep intervals. All previously labeled bad-take time was already gone; this is a new, model-selected example and not a measured improvement in recall on the old labels. The initial cut already retained only 4.071 of the 71.487 seconds labeled keep.
+
+## Coverage experiment — 2026-11-23
+
+OrderedV8 screens the broad reference marks for complete phrase coverage in the proposed later reading. Complete earlier sentences survive that screening. The conservative supplemental matcher still runs; V8 constrains retake bounds to discarded words rather than consuming neighboring gaps. Model additions in this mode require a later matching phrase within 45 seconds; unsupported decisions leave their review block at the rule checkpoint. Missing numbers and negations fail the coverage check. This is lexical evidence, not proof of semantic equivalence.
+
+The private transcript benchmark rebuilds proposals, clears all manual overrides, and computes automatic cuts against the existing audio sample grid. It uses stored quiet measurements but does not rerun the LLM or the original video-frame grid. There are 71.486875 seconds labeled keep and 55.517 seconds labeled bad take. Run scripts/m2/score_cleanup_labels.py against the intervals exported by m2_export_first_pass_intervals to reproduce the scoring.
+
+| Mode | Keep seconds retained | Bad-take seconds still retained | Output seconds |
+|---|---:|---:|---:|
+| V7 reference-first | 4.057875 | 3.072 | 840.10 |
+| V6 conservative context | 71.317875 | 37.335 | 1185.27 |
+| V8 coverage experiment | 71.387875 | 43.147 | 1271.69 |
+
+V8 substantially improves preservation versus V7 but loses recall. The remaining 0.099 seconds of keep-range loss is distributed around annotated boundaries; this run does not establish that those are perceptually harmless. The acceptance condition of full keep preservation with no returned bad takes was not achieved. V8 is opt-in and does not replace the restored 877.362-second saved project. The full two-pass recording has not been requalified with V8.
+
+## Evidence-based reviewer implementation
+
+The opt-in evidence reviewer starts a fresh V6 rule checkpoint. V7 marks are retrieval hints only. It forms source-time utterances, retrieves the preceding eight utterances within 90 seconds using ordered alignment or a three-token shared run, includes rule proposals and within-utterance starts, and groups up to four attempts. Every supplied span has a stable ID, original aligned word interval, complete text, baseline status and protection flag.
+
+The first model chooses keep-both, replace-earlier, remove-a-supplied-fragment, or uncertain. Its IDs and quotes are constrained to the supplied catalogue and validated again in Rust. A separate model request audits each removal. Both approvals are required. Conflicting keeper decisions, malformed evidence, unplaceable boundaries, source changes, transcript changes and cancellation cannot silently commit a removal. Completed reports persist with the automatic map; manual decisions and independently generated filler/pause cuts remain protected.
+
+Granite 3.3 2B Q4_K_M and Qwen3 8B Q4_K_M are pinned catalogue entries. A single authenticated loopback llama.cpp server remains alive for the review job. It uses each GGUF's own template, disables reasoning output, requests constrained JSON and preflights tokenized complete prompts against the 16K context. No attempt is shortened to fit. A valid decision is cached by model, prompt, source, transcript and group digests. Each protocol failure gets one retry. Cancellation kills the owned server; CPU execution is supported.
+
+The Windows runtime benchmark uses the SHA-256-pinned b12483 Vulkan build on the RTX 3060. Runtime loading and editorial quality are measured separately. The frozen editorial corpus has development and held-out rows; no prompt tuning uses held-out model outcomes. The recording qualification script clears manual overrides, scores candidate retrieval independently, compares V6/V7/V8 and both reviewers, saves a new copy, and verifies Undo and save/reopen. Failure to pass the keep/bad-take gates leaves the existing default in place. This is qualification on one previously inspected recording, not evidence of generalization.
+
+Evidence review captures the source path digest, byte length, modification timestamp and imported head/tail identity before inference, and checks that stamp again before committing. This avoids hashing the entire recording on the editor thread. Existing asynchronous full-source verification for applying/exporting the cut remains in place. The standalone qualification worker carries the editor's stamp through unchanged; the model never supplies it.
+
+Confirmation preserves the exact V6 cut geometry. Only new word removals are snapped again. A keeper with a protected manual or filler decision cannot justify a removal. Malformed evidence falls back for its own group; stale transcript/checkpoint/source results reject the whole commit. Ordinary Undo restores the V6 checkpoint; a second Undo restores the preceding edit. The optional persisted report defaults to absent in older projects.
+
+Reproduce the controlled engine checks with `cargo test -p shotclutch-engine --features speech-download preedit:: --lib`. Build the desktop and standalone reviewer together with `cargo build -p shotclutch -p shotclutch-engine --bin shotclutch --example take_review`. `scripts/m2/qualify_evidence_review.py` takes explicit executable, worker, project, labels, model-store, server and output paths. It saves detailed per-label discrepancy intervals without a timing tolerance. Local transcripts, model weights, project copies and detailed qualification reports stay under ignored `target/m2-qualification/`.
+
+Pair merging connects either shared endpoint and follows bridges while respecting the four-attempt cap. The recording produces 106 groups after this correction. Controlled checks include a shared later attempt and a bridging pair. The `take_review_seed` example can create a separate, current-schema qualification project with the same typed project and ID watermark but fresh history; it refuses to overwrite its destination and requires the same parent directory to preserve relative media references. This removes old Undo snapshots rather than changing transcript content. Qualification still clears all manual decisions and creates new native checkpoints whose Undo/redo and persistence are tested. Source, transcript and V6 checkpoint digests match the original qualification input.
+
+## Evidence-review qualification outcome — 2026-11-23
+
+The accuracy gate failed. Qwen had fewer editorial errors than Granite on this regression set, but neither reviewer is promoted. The restored 877.362-second project remains unchanged. The experimental Windows build and separate project copies are in local qualification storage; the detailed comparison is `target/m2-qualification/evidence-review-complete/report.md`.
+
+| Workflow | Native output seconds | Confirmed keep seconds retained | Confirmed bad-take seconds remaining |
+|---|---:|---:|---:|
+| V6 | 1187.451 | 71.486875 | 37.418 |
+| V7 | 841.162 | 4.070875 | 3.117 |
+| V8 | 1273.321 | 71.486875 | 43.251 |
+| V6 + Granite evidence review | 1221.731 | 50.603875 | 35.852 |
+| V6 + Qwen evidence review | 1099.383 | 64.153875 | 32.118 |
+
+Targets were all 71.486875 keep seconds retained and all 55.517 bad-take seconds removed. Granite fully preserved 8/11 keep ranges; Qwen preserved 9/11. The later glasses reading survived both, but 2.616 seconds of its abandoned restart remained with Granite and 2.166 seconds with Qwen. These are failed gates without boundary tolerance. Per-label discrepancy intervals are recorded separately.
+
+Both reviewers received candidate coverage of all 51.280 seconds of aligned speech inside the bad-take range labels. The remaining failures occur in semantic decisions, verification, conflict handling and boundary placement. Granite scored 3/12 on independently authored cases and Qwen 5/12; both scored 2/6 on the frozen held-out subset. Agreement between two requests did not establish editorial correctness. Unseen-recording accuracy remains unqualified.
+
+On the Ryzen 7 4800H / 32 GB RAM / RTX 3060 Laptop 6 GB machine, Granite's job took 556.491 seconds and peaked at 8,326,283,264 bytes of server working set. Qwen took 1178.991 seconds and peaked at 15,989,923,840 bytes. Each reused 61/106 groups and freshly reviewed 45, so these are partial-cache measurements, not cold-run timings. Both used 16K context and full-precision host KV (`LLAMA_ARG_KV_OFFLOAD=0`). Full native qualification took approximately 1901 seconds and the desktop process peaked at 6,780,510,208 bytes; separate process maxima are not a simultaneous total peak. The fresh-history seed avoids expanding the original document's old Undo snapshots during qualification.
+
+Controlled engine checks passed: 70 tests, zero failures, four opt-in tests ignored. Both native experimental edits passed checkpoint Undo/redo and exact segment equality after save/reopen. Existing defaults stay unchanged because the accuracy conditions were not met.

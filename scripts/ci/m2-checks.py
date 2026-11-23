@@ -8,8 +8,11 @@ import time
 def main():
     root = Path(__file__).resolve().parents[2]
     commands = [
+        [sys.executable, "-m", "unittest", "discover", "-s", "scripts/ci", "-p", "test_m2_checks.py"],
         [sys.executable, "-m", "unittest", "discover", "-s", "crates/speech/tests", "-p", "test_fast_whisper_protocol.py"],
         ["cargo", "test", "--locked", "-p", "shotclutch-engine", "--lib", "m2_"],
+        ["cargo", "test", "--locked", "-p", "shotclutch-engine", "--lib", "preedit::"],
+        ["cargo", "test", "--locked", "-p", "shotclutch-render", "--lib", "mixer_tests::"],
         ["cargo", "test", "--locked", "-p", "shotclutch-ui-egui", "--lib", "smart_cut_cleanup_form"],
         ["cargo", "test", "--locked", "-p", "shotclutch-codecs", "--lib",
          "edit_boundaries_handle_reordered_and_repeated_timestamps"],

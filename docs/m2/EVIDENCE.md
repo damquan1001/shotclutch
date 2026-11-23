@@ -2,6 +2,24 @@
 
 This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## M2 scoped closeout — 2026-11-24
+
+The user explicitly requested completion of both assessed closeout tasks. M2 is Done as review-assisted Smart Cut with Granite 2B retained. [Completion and frozen checkpoint](M2_COMPLETION.md) pins `m2-closeout-2026-11-24` and the qualified Windows binary; [acceptance](ACCEPTANCE.md) and the tracker now record Done. M3 remains unstarted. Failed unassisted model-quality gates remain failed and unpromoted; no new unattended-editorial or unseen-recording accuracy claim is made.
+
+Routine M2 CI retains its `m2_` coverage and now also runs complete model-independent preedit and renderer mixer suites. The new runner regression confirms that failure in either added suite stops the gate and preserves the child status. Both final local Windows gates passed: M1 in 50.9 seconds and expanded M2 in 21.6 seconds on warm build artifacts. M2 ran the failure-propagation guard, two Python protocol tests, 58 `m2_` engine checks, 72 full-preedit checks, 25 mixer checks, three UI checks, one indexed-boundary check and 20 speech checks. The engine filters overlap. Private/model-dependent opt-in tests remain ignored; no live provider or model download is needed by the headless gate. Logs remain at `target/m2-closeout-m1.log` and `target/m2-closeout-m2.log`. This does not claim a new hosted CI run.
+
+The independently checked reviewed baseline preserves all 11 confirmed keeps (71.486875 seconds), removes all 55.517 seconds of confirmed bad takes and removes the abandoned glasses restart while retaining its later reading. It contains 49 stored overrides, so this is reviewed-result evidence rather than automatic detection credit. All 80 rendered seams pass the de-click check; the 877.362-second source project checksum is unchanged. Existing workflow, source preservation, linked export and durable Undo/redo evidence supports the bounded acceptance. No additional join-review cycle was requested or inferred.
+
+## Smart Cut join polish — 2026-11-23
+
+Granite 2B remains the local reviewer. The Windows UI no longer offers the 8B research candidate. Existing experimental review behavior remains opt-in; this polish does not promote the failed evidence-review accuracy experiment.
+
+One-sided audio fades now include the first and last samples of their actual sample span. The previous duration-based progress left a residual outgoing sample; a one-sample fade-out could retain full amplitude. The regression reproduced that defect before the fix. Fade endpoints now reach exact silence, including sub-millisecond clips, while two-clip crossfade timing is preserved. Smart Cut retains its short, duration-capped 5 ms fades and original linked picture/audio cut positions. Audio-only decision snapping also respects inward/outward direction instead of rounding both ends to the nearest sample.
+
+Validation: 25 mixer regressions passed, including stereo/opposite-polarity joins at 44.1/48 kHz, one/two/eight-sample clips, normal 5 ms fades, render-block independence and existing handle crossfades. All 72 preedit engine regressions passed, including preview/applied audio equality, directional sample rounding, source boundaries, manual decisions and the linked A/V export frame/sample-count check. Four opt-in tests remain ignored in that engine filter.
+
+The read-only `smart_cut_join_audit` example rendered every interior join of the restored recording through the production mixer. All **80 joins** passed the adjacent-sample discontinuity check on the 48 kHz output, with a maximum seam step of **0.0**. Duration remained **877.362 seconds (14:37.362)**. This measures de-click behavior at the splice, with the existing editorial choices retained. Local details are in `target/m2-qualification/smart-cut-polish/joins.json`; the Windows candidate is `target/m2-qualification/local-take-review/shotclutch-smart-cut-polished.exe`. The restored editing project's original checksum is preserved.
+
 ## Retained repeated-passage selection — 2026-11-18
 
 Added `scripts/m2/select_retake_windows.py` as a qualification-stage selector. It retrieves ordered phrase matches across nearby clauses, considers both directions, ranks currently retained passages by covered duration, and selects up to ten disjoint windows. It records the counterpart and detected meaning differences for subsequent audio verification. It applies no cuts.

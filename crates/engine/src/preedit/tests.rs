@@ -8,6 +8,25 @@ fn range(a: i64, b: i64) -> TimeRange {
     TimeRange::from_bounds(seconds(a), seconds(b))
 }
 
+#[test]
+fn m2_audio_cut_snapping_respects_inward_and_outward_sample_boundaries() {
+    for sr in [44_100, 48_000] {
+        let sample = Tick::from_units(1, sr);
+        for head in [1, 3] {
+            for tail in [1, 3] {
+                let requested =
+                    TimeRange::from_bounds(Tick::from_units(100, sr) + Tick(sample.0 * head / 4), Tick::from_units(200, sr) + Tick(sample.0 * tail / 4));
+                let inward = assembly::snap_decision(None, sr as u32, range(0, 1), requested, true).unwrap();
+                let outward = assembly::snap_decision(None, sr as u32, range(0, 1), requested, false).unwrap();
+                assert_eq!(inward, TimeRange::from_bounds(Tick::from_units(101, sr), Tick::from_units(200, sr)));
+                assert_eq!(outward, TimeRange::from_bounds(Tick::from_units(100, sr), Tick::from_units(201, sr)));
+            }
+        }
+        let sub_sample = TimeRange::from_bounds(Tick::from_units(100, sr) + Tick(sample.0 / 4), Tick::from_units(100, sr) + Tick(sample.0 * 3 / 4));
+        assert!(assembly::snap_decision(None, sr as u32, range(0, 1), sub_sample, true).is_err());
+    }
+}
+
 fn waveform(path: &std::path::Path) {
     let mut wav = Vec::new();
     let samples = 16_000u32 * 4;
@@ -31,7 +50,7 @@ fn waveform(path: &std::path::Path) {
     std::fs::write(path, wav).unwrap();
 }
 
-fn fixture() -> (tempfile::TempDir, PathBuf, Session, ItemId) {
+pub(super) fn fixture() -> (tempfile::TempDir, PathBuf, Session, ItemId) {
     let dir = tempfile::tempdir().unwrap();
     let source = dir.path().join("voice.wav");
     waveform(&source);
@@ -51,7 +70,7 @@ fn wait(session: &mut Session) {
     }
 }
 
-fn analyze(session: &mut Session, item: ItemId, prior: Option<u64>) -> u64 {
+pub(super) fn analyze(session: &mut Session, item: ItemId, prior: Option<u64>) -> u64 {
     session.execute("preedit.analyze", json!({"item":item.0.to_string(),"audioStream":0,"previousMap":prior.map(|id| id.to_string())})).unwrap();
     wait(session);
     *session.project.preedit.maps.last_key_value().unwrap_or_else(|| panic!("analysis produced no map: {:?}", session.log.entries)).0
@@ -136,6 +155,7 @@ fn m2_gling_compatible_matches_opengling_synthetic_corpus() {
 #[test]
 fn m2_map_restores_nested_ranges_and_maps_half_open_joins() {
     let map = PreEditMap {
+        take_review_report: None,
         analysis: 1,
         previous: None,
         reviewed: true,
@@ -430,6 +450,38 @@ fn m2_linked_cut_preview_and_export_preserve_frame_and_sample_counts() {
     assert_eq!(output.tracks[audio].timescale, 48_000);
     assert_eq!(output.tracks[audio].samples.iter().map(|sample| u64::from(sample.duration)).sum::<u64>(), 12_000);
     assert_eq!(std::fs::read(source).unwrap(), original);
+}
+
+#[test]
+fn m2_smart_cut_audio_preview_and_applied_sequence_have_click_free_edges() {
+    let (_dir, _, mut session, item) = fixture();
+    let proposed = analyze(&mut session, item, None);
+    let half = Tick::from_units(1, 2);
+    let map = review_action(
+        &mut session,
+        proposed,
+        json!({
+            "kind":"range", "decision":"Remove", "range":{"start":half.0.to_string(),"end":(seconds(3)+half).0.to_string()}
+        }),
+    );
+    let map = review_action(&mut session, map, json!({"kind":"markReviewed"}));
+    let (draft, sequence) = preview(&session, map).unwrap();
+    let seq = draft.sequence(sequence).unwrap();
+    assert_eq!(seq.duration(), seconds(1));
+    let provider = session.media.full_res_provider(draft.clone(), session.services.clone());
+    let audio = shotclutch_render::audio::mix_sequence(&draft, seq, 0, 16_000, &provider);
+    for channel in &audio.channels {
+        for edge in [0, 7999, 8000, 15999] {
+            assert_eq!(channel[edge], 0.0, "audible sample discontinuity at output sample {edge}");
+        }
+        assert!(channel[4000].abs() > 0.01, "retained speech was attenuated away from the join");
+    }
+    let result =
+        session.execute("preedit.apply", json!({"map":map.to_string(),"expectedRevision":session.revision.to_string(),"operationId":"smooth-join"})).unwrap();
+    let applied = ItemId(result["sequenceId"].as_str().unwrap().parse().unwrap());
+    let provider = session.media.full_res_provider(session.project.clone(), session.services.clone());
+    let applied_audio = shotclutch_render::audio::mix_sequence(&session.project, session.project.sequence(applied).unwrap(), 0, 16_000, &provider);
+    assert_eq!(audio.channels, applied_audio.channels);
 }
 
 #[cfg(feature = "whisper")]
@@ -1175,4 +1227,120 @@ fn m2_scoped_clients_cannot_access_owner_preedit_commands() {
     }
     assert_eq!(session.revision, revision);
     assert!(Arc::ptr_eq(&before, &session.project));
+}
+
+#[test]
+fn m2_first_pass_recorded_word_and_interval_oracle() {
+    let (_dir, _, mut session, item) = fixture();
+    let id = analyze(&mut session, item, None);
+    let map = &session.project.preedit.maps[&id];
+    let mut a = (*session.project.preedit.analyses[&map.analysis]).clone();
+    let tick = |n: &Value| Tick::from_units(n.as_i64().unwrap(), 1_000_000);
+    for row in include_str!("../../test-data/opengling-rule-oracle.jsonl").lines() {
+        let case: Value = serde_json::from_str(row).unwrap();
+        a.settings.language = case["lang"].as_str().unwrap().into();
+        a.source.range = TimeRange::from_bounds(Tick::ZERO, tick(&case["duration"]));
+        let words: Vec<_> =
+            case["words"].as_array().unwrap().iter().map(|w| shotclutch_project::Word::new(w[0].as_str().unwrap(), tick(&w[1]), tick(&w[2]))).collect();
+        let chunk = Arc::make_mut(&mut a.chunks[0]);
+        chunk.coverage = a.source.range;
+        chunk.transcript = Some(shotclutch_project::Transcript { words: words.clone(), ..Default::default() });
+        for mode in ["takes", "fillers", "combined"] {
+            for matching in [TakeMatching::Legacy, TakeMatching::OrderedV7] {
+                let map = gling::propose(
+                    id,
+                    &a,
+                    CleanupSettings {
+                        mode: CleanupMode::GlingCompatible,
+                        take_matching: matching,
+                        min_pause_ms: Some(500),
+                        cut_fillers: mode != "takes",
+                        cut_pauses: mode == "combined",
+                        cut_bad_takes: mode != "fillers",
+                        ..Default::default()
+                    },
+                );
+                let keep: std::collections::BTreeSet<_> = map.takes.iter().filter_map(|g| g.alternatives.last()).copied().collect();
+                let cuts: Vec<_> = map.candidates.iter().enumerate().filter(|(i, _)| !keep.contains(i)).map(|(_, c)| c).collect();
+                let got: String = words
+                    .iter()
+                    .map(|w| {
+                        cuts.iter()
+                            .find(|c| c.range.start <= w.start && c.range.end() >= w.end)
+                            .map_or('.', |c| if c.kind == CandidateKind::Filler { 'f' } else { 'b' })
+                    })
+                    .collect();
+                let expected = case[mode][0].as_str().unwrap();
+                if matching == TakeMatching::OrderedV7 {
+                    assert!(expected.chars().zip(got.chars()).all(|(e, g)| e != 'b' || g == 'b'), "reference retake lost: {} {mode}", case["name"]);
+                    continue;
+                }
+                assert_eq!(got, expected, "{} {mode}", case["name"]);
+                let mut ranges: Vec<_> = cuts.iter().map(|c| (c.range.start, c.range.end())).collect();
+                ranges.sort_unstable();
+                let mut merged: Vec<(Tick, Tick)> = Vec::new();
+                for (s, e) in ranges {
+                    if let Some(last) = merged.last_mut()
+                        && s <= last.1
+                    {
+                        last.1 = last.1.max(e)
+                    } else {
+                        merged.push((s, e))
+                    }
+                }
+                let expected: Vec<_> = case[mode][1].as_array().unwrap().iter().map(|r| (tick(&r[0]), tick(&r[1]))).collect();
+                assert_eq!(merged, expected, "{} {mode}", case["name"]);
+            }
+        }
+    }
+}
+
+/// Compare rule proposals on an optional local qualification snapshot without opening or changing it.
+#[test]
+#[ignore = "requires a private saved transcript and an output path"]
+fn m2_export_first_pass_intervals() {
+    let doc: Value = serde_json::from_slice(&std::fs::read(std::env::var_os("SHOTCLUTCH_RULE_PROJECT").unwrap()).unwrap()).unwrap();
+    let state: PreEdit = serde_json::from_value(doc["project"]["preedit"].clone()).unwrap();
+    let (_, map) = state.maps.last_key_value().unwrap();
+    let analysis = &state.analyses[&map.analysis];
+    let (_tmp, _, session, item) = fixture();
+    let source = session.media.full_res_source(&session.project, item, &*session.services).unwrap();
+    let mut runs = serde_json::Map::new();
+    for (name, take_matching) in
+        [("v6", TakeMatching::OrderedV6), ("reference", TakeMatching::Legacy), ("v7", TakeMatching::OrderedV7), ("v8", TakeMatching::OrderedV8)]
+    {
+        let settings = CleanupSettings { take_matching, ..map.cleanup.unwrap() };
+        let p = gling::propose(map.analysis, analysis, settings);
+        let keep: std::collections::BTreeSet<_> = p.takes.iter().filter_map(|g| g.alternatives.last().copied()).collect();
+        let ranges: Vec<_> = p
+            .candidates
+            .iter()
+            .enumerate()
+            .filter(|(i, c)| !keep.contains(i) && matches!(c.kind, CandidateKind::Restart | CandidateKind::Take))
+            .map(|(_, c)| [c.range.start.0, c.range.end().0])
+            .collect();
+        let cut = automatic_cuts(&p, analysis, &*source);
+        let bare = PreEditMap { automatic: Some(cut), overrides: vec![], ..p.clone() };
+        let kept = bare.segments(analysis.source.range).unwrap();
+        runs.insert(
+            format!("{name}_automatic"),
+            json!({"retained":kept.iter().map(|s|[s.source.start.0,s.source.end().0]).collect::<Vec<_>>(),"duration":kept.last().map(|s|s.output.end().0)}),
+        );
+        runs.insert(name.into(), json!(ranges));
+    }
+    std::fs::write(std::env::var_os("SHOTCLUTCH_RULE_REPORT").unwrap(), serde_json::to_vec(&runs).unwrap()).unwrap();
+}
+
+#[test]
+fn m2_take_review_stamp_detects_source_changes_without_hashing_on_the_editor_thread() {
+    let (_dir, path, mut session, item) = fixture();
+    let map = analyze(&mut session, item, None);
+    let initial = take_review_stamp(&session, map).unwrap();
+    let again = take_review_stamp(&session, map).unwrap();
+    assert_eq!(serde_json::to_value(&initial).unwrap(), serde_json::to_value(again).unwrap());
+    let file = std::fs::OpenOptions::new().write(true).open(&path).unwrap();
+    file.set_modified(std::time::SystemTime::now() + std::time::Duration::from_secs(2)).unwrap();
+    let changed = take_review_stamp(&session, map).unwrap();
+    assert_ne!(initial.modified_ns, changed.modified_ns);
+    assert_eq!(initial.identity, changed.identity);
 }

@@ -5187,6 +5187,8 @@ dependencies = [
  "shotclutch-tts",
  "tempfile",
  "thiserror 2.0.21",
+ "ureq",
+ "uuid",
  "web-time",
 ]
 

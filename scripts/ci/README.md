@@ -2,6 +2,8 @@
 
 For M1, routine GitHub Actions usage is one ready-PR Ubuntu job running `python scripts/ci/m1-checks.py`. Full qualification is manual through `qualification.yml`. Packaging lint, Nix, Windows ARM64 and FreeBSD are manual as well; no nightly platform schedules remain. Existing local full checks stay available through `run-checks.py`. See [M1 policy and acceptance](../../docs/m1/IMPLEMENTATION.md).
 
+The same ready-PR job also runs `python scripts/ci/m2-checks.py`. The M2 gate retains the `m2_` filter and additionally runs the complete model-independent `preedit::` and renderer `mixer_tests::` suites. Its standard-library runner regression checks that failure in either added suite stops the gate with the child's status. UI cleanup-form, indexed-boundary and speech protocol/catalogue checks remain included. Private recordings, live providers, model downloads and inference benchmarks are separate local qualification.
+
 ## Retained full qualification
 
 `oracles.lock.json` fixes publisher versioned URLs and SHA-256 for Windows x64, Linux x64 and macOS ARM64. Windows uses Gyan 8.1.1; Linux/macOS use Martin Riedl 9.0.2. These are independent test generators/oracles, never application payloads. Different OS oracle versions do not establish comparable performance between OSes. Upgrade the lock through review and record new fixture hashes when changing generators.
@@ -14,7 +16,7 @@ Windows checks install the checksum-locked Microsoft DXC v1.8.2505.1 test bundle
 
 Hosted profiles select Direct3D 12/DXC, Vulkan or Metal. `SHOTCLUTCH_CI_GPU_BACKEND` and `SHOTCLUTCH_CI_DX12_COMPILER` become `WGPU_*` only inside library tests and the adapter probe. Desktop/CLI tests retain application defaults; globally forcing `WGPU_BACKEND` changes `NativeOptions::default` and invalidates its default-backend assertions. A helper regression test checks this isolation, and each command report records its applied GPU environment.
 
-The manual full qualification and packaging lint workflows have distinct aggregate check names. Within manual qualification, Linux/macOS release compilation runs independently of the check matrix, and its final gate requires all lanes to pass. Routine `CI required` uses only the focused M1 suite.
+The manual full qualification and packaging lint workflows have distinct aggregate check names. Within manual qualification, Linux/macOS release compilation runs independently of the check matrix, and its final gate requires all lanes to pass. Routine `CI required` uses the focused M1 and M2 suites.
 
 `package-smoke.py` has separate prepare/exercise/verify modes. It generates a fixture, runs the packaged CLI without FFmpeg/ffprobe on the application child's PATH, trims/undoes/redoes and saves/reopens, exports ProRes, then independently checks 50 video frames and 80,000 stereo sample frames. The install job runs exercise against the installed executable before uninstalling it. The parent oracle phase is distinct from app execution; this is not a claim of a completely bare offline consumer OS.
 

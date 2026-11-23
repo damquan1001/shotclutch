@@ -57,6 +57,8 @@ image = { version = "0.25", default-features = false, features = ["png", "gif"] 
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 cap-std = "=4.0.3"
+ureq = { version = "3", default-features = false }
+uuid = { workspace = true }
 tempfile = "3.27"
 
 [target.'cfg(any(target_os = "linux", target_os = "android", target_vendor = "apple"))'.dependencies]

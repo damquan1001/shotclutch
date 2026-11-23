@@ -31,8 +31,12 @@ pub(super) fn snap_decision(
         (snap(range.start, inward)?, snap(range.end(), !inward)?)
     } else {
         let sample_rate = i64::from(sample_rate.max(1));
-        let snap = |t: Tick| Tick::from_units(t.to_rational_round(1, sample_rate), sample_rate);
-        (snap(range.start), snap(range.end()))
+        let snap = |t: Tick, after: bool| {
+            let sample = t.to_units_floor(sample_rate);
+            let boundary = Tick::from_units(sample, sample_rate);
+            if after && boundary < t { Tick::from_units(sample + 1, sample_rate) } else { boundary }
+        };
+        (snap(range.start, inward), snap(range.end(), !inward))
     };
     let (start, end) = (start.max(available.start), end.min(available.end()));
     if start >= end {

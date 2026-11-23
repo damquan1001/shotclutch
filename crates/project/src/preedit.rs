@@ -155,6 +155,8 @@ pub enum TakeMatching {
     OrderedV4,
     OrderedV5,
     OrderedV6,
+    OrderedV7,
+    OrderedV8,
 }
 
 impl TakeMatching {
@@ -204,6 +206,8 @@ impl CleanupSettings {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PreEditMap {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub take_review_report: Option<serde_json::Value>,
     pub analysis: u64,
     pub previous: Option<u64>,
     pub reviewed: bool,
