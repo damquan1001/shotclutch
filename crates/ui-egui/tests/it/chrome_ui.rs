@@ -41,7 +41,7 @@ fn header_and_status_bar_are_shown_by_default() {
     let h = harness(true, true);
     assert!(!h.state().auto.query("header.").is_empty());
     let (top, bottom) = body_extent(&h);
-    assert!(top >= 38.0, "panels start under the header: {top}");
+    assert!(top >= 62.0, "panels start under the menu and navigation rows: {top}");
     assert!(bottom <= H - 20.0, "panels end above the status bar: {bottom}");
     assert!(h.state().ui_error.is_none(), "{:?}", h.state().ui_error);
 }

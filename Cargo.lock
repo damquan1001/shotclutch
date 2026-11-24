@@ -5159,6 +5159,7 @@ dependencies = [
  "image",
  "log",
  "rustix 1.1.5",
+ "rustls-rustcrypto",
  "serde",
  "serde_json",
  "sha2",

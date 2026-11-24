@@ -2,6 +2,16 @@
 
 This record retains historical runs below; the latest dated section records current repairs and qualification. Feature name: Smart Cut; canonical `preedit` names remain compatible. [Acceptance mapping](ACCEPTANCE.md) and [reproduction procedure](QUALIFICATION.md).
 
+## Optional Gemini reviewer — 2026-11-24
+
+Added an opt-in Gemini provider for transcript-block, remaining-pair and evidence-based review. Granite 2B remains the default. The owner-side merge, manual protections, media snapping, independent evidence verification, revision checks and Undo commands remain shared. The API contract uses system instructions, transcript-only user content and constrained JSON; credentials stay in session memory or the environment and are excluded from saved state, inspection, reports and request URLs. Authentication/quota/connection failures stop the job rather than issuing another request per group.
+
+`cargo check --offline -p shotclutch-ui-egui` and the locked Windows build passed. All 78 model-independent `preedit::` engine tests passed (four opt-in tests ignored), including five provider tests and a Gemini evidence/checkpoint merge regression. Mock requests cover authentication headers, JSON schemas, blocked/truncated/malformed output, redacted API errors and cancellation while a response is still pending. Windows mocks explicitly use blocking accepted sockets and a synchronization gate for cancellation rather than a tight elapsed-time assertion. The full suite was run with loopback access; no request to Google was made.
+
+The native walkthrough at 1600×1000 and 1024×720 verified provider switching, masked credentials, invalid model settings preserving the checkpoint, save/reopen with no key in the project, and no key in UI inspection. Screenshots were visually inspected. The fixture and restored 877.362-second baseline checksums remain unchanged. The optional Windows preview is `target/m2-qualification/local-take-review/shotclutch-gemini-preview.exe` (77,018,112 bytes; SHA-256 `2fe8fe6c3aa222f825ad5956838394dcbe4b0df19060970454eaf18f9fec8afb`). It also includes the separate Premiere-style menu row. Logs and screenshots are in ignored `target/gemini-*` storage. The frozen M2 tag and local binary remain unchanged.
+
+No Gemini key was configured, so live Google-account compatibility, billing behavior and editorial quality remain unqualified. The mock tests establish integration behavior, not model accuracy. This addition does not promote experimental evidence review or change the failed automatic accuracy gates.
+
 ## M2 scoped closeout — 2026-11-24
 
 The user explicitly requested completion of both assessed closeout tasks. M2 is Done as review-assisted Smart Cut with Granite 2B retained. [Completion and frozen checkpoint](M2_COMPLETION.md) pins `m2-closeout-2026-11-24` and the qualified Windows binary; [acceptance](ACCEPTANCE.md) and the tracker now record Done. M3 remains unstarted. Failed unassisted model-quality gates remain failed and unpromoted; no new unattended-editorial or unseen-recording accuracy claim is made.

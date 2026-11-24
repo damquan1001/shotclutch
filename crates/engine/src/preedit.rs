@@ -7,6 +7,7 @@ mod gling;
 pub mod local_review;
 mod ordered_takes;
 pub mod pair_review;
+pub mod review_provider;
 mod recheck;
 pub mod take_review;
 #[cfg(not(target_arch = "wasm32"))]

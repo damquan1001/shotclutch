@@ -1900,7 +1900,7 @@ impl ShotClutchApp {
         let t = self.tokens;
         let full = ui.max_rect();
         ui.painter().rect_filled(full, 0.0, t.app_bg);
-        let header_h = if self.ui.show_header { 38.0 } else { 0.0 };
+        let header_h = if self.ui.show_header { header::height(self.ui.show_menu_bar) } else { 0.0 };
         let header = egui::Rect::from_min_size(full.min, egui::vec2(full.width(), header_h));
         if self.ui.show_header {
             header::show(self, ui, header);

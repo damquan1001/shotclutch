@@ -63,6 +63,9 @@ pub struct Workspace {
     model_install: ModelInstall,
     document: Option<String>,
     local_review: bool,
+    gemini_review: bool,
+    gemini_key: String,
+    gemini_model: String,
     review_install: ModelInstall,
     pending_rule_cut: Option<(ItemId, u64)>,
     review_job: Option<LocalJob>,
@@ -309,6 +312,14 @@ impl Workspace {
     fn begin_review(&mut self, app: &ShotClutchApp, id: u64, pairs: bool) {
         #[cfg(not(target_arch = "wasm32"))]
         {
+            let provider = match self.reviewer() {
+                Ok(provider) => provider,
+                Err(error) => {
+                    self.message = error;
+                    return;
+                }
+            };
+            let label = provider.label();
             let map = app.session.project.preedit.maps[&id].clone();
             let analysis = app.session.project.preedit.analyses[&map.analysis].clone();
             let cancel = Arc::new(std::sync::atomic::AtomicBool::new(false));
@@ -316,21 +327,29 @@ impl Workspace {
             let (send, result) = mpsc::channel();
             match std::thread::Builder::new().name("local-take-review".into()).spawn(move || {
                 let reply = if pairs {
-                    shotclutch_engine::preedit::pair_review::run(id, &map, &analysis, &worker).map(|(r, s)| (json!(r), s))
+                    shotclutch_engine::preedit::pair_review::run_with_provider(id, &map, &analysis, &provider, &worker).map(|(r, s)| (json!(r), s))
                 } else {
-                    shotclutch_engine::preedit::local_review::run(id, &map, &analysis, &worker).map(|(r, s)| (json!(r), s))
+                    shotclutch_engine::preedit::local_review::run_with_provider(id, &map, &analysis, &provider, &worker).map(|(r, s)| (json!(r), s))
                 };
                 let _ = send.send(reply);
             }) {
                 Ok(_) => {
                     self.review_job = Some(LocalJob { evidence: false, progress: None, pairs, map: id, revision: app.session.revision, cancel, result });
-                    self.message = "Reviewing takes locally…".into();
+                    self.message = format!("{label}: comparing takes…");
                 }
                 Err(e) => self.message = e.to_string(),
             }
         }
     }
     fn begin_evidence_review(&mut self, app: &mut ShotClutchApp, id: u64) {
+        let provider = match self.reviewer() {
+            Ok(provider) => provider,
+            Err(error) => {
+                self.message = error;
+                return;
+            }
+        };
+        let label = provider.label();
         let mut settings = self.cleanup_options(true);
         settings.mode = CleanupMode::GlingCompatible;
         settings.take_matching = TakeMatching::OrderedV6;
@@ -355,10 +374,13 @@ impl Workspace {
             };
             let model = shotclutch_engine::preedit::local_review::MODEL.id;
             match std::thread::Builder::new().name("evidence-take-review".into()).spawn(move || {
-                let result = shotclutch_engine::preedit::take_review::run(checkpoint, &map, &analysis, model, &worker, &worker_progress).map(|mut r| {
-                    r.source_stamp = Some(stamp);
-                    (json!(r), "Evidence review completed".into())
-                });
+                let result =
+                    shotclutch_engine::preedit::take_review::run_with_provider(checkpoint, &map, &analysis, model, &provider, &worker, &worker_progress).map(
+                        |mut r| {
+                            r.source_stamp = Some(stamp);
+                            (json!(r), "Evidence review completed".into())
+                        },
+                    );
                 let _ = send.send(result);
             }) {
                 Ok(_) => {
@@ -371,11 +393,48 @@ impl Workspace {
                         cancel,
                         result,
                     });
-                    self.message = "Reviewing spoken attempts locally…".into();
+                    self.message = format!("{label}: comparing spoken attempts…");
                 }
                 Err(e) => self.message = e.to_string(),
             }
         }
+    }
+    fn reviewer(&self) -> Result<shotclutch_engine::preedit::review_provider::ReviewProvider, String> {
+        use shotclutch_engine::preedit::review_provider::{DEFAULT_GEMINI_MODEL, GeminiConfig, ReviewProvider};
+        if self.gemini_review {
+            let model = if self.gemini_model.is_empty() { DEFAULT_GEMINI_MODEL } else { &self.gemini_model };
+            GeminiConfig::new(model, &self.gemini_key).map(ReviewProvider::Gemini)
+        } else {
+            Ok(ReviewProvider::Local)
+        }
+    }
+    fn reviewer_settings(&mut self, app: &mut ShotClutchApp, ui: &mut Ui) {
+        use shotclutch_engine::preedit::review_provider::DEFAULT_GEMINI_MODEL;
+        ui.add_enabled_ui(self.review_job.is_none(), |ui| {
+            ui.label("Take reviewer");
+            ui.horizontal_wrapped(|ui| {
+                let local = ui.selectable_value(&mut self.gemini_review, false, "Granite 2B · Local");
+                app.auto.add_response("roughCut.reviewer.local", &local, "Granite 2B · Local");
+                let cloud = ui.selectable_value(&mut self.gemini_review, true, "Gemini · Cloud");
+                app.auto.add_response("roughCut.reviewer.gemini", &cloud, "Gemini · Cloud");
+            });
+            if self.gemini_review {
+                ui.label("Review sends transcript text to Google. API usage is billed to your account. Audio and video stay on this device.");
+                let key = ui.add(egui::TextEdit::singleline(&mut self.gemini_key).password(true).hint_text("Gemini API key (or GEMINI_API_KEY)"));
+                app.auto.add_response("roughCut.gemini.key", &key, "Gemini API key");
+                if self.gemini_model.is_empty() {
+                    self.gemini_model = DEFAULT_GEMINI_MODEL.into();
+                }
+                ui.label("Gemini model ID");
+                let model = ui.text_edit_singleline(&mut self.gemini_model);
+                app.auto.add_response("roughCut.gemini.model", &model, "Gemini model ID");
+                ui.label("The key is kept for this app session only.");
+                ui.hyperlink_to("Get a Gemini API key", "https://aistudio.google.com/apikey");
+            } else if self.local_review {
+                ui.label("Requires llama.cpp (llama-completion). The transcript stays on this device during review.");
+                self.review_install.show(app, ui, shotclutch_engine::preedit::local_review::MODEL.id);
+            }
+        });
     }
     fn refresh_audio(&mut self, app: &mut ShotClutchApp, map: u64, id: u64, analysis: &PreEditAnalysis) {
         self.reuse_analysis(app, map, id, analysis, false);
@@ -593,8 +652,9 @@ impl Workspace {
                     });
                 }
                 if self.cleanup.cut_bad_takes {
-                    ui.checkbox(&mut self.local_review,"Review takes with a local model (experimental)");
-                    if self.local_review { ui.label("Requires llama.cpp (llama-completion). The transcript stays on this device during review."); self.review_install.show(app,ui,shotclutch_engine::preedit::local_review::MODEL.id); }
+                    let response = ui.checkbox(&mut self.local_review,"Review takes after cutting (experimental)");
+                    app.auto.add_response("roughCut.reviewer.enabled", &response, "Review takes after cutting");
+                    self.reviewer_settings(app, ui);
                 }
                 cleanup_option(ui, &tokens, &mut self.cleanup.cut_fillers, "Remove fillers", "Cut hesitation sounds such as “um” and “uh.”");
             });
@@ -665,26 +725,31 @@ impl Workspace {
                     let map = &app.session.project.preedit.maps[&id];
                     let analysis_id = map.analysis;
                     let analysis = app.session.project.preedit.analyses[&analysis_id].clone();
-                    if map.automatic.is_some()
-                        && self.review_job.is_none()
-                        && ui
+                    if map.automatic.is_some() && self.review_job.is_none() {
+                        let response = ui
                             .button("Compare remaining takes (experimental)")
-                            .on_hover_text("Compare nearby surviving readings with the local review model. Keeps existing edit decisions.")
-                            .clicked()
-                    {
-                        self.begin_review(app, id, true);
+                            .on_hover_text("Compare nearby surviving readings with the selected take reviewer. Keeps existing edit decisions.");
+                        app.auto.add_response("roughCut.reviewer.compare", &response, "Compare remaining takes");
+                        if response.clicked() {
+                            self.begin_review(app, id, true);
+                        }
                     }
                     ui.separator();
                     ui.label("Evidence-based take review (experimental)");
-                    ui.label("Local reviewer: Granite 2B");
-                    self.evidence_install.show(app, ui, shotclutch_engine::preedit::local_review::MODEL.id);
-                    if self.review_job.is_none()
-                        && ui
+                    if !self.gemini_review {
+                        ui.label("Local reviewer: Granite 2B");
+                        self.evidence_install.show(app, ui, shotclutch_engine::preedit::local_review::MODEL.id);
+                    } else {
+                        ui.label("Reviewer: Gemini · Cloud");
+                    }
+                    if self.review_job.is_none() {
+                        let response = ui
                             .button("Review takes with evidence")
-                            .on_hover_text("Starts from conservative rules, then compares attempts and independently checks proposed cuts.")
-                            .clicked()
-                    {
-                        self.begin_evidence_review(app, id);
+                            .on_hover_text("Starts from conservative rules, then compares attempts and independently checks proposed cuts.");
+                        app.auto.add_response("roughCut.reviewer.evidence", &response, "Review takes with evidence");
+                        if response.clicked() {
+                            self.begin_evidence_review(app, id);
+                        }
                     }
                     if let Some(job) = &self.review_job {
                         if let Some(progress) = &job.progress {
@@ -1556,6 +1621,9 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
         workspace.stop(app.audio.as_deref_mut());
         workspace = Workspace {
             model_install: std::mem::take(&mut workspace.model_install),
+            gemini_review: workspace.gemini_review,
+            gemini_key: std::mem::take(&mut workspace.gemini_key),
+            gemini_model: std::mem::take(&mut workspace.gemini_model),
             document: Some(document),
             language: "en".into(),
             local_model: "faster-whisper-tiny.en".into(),
@@ -1610,7 +1678,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
                 Err(mpsc::TryRecvError::Empty) => ui.ctx().request_repaint_after(std::time::Duration::from_millis(200)),
                 Err(_) => {
                     workspace.review_job = None;
-                    workspace.message = "Local review stopped; kept the rule cut.".into();
+                    workspace.message = "Take review stopped; kept the rule cut.".into();
                 }
             }
         }

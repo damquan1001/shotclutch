@@ -1,7 +1,6 @@
-//! The header bar (Premiere 26 layout, 38 pt): Home and Import / Edit / Export on the left, the
-//! document title centred, the workspace name and quick actions on the right. On macOS the menus
-//! live in the native menu bar (set up by the app); elsewhere a compact in-window menu bar follows
-//! the mode tabs.
+//! Home and Import / Edit / Export occupy the 38 pt navigation row, with the document title
+//! centred and workspace/actions on the right. In-window menus have their own row above it.
+//! On macOS the app uses the native menu bar and only the navigation row is drawn here.
 
 use egui::{Color32, Rect, Sense, Stroke, pos2, vec2};
 
@@ -10,10 +9,24 @@ use crate::icons::{self, Icon};
 use crate::state::Mode;
 use crate::theme::Tokens;
 
+pub fn height(show_menu_bar: bool) -> f32 {
+    38.0 + if show_menu_bar { 24.0 } else { 0.0 }
+}
+
 pub fn show(app: &mut ShotClutchApp, ui: &mut egui::Ui, rect: Rect) {
     let t = app.tokens;
     let p = ui.painter().clone();
     p.rect_filled(rect, 0.0, t.header_bg);
+    let mut rect = rect;
+    if app.ui.show_menu_bar {
+        let menu_rect = Rect::from_min_size(rect.min, vec2(rect.width(), 24.0));
+        let mut mu = ui.new_child(egui::UiBuilder::new().max_rect(menu_rect.shrink2(vec2(4.0, 1.0))).layout(egui::Layout::left_to_right(egui::Align::Center)));
+        mu.style_mut().visuals.widgets.inactive.weak_bg_fill = Color32::TRANSPARENT;
+        mu.style_mut().visuals.widgets.inactive.bg_stroke = Stroke::NONE;
+        mu.style_mut().visuals.override_text_color = Some(t.text_dim);
+        crate::menus::menu_bar(app, &mut mu);
+        rect.min.y = menu_rect.max.y;
+    }
     p.line_segment([rect.left_bottom(), rect.right_bottom()], Stroke::new(1.0, Color32::BLACK));
     let drag = ui.interact(rect, egui::Id::new("header-drag"), Sense::click_and_drag());
     if drag.drag_started() {
@@ -54,17 +67,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut egui::Ui, rect: Rect) {
         }
         x += gw + 24.0;
     }
-    let mut left_end = x;
-    // In-window menus when there is no native menu bar.
-    if app.ui.show_menu_bar {
-        let menu_rect = Rect::from_min_max(pos2(x + 6.0, rect.min.y + 7.0), pos2(x + 520.0, rect.max.y - 7.0));
-        let mut mu = ui.new_child(egui::UiBuilder::new().max_rect(menu_rect).layout(egui::Layout::left_to_right(egui::Align::Center)));
-        mu.style_mut().visuals.widgets.inactive.weak_bg_fill = Color32::TRANSPARENT;
-        mu.style_mut().visuals.widgets.inactive.bg_stroke = Stroke::NONE;
-        mu.style_mut().visuals.override_text_color = Some(t.text_dim);
-        crate::menus::menu_bar(app, &mut mu);
-        left_end = mu.min_rect().max.x;
-    }
+    let left_end = x;
     // Document title, centred
     let title = if app.session.is_dirty() { tlf!("{name} - Edited", name = app.session.project.name) } else { app.session.project.name.clone() };
     // Right cluster: icons at ~38 pt pitch, then workspace name in caps.

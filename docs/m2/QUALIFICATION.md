@@ -22,6 +22,12 @@ The optional `scripts/m2/qualify_evidence_review.py` recording benchmark reads t
 
 If a running app locks the default executable, link the same source to a distinct candidate path using `cargo rustc --locked -p shotclutch --bin shotclutch -- -o <absolute-candidate.exe>`. Do not terminate the user's editor. After successful qualification, delete only superseded task-generated executable files in the verified build folder. Leave locked files for removal after the user closes them.
 
+## Optional Gemini reviewer
+
+The model-independent `preedit::` suite includes authenticated mock HTTP requests, schema conversion, blocked/truncated/malformed output, redacted authentication/quota/server errors, cancellation, and Gemini evidence merge/checkpoint validation. It requires no Google key and makes no calls to Google. Existing manual protections, snapping, Undo and persistence tests continue to cover the shared editor commands.
+
+For a live check, launch an isolated copy, open Setup, select Gemini · Cloud under Take reviewer, enter a key (or set `GEMINI_API_KEY`) and a model ID, then enable Review takes after cutting and Update cut. Compare remaining takes and Review takes with evidence use the same provider. Use a separate project copy, inspect the review results, and verify Undo and save/reopen. API usage may incur charges. No live Google account or recording-level editorial accuracy is claimed by the mock tests; the M2 local-model evidence does not qualify Gemini.
+
 ## Local real-model run
 
 Install Tiny English · Fast explicitly through Setup, including its pinned isolated Python runtime. Use an isolated data directory for qualification. Listen to the main source audio to verify intelligibility. Video placement uses that main audio by default; additional container tracks are an explicit choice in Audio Channels. Smart Cut exposes track selection only under Advanced source settings. Commands use zero-based stream indices; the first track is Main audio in the UI. Empty auxiliary tracks are not a requirement to audition or add to a sequence.
