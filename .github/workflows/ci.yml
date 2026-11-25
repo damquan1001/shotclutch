@@ -1,8 +1,5 @@
 name: CI
 on:
-  push:
-    branches: [codex/m3-semantic-media]
-    paths: [.github/workflows/ci.yml]
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
@@ -16,7 +13,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: m1-ci-${{ github.event.pull_request.number || github.ref }}${{ (github.event_name == 'push' || inputs.vault_platform == 'macos-15') && '-macos-vault' || '' }}
+  group: m1-ci-${{ github.event.pull_request.number || github.ref }}${{ inputs.vault_platform == 'macos-15' && '-macos-vault' || '' }}
   cancel-in-progress: true
 env:
   CARGO_TERM_COLOR: never
@@ -26,7 +23,7 @@ env:
 jobs:
   required:
     name: CI required
-    if: github.event_name != 'push' && inputs.vault_platform != 'macos-15' && (github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft)
+    if: inputs.vault_platform != 'macos-15' && (github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft)
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -51,11 +48,11 @@ jobs:
         run: "cargo test --locked -p shotclutch-speech --features download --lib assemblyai::"
   credential-vaults:
     name: SEC-004 native vault (${{ matrix.os }})
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft
+    if: github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJSON((github.event_name == 'push' || inputs.vault_platform == 'macos-15') && '["macos-15"]' || '["ubuntu-24.04", "windows-2025", "macos-15"]') }}
+        os: ${{ fromJSON(inputs.vault_platform == 'macos-15' && '["macos-15"]' || '["ubuntu-24.04", "windows-2025", "macos-15"]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 40
     steps:
