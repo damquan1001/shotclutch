@@ -98,6 +98,7 @@ pub enum TransactionError {
 
 /// An immutable structural preview. Drop it to abort. Its project can be rendered using the
 /// same snapshot readers as ordinary preview/export. Only the engine can construct one.
+#[derive(Clone)]
 pub struct PreparedEdit {
     base: Arc<Project>,
     revision: u64,
@@ -176,6 +177,7 @@ impl Session {
             return Err(crate::EngineError::Other("RESOURCE_LIMIT: project ID space exhausted".into()));
         }
         project.preedit.check().map_err(crate::EngineError::Other)?;
+        project.observations.check(&project).map_err(|message| crate::EngineError::Other(message.into()))?;
         Ok(PreparedEdit { base: self.project.clone(), revision: self.revision, project: Arc::new(project), label: label.into(), results, operation: None })
     }
 

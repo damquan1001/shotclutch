@@ -3500,6 +3500,7 @@ fn build() -> Vec<CommandSpec> {
                 }
                 for i in &gone {
                     pr.items.remove(i);
+                    pr.observations.remove_source(*i);
                     pr.root.remove_item(*i);
                 }
                 let seq_ids: Vec<ItemId> = pr.sequences().map(|q| q.id).collect();

@@ -53,6 +53,7 @@ tempfile = "3.27"
 shotclutch-testkit = { workspace = true }
 shotclutch-dng = { workspace = true, features = ["writer"] }
 shotclutch-isobmff = { workspace = true }
+shotclutch-matroska = { workspace = true }
 image = { version = "0.25", default-features = false, features = ["png", "gif"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

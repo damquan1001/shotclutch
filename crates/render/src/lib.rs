@@ -48,6 +48,16 @@ pub use image::Image;
 /// Resolves project items to media sources (the engine owns the media pool).
 pub trait SourceProvider: Sync {
     fn source(&self, item: ItemId) -> Option<SharedSource>;
+
+    /// Request-local evidence must use only this provider's inputs, including mixer preroll.
+    fn isolated_audio(&self) -> bool {
+        false
+    }
+
+    /// Optional limit on intermediate audio in an isolated request.
+    fn audio_window_allowed(&self, _frames: usize, _rate: u32) -> bool {
+        true
+    }
 }
 
 impl<F: Fn(ItemId) -> Option<SharedSource> + Sync> SourceProvider for F {

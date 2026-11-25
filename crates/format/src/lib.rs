@@ -43,6 +43,8 @@
 //!   round-trip; unknown required records are refused before the project reaches the editor.
 //! - **v17** (ShotClutch M1): document identity, revision, allocation watermark, retained history,
 //!   recovery source metadata and checksums in the atomic envelope. See [`session`].
+//! - **v18** (ShotClutch M2): durable Smart Rough Cut records.
+//! - **v19** (ShotClutch M3): durable semantic observations with original-source evidence.
 
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable))]
 
@@ -76,7 +78,7 @@ pub type Migration = fn(Value) -> Result<Value, String>;
 /// edit a shipped one.
 pub const MIGRATIONS: &[Migration] = &[
     v1_to_v2, v2_to_v3, v3_to_v4, v4_to_v5, v5_to_v6, v6_to_v7, v7_to_v8, v8_to_v9, v9_to_v10, v10_to_v11, v11_to_v12, v12_to_v13, v13_to_v14, v14_to_v15,
-    v15_to_v16, v16_to_v17, v17_to_v18,
+    v15_to_v16, v16_to_v17, v17_to_v18, v18_to_v19, v19_to_v20, v20_to_v21,
 ];
 
 /// The schema version this build writes (and the newest it reads).
@@ -299,6 +301,7 @@ pub fn decode(bytes: &[u8]) -> Result<Loaded, FormatError> {
 /// structural rules such as overlaps are left to the editor, so projects that open today still open.
 fn validate_loaded(mut loaded: Loaded) -> Result<Loaded, FormatError> {
     loaded.project.preedit.check().map_err(FormatError::Corrupt)?;
+    loaded.project.observations.check(&loaded.project).map_err(|message| FormatError::Corrupt(message.into()))?;
     if let Some(state) = &loaded.edit_state {
         if state.version == 1 && !state.operations.is_empty() {
             return Err(FormatError::Corrupt("operation receipts require document state version 2".into()));
@@ -514,13 +517,28 @@ fn v17_to_v18(doc: Value) -> Result<Value, String> {
     Ok(doc)
 }
 
+fn v18_to_v19(doc: Value) -> Result<Value, String> {
+    // Existing projects start with an empty observation collection.
+    Ok(doc)
+}
+
+fn v19_to_v20(doc: Value) -> Result<Value, String> {
+    // Older summaries have no explicit text role or word timing.
+    Ok(doc)
+}
+
+fn v20_to_v21(doc: Value) -> Result<Value, String> {
+    // Existing transcript observations have no attributed speaker.
+    Ok(doc)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn schema_version_matches_table() {
-        assert_eq!(SCHEMA_VERSION, 18);
+        assert_eq!(SCHEMA_VERSION, 21);
     }
 
     #[test]
@@ -542,6 +560,91 @@ mod tests {
         assert_eq!(loaded.project, project);
         doc["project"]["name"] = Value::from("damaged");
         assert!(decode(&serde_json::to_vec(&doc).unwrap()).is_err());
+    }
+
+    #[test]
+    fn v18_migrates_with_empty_observations_and_preserves_original_integrity() {
+        let project = Project::new("M2 project");
+        let mut doc: Value = serde_json::from_slice(&encode(&project, false)).unwrap();
+        doc["schema_version"] = Value::from(18);
+        sign_test_document(&mut doc);
+        let loaded = decode(&serde_json::to_vec(&doc).unwrap()).unwrap();
+        assert!(loaded.migrated());
+        assert_eq!(loaded.schema_version, 18);
+        assert!(loaded.project.observations.is_empty());
+        assert_eq!(loaded.project, project);
+        assert_eq!(decode(&encode(&loaded.project, false)).unwrap().schema_version, SCHEMA_VERSION);
+        doc["project"]["name"] = Value::from("damaged");
+        assert!(matches!(decode(&serde_json::to_vec(&doc).unwrap()), Err(FormatError::Corrupt(_))));
+    }
+
+    #[test]
+    fn v19_preserves_untimed_summaries_and_v20_rejects_invalid_word_times() {
+        use shotclutch_media::{DemoScene, MediaSource, generators::GeneratorSource};
+        use shotclutch_project::{ItemKind, Label, MediaClip, MediaRef};
+        let mut project = Project::new("Earlier observations");
+        let asset = project.add_item(
+            "clip",
+            Label::Iris,
+            ItemKind::Media(MediaClip {
+                media: MediaRef::File { path: "clip.mov".into() },
+                info: GeneratorSource::demo(DemoScene::Aurora).info().clone(),
+                interpret: Default::default(),
+                mark_in: None,
+                mark_out: None,
+                markers: Vec::new(),
+                offline: false,
+                proxy: None,
+                identity: None,
+            }),
+            None,
+        );
+        let id = project.alloc_id().to_string();
+        let mut doc: Value = serde_json::from_slice(&encode(&project, false)).unwrap();
+        doc["schema_version"] = 19.into();
+        doc["project"]["observations"] = serde_json::json!({id.clone():{
+            "kind":"segment", "evidence":{"asset":asset.0.to_string(),"fingerprint":{"sha256":"a".repeat(64),"bytes":"100"},
+            "location":{"domain":"source_range","stream":{"audio":0},"start":"1","end":"9"},"duration_ticks":"10","has_video":true,"audio_stream_count":1},
+            "provenance":{"origin":"human","author":"editor"},"created_unix_seconds":"0","summary":"two words"
+        }});
+        sign_test_document(&mut doc);
+        let migrated = decode(&serde_json::to_vec(&doc).unwrap()).unwrap();
+        let (_, obs) = migrated.project.observations.iter().next().unwrap();
+        assert!(obs.text_role.is_none() && obs.word_times.is_empty());
+        assert_eq!(obs.summary.as_deref(), Some("two words"));
+        let mut v20: Value = serde_json::from_slice(&encode(&migrated.project, false)).unwrap();
+        let record = &mut v20["project"]["observations"][id];
+        record["text_role"] = "transcript".into();
+        record["word_times"] = serde_json::json!([{"start":"1","end":"5"},{"start":"4","end":"9"}]);
+        sign_test_document(&mut v20);
+        assert!(matches!(decode(&serde_json::to_vec(&v20).unwrap()),Err(FormatError::Corrupt(message)) if message.contains("word timing")));
+    }
+
+    #[test]
+    fn checksummed_observation_with_missing_original_is_rejected() {
+        let mut doc: Value = serde_json::from_slice(&encode(&Project::new("M3 project"), false)).unwrap();
+        doc["project"]["observations"] = serde_json::json!({"2": {
+            "kind": "asset",
+            "evidence": {
+                "asset": "1", "fingerprint": {"sha256": "a".repeat(64), "bytes": "100"},
+                "location": {"domain": "whole_asset"}, "duration_ticks": "10", "has_video": true, "audio_stream_count": 0
+            },
+            "provenance": {"origin": "verified_asset", "version": 1},
+            "created_unix_seconds": "0"
+        }});
+        sign_test_document(&mut doc);
+        let error = decode(&serde_json::to_vec(&doc).unwrap()).unwrap_err();
+        assert!(matches!(error, FormatError::Corrupt(message) if message == "observation original asset is missing"));
+    }
+
+    fn sign_test_document(doc: &mut Value) {
+        doc["integrity"] = Value::from(integrity_digest(serde_json::json!([
+            doc.get("format"),
+            doc.get("schema_version"),
+            doc.get("project"),
+            doc.get("edit_state"),
+            doc.get("recovery")
+        ])));
     }
 
     #[test]

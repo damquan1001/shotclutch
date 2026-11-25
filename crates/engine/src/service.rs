@@ -1,4 +1,4 @@
-//! Versioned structural transactions. Only trusted host code issues access; request JSON cannot
+//! Versioned editor transactions. Only trusted host code issues access; request JSON cannot
 //! choose an actor, grant itself rights, select a destination, or execute arbitrary commands.
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -17,7 +17,12 @@ use shotclutch_format::session::{DocumentId, OperationRecord};
 use shotclutch_project::{ItemId, Project};
 
 use crate::Session;
+use crate::agent_policy::Policy;
 use crate::transactions::{PreparedEdit, TimelineEdit, TransactionError};
+
+mod agent;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod runs;
 
 const RECEIPT_LIFETIME: i64 = 7 * 24 * 60 * 60;
 const METHODS: &[&str] = &[
@@ -60,7 +65,7 @@ impl std::fmt::Display for ServiceError {
     }
 }
 impl std::error::Error for ServiceError {}
-fn error(code: ErrorCode, message: impl Into<String>) -> ServiceError {
+pub(crate) fn error(code: ErrorCode, message: impl Into<String>) -> ServiceError {
     ServiceError { code, message: message.into() }
 }
 type Reply = Result<Value, ServiceError>;
@@ -106,13 +111,44 @@ impl std::fmt::Debug for EditorClient {
 }
 
 #[derive(Clone, Default)]
-pub struct Cancellation(Arc<AtomicBool>);
+pub struct Cancellation(Arc<AtomicBool>, #[cfg(not(target_arch = "wasm32"))] Option<Arc<runs::Meter>>);
 impl Cancellation {
     pub fn cancel(&self) {
         self.0.store(true, Ordering::Release);
     }
     pub(crate) fn check(&self) -> Result<(), ServiceError> {
-        if self.0.load(Ordering::Acquire) { Err(error(ErrorCode::Canceled, "operation canceled before commit")) } else { Ok(()) }
+        if self.0.load(Ordering::Acquire) {
+            return Err(error(ErrorCode::Canceled, "operation canceled before commit"));
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        if let Some(meter) = &self.1 {
+            meter.check()?;
+        }
+        Ok(())
+    }
+
+    fn agent_run(&self) -> Option<DocumentId> {
+        #[cfg(not(target_arch = "wasm32"))]
+        if let Some(meter) = &self.1 {
+            return Some(meter.run_id);
+        }
+        None
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn with_media<T>(&self, operation: impl FnOnce() -> T) -> T {
+        use shotclutch_media::cancel::{Context, with_cancel, with_stop};
+        let deadline = self.1.as_ref().map(|meter| meter.deadline);
+        Context::current().run(|| with_cancel(&self.0, || with_stop(move || deadline.is_some_and(|deadline| Instant::now() >= deadline), operation)))
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn charge_run_work(&self, work: runs::Work, units: u64) -> Result<(), ServiceError> {
+        self.check()?;
+        if let Some(meter) = &self.1 {
+            meter.charge(work, units)?;
+        }
+        Ok(())
     }
 }
 
@@ -124,6 +160,7 @@ struct Grant {
     scope: EditorScope,
     expires: Instant,
     roots: Vec<Arc<crate::service_sources::ReadRoot>>,
+    policy: Option<Arc<Policy>>,
 }
 impl Grant {
     fn check(&self, session: &Session, project: DocumentId, sequence: Option<ItemId>, edit: bool) -> Result<(), ServiceError> {
@@ -194,12 +231,33 @@ struct OperationRef {
     operation_id: String,
 }
 
+struct ComposedVerification {
+    criteria: Vec<crate::edit_verification::Criterion>,
+    staged_digest: String,
+    criteria_digest: String,
+    sources_digest: String,
+    report: Option<crate::edit_verification::Report>,
+}
+
+fn verification_value(composed: Option<&ComposedVerification>) -> Value {
+    match composed {
+        None => json!({"kind": "structural", "passed": true}),
+        Some(composed) => match &composed.report {
+            Some(report) => json!({"kind": "composed", "outcome": report.outcome, "report": report}),
+            None => json!({"kind": "composed", "outcome": "inconclusive", "state": "pending"}),
+        },
+    }
+}
+
 struct Draft {
     client: DocumentId,
     actor: String,
     request: EditRequest,
     digest: String,
     prepared: PreparedEdit,
+    composed: Option<ComposedVerification>,
+    policy: Option<agent::DraftPolicy>,
+    run: Option<DocumentId>,
     sources: Vec<crate::service_sources::SourceBinding>,
     expires: Instant,
     preview: Value,
@@ -227,7 +285,7 @@ fn digest<T: Serialize>(value: &T) -> Result<String, ServiceError> {
     let bytes = serde_json::to_vec(&value).map_err(|_| error(ErrorCode::InvalidArgument, "request cannot be serialized"))?;
     Ok(format!("{:x}", Sha256::digest(bytes)))
 }
-fn transaction_error(e: TransactionError) -> ServiceError {
+pub(crate) fn transaction_error(e: TransactionError) -> ServiceError {
     match e {
         TransactionError::RevisionConflict => error(ErrorCode::RevisionConflict, "project changed; prepare a new preview"),
         TransactionError::InvalidArgument(m) => error(ErrorCode::InvalidArgument, m),
@@ -235,14 +293,23 @@ fn transaction_error(e: TransactionError) -> ServiceError {
         TransactionError::CapabilityUnavailable(m) => error(ErrorCode::CapabilityUnavailable, m),
         TransactionError::Canceled => error(ErrorCode::Canceled, "transaction canceled before commit"),
         TransactionError::PermissionDenied => error(ErrorCode::PermissionDenied, "authorization was revoked or expired"),
-        TransactionError::PersistenceFailed(_) => {
-            error(ErrorCode::InternalError, "durable storage failed; no edit was published; inspect the operation before retrying")
+        TransactionError::PersistenceFailed(detail) => {
+            let message = if detail.contains("acknowledgement lost") {
+                "commit acknowledgement lost; recover the project before retrying"
+            } else {
+                runs_storage_failure()
+            };
+            error(ErrorCode::InternalError, message)
         }
     }
 }
 
+fn runs_storage_failure() -> &'static str {
+    "durable storage failed; no edit was published; inspect the operation before retrying"
+}
+
 impl EditorService {
-    fn issue(&mut self, session: &Session, actor: &str, scope: EditorScope) -> Result<EditorClient, ServiceError> {
+    fn issue(&mut self, session: &Session, actor: &str, scope: EditorScope, policy: Option<Policy>) -> Result<EditorClient, ServiceError> {
         if !identifier(actor)
             || scope.lifetime.is_zero()
             || scope.lifetime > Duration::from_secs(3600)
@@ -258,11 +325,22 @@ impl EditorService {
         if scope.sequences.as_ref().is_some_and(|ids| ids.is_empty() || ids.iter().any(|id| session.project.sequence(*id).is_none())) {
             return Err(error(ErrorCode::NotFound, "authorized sequence not found"));
         }
+        if let Some(policy) = &policy {
+            agent::validate_policy(session, &scope, policy)?;
+        }
         let roots = scope.media_roots.iter().map(|path| crate::service_sources::ReadRoot::open(path).map(Arc::new)).collect::<Result<Vec<_>, _>>()?;
         let client = EditorClient { id: DocumentId::default(), revoked: Arc::new(AtomicBool::new(false)) };
         self.clients.insert(
             client.id,
-            Grant { client: client.clone(), actor: actor.into(), project: session.document_id, expires: Instant::now() + scope.lifetime, scope, roots },
+            Grant {
+                client: client.clone(),
+                actor: actor.into(),
+                project: session.document_id,
+                expires: Instant::now() + scope.lifetime,
+                scope,
+                roots,
+                policy: policy.map(Arc::new),
+            },
         );
         Ok(client)
     }
@@ -287,7 +365,7 @@ impl EditorService {
             lifetime: Duration::from_secs(3600),
             max_source_bytes: 512 * 1024 * 1024,
         });
-        let client = self.issue(session, "local-owner", scope)?;
+        let client = self.issue(session, "local-owner", scope, None)?;
         self.owner = Some(client.clone());
         Ok(client)
     }
@@ -342,9 +420,10 @@ impl EditorService {
                     "sequence.inspect" => "{item?: decimal-string}",
                     _ => "{}",
                 };
-                json!({"id": id, "label": id, "apiVersion": "1", "params": params, "enabled": !edit || grant.scope.allow_edits, "capability": if edit { "sequence.edit" } else { "sequence.read" }, "preview": *id == "transaction.preview", "reversible": *id == "transaction.commit", "job": false})
+                let enabled = (!edit || grant.scope.allow_edits) && (*id != "transaction.preview" || grant.policy.is_none());
+                json!({"id": id, "label": id, "apiVersion": "1", "params": params, "enabled": enabled, "capability": if edit { "sequence.edit" } else { "sequence.read" }, "preview": *id == "transaction.preview", "reversible": *id == "transaction.commit", "job": false})
             }).collect())),
-            "transaction.preview" => self.preview(session, &grant, parse(params)?, cancellation),
+            "transaction.preview" => self.preview(session, &grant, parse(params)?, None, cancellation),
             "transaction.commit" | "transaction.abort" | "transaction.inspect" => {
                 let reference: TransactionRef = parse(params)?;
                 version(&reference.api_version)?;
@@ -353,6 +432,9 @@ impl EditorService {
                     r.actor == grant.actor && r.retained_until > crate::autosave::unix_now() && r.result["transactionId"] == json!(reference.transaction_id)
                 }) {
                     grant.check(session, reference.project_id, Some(ItemId(record.sequence)), method == "transaction.commit")?;
+                    if method == "transaction.commit" && grant.policy.is_some() && record.result.get("policy").is_none() {
+                        return Err(error(ErrorCode::PermissionDenied, "receipt belongs to a non-agent transaction"));
+                    }
                     return if method == "transaction.abort" {
                         Err(error(ErrorCode::InvalidArgument, "committed edits require undo, not abort"))
                     } else {
@@ -362,7 +444,7 @@ impl EditorService {
                 let draft = self.drafts.get(&reference.transaction_id).ok_or_else(|| error(ErrorCode::NotFound, "preview not found"))?;
                 self.check_draft(session, &grant, draft, method == "transaction.commit")?;
                 if method == "transaction.inspect" {
-                    return Ok(draft.preview.clone());
+                    return draft.view(&grant);
                 }
                 if method == "transaction.abort" {
                     self.drafts.remove(&reference.transaction_id);
@@ -386,19 +468,33 @@ impl EditorService {
         }
     }
 
-    fn preview(&mut self, session: &mut Session, grant: &Grant, request: EditRequest, cancellation: &Cancellation) -> Reply {
+    fn preview(
+        &mut self,
+        session: &mut Session,
+        grant: &Grant,
+        request: EditRequest,
+        criteria: Option<Vec<crate::edit_verification::Criterion>>,
+        cancellation: &Cancellation,
+    ) -> Reply {
         version(&request.api_version)?;
-        grant.check(session, request.project_id, Some(request.sequence_id), true)?;
+        self.check_prepare(session, grant, &request, criteria.is_some())?;
         if !identifier(&request.operation_id) || !identifier(&request.idempotency_key) {
             return Err(error(ErrorCode::InvalidArgument, "operation IDs and idempotency keys must be bounded identifiers"));
         }
-        let digest = digest(&request)?;
+        if let Some(criteria) = &criteria {
+            crate::edit_verification::validate(criteria, &request.edits)?;
+        }
+        let request_digest = match (&grant.policy, &criteria) {
+            (Some(_), Some(criteria)) => digest(&("agent-composed-v1", &request, criteria))?,
+            (None, Some(criteria)) => digest(&("composed-v1", &request, criteria))?,
+            (_, None) => digest(&request)?,
+        };
         if let Some(record) = session.operation_records.iter().find(|r| {
             r.actor == grant.actor
                 && (r.idempotency_key == request.idempotency_key || r.operation_id == request.operation_id)
                 && r.retained_until > crate::autosave::unix_now()
         }) {
-            return if record.request == digest {
+            return if record.request == request_digest {
                 Ok(record.result.clone())
             } else {
                 Err(error(ErrorCode::InvalidArgument, "operation ID or idempotency key was used with a different request"))
@@ -410,11 +506,11 @@ impl EditorService {
                 && d.request.project_id == request.project_id
                 && (d.request.idempotency_key == request.idempotency_key || d.request.operation_id == request.operation_id)
         }) {
-            if draft.digest != digest {
+            if draft.digest != request_digest {
                 return Err(error(ErrorCode::InvalidArgument, "idempotency key was used with a different request"));
             }
-            self.check_draft(session, grant, draft, true)?;
-            return Ok(draft.preview.clone());
+            self.check_draft(session, grant, draft, grant.policy.is_none())?;
+            return draft.view(grant);
         }
         if self.drafts.len() >= 32 || self.drafts.values().filter(|d| d.client == grant.client.id).count() >= 8 {
             return Err(error(ErrorCode::ResourceLimit, "too many pending previews; abort an unused preview"));
@@ -435,16 +531,43 @@ impl EditorService {
             revoked: &grant.client.revoked,
             expires: grant.expires,
         };
+        let policy = grant.policy.as_ref().map(|policy| agent::DraftPolicy::new(session, &prepared, request.sequence_id, policy, &context)).transpose()?;
         let sources = crate::service_sources::capture(session, request.sequence_id, &context)?;
-        grant.check(session, request.project_id, Some(request.sequence_id), true)?;
+        self.check_prepare(session, grant, &request, criteria.is_some())?;
         cancellation.check()?;
         let id = DocumentId::default();
         let expires = (Instant::now() + Duration::from_secs(5 * 60)).min(grant.expires);
         let changes = changes(&session.project, prepared.project(), request.sequence_id)?;
-        let preview = json!({"apiVersion": "1", "state": "preview_ready", "transactionId": id, "projectId": request.project_id, "operationId": request.operation_id, "baseRevision": request.expected_revision.to_string(), "sequenceId": request.sequence_id.0.to_string(), "expiresAt": crate::autosave::unix_now() + expires.saturating_duration_since(Instant::now()).as_secs() as i64, "verification": {"kind": "structural", "passed": true}, "changes": changes, "sourceCount": sources.len()});
-        self.drafts
-            .insert(id, Draft { client: grant.client.id, actor: grant.actor.clone(), request, digest, prepared, sources, expires, preview: preview.clone() });
-        Ok(preview)
+        let composed = criteria
+            .map(|criteria| {
+                Ok::<_, ServiceError>(ComposedVerification {
+                    criteria_digest: digest(&criteria)?,
+                    sources_digest: digest(&sources)?,
+                    staged_digest: digest(prepared.project().as_ref())?,
+                    criteria,
+                    report: None,
+                })
+            })
+            .transpose()?;
+        cancellation.check()?;
+        self.check_prepare(session, grant, &request, composed.is_some())?;
+        let preview = json!({"apiVersion": "1", "state": "preview_ready", "transactionId": id, "projectId": request.project_id, "operationId": request.operation_id, "baseRevision": request.expected_revision.to_string(), "sequenceId": request.sequence_id.0.to_string(), "expiresAt": crate::autosave::unix_now() + expires.saturating_duration_since(Instant::now()).as_secs() as i64, "verification": verification_value(composed.as_ref()), "changes": changes, "sourceCount": sources.len()});
+        let draft = Draft {
+            client: grant.client.id,
+            actor: grant.actor.clone(),
+            request,
+            digest: request_digest,
+            prepared,
+            composed,
+            policy,
+            run: cancellation.agent_run(),
+            sources,
+            expires,
+            preview,
+        };
+        let response = draft.view(grant)?;
+        self.drafts.insert(id, draft);
+        Ok(response)
     }
 
     fn check_draft(&self, session: &Session, grant: &Grant, draft: &Draft, edit: bool) -> Result<(), ServiceError> {
@@ -464,6 +587,29 @@ impl EditorService {
     fn commit(&mut self, session: &mut Session, grant: &Grant, id: DocumentId, cancellation: &Cancellation) -> Reply {
         let draft = self.drafts.get(&id).ok_or_else(|| error(ErrorCode::NotFound, "preview not found"))?;
         self.check_draft(session, grant, draft, true)?;
+        if draft.run.is_some() && draft.run != cancellation.agent_run() {
+            return Err(error(ErrorCode::PermissionDenied, "advance the agent run to publish its draft"));
+        }
+        let policy_decision = draft.policy_decision(grant)?;
+        if let Some(composed) = &draft.composed {
+            use crate::edit_verification::Outcome;
+            let report = composed
+                .report
+                .as_ref()
+                .filter(|report| report.outcome == Outcome::Passed || policy_decision.is_some())
+                .ok_or_else(|| error(ErrorCode::VerificationFailed, "required composed verification has not passed"))?;
+            if report.transaction_id != id
+                || report.project_id != session.document_id
+                || report.sequence_id != draft.request.sequence_id
+                || report.base_revision != session.revision
+                || report.request_sha256 != draft.digest
+                || report.staged_sha256 != digest(draft.prepared.project().as_ref())?
+                || report.criteria_sha256 != digest(&composed.criteria)?
+                || report.sources_sha256 != digest(&draft.sources)?
+            {
+                return Err(error(ErrorCode::VerificationFailed, "composition evidence no longer matches the preview"));
+            }
+        }
         crate::service_sources::verify(
             session,
             draft.request.sequence_id,
@@ -476,7 +622,7 @@ impl EditorService {
                 expires: draft.expires.min(grant.expires),
             },
         )?;
-        grant.check(session, draft.request.project_id, Some(draft.request.sequence_id), true)?;
+        self.check_draft(session, grant, draft, true)?;
         cancellation.check()?;
         if session.operation_records.iter().filter(|r| r.retained_until > crate::autosave::unix_now()).count() >= 128 {
             return Err(error(ErrorCode::ResourceLimit, "operation receipt retention is full"));
@@ -485,19 +631,25 @@ impl EditorService {
             return Err(error(ErrorCode::CapabilityUnavailable, "durable recovery must be enabled by the host"));
         }
         session.ensure_revision_available().map_err(|_| error(ErrorCode::ResourceLimit, "revision counter exhausted"))?;
-        let mut draft = self.drafts.remove(&id).ok_or_else(|| error(ErrorCode::NotFound, "preview not found"))?;
+        let mut prepared = draft.prepared.clone();
         let retained_until = crate::autosave::unix_now() + RECEIPT_LIFETIME;
-        let result = json!({"apiVersion": "1", "state": "committed", "transactionId": id, "projectId": session.document_id, "operationId": draft.request.operation_id, "priorRevision": session.revision.to_string(), "revision": (session.revision + 1).to_string(), "sequenceId": draft.request.sequence_id.0.to_string(), "changes": draft.preview["changes"], "label": draft.request.label, "commands": draft.request.edits, "sources": draft.sources, "verification": {"kind": "structural", "passed": true}, "warnings": [], "undoAvailable": session.history.limit > 0, "retainedUntil": retained_until});
-        draft.prepared.operation = Some(OperationRecord {
+        let mut result = json!({"apiVersion": "1", "state": "committed", "transactionId": id, "projectId": session.document_id, "operationId": draft.request.operation_id, "priorRevision": session.revision.to_string(), "revision": (session.revision + 1).to_string(), "sequenceId": draft.request.sequence_id.0.to_string(), "changes": draft.preview["changes"], "label": draft.request.label, "commands": draft.request.edits, "sources": draft.sources, "verification": verification_value(draft.composed.as_ref()), "warnings": [], "undoAvailable": session.history.limit > 0, "retainedUntil": retained_until});
+        if let Some(decision) = policy_decision {
+            result["policy"] = json!(decision);
+        }
+        prepared.operation = Some(OperationRecord {
             actor: grant.actor.clone(),
-            operation_id: draft.request.operation_id,
-            idempotency_key: draft.request.idempotency_key,
-            request: draft.digest,
+            operation_id: draft.request.operation_id.clone(),
+            idempotency_key: draft.request.idempotency_key.clone(),
+            request: draft.digest.clone(),
             sequence: draft.request.sequence_id.0,
             retained_until,
             result: result.clone(),
         });
-        session.commit_edits_durable(draft.prepared).map_err(transaction_error)?;
+        cancellation.check()?;
+        self.check_draft(session, grant, draft, true)?;
+        session.commit_edits_durable(prepared).map_err(transaction_error)?;
+        self.drafts.remove(&id);
         Ok(result)
     }
 }
@@ -549,6 +701,48 @@ pub(crate) fn validate_records(records: &[OperationRecord], project: DocumentId)
         {
             return Err("invalid or duplicate retained operation receipt".into());
         }
+        let verification = &record.result["verification"];
+        let policy = record.result.get("policy");
+        if policy.is_some() && verification["kind"] != "composed" {
+            return Err("agent policy receipt requires composed verification".into());
+        }
+        if verification["kind"] == "composed" {
+            use crate::edit_verification::{Outcome, Report};
+            let report: Report = serde_json::from_value(verification["report"].clone()).map_err(|_| "invalid composed verification receipt")?;
+            let request = EditRequest {
+                api_version: "1".into(),
+                operation_id: record.operation_id.clone(),
+                idempotency_key: record.idempotency_key.clone(),
+                project_id: project,
+                expected_revision: report.base_revision,
+                sequence_id: ItemId(record.sequence),
+                label: record.result["label"].as_str().ok_or("invalid composed edit label")?.into(),
+                edits: serde_json::from_value(record.result["commands"].clone()).map_err(|_| "invalid composed edit commands")?,
+            };
+            let criteria: Vec<_> = report.criteria.iter().map(|entry| &entry.expected).collect();
+            let family = if policy.is_some() { "agent-composed-v1" } else { "composed-v1" };
+            if Some(report.transaction_id) != transaction
+                || report.project_id != project
+                || Some(report.base_revision) != decimal("priorRevision")
+                || report.sequence_id.0 != record.sequence
+                || report.request_sha256 != record.request
+                || verification["outcome"] != json!(report.outcome)
+                || digest(&(family, &request, &criteria)).as_deref().ok() != Some(record.request.as_str())
+                || digest(&criteria).as_deref().ok() != Some(report.criteria_sha256.as_str())
+                || digest(&record.result["sources"]).as_deref().ok() != Some(report.sources_sha256.as_str())
+            {
+                return Err("composed verification receipt does not match the committed edit".into());
+            }
+            if let Some(policy) = policy {
+                agent::validate_decision(policy.clone(), &report)?;
+            } else if report.outcome != Outcome::Passed
+                || report.criteria.is_empty()
+                || report.criteria.iter().any(|result| result.outcome != Outcome::Passed)
+                || !report.gaps.is_empty()
+            {
+                return Err("composed receipt requires passing verification".into());
+            }
+        }
     }
     Ok(())
 }
@@ -581,7 +775,7 @@ impl Session {
         }
     }
     pub fn authorize_editor(&mut self, actor: &str, scope: EditorScope) -> Result<EditorClient, ServiceError> {
-        self.with_editor_service(|service, session| service.issue(session, actor, scope))
+        self.with_editor_service(|service, session| service.issue(session, actor, scope, None))
     }
     pub fn execute_as(&mut self, client: &EditorClient, id: &str, params: Value) -> Reply {
         self.execute_as_cancellable(client, id, params, &Cancellation::default())
@@ -599,6 +793,168 @@ impl Session {
     }
     pub fn require_editor_read(&self, client: &EditorClient, sequence: ItemId) -> Result<(), ServiceError> {
         self.service.grant(self, client)?.check(self, self.document_id, Some(sequence), false)
+    }
+
+    /// Stage a native edit whose required criteria must pass before any commit route can publish it.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn preview_verified_edit(
+        &mut self,
+        client: &EditorClient,
+        request: EditRequest,
+        criteria: Vec<crate::edit_verification::Criterion>,
+        cancellation: &Cancellation,
+    ) -> Result<Value, ServiceError> {
+        self.with_editor_service(|service, session| {
+            let grant = service.grant(session, client)?;
+            cancellation.check()?;
+            if serde_json::to_vec(&(&request, &criteria)).map_err(|_| error(ErrorCode::InvalidArgument, "invalid request"))?.len() > 256 * 1024 {
+                return Err(error(ErrorCode::ResourceLimit, "editor request exceeds 256 KiB"));
+            }
+            service.preview(session, &grant, request, Some(criteria), cancellation)
+        })
+    }
+
+    /// Render a verified draft owned by this grant and retain the resulting evidence on the draft.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn verify_staged_edit(
+        &mut self,
+        client: &EditorClient,
+        transaction: DocumentId,
+        cancellation: &Cancellation,
+    ) -> Result<crate::edit_verification::Report, ServiceError> {
+        self.with_editor_service(|service, session| {
+            let grant = service.grant(session, client)?;
+            let draft = service.drafts.get(&transaction).ok_or_else(|| error(ErrorCode::NotFound, "preview not found"))?;
+            service.check_draft(session, &grant, draft, grant.policy.is_none())?;
+            if draft.run.is_some() && draft.run != cancellation.agent_run() {
+                return Err(error(ErrorCode::PermissionDenied, "advance the agent run to verify its draft"));
+            }
+            let draft = service.drafts.get_mut(&transaction).ok_or_else(|| error(ErrorCode::NotFound, "preview not found"))?;
+            let composed = draft.composed.as_mut().ok_or_else(|| error(ErrorCode::CapabilityUnavailable, "preview has no composed criteria"))?;
+            composed.report = None;
+            if let Some(policy) = &mut draft.policy {
+                policy.reset_review();
+            }
+            draft.preview["verification"] = json!({"kind": "composed", "outcome": "inconclusive", "state": "pending"});
+            let read = grant.observation_context(cancellation);
+            let context = crate::service_sources::ReadContext { expires: read.expires.min(draft.expires), ..read };
+            let input = crate::edit_verification::VerificationInput {
+                transaction_id: transaction,
+                sequence: draft.request.sequence_id,
+                staged: draft.prepared.project(),
+                sources: &draft.sources,
+                edits: &draft.request.edits,
+                criteria: &composed.criteria,
+                request_digest: &draft.digest,
+                staged_digest: &composed.staged_digest,
+                criteria_digest: &composed.criteria_digest,
+                sources_digest: &composed.sources_digest,
+            };
+            let report = crate::edit_verification::verify(session, input, &context)?;
+            context.check()?;
+            composed.report = Some(report.clone());
+            draft.preview["verification"] = verification_value(draft.composed.as_ref());
+            Ok(report)
+        })
+    }
+
+    /// Inspect one original or the current composition through a scoped read grant.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn inspect_media(
+        &self,
+        client: &EditorClient,
+        request: &crate::media_inspection::Request,
+        active_models: &crate::media_observations::ActiveModels,
+        cancellation: &Cancellation,
+    ) -> Result<crate::media_inspection::Inspection, ServiceError> {
+        use crate::media_inspection::{Inspection, Request};
+        match request {
+            Request::Source(request) => {
+                let grant = self.observation_grant(client, false)?;
+                crate::media_inspection::source(self, request, active_models, &grant.observation_context(cancellation)).map(Inspection::Source)
+            }
+            Request::Timeline(request) => {
+                let grant = self.service.grant(self, client)?;
+                grant.check(self, self.document_id, Some(request.sequence), false)?;
+                crate::media_inspection::timeline(self, request, &grant.observation_context(cancellation)).map(Inspection::Timeline)
+            }
+        }
+    }
+
+    /// Search local source evidence under the caller's project read grant.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn search_media(
+        &self,
+        client: &EditorClient,
+        query: &crate::media_search::SearchQuery,
+        active_models: &crate::media_observations::ActiveModels,
+        cancellation: &Cancellation,
+    ) -> Result<crate::media_search::SearchResults, ServiceError> {
+        let grant = self.observation_grant(client, false)?;
+        crate::media_search::search(self, query, active_models, &grant.observation_context(cancellation))
+    }
+
+    /// Trusted native API for reading observations on one original in an authorized media root.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn inspect_media_observations(
+        &self,
+        client: &EditorClient,
+        asset: ItemId,
+        active_models: &crate::media_observations::ActiveModels,
+        cancellation: &Cancellation,
+    ) -> Result<crate::media_observations::ObservationInspection, ServiceError> {
+        let grant = self.observation_grant(client, false)?;
+        crate::media_observations::inspect(self, asset, active_models, &grant.observation_context(cancellation))
+    }
+
+    /// Trusted native API for appending an observation and acknowledging its recovery snapshot.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn record_media_observation(
+        &mut self,
+        client: &EditorClient,
+        request: crate::media_observations::ObservationRequest,
+        cancellation: &Cancellation,
+    ) -> Result<shotclutch_project::observations::ObservationId, ServiceError> {
+        let grant = self.observation_grant(client, true)?;
+        crate::media_observations::record(self, request, &grant.actor, &grant.observation_context(cancellation))
+    }
+
+    /// Run installed offline speech on a bounded window. Silence leaves the project unchanged.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn record_local_speech_observation(
+        &mut self,
+        client: &EditorClient,
+        request: crate::media_observations::SpeechObservationRequest,
+        cancellation: &Cancellation,
+    ) -> Result<Option<shotclutch_project::observations::ObservationId>, ServiceError> {
+        let grant = self.observation_grant(client, true)?;
+        crate::media_observations::record_speech(self, request, &grant.observation_context(cancellation))
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    fn observation_grant(&self, client: &EditorClient, write: bool) -> Result<Grant, ServiceError> {
+        let grant = self.service.grant(self, client)?;
+        grant.check(self, self.document_id, None, write)?;
+        if write && grant.policy.is_some() {
+            return Err(error(ErrorCode::PermissionDenied, "agent edit policy does not authorize observation writes"));
+        }
+        if grant.scope.sequences.is_some() {
+            return Err(error(ErrorCode::PermissionDenied, "asset observations require project-scoped media authorization"));
+        }
+        Ok(grant)
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl Grant {
+    fn observation_context<'a>(&'a self, cancellation: &'a Cancellation) -> crate::service_sources::ReadContext<'a> {
+        crate::service_sources::ReadContext {
+            roots: &self.roots,
+            budget: self.scope.max_source_bytes,
+            cancellation,
+            revoked: &self.client.revoked,
+            expires: self.expires,
+        }
     }
 }
 
@@ -664,3 +1020,7 @@ pub(crate) fn commands() -> Vec<crate::commands::CommandSpec> {
 #[cfg(test)]
 #[path = "m1_service_tests.rs"]
 mod m1_service_tests;
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+#[path = "edit_verification/tests.rs"]
+mod edit_verification_tests;

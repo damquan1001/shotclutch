@@ -133,6 +133,7 @@ pub fn run(s: &mut Session, p: &Value) -> Result<Value> {
             proj.items.remove(&i);
             proj.root.remove_item(i);
         }
+        proj.observations.retain_sources(&keep);
     }
     // ---- work list and estimate
     let mut work = Vec::new();

@@ -1289,8 +1289,12 @@ pub struct Project {
     /// Schema v18: durable Smart Rough Cut analysis, review and application records.
     #[serde(default, skip_serializing_if = "preedit::PreEdit::is_empty")]
     pub preedit: preedit::PreEdit,
+    /// Schema v19: durable source evidence and semantic observations.
+    #[serde(default, skip_serializing_if = "observations::Observations::is_empty")]
+    pub observations: observations::Observations,
 }
 
+pub mod observations;
 pub mod preedit;
 
 /// How a sequence is shown in the Timeline panel: its zoom, scroll position and track heights.
@@ -1397,6 +1401,7 @@ impl Project {
             notes: String::new(),
             extensions: BTreeMap::new(),
             preedit: preedit::PreEdit::default(),
+            observations: observations::Observations::default(),
         }
     }
 
@@ -1427,6 +1432,7 @@ impl Project {
         // deleting an item leaves these entries behind: a new item taking that id would inherit them
         self.transcripts.keys().chain(self.source_graphics.keys()).chain(self.narrations.keys()).for_each(|i| see(i.0));
         see(self.preedit.max_id());
+        see(self.observations.max_id());
         for analysis in self.preedit.analyses.values() {
             see(analysis.source.item.0);
         }

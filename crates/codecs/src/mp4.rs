@@ -530,8 +530,14 @@ impl MediaSource for Mp4Source {
             if pk_start >= s0.saturating_add(need) {
                 break;
             }
+            if shotclutch_media::cancel::cancelled() {
+                return Err(MediaError::Cancelled);
+            }
             let pk = self.audio_packet(a, ainfo, &mut st, i)?;
             if pk.failed {
+                if shotclutch_media::cancel::strict_decode() {
+                    return Err(MediaError::Decode("audio packet could not be decoded".into()));
+                }
                 let range = failed_audio_span(pk_start, s0, sample.duration, src.first().map_or(0, Vec::len));
                 for dst in &mut src {
                     if let Some(span) = dst.get_mut(range.clone()) {

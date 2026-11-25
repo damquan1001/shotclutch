@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "description": "Original English text and procedural MOV fixtures authored for redistribution with ShotClutch. Times are 24 fps source-frame indices. Each timed transcript word occupies one frame. Judgments identify asset, start, and exclusive end. Frame evidence uses one frame for evaluation.",
+  "records": [
+    [0,"transcript","Please lift the amber latch",0,5],
+    [1,"transcript","Now lift the amber lever",1,6],
+    [0,"tag","saffron fixture",0,3],
+    [0,"caption","saffron fixture beside door",1,4],
+    [1,"ocr","EXIT 17",3,4],
+    [0,"ocr","EXIT 71",4,5],
+    [1,"summary","green indicator lights",4,7]
+  ],
+  "queries": [
+    ["lift the amber",[[0,1,4],[1,2,5]]],
+    ["saffron fixture",[[0,0,3]]],
+    ["EXIT 17",[[1,3,4]]],
+    ["green indicator",[[1,4,7]]],
+    ["zebra",[]]
+  ]
+}

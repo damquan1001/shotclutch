@@ -1,4 +1,4 @@
-//! Confined, bounded source reads for structural transaction verification. These capabilities
+//! Confined, bounded source reads for transaction verification and media observations. These capabilities
 //! are issued by trusted host code, never inferred from paths in an imported project.
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -15,6 +15,8 @@ use crate::{
     Session,
     service::{Cancellation, ErrorCode, ServiceError},
 };
+#[cfg(not(target_arch = "wasm32"))]
+use shotclutch_project::observations::SourceFingerprint;
 use shotclutch_project::{ItemId, MediaIdentity, MediaRef};
 
 fn error(code: ErrorCode, message: &'static str) -> ServiceError {
@@ -71,6 +73,13 @@ pub(crate) struct SourceBinding {
     bytes: u64,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+impl SourceBinding {
+    pub(crate) fn matches_original(&self, item: ItemId, fingerprint: &SourceFingerprint) -> bool {
+        !self.proxy && self.item == item && self.digest == fingerprint.sha256 && self.bytes == fingerprint.bytes
+    }
+}
+
 fn files(session: &Session, sequence: ItemId) -> Result<Vec<(ItemId, bool, String, Option<MediaIdentity>)>, ServiceError> {
     let mut sequences = vec![sequence];
     let mut visited = BTreeSet::new();
@@ -113,15 +122,17 @@ fn files(session: &Session, sequence: ItemId) -> Result<Vec<(ItemId, bool, Strin
     Ok(media.into_iter().map(|((id, proxy), (path, identity))| (id, proxy, path, identity)).collect())
 }
 
+pub(crate) const MAX_SNAPSHOT_BYTES: u64 = 64 * 1024 * 1024;
+
 pub(crate) struct ReadContext<'a> {
     pub roots: &'a [Arc<ReadRoot>],
     pub budget: u64,
     pub cancellation: &'a Cancellation,
-    pub revoked: &'a AtomicBool,
+    pub revoked: &'a Arc<AtomicBool>,
     pub expires: Instant,
 }
 impl ReadContext<'_> {
-    fn check(&self) -> Result<(), ServiceError> {
+    pub(crate) fn check(&self) -> Result<(), ServiceError> {
         self.cancellation.check()?;
         if self.revoked.load(Ordering::Acquire) || Instant::now() >= self.expires {
             return Err(error(ErrorCode::PermissionDenied, "authorization was revoked or expired"));
@@ -155,19 +166,82 @@ pub(crate) fn verify(session: &Session, sequence: ItemId, expected: &[SourceBind
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn hash_file(session: &Session, stored: &str, expected: Option<MediaIdentity>, budget: u64, context: &ReadContext<'_>) -> Result<(String, u64), ServiceError> {
-    use sha2::{Digest, Sha256};
-    use std::io::Read;
+fn hash_file(
+    session: &Session,
+    stored: &str,
+    expected: Option<MediaIdentity>,
+    mut budget: u64,
+    context: &ReadContext<'_>,
+) -> Result<(String, u64), ServiceError> {
+    let (root, relative) = confined_source(session, stored, context)?;
+    let fingerprint = hash_confined_file(root, &relative, expected, &mut budget, context, false, None)?;
+    Ok((fingerprint.sha256, fingerprint.bytes))
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) fn observation_file(
+    session: &Session,
+    stored: &str,
+    expected: Option<MediaIdentity>,
+    offline: bool,
+    context: &ReadContext<'_>,
+    snapshot: Option<&mut Vec<u8>>,
+) -> Result<SourceFingerprint, ServiceError> {
+    let (root, relative) = confined_source(session, stored, context)?;
+    let mut budget = if snapshot.is_some() { context.budget.min(MAX_SNAPSHOT_BYTES) } else { context.budget };
+    hash_confined_file(root, &relative, expected, &mut budget, context, offline, snapshot)
+}
+
+/// Validate the locator before returning even derived coverage for the asset.
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) fn authorize_search_source(session: &Session, stored: &str, context: &ReadContext<'_>) -> Result<(), ServiceError> {
+    let (root, relative) = confined_source(session, stored, context)?;
+    match root.dir.metadata(relative) {
+        Ok(_) => Ok(()),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(_) => Err(error(ErrorCode::PermissionDenied, "source metadata is outside the read capability")),
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) fn search_fingerprint(
+    session: &Session,
+    stored: &str,
+    offline: bool,
+    context: &ReadContext<'_>,
+    remaining: &mut u64,
+) -> Result<SourceFingerprint, ServiceError> {
+    let (root, relative) = confined_source(session, stored, context)?;
+    hash_confined_file(root, &relative, None, remaining, context, offline, None)
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn confined_source<'a>(session: &Session, stored: &str, context: &ReadContext<'a>) -> Result<(&'a ReadRoot, PathBuf), ServiceError> {
+    context.check()?;
     let followed = session.media.follow(stored).map_err(|_| error(ErrorCode::PermissionDenied, "stored media location is not authorized"))?;
     if network_path(Path::new(&followed)) {
         return Err(error(ErrorCode::PermissionDenied, "network sources require a separate capability"));
     }
     let followed = Path::new(&followed);
-    let (root, relative) = context
+    context
         .roots
         .iter()
-        .find_map(|root| followed.strip_prefix(&root.path).or_else(|_| followed.strip_prefix(&root.alias)).ok().map(|p| (root, p)))
-        .ok_or_else(|| error(ErrorCode::PermissionRequired, "source folder requires an explicit host read grant"))?;
+        .find_map(|root| followed.strip_prefix(&root.path).or_else(|_| followed.strip_prefix(&root.alias)).ok().map(|p| (root.as_ref(), p.to_path_buf())))
+        .ok_or_else(|| error(ErrorCode::PermissionRequired, "source folder requires an explicit host read grant"))
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn hash_confined_file(
+    root: &ReadRoot,
+    relative: &Path,
+    expected: Option<MediaIdentity>,
+    remaining: &mut u64,
+    context: &ReadContext<'_>,
+    offline: bool,
+    mut snapshot: Option<&mut Vec<u8>>,
+) -> Result<SourceFingerprint, ServiceError> {
+    use sha2::{Digest, Sha256};
+    use std::io::Read;
     // Resolve even metadata through the capability: ambient canonicalization here would
     // disclose existence outside the grant and would race a junction replacement.
     let metadata = root.dir.metadata(relative).map_err(|e| {
@@ -180,6 +254,9 @@ fn hash_file(session: &Session, stored: &str, expected: Option<MediaIdentity>, b
     if !metadata.is_file() {
         return Err(error(ErrorCode::MediaChanged, "source is not a regular file"));
     }
+    if offline {
+        return Err(error(ErrorCode::MediaChanged, "original is offline"));
+    }
     // cap-std resolves paths relative to the retained directory handle and refuses escapes,
     // including symlink/junction races. No ambient open occurs after granting the root.
     let mut file = root.dir.open(relative).map_err(|_| error(ErrorCode::PermissionDenied, "source could not be opened inside the granted folder"))?;
@@ -187,8 +264,11 @@ fn hash_file(session: &Session, stored: &str, expected: Option<MediaIdentity>, b
     if !before.is_file() {
         return Err(error(ErrorCode::MediaChanged, "source is not a regular file"));
     }
-    if before.len() > budget {
+    if before.len() > *remaining {
         return Err(error(ErrorCode::ResourceLimit, "source read budget exceeded"));
+    }
+    if let Some(contents) = snapshot.as_mut() {
+        contents.try_reserve_exact(before.len() as usize).map_err(|_| error(ErrorCode::ResourceLimit, "could not allocate an original snapshot"))?;
     }
     let mut hash = Sha256::new();
     let mut buffer = vec![0u8; crate::relink::FINGERPRINT_SPAN];
@@ -197,17 +277,32 @@ fn hash_file(session: &Session, stored: &str, expected: Option<MediaIdentity>, b
     let mut bytes = 0u64;
     loop {
         context.check()?;
-        let count = file.read(&mut buffer).map_err(|_| error(ErrorCode::MediaChanged, "source read failed"))?;
+        // Read at most the initial length. The final metadata check detects growth.
+        if bytes == before.len() {
+            break;
+        }
+        let wanted = (before.len() - bytes).min(buffer.len() as u64) as usize;
+        context.cancellation.charge_run_work(crate::service::runs::Work::SourceBytes, wanted as u64)?;
+        let count = file.read(&mut buffer[..wanted]).map_err(|_| error(ErrorCode::MediaChanged, "source read failed"))?;
         if count == 0 {
             break;
         }
-        bytes = bytes.checked_add(count as u64).filter(|n| *n <= budget).ok_or_else(|| error(ErrorCode::ResourceLimit, "source read budget exceeded"))?;
+        *remaining -= count as u64;
+        bytes += count as u64;
+        if bytes > before.len() {
+            return Err(error(ErrorCode::MediaChanged, "source changed during verification"));
+        }
         hash.update(&buffer[..count]);
-        let head_count = count.min(crate::relink::FINGERPRINT_SPAN - head.len());
-        head.extend_from_slice(&buffer[..head_count]);
-        tail.extend_from_slice(&buffer[..count]);
-        if tail.len() > crate::relink::FINGERPRINT_SPAN {
-            tail.drain(..tail.len() - crate::relink::FINGERPRINT_SPAN);
+        if let Some(contents) = snapshot.as_mut() {
+            contents.extend_from_slice(&buffer[..count]);
+        }
+        if expected.is_some() {
+            let head_count = count.min(crate::relink::FINGERPRINT_SPAN - head.len());
+            head.extend_from_slice(&buffer[..head_count]);
+            tail.extend_from_slice(&buffer[..count]);
+            if tail.len() > crate::relink::FINGERPRINT_SPAN {
+                tail.drain(..tail.len() - crate::relink::FINGERPRINT_SPAN);
+            }
         }
     }
     let after = file.metadata().map_err(|_| error(ErrorCode::MediaChanged, "source metadata is unavailable"))?;
@@ -220,7 +315,8 @@ fn hash_file(session: &Session, stored: &str, expected: Option<MediaIdentity>, b
             return Err(error(ErrorCode::MediaChanged, "source no longer matches its imported identity"));
         }
     }
-    Ok((format!("{:x}", hash.finalize()), bytes))
+    context.check()?;
+    Ok(SourceFingerprint { sha256: format!("{:x}", hash.finalize()), bytes })
 }
 
 #[cfg(target_arch = "wasm32")]

@@ -858,7 +858,10 @@ pub(crate) fn mix_graph_at(
     let ovs = live.filter(|l| l.is_active()).map(LiveMix::overrides).unwrap_or_default();
     let plan = Plan::build(seq, &ovs);
     let key = plan.structure_hash(sr);
-    let taken = {
+    let isolated = sources.isolated_audio();
+    let taken = if isolated {
+        None
+    } else {
         let mut c = lock(cache());
         c.get_mut(&key).and_then(|v| v.iter().position(|g| g.next_out == start).map(|i| v.swap_remove(i)))
     };
@@ -873,6 +876,9 @@ pub(crate) fn mix_graph_at(
     let lat = st.latency as i64;
     let x0 = start + lat - skip as i64;
     let total = skip + frames;
+    if !sources.audio_window_allowed(total, sr) {
+        return AudioBuffer::default();
+    }
     let ns = plan.strips.len();
     let mut bus: Vec<Option<Bus>> = (0..ns).map(|_| None).collect();
     let mut meters: Vec<(TrackId, Vec<f32>)> = Vec::new();
@@ -880,27 +886,33 @@ pub(crate) fn mix_graph_at(
     // tracks: independent, in parallel
     let ntr = plan.strips.iter().take_while(|s| s.kind == Kind::Track).count();
     let (track_states, rest) = st.strips.split_at_mut(ntr);
+    let media_context = shotclutch_media::cancel::Context::current();
     let track_outs: Vec<Option<StripOut>> = track_states
         .par_iter_mut()
         .enumerate()
         .map(|(si, ss)| {
-            let s = &plan.strips[si];
-            if s.silent {
-                ss.delays.iter_mut().for_each(DelayLine::clear);
-                return None;
-            }
-            let has_clips = s.track.items.iter().any(|i| i.enabled && i.range().overlaps(&range));
-            if !has_clips && s.pre.is_empty() && s.post.is_empty() && ss.delays.iter().all(DelayLine::is_empty) {
-                return None;
-            }
-            let input = if has_clips {
-                let mut v = track_input_at(project, &s.track, x0, total, sr, sources, &ovs, depth).channels;
-                v.resize(s.width, vec![0.0; total]);
-                v
-            } else {
-                silent(s.width, total)
-            };
-            Some(run_strip(&plan, si, ss, input, x0, skip, sr, &ovs))
+            media_context.clone().run(|| {
+                if isolated && shotclutch_media::cancel::cancelled() {
+                    return None;
+                }
+                let s = &plan.strips[si];
+                if s.silent {
+                    ss.delays.iter_mut().for_each(DelayLine::clear);
+                    return None;
+                }
+                let has_clips = s.track.items.iter().any(|i| i.enabled && i.range().overlaps(&range));
+                if !has_clips && s.pre.is_empty() && s.post.is_empty() && ss.delays.iter().all(DelayLine::is_empty) {
+                    return None;
+                }
+                let input = if has_clips {
+                    let mut v = track_input_at(project, &s.track, x0, total, sr, sources, &ovs, depth).channels;
+                    v.resize(s.width, vec![0.0; total]);
+                    v
+                } else {
+                    silent(s.width, total)
+                };
+                Some(run_strip(&plan, si, ss, input, x0, skip, sr, &ovs))
+            })
         })
         .collect();
     let deliver = |o: StripOut, si: usize, bus: &mut Vec<Option<Bus>>, meters: &mut Vec<(TrackId, Vec<f32>)>| {
@@ -937,7 +949,7 @@ pub(crate) fn mix_graph_at(
         }
     }
     st.next_out = start + frames as i64;
-    {
+    if !isolated {
         let mut c = lock(cache());
         let v = c.entry(key).or_default();
         v.push(st);

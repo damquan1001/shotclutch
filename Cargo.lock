@@ -5176,6 +5176,7 @@ dependencies = [
  "shotclutch-geom",
  "shotclutch-interchange",
  "shotclutch-isobmff",
+ "shotclutch-matroska",
  "shotclutch-media",
  "shotclutch-mxf",
  "shotclutch-project",

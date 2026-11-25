@@ -11,6 +11,7 @@
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable))]
 
 pub mod aaf_omf;
+pub mod agent_policy;
 pub mod autosave;
 pub mod captions;
 pub mod clip_ops;
@@ -19,6 +20,7 @@ pub mod commands;
 pub mod demo;
 pub mod doc_path;
 mod document;
+pub mod edit_verification;
 pub mod essential_sound;
 #[cfg(not(target_arch = "wasm32"))]
 mod export_delivery;
@@ -33,7 +35,13 @@ mod keyframe_move;
 mod marker_export;
 pub mod masks;
 pub mod media_browser;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod media_inspection;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod media_observations;
 pub mod media_pool;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod media_search;
 pub mod media_watch;
 pub mod mixer;
 pub mod multicam;
@@ -444,6 +452,8 @@ pub struct Session {
     /// Highest allocated ID, independent of undo snapshots and redo-branch deletion.
     id_watermark: u64,
     service: service::EditorService,
+    #[cfg(not(target_arch = "wasm32"))]
+    search_cache: std::sync::Mutex<Option<Arc<media_search::Index>>>,
     operation_records: Vec<shotclutch_format::session::OperationRecord>,
     owner_editor_scope: Option<service::EditorScope>,
     pub project: Arc<Project>,
@@ -574,6 +584,8 @@ impl Session {
             document_id: Default::default(),
             id_watermark: 1,
             service: Default::default(),
+            #[cfg(not(target_arch = "wasm32"))]
+            search_cache: Default::default(),
             operation_records: Vec::new(),
             owner_editor_scope: None,
             history: History { limit: 200, ..Default::default() },

@@ -36,3 +36,5 @@ jobs:
         run: python scripts/ci/m1-checks.py
       - name: M2 Smart Cut correctness suite
         run: python scripts/ci/m2-checks.py
+      - name: M3 semantic media and edit policy correctness suite
+        run: "cargo test --locked -p shotclutch-engine --lib -- media_observations:: media_search:: media_inspection:: edit_verification_tests:: agent_policy_tests:: service::runs::tests::"

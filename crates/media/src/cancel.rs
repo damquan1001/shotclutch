@@ -24,8 +24,12 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use shotclutch_time::Tick;
 
+type Stop = Arc<dyn Fn() -> bool + Send + Sync>;
+
 thread_local! {
     static CURRENT: RefCell<Option<Arc<AtomicBool>>> = const { RefCell::new(None) };
+    static STRICT: Cell<bool> = const { Cell::new(false) };
+    static STOP: RefCell<Option<Stop>> = const { RefCell::new(None) };
     static CATCH_UP: Cell<Option<Tick>> = const { Cell::new(None) };
     static DRAFT: Cell<bool> = const { Cell::new(false) };
     static BACKGROUND: Cell<bool> = const { Cell::new(false) };
@@ -91,9 +95,28 @@ pub fn with_cancel<R>(flag: &Arc<AtomicBool>, f: impl FnOnce() -> R) -> R {
     r
 }
 
+/// Supply a cooperative stop condition such as a deadline or revoked media grant.
+pub fn with_stop<R>(stop: impl Fn() -> bool + Send + Sync + 'static, f: impl FnOnce() -> R) -> R {
+    let mut context = Context::current();
+    let previous = context.stop.take();
+    context.stop = Some(Arc::new(move || stop() || previous.as_ref().is_some_and(|stop| stop())));
+    context.run(f)
+}
+
+/// Treat decoder concealment as an evidence failure for this read.
+pub fn with_strict_decode<R>(f: impl FnOnce() -> R) -> R {
+    let mut context = Context::current();
+    context.strict = true;
+    context.run(f)
+}
+
+pub fn strict_decode() -> bool {
+    STRICT.with(Cell::get)
+}
+
 /// Whether the work running on this thread has been cancelled.
 pub fn cancelled() -> bool {
-    CURRENT.with(|c| c.borrow().as_ref().is_some_and(|f| f.load(Ordering::Relaxed)))
+    CURRENT.with(|c| c.borrow().as_ref().is_some_and(|f| f.load(Ordering::Relaxed))) || STOP.with(|c| c.borrow().as_ref().is_some_and(|stop| stop()))
 }
 
 /// The hints of the work running on this thread ([`with_cancel`], [`with_catch_up`],
@@ -101,6 +124,8 @@ pub fn cancelled() -> bool {
 #[derive(Clone, Default)]
 pub struct Context {
     cancel: Option<Arc<AtomicBool>>,
+    stop: Option<Stop>,
+    strict: bool,
     catch_up: Option<Tick>,
     draft: bool,
     background: bool,
@@ -109,7 +134,14 @@ pub struct Context {
 impl Context {
     /// This thread's hints.
     pub fn current() -> Self {
-        Context { cancel: CURRENT.with(|c| c.borrow().clone()), catch_up: catch_up(), draft: draft(), background: background() }
+        Context {
+            cancel: CURRENT.with(|c| c.borrow().clone()),
+            stop: STOP.with(|c| c.borrow().clone()),
+            strict: strict_decode(),
+            catch_up: catch_up(),
+            draft: draft(),
+            background: background(),
+        }
     }
 
     /// Run `f` with these hints, restoring this thread's however `f` ends (a pool thread must
@@ -120,6 +152,8 @@ impl Context {
             fn drop(&mut self) {
                 let prev = std::mem::take(&mut self.0);
                 CURRENT.with(|c| *c.borrow_mut() = prev.cancel);
+                STOP.with(|c| *c.borrow_mut() = prev.stop);
+                STRICT.with(|c| c.set(prev.strict));
                 CATCH_UP.with(|c| c.set(prev.catch_up));
                 DRAFT.with(|c| c.set(prev.draft));
                 BACKGROUND.with(|c| c.set(prev.background));
@@ -127,6 +161,8 @@ impl Context {
         }
         let _restore = Restore(Context::current());
         CURRENT.with(|c| *c.borrow_mut() = self.cancel);
+        STOP.with(|c| *c.borrow_mut() = self.stop);
+        STRICT.with(|c| c.set(self.strict));
         CATCH_UP.with(|c| c.set(self.catch_up));
         DRAFT.with(|c| c.set(self.draft));
         BACKGROUND.with(|c| c.set(self.background));

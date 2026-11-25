@@ -554,7 +554,7 @@ impl MkvSource {
                 }
                 let r = st.decoder.as_mut().ok_or_else(|| CodecError::Decode("no audio decoder".into()))?.decode(&data, pk_start.max(0) as u64);
                 st.last_decoded = Some(i);
-                r.unwrap_or_default()
+                if shotclutch_media::cancel::strict_decode() { r? } else { r.unwrap_or_default() }
             }
         };
         let p = Arc::new(decoded);
@@ -658,6 +658,9 @@ impl MediaSource for MkvSource {
             let Some(&pk_start) = a.starts.get(i) else { break };
             if pk_start >= s0 + need {
                 break;
+            }
+            if shotclutch_media::cancel::cancelled() {
+                return Err(MediaError::Cancelled);
             }
             let pk = self.audio_packet(a, ainfo, &mut st, i)?;
             for (c, dst) in src.iter_mut().enumerate() {

@@ -309,6 +309,9 @@ fn nested_mix(project: &Project, nested: &Sequence, m0: i64, len: usize, sr: u32
     let first = if own == sr { m0 } else { at(m0).floor() as i64 };
     let count = if own == sr { len } else { (at(m0.saturating_add(len as i64)).ceil() as i64).saturating_sub(first).max(0) as usize + 2 };
     // nothing plays before the sequence starts
+    if !sources.audio_window_allowed(count, own) {
+        return AudioBuffer::default();
+    }
     let lead = first.min(0).unsigned_abs().min(count as u64) as usize;
     let mut mix = AudioBuffer::silence(own, w, count);
     if count > lead {
