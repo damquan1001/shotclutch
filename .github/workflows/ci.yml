@@ -4,10 +4,16 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
+    inputs:
+      vault_platform:
+        description: "Run the full workflow or only the macOS vault qualification"
+        type: choice
+        default: all
+        options: [all, macos-15]
 permissions:
   contents: read
 concurrency:
-  group: m1-ci-${{ github.event.pull_request.number || github.ref }}
+  group: m1-ci-${{ github.event.pull_request.number || github.ref }}${{ inputs.vault_platform == 'macos-15' && '-macos-vault' || '' }}
   cancel-in-progress: true
 env:
   CARGO_TERM_COLOR: never
@@ -17,7 +23,7 @@ env:
 jobs:
   required:
     name: CI required
-    if: github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft
+    if: inputs.vault_platform != 'macos-15' && (github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft)
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -46,7 +52,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2025, macos-15]
+        os: ${{ fromJSON(inputs.vault_platform == 'macos-15' && '["macos-15"]' || '["ubuntu-24.04", "windows-2025", "macos-15"]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 40
     steps:
@@ -67,14 +73,24 @@ jobs:
           DBUS_SESSION_BUS_ADDRESS=unix:path="$RUNNER_TEMP/absent-secret-service" \
             cargo test --locked -p shotclutch-engine --lib credentials::tests::native_vault_reports_unavailable -- --ignored --exact
       - if: runner.os == 'macOS'
+        name: Build macOS Keychain fixture
+        timeout-minutes: 30
+        run: cargo test --locked -p shotclutch-engine --lib credentials::tests::native_vault_round_trip --no-run
+      - if: runner.os == 'macOS'
         name: Qualify isolated macOS Keychain
+        timeout-minutes: 4
         run: |
           keychain="$RUNNER_TEMP/shotclutch-tests.keychain-db"
+          password=disposable-vault-test
           trap 'security delete-keychain "$keychain"' EXIT
-          security create-keychain -p disposable-vault-test "$keychain"
+          security create-keychain -p "$password" "$keychain"
+          security list-keychains -d user -s "$keychain"
           security default-keychain -d user -s "$keychain"
-          security unlock-keychain -p disposable-vault-test "$keychain"
-          cargo test --locked -p shotclutch-engine --lib credentials::tests::native_vault_round_trip -- --ignored --exact
+          security set-keychain-settings -lut 600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          echo "Isolated Keychain is ready"
+          SHOTCLUTCH_TEST_KEYCHAIN="$keychain" SHOTCLUTCH_TEST_KEYCHAIN_PASSWORD="$password" \
+            cargo test --locked -p shotclutch-engine --lib credentials::tests::native_vault_round_trip -- --ignored --exact
       - if: runner.os == 'Windows'
         name: Qualify Windows Credential Manager
         run: cargo test --locked -p shotclutch-engine --lib credentials::tests::native_vault_round_trip -- --ignored --exact

@@ -134,13 +134,32 @@ use keyring::Entry;
 
 #[cfg(any(target_os = "windows", target_os = "macos", target_os = "linux"))]
 fn with_entry<T>(provider: Provider, action: impl FnOnce(&Entry) -> keyring::Result<T>) -> Result<T, CredentialError> {
+    with_vault_entry("com.shotclutch.provider", provider.account(), action)
+}
+
+#[cfg(any(target_os = "windows", target_os = "macos", target_os = "linux"))]
+fn with_vault_entry<T>(service: &str, account: &str, action: impl FnOnce(&Entry) -> keyring::Result<T>) -> Result<T, CredentialError> {
     static ACCESS: std::sync::Mutex<()> = std::sync::Mutex::new(());
     let _guard = ACCESS.lock().map_err(|_| CredentialError::Unavailable)?;
-    Entry::new("com.shotclutch.provider", provider.account()).and_then(|entry| action(&entry)).map_err(vault_error)
+    #[cfg(target_os = "macos")]
+    let _interaction = {
+        use security_framework::os::macos::keychain::SecKeychain;
+        SecKeychain::user_interaction_allowed()
+            .and_then(|allowed| allowed.then(SecKeychain::disable_user_interaction).transpose())
+            .map_err(|_| CredentialError::Unavailable)?
+    };
+    Entry::new(service, account).and_then(|entry| action(&entry)).map_err(vault_error)
 }
 
 #[cfg(any(target_os = "windows", target_os = "macos", target_os = "linux"))]
 fn vault_error(error: keyring::Error) -> CredentialError {
+    #[cfg(target_os = "macos")]
+    if let keyring::Error::PlatformFailure(cause) | keyring::Error::NoStorageAccess(cause) = &error
+        && let Some(error) = cause.downcast_ref::<security_framework::base::Error>()
+    {
+        const INTERACTION_NOT_ALLOWED: i32 = -25308;
+        return if error.code() == INTERACTION_NOT_ALLOWED { CredentialError::Locked } else { CredentialError::Unavailable };
+    }
     match error {
         keyring::Error::NoEntry => CredentialError::Missing,
         keyring::Error::NoStorageAccess(_) => CredentialError::Locked,
@@ -279,34 +298,41 @@ mod tests {
     #[test]
     #[ignore = "requires an unlocked desktop credential store"]
     fn native_vault_round_trip() {
+        const SERVICE: &str = "com.shotclutch.vault-qualification";
         if let Ok(account) = std::env::var("SHOTCLUTCH_VAULT_TEST_ACCOUNT") {
-            let entry = Entry::new("com.shotclutch.vault-qualification", &account).unwrap();
-            assert_eq!(entry.get_password().unwrap(), "synthetic-vault-replacement");
+            assert_eq!(with_vault_entry(SERVICE, &account, Entry::get_password).unwrap(), "synthetic-vault-replacement");
             return;
         }
         let account = uuid::Uuid::new_v4().to_string();
-        let entry = Entry::new("com.shotclutch.vault-qualification", &account).unwrap();
-        struct Cleanup(Entry);
-        impl Drop for Cleanup {
+        struct Cleanup<'a>(&'a str);
+        impl Drop for Cleanup<'_> {
             fn drop(&mut self) {
-                let _ = self.0.delete_credential();
+                let _ = with_vault_entry(SERVICE, self.0, Entry::delete_credential);
             }
         }
-        let entry = Cleanup(entry);
-        entry.0.set_password("synthetic-vault-first").unwrap();
-        assert_eq!(entry.0.get_password().unwrap(), "synthetic-vault-first");
-        entry.0.set_password("synthetic-vault-replacement").unwrap();
+        let _cleanup = Cleanup(&account);
+        with_vault_entry(SERVICE, &account, |entry| entry.set_password("synthetic-vault-first")).unwrap();
+        assert_eq!(with_vault_entry(SERVICE, &account, Entry::get_password).unwrap(), "synthetic-vault-first");
+        with_vault_entry(SERVICE, &account, |entry| entry.set_password("synthetic-vault-replacement")).unwrap();
         assert!(
             std::process::Command::new(std::env::current_exe().unwrap())
                 .args(["--exact", "credentials::tests::native_vault_round_trip", "--ignored"])
-                .env("SHOTCLUTCH_VAULT_TEST_ACCOUNT", account)
+                .env("SHOTCLUTCH_VAULT_TEST_ACCOUNT", &account)
                 .env_remove(Provider::AssemblyAi.environment())
                 .env_remove(Provider::Gemini.environment())
                 .status()
                 .unwrap()
                 .success()
         );
-        entry.0.delete_credential().unwrap();
-        assert!(matches!(entry.0.get_password(), Err(keyring::Error::NoEntry)));
+        #[cfg(target_os = "macos")]
+        if let (Ok(path), Ok(password)) = (std::env::var("SHOTCLUTCH_TEST_KEYCHAIN"), std::env::var("SHOTCLUTCH_TEST_KEYCHAIN_PASSWORD")) {
+            assert!(shotclutch_env::worker_command("security").arg("lock-keychain").arg(&path).status().unwrap().success());
+            let locked = with_vault_entry(SERVICE, &account, Entry::get_password).map(drop);
+            assert!(shotclutch_env::worker_command("security").args(["unlock-keychain", "-p", &password, &path]).status().unwrap().success());
+            assert_eq!(locked, Err(CredentialError::Locked));
+            assert_eq!(with_vault_entry(SERVICE, &account, Entry::get_password).unwrap(), "synthetic-vault-replacement");
+        }
+        with_vault_entry(SERVICE, &account, Entry::delete_credential).unwrap();
+        assert_eq!(with_vault_entry(SERVICE, &account, Entry::get_password).unwrap_err(), CredentialError::Missing);
     }
 }
