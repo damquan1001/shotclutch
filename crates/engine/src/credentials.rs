@@ -146,7 +146,7 @@ fn with_vault_entry<T>(service: &str, account: &str, action: impl FnOnce(&Entry)
         use security_framework::os::macos::keychain::SecKeychain;
         SecKeychain::user_interaction_allowed()
             .and_then(|allowed| allowed.then(SecKeychain::disable_user_interaction).transpose())
-            .map_err(|_| CredentialError::Unavailable)?
+            .map_err(|error| mac_vault_error(&error))?
     };
     Entry::new(service, account).and_then(|entry| action(&entry)).map_err(vault_error)
 }
@@ -157,12 +157,23 @@ fn vault_error(error: keyring::Error) -> CredentialError {
     if let keyring::Error::PlatformFailure(cause) | keyring::Error::NoStorageAccess(cause) = &error
         && let Some(error) = cause.downcast_ref::<security_framework::base::Error>()
     {
-        const INTERACTION_NOT_ALLOWED: i32 = -25308;
-        return if error.code() == INTERACTION_NOT_ALLOWED { CredentialError::Locked } else { CredentialError::Unavailable };
+        return mac_vault_error(error);
     }
     match error {
         keyring::Error::NoEntry => CredentialError::Missing,
         keyring::Error::NoStorageAccess(_) => CredentialError::Locked,
+        _ => CredentialError::Unavailable,
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn mac_vault_error(error: &security_framework::base::Error) -> CredentialError {
+    const AUTHENTICATION_FAILED: i32 = -25293;
+    const INTERACTION_NOT_ALLOWED: i32 = -25308;
+    #[cfg(test)]
+    eprintln!("Keychain OSStatus {}", error.code());
+    match error.code() {
+        AUTHENTICATION_FAILED | INTERACTION_NOT_ALLOWED => CredentialError::Locked,
         _ => CredentialError::Unavailable,
     }
 }

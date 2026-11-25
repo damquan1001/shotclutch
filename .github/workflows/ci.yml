@@ -90,7 +90,7 @@ jobs:
           security unlock-keychain -p "$password" "$keychain"
           echo "Isolated Keychain is ready"
           SHOTCLUTCH_TEST_KEYCHAIN="$keychain" SHOTCLUTCH_TEST_KEYCHAIN_PASSWORD="$password" \
-            cargo test --locked -p shotclutch-engine --lib credentials::tests::native_vault_round_trip -- --ignored --exact
+            cargo test --locked -p shotclutch-engine --lib credentials::tests::native_vault_round_trip -- --ignored --exact --nocapture
       - if: runner.os == 'Windows'
         name: Qualify Windows Credential Manager
         run: cargo test --locked -p shotclutch-engine --lib credentials::tests::native_vault_round_trip -- --ignored --exact
