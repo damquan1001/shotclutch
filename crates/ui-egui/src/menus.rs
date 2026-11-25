@@ -159,6 +159,8 @@ pub const UI_COMMANDS: &[UiCommand] = &[
     uic!("app.settings.media", "Media…", ["Edit", "Preferences"], None),
     uic!("app.settings.mediaAnalysis", "Media Analysis & Transcription…", ["Edit", "Preferences"], None),
     uic!("app.settings.mediaCache", "Media Cache…", ["Edit", "Preferences"], None),
+    #[cfg(not(target_arch = "wasm32"))]
+    uic!("app.privacy", "Privacy & Data…", ["Edit", "Preferences"], None),
     uic!("app.settings.memory", "Memory…", ["Edit", "Preferences"], None),
     uic!("app.settings.playback", "Playback…", ["Edit", "Preferences"], None),
     uic!("app.settings.plugins", "Plugins…", ["Edit", "Preferences"], None),
@@ -294,6 +296,11 @@ pub fn invoke(app: &mut ShotClutchApp, ctx: &egui::Context, id: &str, mut params
             app.ui.status = e.clone();
         }
         return r;
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    if id == "app.privacy" {
+        app.privacy_panel = Some(crate::privacy_panel::PrivacyPanel::new(&app.session));
+        return Ok(json!({"dialog":"privacy"}));
     }
     if let Some(r) = crate::panels::settings::route(app, id) {
         return r;

@@ -1207,6 +1207,11 @@ fn build() -> Vec<CommandSpec> {
             let name = str_p(p, "name").unwrap_or("Untitled").to_string();
             s.project = std::sync::Arc::new(shotclutch_project::Project::new(&name));
             s.document_id = Default::default();
+            #[cfg(not(target_arch = "wasm32"))]
+            {
+                s.privacy_floor_seen = 0;
+                s.privacy_saved_fingerprint = None;
+            }
             s.operation_records.clear();
             s.id_watermark = s.project.next_id;
             s.history = Default::default();
@@ -1227,6 +1232,11 @@ fn build() -> Vec<CommandSpec> {
             let (p, seq) = crate::demo::demo_project(&s.media);
             s.project = std::sync::Arc::new(p);
             s.document_id = Default::default();
+            #[cfg(not(target_arch = "wasm32"))]
+            {
+                s.privacy_floor_seen = 0;
+                s.privacy_saved_fingerprint = None;
+            }
             s.operation_records.clear();
             s.id_watermark = s.project.next_id;
             s.history = Default::default();
@@ -3500,8 +3510,8 @@ fn build() -> Vec<CommandSpec> {
                 }
                 for i in &gone {
                     pr.items.remove(i);
-                    pr.observations.remove_source(*i);
                     pr.root.remove_item(*i);
+                    pr.observations.remove_source(*i);
                 }
                 let seq_ids: Vec<ItemId> = pr.sequences().map(|q| q.id).collect();
                 for sid in seq_ids {
@@ -4632,6 +4642,13 @@ fn name_project(p: &mut shotclutch_project::Project, name: String) {
 }
 
 fn write_project(s: &mut Session, path: &str, adopt: bool) -> Result<Value> {
+    #[cfg(not(target_arch = "wasm32"))]
+    let _privacy = s
+        .persistence
+        .as_ref()
+        .map(|storage| crate::privacy::publication_guard(&storage.data_dir, s.document_id, s.privacy_floor_seen))
+        .transpose()
+        .map_err(EngineError::Other)?;
     if !std::path::Path::new(path).extension().is_some_and(|e| e.eq_ignore_ascii_case("scproj")) {
         return Err(bad("file.save", "project writes require .scproj; use Save As / --save-as to preserve the legacy original"));
     }
@@ -4678,13 +4695,17 @@ fn write_project(s: &mut Session, path: &str, adopt: bool) -> Result<Value> {
         s.previews_follow_path();
         s.note_recent_project();
         s.saved_revision = s.revision;
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            s.privacy_saved_fingerprint = Some(crate::privacy::file_digest(&bytes));
+        }
         s.loaded_schema = shotclutch_format::SCHEMA_VERSION;
         s.legacy_project_identity = false;
     }
     Ok(json!({"path": path, "bytes": bytes.len(), "ms": t0.elapsed().as_secs_f64() * 1000.0, "backup": backup}))
 }
 
-fn schema_backup_path(path: &str, schema: u32) -> String {
+pub(crate) fn schema_backup_path(path: &str, schema: u32) -> String {
     let stem = path.strip_suffix(".scproj").unwrap_or(path);
     format!("{stem} (schema v{schema} backup).scproj")
 }
@@ -4711,6 +4732,11 @@ fn install_project(
     s.history = restored.history;
     s.operation_records = restored.operations;
     s.document_id = restored.id;
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        s.privacy_floor_seen = 0;
+        s.privacy_saved_fingerprint = None;
+    }
     s.id_watermark = restored.next_id;
     s.state = crate::Session::default().state;
     s.state.active_sequence = first;
@@ -4734,9 +4760,24 @@ fn install_project(
 fn open_project(s: &mut Session, path: &str) -> Result<Value> {
     let bytes = s.services.read_file(path).map_err(|e| EngineError::Other(format!("{path}: {e}")))?;
     let loaded = shotclutch_format::decode(&bytes).map_err(|e| EngineError::Other(format!("{path}: {e}")))?;
+    #[cfg(not(target_arch = "wasm32"))]
+    let floor = s
+        .persistence
+        .as_ref()
+        .zip(loaded.edit_state.as_ref())
+        .map(|(storage, state)| crate::privacy::check_floor(&storage.data_dir, state.project_id, state.revision))
+        .transpose()
+        .map_err(EngineError::Other)?
+        .unwrap_or(0);
     let (from, migrated, legacy_identity) =
         (loaded.schema_version, loaded.migrated(), loaded.legacy_identity || loaded.recovery.as_ref().is_some_and(|i| i.legacy_identity));
     install_project(s, loaded.project, Some(path.to_string()), true, loaded.edit_state)?;
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        s.privacy_floor_seen = floor;
+        s.privacy_saved_fingerprint = Some(crate::privacy::file_digest(&bytes));
+        s.expire_completed_runs();
+    }
     if let Some(view) = loaded.view.filter(|_| s.prefs.timeline.restore_open_sequences) {
         s.restore_project_view(view);
     }
@@ -4769,6 +4810,14 @@ fn recover(s: &mut Session, id: Option<&str>) -> Result<Value> {
     let c = per.candidates[idx].clone();
     let saved_at = per.local_time(c.meta.saved_unix);
     let loaded = crate::autosave::load_candidate(&c).map_err(EngineError::Other)?;
+    #[cfg(not(target_arch = "wasm32"))]
+    let floor = loaded
+        .edit_state
+        .as_ref()
+        .map(|state| crate::privacy::check_floor(&per.data_dir, state.project_id, state.revision))
+        .transpose()
+        .map_err(EngineError::Other)?
+        .unwrap_or(0);
     let legacy_identity = loaded.legacy_identity || loaded.recovery.as_ref().map(|i| i.legacy_identity).unwrap_or(c.meta.legacy_identity);
     let source_schema = loaded.recovery.as_ref().map(|i| i.source_schema).unwrap_or(loaded.schema_version);
     let path = loaded.recovery.as_ref().map(|i| i.project_path.clone()).unwrap_or(c.meta.project_path.clone());
@@ -4779,6 +4828,10 @@ fn recover(s: &mut Session, id: Option<&str>) -> Result<Value> {
     recovered.prefs = s.prefs.clone();
     recovered.media.set_use_proxies(s.media.use_proxies());
     install_project(&mut recovered, loaded.project, path, false, loaded.edit_state)?;
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        recovered.privacy_floor_seen = floor;
+    }
     recovered.loaded_schema = source_schema;
     recovered.legacy_project_identity = legacy_identity || recovered.path.as_deref().is_some_and(shotclutch_format::is_legacy_project_path);
     if let Some(view) = loaded.view.filter(|_| recovered.prefs.timeline.restore_open_sequences) {
@@ -4791,6 +4844,11 @@ fn recover(s: &mut Session, id: Option<&str>) -> Result<Value> {
     s.project = recovered.project.clone();
     s.media = recovered.media.clone();
     s.document_id = recovered.document_id;
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        s.privacy_floor_seen = floor;
+        s.privacy_saved_fingerprint = None;
+    }
     s.id_watermark = recovered.id_watermark;
     s.history = std::mem::take(&mut recovered.history);
     s.operation_records = std::mem::take(&mut recovered.operation_records);
@@ -4829,7 +4887,7 @@ fn recover(s: &mut Session, id: Option<&str>) -> Result<Value> {
 }
 
 /// Where auto-saves of the current project go.
-fn auto_save_dir(s: &Session) -> std::path::PathBuf {
+pub(crate) fn auto_save_dir(s: &Session) -> std::path::PathBuf {
     if s.path.is_some()
         && let Some(d) =
             crate::project_tools::trusted_scratch(s.project.settings.scratch.auto_save.as_deref(), s.path.as_deref(), &s.prefs.auto_save.scratch_folders)
@@ -4843,6 +4901,6 @@ fn auto_save_dir(s: &Session) -> std::path::PathBuf {
     }
 }
 
-fn auto_save_name(s: &Session) -> String {
+pub(crate) fn auto_save_name(s: &Session) -> String {
     s.path.as_deref().and_then(|p| std::path::Path::new(p).file_stem()).map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| s.project.name.clone())
 }

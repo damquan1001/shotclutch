@@ -166,6 +166,8 @@ pub struct Preferences {
     pub media: MediaPrefs,
     pub media_analysis: settings::MediaAnalysisPrefs,
     pub media_cache: settings::MediaCachePrefs,
+    #[cfg(not(target_arch = "wasm32"))]
+    pub retention: crate::privacy::RetentionPrefs,
     pub memory: settings::MemoryPrefs,
     pub playback: PlaybackPrefs,
     pub plugins: settings::PluginPrefs,
@@ -196,6 +198,8 @@ impl Default for Preferences {
             media: Default::default(),
             media_analysis: Default::default(),
             media_cache: Default::default(),
+            #[cfg(not(target_arch = "wasm32"))]
+            retention: Default::default(),
             memory: Default::default(),
             playback: Default::default(),
             plugins: Default::default(),
@@ -561,7 +565,7 @@ pub struct RecoveryCandidate {
 
 const SNAPSHOT: &str = "snapshot.scproj";
 const LEGACY_SNAPSHOT: &str = "snapshot.fcproj";
-fn candidate_snapshot(dir: &Path) -> PathBuf {
+pub(crate) fn candidate_snapshot(dir: &Path) -> PathBuf {
     let current = dir.join(SNAPSHOT);
     if current.is_file() { current } else { dir.join(LEGACY_SNAPSHOT) }
 }
@@ -656,6 +660,7 @@ enum Msg {
     Prefs(AutoSavePrefs),
     AutoSaveNow(Sender<Result<PathBuf, String>>),
     Flush(Sender<Result<(), String>>),
+    Forget(Sender<()>),
     Commit(Snapshot, Sender<Result<(), String>>),
     #[cfg(test)]
     Pause(Sender<()>, Receiver<()>),
@@ -684,6 +689,8 @@ pub enum WorkerEvent {
     SavedProject {
         path: String,
         revision: u64,
+        #[cfg(not(target_arch = "wasm32"))]
+        fingerprint: [u8; 32],
     },
     Error(String),
 }
@@ -796,6 +803,13 @@ impl Persistence {
         let (tx, rx) = channel();
         self.tx.send(Msg::Flush(tx)).map_err(|_| "recovery worker stopped".to_string())?;
         rx.recv().map_err(|_| "recovery worker stopped before acknowledging the snapshot".to_string())?
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn forget_pending(&self) -> Result<(), String> {
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.tx.send(Msg::Forget(tx)).map_err(|_| "Recovery worker is unavailable.")?;
+        rx.recv_timeout(std::time::Duration::from_secs(10)).map_err(|_| "Recovery worker did not acknowledge the cleanup pause.".into())
     }
 
     pub(crate) fn commit_snapshot(&self, snapshot: Snapshot) -> Result<(), String> {
@@ -976,6 +990,11 @@ impl Worker {
                     self.first_pending = None;
                     self.clear_journal();
                 }
+                Some(Msg::Forget(ack)) => {
+                    self.latest = None;
+                    self.first_pending = None;
+                    let _ = ack.send(());
+                }
                 Some(Msg::Prefs(p)) => {
                     let was = self.autosave_interval();
                     let journal_was = self.prefs.recovery_journal;
@@ -1032,6 +1051,8 @@ impl Worker {
 
     fn write_journal(&mut self) -> Result<(), String> {
         let Some(s) = &self.latest else { return Ok(()) };
+        #[cfg(not(target_arch = "wasm32"))]
+        let _privacy = crate::privacy::publication_guard(&self.data_dir, s.project_id, s.privacy_floor_seen)?;
         let t0 = Instant::now();
         let bytes = s.encode(None, true)?;
         let serialize_ms = t0.elapsed().as_secs_f64() * 1000.0;
@@ -1078,6 +1099,8 @@ impl Worker {
 
     fn auto_save(&mut self) -> Result<PathBuf, String> {
         let Some(s) = &self.latest else { return Err("nothing to save".into()) };
+        #[cfg(not(target_arch = "wasm32"))]
+        let _privacy = crate::privacy::publication_guard(&self.data_dir, s.project_id, s.privacy_floor_seen)?;
         let scratch = crate::project_tools::trusted_scratch(s.project.settings.scratch.auto_save.as_deref(), s.path.as_deref(), &self.prefs.scratch_folders);
         let (dir, name) = match (&s.path, scratch) {
             // Project Settings ▸ Scratch Disks ▸ Project Auto Save
@@ -1110,7 +1133,12 @@ impl Worker {
                 {
                     match shotclutch_format::atomic_write(Path::new(p), &bytes) {
                         Ok(()) => {
-                            let _ = self.events.send(WorkerEvent::SavedProject { path: p.clone(), revision: s.revision });
+                            let _ = self.events.send(WorkerEvent::SavedProject {
+                                path: p.clone(),
+                                revision: s.revision,
+                                #[cfg(not(target_arch = "wasm32"))]
+                                fingerprint: crate::privacy::file_digest(&bytes),
+                            });
                         }
                         Err(e) => self.error(format!("saving {p}: {e}")),
                     }

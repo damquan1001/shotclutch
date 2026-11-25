@@ -234,13 +234,13 @@ pub(super) fn completion(
 ) -> std::result::Result<Option<String>, String> {
     use std::{
         io::{Read, Seek},
-        process::{Command, Stdio},
+        process::Stdio,
         sync::atomic::Ordering,
         time::{Duration, Instant},
     };
     std::fs::write(&file, prompt).map_err(|e| e.to_string())?;
     let mut out = tempfile::tempfile().map_err(|e| e.to_string())?;
-    let mut cmd = Command::new(
+    let mut cmd = shotclutch_env::worker_command(
         std::env::var_os("SHOTCLUTCH_LLAMA_COMPLETION")
             .map(PathBuf::from)
             .or_else(|| {

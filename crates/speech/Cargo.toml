@@ -17,6 +17,7 @@ whisper = ["dep:candle-core", "dep:candle-nn"]
 download = ["dep:ureq", "dep:rustls", "dep:rustls-rustcrypto"]
 
 [dependencies]
+log = { workspace = true }
 shotclutch-env = { workspace = true }
 shotclutch-time = { workspace = true }
 shotclutch-project = { workspace = true }

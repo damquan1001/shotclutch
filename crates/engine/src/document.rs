@@ -11,6 +11,8 @@ use crate::{History, Session};
 pub(crate) struct Snapshot {
     pub project: Arc<Project>,
     pub project_id: DocumentId,
+    #[cfg(not(target_arch = "wasm32"))]
+    pub privacy_floor_seen: u64,
     pub revision: u64,
     pub next_id: u64,
     pub history: History,
@@ -176,6 +178,8 @@ impl Session {
         Snapshot {
             project: self.project.clone(),
             project_id: self.document_id,
+            #[cfg(not(target_arch = "wasm32"))]
+            privacy_floor_seen: self.privacy_floor_seen,
             revision: self.revision,
             next_id: self.id_watermark.max(self.project.next_id),
             history: self.history.clone(),

@@ -311,7 +311,7 @@ fn app_creator(launch: Launch, graphics: graphics::GraphicsStart, created: Arc<A
         // Help menu, About and Discord links (#642): eframe is built without its `links`
         // feature, so `ctx.open_url` does nothing on the desktop. Detached, so a launcher
         // that waits for the browser never freezes the UI.
-        app.hooks.open_url = Some(Box::new(|url: &str| open::that_detached(url).map_err(|e| e.to_string())));
+        app.hooks.open_url = Some(Box::new(open_url));
         app.hooks.clipboard_media = Some(Box::new(clipboard_media));
         // Settings ▸ General ▸ Interface Language ▸ System Language (#218).
         app.hooks.cursor_screen_position = Some(Box::new(shotclutch_platform::cursor::cursor_screen_position));
@@ -365,14 +365,14 @@ fn clipboard_media() -> Option<shotclutch_ui_egui::ClipboardMedia> {
 /// Reveal Log Files).
 fn open_path(path: &str, reveal: bool) -> Result<(), String> {
     let mut cmd = if cfg!(target_os = "macos") {
-        let mut c = std::process::Command::new("open");
+        let mut c = shotclutch_env::worker_command("open");
         if reveal {
             c.arg("-R");
         }
         c.arg(path);
         c
     } else if cfg!(target_os = "windows") {
-        let mut c = std::process::Command::new("explorer");
+        let mut c = shotclutch_env::worker_command("explorer");
         if reveal {
             c.arg(format!("/select,{path}"));
         } else {
@@ -381,12 +381,26 @@ fn open_path(path: &str, reveal: bool) -> Result<(), String> {
         c
     } else {
         // Linux file managers have no select-file flag: open the parent folder instead.
-        let mut c = std::process::Command::new("xdg-open");
+        let mut c = shotclutch_env::worker_command("xdg-open");
         let p = std::path::Path::new(path);
         c.arg(if reveal { p.parent().unwrap_or(p) } else { p });
         c
     };
     cmd.spawn().map(|_| ()).map_err(|e| format!("can't open {path}: {e}"))
+}
+
+fn open_url(url: &str) -> Result<(), String> {
+    use shotclutch_engine::credentials::Provider;
+    for mut command in open::commands(url) {
+        command.env_remove(Provider::AssemblyAi.environment()).env_remove(Provider::Gemini.environment());
+        if let Ok(mut child) = command.spawn() {
+            std::thread::spawn(move || {
+                let _ = child.wait();
+            });
+            return Ok(());
+        }
+    }
+    Err("Could not open the link.".into())
 }
 
 /// The GPU export frame renderer (shotclutch-gpu's off-screen compositor behind shotclutch-export's

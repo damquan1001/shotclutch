@@ -1,6 +1,13 @@
 //! Canonical environment lookups with inherited compatibility aliases.
 use std::ffi::{OsStr, OsString};
 
+/// Native helpers inherit normal host settings, with provider credentials kept in the host.
+pub fn worker_command(program: impl AsRef<OsStr>) -> std::process::Command {
+    let mut command = std::process::Command::new(program);
+    command.env_remove("ASSEMBLYAI_API_KEY").env_remove("GEMINI_API_KEY");
+    command
+}
+
 fn legacy(key: &OsStr) -> Option<OsString> {
     key.to_str()?.strip_prefix("SHOTCLUTCH_").map(|suffix| OsString::from(format!("FILMCRAFT_{suffix}")))
 }
@@ -29,6 +36,13 @@ pub fn var(key: impl AsRef<OsStr>) -> Result<String, std::env::VarError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn workers_do_not_inherit_provider_credentials() {
+        let worker = worker_command("fixture-worker");
+        for name in ["ASSEMBLYAI_API_KEY", "GEMINI_API_KEY"] {
+            assert!(worker.get_envs().any(|(key, value)| key == name && value.is_none()));
+        }
+    }
     #[test]
     fn asking_by_a_legacy_alias_still_observes_canonical_precedence() {
         for suffix in ["CONTROL_TOKEN", "KOKORO_DIR", "CMUDICT", "FAVORITES_SCREENSHOT"] {

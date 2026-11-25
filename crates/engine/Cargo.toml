@@ -68,3 +68,10 @@ rustix = { version = "=1.1.5", features = ["fs"] }
 
 [target.'cfg(windows)'.dependencies]
 atomicwrites = "=0.4.4"
+keyring = { version = "=3.6.3", features = ["windows-native"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+keyring = { version = "=3.6.3", features = ["apple-native"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+keyring = { version = "=3.6.3", features = ["sync-secret-service", "crypto-rust", "vendored"] }

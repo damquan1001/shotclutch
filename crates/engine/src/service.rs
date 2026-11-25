@@ -270,6 +270,13 @@ pub(crate) struct EditorService {
     owner: Option<EditorClient>,
 }
 
+impl EditorService {
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn invalidate_project_drafts(&mut self, project: DocumentId) {
+        self.drafts.retain(|_, draft| draft.request.project_id != project);
+    }
+}
+
 fn identifier(value: &str) -> bool {
     !value.is_empty() && value.len() <= 128 && value.bytes().all(|b| b.is_ascii_alphanumeric() || b"_.:-".contains(&b))
 }

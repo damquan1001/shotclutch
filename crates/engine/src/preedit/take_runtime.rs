@@ -23,7 +23,7 @@ impl Drop for Server {
     }
 }
 fn command(exe: impl AsRef<std::ffi::OsStr>) -> Command {
-    let mut cmd = Command::new(exe);
+    let mut cmd = shotclutch_env::worker_command(exe);
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;

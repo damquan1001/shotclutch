@@ -82,13 +82,14 @@ pub(super) fn run(
     original: SharedSource,
     analysis: &mut PreEditAnalysis,
     reuse: Option<&PreEditAnalysis>,
-    api_key: Option<String>,
+    credential: Option<crate::credentials::CredentialRef>,
     cancel: &Cancellation,
     sender: &SyncSender<Message>,
 ) -> Result<(), String> {
     let transcriber = if let Some(model) = analysis.settings.model.as_ref().filter(|_| reuse.is_none()) {
         if model == "assemblyai" {
-            let key = api_key.filter(|key| !key.trim().is_empty()).or_else(|| std::env::var("ASSEMBLYAI_API_KEY").ok()).unwrap_or_default();
+            stopped(cancel)?;
+            let key = credential.ok_or("AssemblyAI credential required")?.resolve(crate::credentials::Provider::AssemblyAi).map_err(|e| e.to_string())?;
             Some(Arc::new(shotclutch_speech::assemblyai::AssemblyAi::new(key).map_err(|e| e.to_string())?) as Arc<dyn shotclutch_speech::Transcriber>)
         } else {
             let dir = crate::transcript::models_dir().ok_or("CAPABILITY_UNAVAILABLE: speech model directory is unavailable")?;

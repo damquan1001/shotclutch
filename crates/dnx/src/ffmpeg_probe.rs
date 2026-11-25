@@ -118,7 +118,7 @@ fn probe_weights() {
             let s = stream_cid(cid, w, h, depth, q, pos, amp, false, blk);
             let path = dir.join("explore.dnxhd");
             std::fs::write(&path, &s).unwrap();
-            let out = std::process::Command::new(&ff)
+            let out = shotclutch_env::worker_command(&ff)
                 .args(["-hide_banner", "-loglevel", "error", "-f", "dnxhd", "-i"])
                 .arg(&path)
                 .args(["-f", "rawvideo", "-pix_fmt", pix, "-"])
@@ -215,7 +215,7 @@ fn probe_reconstruction() {
             let s = stream_cid(cid, w, h, depth, q, 1, amp, false, 0);
             let path = dir.join("explore.dnxhd");
             std::fs::write(&path, &s).unwrap();
-            let out = std::process::Command::new(&ff)
+            let out = shotclutch_env::worker_command(&ff)
                 .args(["-hide_banner", "-loglevel", "error", "-f", "dnxhd", "-i"])
                 .arg(&path)
                 .args(["-f", "rawvideo", "-pix_fmt", pix, "-"])

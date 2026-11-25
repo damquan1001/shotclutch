@@ -79,7 +79,7 @@ pub enum Phase {
 }
 
 impl Phase {
-    fn terminal(self) -> bool {
+    pub(crate) fn terminal(self) -> bool {
         matches!(self, Self::Completed | Self::Failed | Self::Canceled)
     }
 }
@@ -144,6 +144,17 @@ struct Checkpoint {
     #[serde(default)]
     commit_journal: Option<String>,
     status: RunStatus,
+}
+
+pub(crate) fn retained_checkpoint(path: &Path, project: DocumentId, id: DocumentId) -> Option<(Phase, Option<ItemId>)> {
+    let mut bytes = Vec::new();
+    File::open(path).ok()?.take(MAX_CHECKPOINT as u64 + 1).read_to_end(&mut bytes).ok()?;
+    if bytes.len() > MAX_CHECKPOINT {
+        return None;
+    }
+    let checkpoint: Checkpoint = serde_json::from_slice(&bytes).ok()?;
+    (checkpoint.request.project == project && checkpoint.status.project == project && checkpoint.status.id == id)
+        .then_some((checkpoint.status.phase, checkpoint.request.asset))
 }
 
 /// Exclusive run ownership. The checkpoint survives release of this handle.
@@ -220,12 +231,14 @@ fn write_checkpoint(path: &Path, checkpoint: &Checkpoint) -> Result<(), ServiceE
     shotclutch_format::atomic_write(path, &bytes).map_err(|_| error(ErrorCode::InternalError, "agent checkpoint could not be written"))
 }
 
-fn lock_checkpoint(session: &Session, project: DocumentId, id: DocumentId) -> Result<(PathBuf, File), ServiceError> {
+fn lock_checkpoint(session: &Session, project: DocumentId, id: DocumentId) -> Result<(PathBuf, File, File), ServiceError> {
     let storage = session
         .persistence
         .as_ref()
         .filter(|_| session.prefs.auto_save.recovery_journal)
         .ok_or_else(|| error(ErrorCode::CapabilityUnavailable, "agent runs require the host recovery journal"))?;
+    let privacy = crate::privacy::publication_guard(&storage.data_dir, project, session.privacy_floor_seen)
+        .map_err(|_| error(ErrorCode::RevisionConflict, "project privacy storage changed; reopen the project"))?;
     let directory = storage.data_dir.join("AgentRuns").join(project.to_string());
     std::fs::create_dir_all(&directory).map_err(|_| error(ErrorCode::InternalError, "agent recovery storage is unavailable"))?;
     let lock = OpenOptions::new()
@@ -236,7 +249,7 @@ fn lock_checkpoint(session: &Session, project: DocumentId, id: DocumentId) -> Re
         .open(directory.join(format!("{id}.lock")))
         .map_err(|_| error(ErrorCode::InternalError, "agent checkpoint lock is unavailable"))?;
     lock.try_lock().map_err(|_| error(ErrorCode::PermissionDenied, "agent run is already open or cannot be locked"))?;
-    Ok((directory.join(format!("{id}.json")), lock))
+    Ok((directory.join(format!("{id}.json")), lock, privacy))
 }
 
 fn get_run_grant(session: &Session, client: &EditorClient, project: DocumentId, sequence: ItemId) -> Result<Grant, ServiceError> {
@@ -302,7 +315,7 @@ impl Session {
         }
         let id = DocumentId::default();
         let limits = limits.validate()?;
-        let (path, lock) = lock_checkpoint(self, request.project, id)?;
+        let (path, lock, _privacy) = lock_checkpoint(self, request.project, id)?;
         let checkpoint = Checkpoint {
             version: 1,
             actor: grant.actor,
@@ -342,7 +355,7 @@ impl Session {
     /// Call after opening or recovering the project snapshot, so durable operations are available.
     pub fn resume_agent_run(&mut self, client: &EditorClient, id: DocumentId) -> Result<AgentRun, ServiceError> {
         self.service.grant(self, client)?;
-        let (path, lock) = lock_checkpoint(self, self.document_id, id)?;
+        let (path, lock, _privacy) = lock_checkpoint(self, self.document_id, id)?;
         let mut bytes = Vec::new();
         File::open(&path)
             .and_then(|file| file.take(MAX_CHECKPOINT as u64 + 1).read_to_end(&mut bytes))

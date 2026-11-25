@@ -52,7 +52,7 @@ fn decode(code: u32) -> Option<egui::Theme> {
 #[cfg(target_os = "linux")]
 fn gtk_theme() -> Option<egui::Theme> {
     let exe = ["/usr/bin/gsettings", "/bin/gsettings", "/usr/local/bin/gsettings"].into_iter().find(|p| std::path::Path::new(p).is_file())?;
-    let output = std::process::Command::new(exe).args(["get", "org.gnome.desktop.interface", "color-scheme"]).output().ok()?;
+    let output = shotclutch_env::worker_command(exe).args(["get", "org.gnome.desktop.interface", "color-scheme"]).output().ok()?;
     if !output.status.success() {
         return None;
     }

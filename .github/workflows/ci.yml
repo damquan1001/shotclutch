@@ -37,4 +37,47 @@ jobs:
       - name: M2 Smart Cut correctness suite
         run: python scripts/ci/m2-checks.py
       - name: M3 semantic media and edit policy correctness suite
-        run: "cargo test --locked -p shotclutch-engine --lib -- media_observations:: media_search:: media_inspection:: edit_verification_tests:: agent_policy_tests:: service::runs::tests::"
+        run: "cargo test --locked -p shotclutch-engine --lib -- media_observations:: media_search:: media_inspection:: edit_verification_tests:: agent_policy_tests:: service::runs::tests:: credentials::tests:: privacy::tests:: review_provider::tests::"
+      - name: SEC-004 local provider fixtures
+        run: "cargo test --locked -p shotclutch-speech --features download --lib assemblyai::"
+  credential-vaults:
+    name: SEC-004 native vault (${{ matrix.os }})
+    if: github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025, macos-15]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - if: runner.os == 'Linux'
+        name: Qualify isolated Linux Secret Service
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes dbus-daemon gnome-keyring
+          dbus-run-session -- bash -euc '
+            export XDG_DATA_HOME="$(mktemp -d)"
+            export XDG_RUNTIME_DIR="$(mktemp -d)"
+            printf %s disposable-vault-test | gnome-keyring-daemon --unlock --components=secrets
+            cargo test --locked -p shotclutch-engine --lib credentials::tests::native_vault_round_trip -- --ignored --exact
+          '
+          DBUS_SESSION_BUS_ADDRESS=unix:path="$RUNNER_TEMP/absent-secret-service" \
+            cargo test --locked -p shotclutch-engine --lib credentials::tests::native_vault_reports_unavailable -- --ignored --exact
+      - if: runner.os == 'macOS'
+        name: Qualify isolated macOS Keychain
+        run: |
+          keychain="$RUNNER_TEMP/shotclutch-tests.keychain-db"
+          trap 'security delete-keychain "$keychain"' EXIT
+          security create-keychain -p disposable-vault-test "$keychain"
+          security default-keychain -d user -s "$keychain"
+          security unlock-keychain -p disposable-vault-test "$keychain"
+          cargo test --locked -p shotclutch-engine --lib credentials::tests::native_vault_round_trip -- --ignored --exact
+      - if: runner.os == 'Windows'
+        name: Qualify Windows Credential Manager
+        run: cargo test --locked -p shotclutch-engine --lib credentials::tests::native_vault_round_trip -- --ignored --exact
+      - if: runner.os == 'Windows'
+        name: Verify Privacy and Data desktop menu
+        run: "cargo test --locked -p shotclutch-ui-egui --lib privacy_panel::tests::"

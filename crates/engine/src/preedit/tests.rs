@@ -50,7 +50,7 @@ fn waveform(path: &std::path::Path) {
     std::fs::write(path, wav).unwrap();
 }
 
-pub(super) fn fixture() -> (tempfile::TempDir, PathBuf, Session, ItemId) {
+pub(crate) fn fixture() -> (tempfile::TempDir, PathBuf, Session, ItemId) {
     let dir = tempfile::tempdir().unwrap();
     let source = dir.path().join("voice.wav");
     waveform(&source);
@@ -70,7 +70,7 @@ fn wait(session: &mut Session) {
     }
 }
 
-pub(super) fn analyze(session: &mut Session, item: ItemId, prior: Option<u64>) -> u64 {
+pub(crate) fn analyze(session: &mut Session, item: ItemId, prior: Option<u64>) -> u64 {
     session.execute("preedit.analyze", json!({"item":item.0.to_string(),"audioStream":0,"previousMap":prior.map(|id| id.to_string())})).unwrap();
     wait(session);
     *session.project.preedit.maps.last_key_value().unwrap_or_else(|| panic!("analysis produced no map: {:?}", session.log.entries)).0

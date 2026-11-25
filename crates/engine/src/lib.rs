@@ -17,6 +17,7 @@ pub mod captions;
 pub mod clip_ops;
 pub mod color;
 pub mod commands;
+pub mod credentials;
 pub mod demo;
 pub mod doc_path;
 mod document;
@@ -52,6 +53,8 @@ pub mod perf;
 pub mod preedit;
 pub mod presets;
 pub mod previews;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod privacy;
 #[cfg(not(target_arch = "wasm32"))]
 mod project_collect;
 pub mod project_manager;
@@ -449,6 +452,10 @@ pub enum Event {
 pub struct Session {
     /// Canonical document identity, retained by save/recovery and distinct from the file path.
     pub document_id: shotclutch_format::session::DocumentId,
+    #[cfg(not(target_arch = "wasm32"))]
+    privacy_floor_seen: u64,
+    #[cfg(not(target_arch = "wasm32"))]
+    privacy_saved_fingerprint: Option<[u8; 32]>,
     /// Highest allocated ID, independent of undo snapshots and redo-branch deletion.
     id_watermark: u64,
     service: service::EditorService,
@@ -582,6 +589,10 @@ impl Session {
         Self {
             project: Arc::new(Project::new("Untitled")),
             document_id: Default::default(),
+            #[cfg(not(target_arch = "wasm32"))]
+            privacy_floor_seen: 0,
+            #[cfg(not(target_arch = "wasm32"))]
+            privacy_saved_fingerprint: None,
             id_watermark: 1,
             service: Default::default(),
             #[cfg(not(target_arch = "wasm32"))]
@@ -672,6 +683,8 @@ impl Session {
     /// the data directory and finds unsaved changes left by sessions that died
     /// ([`Session::recovery_candidates`]).
     pub fn start_autosave(&mut self, cfg: autosave::AutosaveConfig) -> std::io::Result<()> {
+        #[cfg(not(target_arch = "wasm32"))]
+        privacy::resume_pending_deletions(&cfg.data_dir);
         let prefs_path = cfg.data_dir.join("preferences.json");
         self.prefs = autosave::Preferences::load(&prefs_path);
         self.prefs.apply_hardware_decoding();
@@ -737,10 +750,17 @@ impl Session {
         let Some(p) = self.persistence.as_mut() else { return };
         for ev in p.drain_events() {
             match ev {
-                autosave::WorkerEvent::SavedProject { path, revision }
-                    if self.path.as_deref() == Some(path.as_str()) && revision > self.saved_revision && revision <= self.revision =>
-                {
+                autosave::WorkerEvent::SavedProject {
+                    path,
+                    revision,
+                    #[cfg(not(target_arch = "wasm32"))]
+                    fingerprint,
+                } if self.path.as_deref() == Some(path.as_str()) && revision > self.saved_revision && revision <= self.revision => {
                     self.saved_revision = revision;
+                    #[cfg(not(target_arch = "wasm32"))]
+                    {
+                        self.privacy_saved_fingerprint = Some(fingerprint);
+                    }
                 }
                 autosave::WorkerEvent::Error(m) => {
                     self.log.push(panels::Level::Error, "autosave", m.clone());
@@ -801,6 +821,9 @@ impl Session {
 
     /// Run a command by id.
     pub fn execute(&mut self, id: &str, params: Value) -> Result<Value> {
+        if id == "preedit.analyze" && params.get("apiKey").is_some() {
+            return Err(EngineError::Other("INVALID_ARGUMENT: provider keys require the trusted desktop credential control".into()));
+        }
         let spec = commands::find(id).ok_or_else(|| EngineError::UnknownCommand(id.to_string()))?;
         if self.exec_depth == 0 && spec.journal && self.trim_play.active() {
             self.settle_trim_playback(id);

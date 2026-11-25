@@ -530,7 +530,7 @@ mod tests {
             for alpha in [false, true] {
                 let path = dir.join(format!("f{alpha}-{c:?}.exr"));
                 std::fs::write(&path, exr(&px, w, h, alpha, c).unwrap()).unwrap();
-                let out = std::process::Command::new(&ffmpeg)
+                let out = shotclutch_env::worker_command(&ffmpeg)
                     .args(["-v", "error", "-i"])
                     .arg(&path)
                     .args(["-f", "rawvideo", "-pix_fmt", "gbrapf32le", "-"])

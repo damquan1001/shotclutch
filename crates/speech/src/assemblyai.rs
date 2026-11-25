@@ -87,108 +87,125 @@ impl Transcriber for AssemblyAi {
         }
         #[cfg(feature = "download")]
         {
-            use serde_json::{Value, json};
-            if !progress(0.0, "Uploading audio to AssemblyAI") {
-                return Err(SpeechError::Cancelled);
+            self.transcribe_at("https://api.assemblyai.com/v2", audio, opts, progress)
+        }
+    }
+}
+
+#[cfg(feature = "download")]
+impl AssemblyAi {
+    fn transcribe_at(&self, api: &str, audio: &[f32], opts: &Options, progress: ProgressFn) -> Result<Transcript, SpeechError> {
+        use serde_json::{Value, json};
+        if !progress(0.0, "Uploading audio to AssemblyAI") {
+            return Err(SpeechError::Cancelled);
+        }
+        if audio.len() > 302 * SAMPLE_RATE as usize {
+            return Err(SpeechError::Model("AssemblyAI audio chunk exceeds five minutes of audio plus context".into()));
+        }
+        let length = audio.len() as u32 * 2;
+        let mut wav = Vec::with_capacity(length as usize + 44);
+        wav.extend(b"RIFF");
+        wav.extend((length + 36).to_le_bytes());
+        wav.extend(b"WAVEfmt ");
+        wav.extend(16u32.to_le_bytes());
+        wav.extend(1u16.to_le_bytes());
+        wav.extend(1u16.to_le_bytes());
+        wav.extend(SAMPLE_RATE.to_le_bytes());
+        wav.extend((SAMPLE_RATE * 2).to_le_bytes());
+        wav.extend(2u16.to_le_bytes());
+        wav.extend(16u16.to_le_bytes());
+        wav.extend(b"data");
+        wav.extend(length.to_le_bytes());
+        for sample in audio {
+            wav.extend(((sample.clamp(-1.0, 1.0) * 32767.0).round() as i16).to_le_bytes());
+        }
+        let config = ureq::Agent::config_builder()
+            .tls_config(
+                ureq::tls::TlsConfig::builder()
+                    .provider(ureq::tls::TlsProvider::Rustls)
+                    .root_certs(ureq::tls::RootCerts::PlatformVerifier)
+                    .unversioned_rustls_crypto_provider(std::sync::Arc::new(rustls_rustcrypto::provider()))
+                    .build(),
+            )
+            .max_redirects(0)
+            .timeout_connect(Some(std::time::Duration::from_secs(10)))
+            .timeout_global(Some(std::time::Duration::from_secs(30)));
+        #[cfg(test)]
+        let config = if api.starts_with("http://127.0.0.1:") { config.proxy(None) } else { config };
+        let agent = config.build().new_agent();
+        let read = |mut response: ureq::http::Response<ureq::Body>| -> Result<Value, SpeechError> {
+            let body = response
+                .body_mut()
+                .with_config()
+                .limit(16 * 1024 * 1024)
+                .read_to_string()
+                .map_err(|_| SpeechError::Model("Could not read AssemblyAI response".into()))?;
+            if body.contains(&self.key) {
+                return Err(SpeechError::Model("AssemblyAI returned unexpected authentication material.".into()));
             }
-            if audio.len() > 302 * SAMPLE_RATE as usize {
-                return Err(SpeechError::Model("AssemblyAI audio chunk exceeds five minutes of audio plus context".into()));
-            }
-            let length = audio.len() as u32 * 2;
-            let mut wav = Vec::with_capacity(length as usize + 44);
-            wav.extend(b"RIFF");
-            wav.extend((length + 36).to_le_bytes());
-            wav.extend(b"WAVEfmt ");
-            wav.extend(16u32.to_le_bytes());
-            wav.extend(1u16.to_le_bytes());
-            wav.extend(1u16.to_le_bytes());
-            wav.extend(SAMPLE_RATE.to_le_bytes());
-            wav.extend((SAMPLE_RATE * 2).to_le_bytes());
-            wav.extend(2u16.to_le_bytes());
-            wav.extend(16u16.to_le_bytes());
-            wav.extend(b"data");
-            wav.extend(length.to_le_bytes());
-            for sample in audio {
-                wav.extend(((sample.clamp(-1.0, 1.0) * 32767.0).round() as i16).to_le_bytes());
-            }
-            let agent: ureq::Agent = ureq::Agent::config_builder()
-                .tls_config(
-                    ureq::tls::TlsConfig::builder()
-                        .provider(ureq::tls::TlsProvider::Rustls)
-                        .root_certs(ureq::tls::RootCerts::PlatformVerifier)
-                        .unversioned_rustls_crypto_provider(std::sync::Arc::new(rustls_rustcrypto::provider()))
-                        .build(),
-                )
-                .max_redirects(0)
-                .timeout_connect(Some(std::time::Duration::from_secs(10)))
-                .timeout_global(Some(std::time::Duration::from_secs(30)))
-                .build()
-                .into();
-            let read = |mut response: ureq::http::Response<ureq::Body>| -> Result<Value, SpeechError> {
-                let body = response.body_mut().read_to_string().map_err(|_| SpeechError::Model("Could not read AssemblyAI response".into()))?;
-                serde_json::from_str(&body).map_err(|_| SpeechError::Model("Invalid AssemblyAI response".into()))
-            };
-            let upload = read(
-                agent
-                    .post("https://api.assemblyai.com/v2/upload")
-                    .header("authorization", &self.key)
-                    .header("content-type", "audio/wav")
-                    .send(wav.as_slice())
-                    .map_err(http_error)?,
-            )?;
-            if !progress(0.15, "Submitting to AssemblyAI") {
-                return Err(SpeechError::Cancelled);
-            }
-            let url = upload["upload_url"].as_str().ok_or_else(|| SpeechError::Model("AssemblyAI upload URL is missing".into()))?;
-            if !url.starts_with("https://cdn.assemblyai.com/") {
-                return Err(SpeechError::Model("Unexpected AssemblyAI upload URL".into()));
-            }
-            let request = json!({"audio_url":url,"speech_models":["universal-3-pro","universal-2"],
+            serde_json::from_str(&body).map_err(|_| SpeechError::Model("Invalid AssemblyAI response".into()))
+        };
+        log::info!(target: "shotclutch::provider", "provider=assemblyai payload=audio bytes={}", wav.len());
+        let upload = read(
+            agent
+                .post(format!("{api}/upload"))
+                .header("authorization", &self.key)
+                .header("content-type", "audio/wav")
+                .send(wav.as_slice())
+                .map_err(http_error)?,
+        )?;
+        if !progress(0.15, "Submitting to AssemblyAI") {
+            return Err(SpeechError::Cancelled);
+        }
+        let url = upload["upload_url"].as_str().ok_or_else(|| SpeechError::Model("AssemblyAI upload URL is missing".into()))?;
+        if !url.starts_with("https://cdn.assemblyai.com/") {
+            return Err(SpeechError::Model("Unexpected AssemblyAI upload URL".into()));
+        }
+        let request = json!({"audio_url":url,"speech_models":["universal-3-pro","universal-2"],
                 "language_code":opts.language,"disfluencies":true,"punctuate":true,"format_text":false});
-            let submitted = read(
-                agent
-                    .post("https://api.assemblyai.com/v2/transcript")
-                    .header("authorization", &self.key)
-                    .header("content-type", "application/json")
-                    .send(request.to_string())
-                    .map_err(http_error)?,
-            )?;
-            let id = submitted["id"]
-                .as_str()
-                .filter(|id| !id.is_empty() && id.bytes().all(|c| c.is_ascii_alphanumeric() || c == b'-'))
-                .ok_or_else(|| SpeechError::Model("AssemblyAI transcript ID is missing".into()))?;
-            let endpoint = format!("https://api.assemblyai.com/v2/transcript/{id}");
-            let result = (|| {
-                let started = std::time::Instant::now();
-                loop {
+        let submitted = read(
+            agent
+                .post(format!("{api}/transcript"))
+                .header("authorization", &self.key)
+                .header("content-type", "application/json")
+                .send(request.to_string())
+                .map_err(http_error)?,
+        )?;
+        let id = submitted["id"]
+            .as_str()
+            .filter(|id| !id.is_empty() && id.bytes().all(|c| c.is_ascii_alphanumeric() || c == b'-'))
+            .ok_or_else(|| SpeechError::Model("AssemblyAI transcript ID is missing".into()))?;
+        let endpoint = format!("{api}/transcript/{id}");
+        let result = (|| {
+            let started = std::time::Instant::now();
+            loop {
+                if !progress(0.2, "Waiting for AssemblyAI transcription") {
+                    return Err(SpeechError::Cancelled);
+                }
+                if started.elapsed().as_secs() > 1800 {
+                    return Err(SpeechError::Model("AssemblyAI transcription timed out; resume to try the unfinished chunk again".into()));
+                }
+                let value = read(agent.get(&endpoint).header("authorization", &self.key).call().map_err(http_error)?)?;
+                let response: Response = serde_json::from_value(value).map_err(|_| SpeechError::Model("Invalid AssemblyAI transcript response".into()))?;
+                match response.status.as_str() {
+                    "completed" => return transcript(response, opts, audio.len()),
+                    "error" => {
+                        return Err(SpeechError::Model("AssemblyAI could not transcribe this audio. Check the account dashboard for details.".into()));
+                    }
+                    "queued" | "processing" => {}
+                    _ => return Err(SpeechError::Model("Unknown AssemblyAI transcription status".into())),
+                }
+                for _ in 0..30 {
                     if !progress(0.2, "Waiting for AssemblyAI transcription") {
                         return Err(SpeechError::Cancelled);
                     }
-                    if started.elapsed().as_secs() > 1800 {
-                        return Err(SpeechError::Model("AssemblyAI transcription timed out; resume to try the unfinished chunk again".into()));
-                    }
-                    let value = read(agent.get(&endpoint).header("authorization", &self.key).call().map_err(http_error)?)?;
-                    let response: Response = serde_json::from_value(value).map_err(|_| SpeechError::Model("Invalid AssemblyAI transcript response".into()))?;
-                    match response.status.as_str() {
-                        "completed" => return transcript(response, opts, audio.len()),
-                        "error" => {
-                            return Err(SpeechError::Model("AssemblyAI could not transcribe this audio. Check the account dashboard for details.".into()));
-                        }
-                        "queued" | "processing" => {}
-                        _ => return Err(SpeechError::Model("Unknown AssemblyAI transcription status".into())),
-                    }
-                    for _ in 0..30 {
-                        if !progress(0.2, "Waiting for AssemblyAI transcription") {
-                            return Err(SpeechError::Cancelled);
-                        }
-                        std::thread::sleep(std::time::Duration::from_millis(100));
-                    }
+                    std::thread::sleep(std::time::Duration::from_millis(100));
                 }
-            })();
-            // Release the remote transcript after receiving its local word timestamps or canceling.
-            let _ = agent.delete(&endpoint).header("authorization", &self.key).call();
-            result
-        }
+            }
+        })();
+        // Release the remote transcript after receiving its local word timestamps or canceling.
+        let _ = agent.delete(&endpoint).header("authorization", &self.key).call();
+        result
     }
 }
 
@@ -213,4 +230,84 @@ fn cancellation_before_upload_needs_no_network() {
     let provider = AssemblyAi::new("test-only-key".into()).unwrap();
     let result = provider.transcribe(&[0.0; 160], &Options::default(), &mut |_, _| false);
     assert_eq!(result.unwrap_err(), SpeechError::Cancelled);
+}
+
+#[cfg(feature = "download")]
+#[test]
+fn provider_ingest_keeps_authentication_out_of_results_and_errors() {
+    use std::io::{BufRead, BufReader, Read, Write};
+    use std::net::TcpListener;
+    use std::time::{Duration, Instant};
+
+    const KEY: &str = "synthetic-assembly-authentication-key";
+    fn serve(responses: &[(u16, &'static str, &'static str)]) -> (String, std::thread::JoinHandle<()>) {
+        let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        listener.set_nonblocking(true).unwrap();
+        let api = format!("http://{}/v2", listener.local_addr().unwrap());
+        let responses = responses.to_vec();
+        let worker = std::thread::spawn(move || {
+            for (status, request, response) in responses {
+                let until = Instant::now() + Duration::from_secs(5);
+                let mut stream = loop {
+                    match listener.accept() {
+                        Ok((stream, _)) => break stream,
+                        Err(error) if error.kind() == std::io::ErrorKind::WouldBlock && Instant::now() < until => std::thread::sleep(Duration::from_millis(10)),
+                        Err(error) => panic!("provider fixture did not receive a request: {error}"),
+                    }
+                };
+                stream.set_nonblocking(false).unwrap();
+                stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
+                let mut reader = BufReader::new(&mut stream);
+                let mut line = String::new();
+                reader.read_line(&mut line).unwrap();
+                assert!(line.starts_with(request));
+                assert!(!line.contains(KEY));
+                let mut authenticated = false;
+                let mut length = 0;
+                loop {
+                    line.clear();
+                    assert!(reader.read_line(&mut line).unwrap() > 0);
+                    if line == "\r\n" {
+                        break;
+                    }
+                    if let Some((name, value)) = line.split_once(':') {
+                        if name.eq_ignore_ascii_case("authorization") {
+                            authenticated = value.trim() == KEY;
+                        }
+                        if name.eq_ignore_ascii_case("content-length") {
+                            length = value.trim().parse::<usize>().unwrap();
+                        }
+                    }
+                }
+                assert!(authenticated);
+                let mut body = vec![0; length];
+                reader.read_exact(&mut body).unwrap();
+                assert!(!String::from_utf8_lossy(&body).contains(KEY));
+                write!(
+                    stream,
+                    "HTTP/1.1 {status} Test\r\nContent-Length: {}\r\nContent-Type: application/json\r\nConnection: close\r\n\r\n{response}",
+                    response.len()
+                )
+                .unwrap();
+            }
+        });
+        (api, worker)
+    }
+    let success = [
+        (200, "POST /v2/upload ", r#"{"upload_url":"https://cdn.assemblyai.com/local-fixture?signature=synthetic-signed-url"}"#),
+        (200, "POST /v2/transcript ", r#"{"id":"local-fixture"}"#),
+        (200, "GET /v2/transcript/local-fixture ", r#"{"status":"completed","words":[{"text":"fixture","start":0,"end":5,"confidence":0.95}]}"#),
+        (200, "DELETE /v2/transcript/local-fixture ", "{}"),
+    ];
+    let provider = AssemblyAi::new(KEY.into()).unwrap();
+    let (api, worker) = serve(&success);
+    let result = provider.transcribe_at(&api, &[0.0; 160], &Options::default(), &mut |_, _| true).unwrap();
+    assert_eq!(result.words[0].text, "fixture");
+    assert!(!serde_json::to_string(&result).unwrap().contains("synthetic"));
+    worker.join().unwrap();
+
+    let (api, worker) = serve(&[(403, "POST /v2/upload ", KEY)]);
+    let result = provider.transcribe_at(&api, &[0.0; 160], &Options::default(), &mut |_, _| true).unwrap_err();
+    assert!(!result.to_string().contains(KEY));
+    worker.join().unwrap();
 }

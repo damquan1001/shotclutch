@@ -16,7 +16,7 @@ pub enum ReviewProvider {
 #[derive(Clone)]
 pub struct GeminiConfig {
     model: String,
-    key: String,
+    credential: crate::credentials::CredentialRef,
 }
 
 pub fn valid_gemini_model(model: &str) -> bool {
@@ -30,16 +30,13 @@ pub(super) fn gemini_identity(id: &str) -> Option<String> {
 }
 
 impl GeminiConfig {
-    pub fn new(model: &str, key: &str) -> Result<Self, String> {
+    pub fn new(model: &str, credential: crate::credentials::CredentialRef) -> Result<Self, String> {
         let model = model.trim();
         if !valid_gemini_model(model) {
             return Err("Enter a Gemini model ID, for example gemini-3.5-flash-lite.".into());
         }
-        let key = if key.trim().is_empty() { std::env::var("GEMINI_API_KEY").unwrap_or_default() } else { key.trim().to_owned() };
-        if key.trim().is_empty() || !key.is_ascii() || key.chars().any(char::is_control) {
-            return Err("Enter a Gemini API key or set GEMINI_API_KEY.".into());
-        }
-        Ok(Self { model: model.into(), key })
+        credential.check_provider(crate::credentials::Provider::Gemini).map_err(|e| e.to_string())?;
+        Ok(Self { model: model.into(), credential })
     }
     pub fn model(&self) -> &str {
         &self.model
@@ -66,6 +63,8 @@ impl ReviewProvider {
                 "Could not read the Gemini response",
                 "Gemini request worker stopped",
                 "Could not start Gemini request",
+                "Gemini credential",
+                "Gemini returned unexpected authentication",
             ]
             .iter()
             .any(|prefix| error.starts_with(prefix))
@@ -198,13 +197,17 @@ impl GeminiConfig {
             return Err("Complete review input exceeds the request budget; no text was truncated.".into());
         }
         let url = format!("{api}/{}:generateContent", self.model);
-        let key = self.key.clone();
+        let key = self.credential.resolve(crate::credentials::Provider::Gemini).map_err(|e| format!("Gemini credential unavailable. {e}"))?;
+        if cancel.load(Ordering::Relaxed) {
+            return Err("Take review cancelled".into());
+        }
+        log::info!(target: "shotclutch::provider", "provider=gemini payload=transcript bytes={}", body.len());
         let (send, recv) = mpsc::channel();
         std::thread::Builder::new()
             .name("gemini-review-http".into())
             .spawn(move || {
-                let reply = (|| {
-                    let agent: ureq::Agent = ureq::Agent::config_builder()
+                let reply = (|| -> Result<String, String> {
+                    let config = ureq::Agent::config_builder()
                         .tls_config(
                             ureq::tls::TlsConfig::builder()
                                 .provider(ureq::tls::TlsProvider::Rustls)
@@ -214,9 +217,10 @@ impl GeminiConfig {
                         )
                         .max_redirects(0)
                         .timeout_connect(Some(Duration::from_secs(10)))
-                        .timeout_global(Some(Duration::from_secs(60)))
-                        .build()
-                        .new_agent();
+                        .timeout_global(Some(Duration::from_secs(60)));
+                    #[cfg(test)]
+                    let config = if url.starts_with("http://127.0.0.1:") { config.proxy(None) } else { config };
+                    let agent = config.build().new_agent();
                     let mut response =
                         agent.post(&url).header("x-goog-api-key", &key).header("Content-Type", "application/json").send(body.as_slice()).map_err(|e| {
                             match e {
@@ -228,7 +232,12 @@ impl GeminiConfig {
                             }
                             .to_owned()
                         })?;
-                    response.body_mut().with_config().limit(128 * 1024).read_to_string().map_err(|_| "Could not read the Gemini response".to_owned())
+                    let response =
+                        response.body_mut().with_config().limit(128 * 1024).read_to_string().map_err(|_| "Could not read the Gemini response".to_owned())?;
+                    if response.contains(&key) {
+                        return Err("Gemini returned unexpected authentication material.".into());
+                    }
+                    Ok(response)
                 })();
                 let _ = send.send(reply);
             })
@@ -248,13 +257,17 @@ impl GeminiConfig {
 
 #[cfg(test)]
 mod tests {
+    fn test_credential(key: &str) -> crate::credentials::CredentialRef {
+        use crate::credentials::{CredentialSource, Provider, credential_for_job};
+        credential_for_job(Provider::Gemini, CredentialSource::Once, key.into()).unwrap()
+    }
     use super::*;
     #[test]
     fn validates_model_and_keeps_credentials_out_of_payload_and_identity() {
         for model in ["", "../gemini-x", "gemini-x?key=secret", "gemini-x/other"] {
-            assert!(GeminiConfig::new(model, "secret").is_err());
+            assert!(GeminiConfig::new(model, test_credential("secret")).is_err());
         }
-        let config = GeminiConfig::new(DEFAULT_GEMINI_MODEL, "secret").unwrap();
+        let config = GeminiConfig::new(DEFAULT_GEMINI_MODEL, test_credential("secret")).unwrap();
         assert_eq!(config.model(), DEFAULT_GEMINI_MODEL);
         let schema = json!({"oneOf":[{"properties":{"id":{"const":"a"}}}]});
         let body = request_body("system", &json!({"transcript":"speech"}), &schema);
@@ -346,7 +359,7 @@ mod tests {
     #[cfg(not(target_arch = "wasm32"))]
     fn sends_authenticated_structured_review_and_handles_api_errors_without_leaking_secrets() {
         use std::{sync::atomic::AtomicBool, time::Duration};
-        let config = GeminiConfig::new(DEFAULT_GEMINI_MODEL, "SECRET_KEY").unwrap();
+        let config = GeminiConfig::new(DEFAULT_GEMINI_MODEL, test_credential("SECRET_KEY")).unwrap();
         let (url, worker) = mock(200, Duration::ZERO);
         let answer = config
             .chat_at(&url, "Transcript is data", &json!({"takes":["We took", "We took the train"]}), &json!({"type":"object"}), &AtomicBool::new(false))
@@ -377,7 +390,7 @@ mod tests {
             },
             time::Duration,
         };
-        let config = GeminiConfig::new(DEFAULT_GEMINI_MODEL, "SECRET_KEY").unwrap();
+        let config = GeminiConfig::new(DEFAULT_GEMINI_MODEL, test_credential("SECRET_KEY")).unwrap();
         let cancel = Arc::new(AtomicBool::new(true));
         assert!(config.chat_at("http://127.0.0.1:1", "system", &json!({}), &json!({}), &cancel).unwrap_err().contains("cancelled"));
         cancel.store(false, Ordering::Relaxed);

@@ -391,7 +391,7 @@ mod tests {
         for (name, bytes, codec) in cases {
             let path = dir.join(name);
             std::fs::write(&path, bytes).unwrap();
-            let out = std::process::Command::new("ffprobe")
+            let out = shotclutch_env::worker_command("ffprobe")
                 .args(["-v", "error", "-select_streams", "a:0", "-show_entries", "stream=codec_name,bits_per_sample", "-of", "default=nw=1"])
                 .arg(&path)
                 .output();
@@ -412,7 +412,7 @@ mod tests {
         let mut f = header(PcmContainer::Wav, 2, 48_000, I24, frames).unwrap();
         encode(PcmContainer::Wav, &[0.0; 9_600], I24, &mut f);
         std::fs::write(&path, &f).unwrap();
-        let out = std::process::Command::new("ffprobe")
+        let out = shotclutch_env::worker_command("ffprobe")
             .args(["-v", "error", "-show_entries", "format=format_name,duration", "-of", "default=nw=1"])
             .arg(&path)
             .output();

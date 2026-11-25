@@ -137,6 +137,37 @@ fn advance(session: &mut Session, run: &mut AgentRun) -> RunStatus {
     session.advance_agent_run(run, &ActiveModels::new(), &OfflinePhrasePlanner).unwrap()
 }
 
+#[test]
+fn privacy_deletion_respects_active_runs_and_keeps_committed_receipts() {
+    use crate::privacy::Deletion;
+
+    let mut fixture = Fixture::new(Mode::Assist);
+    let project_path = fixture.dir.path().join("retention.scproj");
+    fixture.session.execute("file.saveAs", json!({"path":project_path})).unwrap();
+    let mut run = fixture.start();
+    let action = Deletion::Analysis { asset: fixture.asset, include_dependencies: true };
+    let preview = fixture.session.preview_privacy_deletion(action);
+    assert_eq!(preview.current.active_or_resumable_runs, 1);
+    assert!(fixture.session.apply_privacy_deletion(&preview).is_err());
+    let completed = reach(&mut fixture.session, &mut run, Phase::Completed);
+    let checkpoint = run.path.clone();
+    let id = completed.id;
+    let before = fixture.session.operation_records.len();
+    drop(run);
+    fixture.session.sync_persistence();
+    fixture.session.persistence.as_ref().unwrap().flush_checked().unwrap();
+    let approved = fixture.session.preview_privacy_deletion(action);
+    assert_eq!(approved.current.finished_runs, 1);
+    assert!(approved.current.observations > 0);
+    fixture.session.apply_privacy_deletion(&approved).unwrap();
+    assert!(!checkpoint.exists());
+    assert!(fixture.session.project.observations.is_empty());
+    assert_eq!(fixture.session.operation_records.len(), before);
+    assert!(fixture.session.operation_records.iter().any(|record| record.operation_id == operation_id(id)));
+    let decoded = shotclutch_format::decode(&std::fs::read(project_path).unwrap()).unwrap();
+    assert!(decoded.edit_state.unwrap().operations.iter().any(|record| record.operation_id == operation_id(id)));
+}
+
 fn reach(session: &mut Session, run: &mut AgentRun, target: Phase) -> RunStatus {
     for _ in 0..12 {
         let status = run.handle().inspect();

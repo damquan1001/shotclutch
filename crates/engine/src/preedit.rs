@@ -7,13 +7,13 @@ mod gling;
 pub mod local_review;
 mod ordered_takes;
 pub mod pair_review;
-pub mod review_provider;
 mod recheck;
+pub mod review_provider;
 pub mod take_review;
 #[cfg(not(target_arch = "wasm32"))]
 mod take_runtime;
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;
 
 use std::path::PathBuf;
 use std::sync::{Arc, mpsc};
@@ -118,7 +118,6 @@ struct Start {
     audio_stream: usize,
     channel: Option<u16>,
     model: Option<String>,
-    api_key: Option<String>,
     language: Option<String>,
     range: Option<ExactRange>,
     #[serde(default, with = "optional_decimal")]
@@ -193,14 +192,19 @@ fn original(s: &Session, id: ItemId) -> Result<(&MediaClip, PathBuf)> {
     Ok((media, path))
 }
 
-fn start(s: &mut Session, value: &Value) -> Result<Value> {
+/// Native owner entry point after the user selects cloud transcription and its credential.
+pub fn start_authorized_speech(s: &mut Session, value: &Value, credential: crate::credentials::CredentialRef) -> Result<Value> {
+    start(s, value, Some(credential))
+}
+
+fn start(s: &mut Session, value: &Value, credential: Option<crate::credentials::CredentialRef>) -> Result<Value> {
     if cfg!(target_arch = "wasm32") {
         return Err(fail("CAPABILITY_UNAVAILABLE: rough cut analysis requires a native host"));
     }
     if s.preedit_job.is_some() {
         return Err(fail("RESOURCE_LIMIT: a rough-cut analysis is already running"));
     }
-    let req: Start = typed(value)?;
+    let req: Start = serde_json::from_value(value.clone()).map_err(|_| fail("INVALID_ARGUMENT: invalid Smart Cut analysis parameters"))?;
     if req.cleanup.is_some_and(|settings| !settings.valid()) {
         return Err(fail("INVALID_ARGUMENT: cleanup pause threshold or padding is out of bounds"));
     }
@@ -234,12 +238,12 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
     if settings.model.as_deref().and_then(shotclutch_speech::models::find).is_some_and(|m| !m.multilingual) && settings.language != "en" {
         return Err(fail("INVALID_ARGUMENT: select a multilingual speech profile for this language"));
     }
-    if settings.model.as_deref() == Some("assemblyai")
-        && req.reuse_transcript.is_none()
-        && req.api_key.as_ref().is_none_or(|key| key.trim().is_empty())
-        && std::env::var("ASSEMBLYAI_API_KEY").ok().is_none_or(|key| key.trim().is_empty())
-    {
-        return Err(fail("INVALID_ARGUMENT: enter an AssemblyAI API key"));
+    if settings.model.as_deref() == Some("assemblyai") && req.reuse_transcript.is_none() {
+        credential
+            .as_ref()
+            .ok_or_else(|| fail("PERMISSION_REQUIRED: select AssemblyAI and a key source in the desktop workspace"))?
+            .check_provider(crate::credentials::Provider::AssemblyAi)
+            .map_err(|error| fail(error.to_string()))?;
     }
     let model_digest = analysis::model_digest(&settings).map_err(fail)?;
     let resume = req.resume.map(|id| s.project.preedit.analyses.get(&id).cloned().ok_or_else(|| fail("NOT_FOUND: analysis to resume"))).transpose()?;
@@ -325,7 +329,7 @@ fn start(s: &mut Session, value: &Value) -> Result<Value> {
                     analysis.chunks.clone_from(&saved.chunks);
                 } else {
                     send.send(Message::Started(analysis.clone())).map_err(|_| "CANCELED: project closed")?;
-                    analysis::run(decoded.clone(), &mut analysis, reuse.as_deref(), req.api_key, &signal, &send)?;
+                    analysis::run(decoded.clone(), &mut analysis, reuse.as_deref(), credential, &signal, &send)?;
                 }
                 let cuts = req.auto_cut.then(|| {
                     let map = analysis::propose(0, &analysis, req.cleanup);
@@ -1147,7 +1151,7 @@ pub(crate) fn commands() -> Vec<CommandSpec> {
             "preedit.analyze",
             "Analyze Smart Cut",
             r#"{"item":string,"audioStream":integer,"model":string?,"language":string?,"channel":integer?,"range":object?,"resume":string?,"previousMap":string?,"recheckRetakes":boolean?}"#,
-            start,
+            |s, p| start(s, p, None),
         ),
         command("preedit.cancel", "Cancel Rough Cut Analysis", "{}", |s, _| {
             let job = s.preedit_job.as_ref().ok_or_else(|| fail("NOT_FOUND: no rough-cut analysis is running"))?;

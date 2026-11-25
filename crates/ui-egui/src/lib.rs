@@ -76,6 +76,8 @@ pub use control::ControlRequest;
 use dock::PanelKind;
 use frames::{FrameKey, FrameServer, Target};
 use native_dialogs::FileDialog;
+#[cfg(not(target_arch = "wasm32"))]
+mod privacy_panel;
 use state::UiState;
 use theme::{ThemeKind, Tokens};
 
@@ -284,6 +286,8 @@ pub(crate) const EXPORT_SAVE_DIALOGS: [(&str, &str, &str); 7] = [
 ];
 
 pub struct ShotClutchApp {
+    #[cfg(not(target_arch = "wasm32"))]
+    privacy_panel: Option<privacy_panel::PrivacyPanel>,
     pub session: Session,
     pub ui: UiState,
     pub tokens: Tokens,
@@ -561,6 +565,8 @@ impl ShotClutchApp {
             playback: Playback { speed: 1.0, ..Default::default() },
             source_playback: Default::default(),
             rough_cut: Default::default(),
+            #[cfg(not(target_arch = "wasm32"))]
+            privacy_panel: None,
             audio: None,
             scrub: Default::default(),
             hooks: HostHooks::default(),
@@ -1915,6 +1921,8 @@ impl ShotClutchApp {
         // the Timeline has had its chance to place a file drop this frame; anything left stays a bin import
         self.pending_timeline_drop = None;
         panels::dialogs::show(self, &ctx);
+        #[cfg(not(target_arch = "wasm32"))]
+        privacy_panel::show(self, &ctx);
         if !self.ui.show_status_bar {
             // no bar to draw the job in, but a finished preview render still plays
             self.watch_jobs(ui.ctx());

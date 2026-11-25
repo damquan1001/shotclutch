@@ -1001,7 +1001,7 @@ mod tests {
         let Some(ffmpeg) = shotclutch_testkit::oracle::ffmpeg_or_skip("media_pool") else { return };
         let path = shotclutch_testkit::fixtures_dir("engine/media_pool").join("h264_444_64x32.mp4");
         let Some(path) = shotclutch_testkit::fixtures::generate(&path, |tmp| {
-            std::process::Command::new(&ffmpeg)
+            shotclutch_env::worker_command(&ffmpeg)
                 .args(["-y", "-loglevel", "error", "-f", "lavfi", "-i", "testsrc2=size=64x32:rate=24:duration=0.5"])
                 .args(["-c:v", "libx264", "-preset", "fast", "-pix_fmt", "yuv444p"])
                 .arg(tmp)

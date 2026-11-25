@@ -1619,22 +1619,31 @@ pub fn previews_root(cache: &Path) -> PathBuf {
     cache.join("Previews")
 }
 
-/// Files under `dir` (recursively): (path, bytes, modified).
+/// ShotClutch's disposable render previews in the configured media cache.
 fn cache_files(dir: &Path) -> Vec<(PathBuf, u64, std::time::SystemTime)> {
     let mut out = Vec::new();
-    let mut stack = vec![dir.to_path_buf()];
-    while let Some(d) = stack.pop() {
-        let Ok(rd) = std::fs::read_dir(&d) else { continue };
-        for e in rd.flatten() {
-            let Ok(md) = e.metadata() else { continue };
-            if md.is_dir() {
-                stack.push(e.path());
-            } else {
-                out.push((e.path(), md.len(), md.modified().unwrap_or(std::time::UNIX_EPOCH)));
+    for folder in preview_cache_folders(dir) {
+        if let Ok(entries) = std::fs::read_dir(folder) {
+            for entry in entries.flatten() {
+                if entry.file_name().to_str().is_some_and(crate::previews::is_preview_file)
+                    && let Ok(meta) = std::fs::symlink_metadata(entry.path())
+                    && meta.is_file()
+                {
+                    out.push((entry.path(), meta.len(), meta.modified().unwrap_or(std::time::UNIX_EPOCH)));
+                }
             }
         }
     }
     out
+}
+
+fn preview_cache_folders(dir: &Path) -> impl Iterator<Item = PathBuf> {
+    let root = previews_root(dir);
+    let entries = std::fs::symlink_metadata(&root).ok().filter(|meta| meta.is_dir()).and_then(|_| std::fs::read_dir(root).ok());
+    entries.into_iter().flatten().filter_map(|entry| {
+        let entry = entry.ok()?;
+        (entry.file_name().to_str()?.starts_with("untitled-") && entry.file_type().ok()?.is_dir()).then(|| entry.path())
+    })
 }
 
 /// Size and file count of the media cache.
@@ -1659,14 +1668,9 @@ fn remove_files(files: &[(PathBuf, u64, std::time::SystemTime)], keep: Option<&P
 }
 
 fn prune_empty_dirs(dir: &Path, keep: Option<&Path>) {
-    let Ok(rd) = std::fs::read_dir(dir) else { return };
-    for e in rd.flatten() {
-        let p = e.path();
-        if p.is_dir() && keep.is_none_or(|k| !k.starts_with(&p)) {
-            prune_empty_dirs(&p, keep);
-            let _ = std::fs::remove_dir(&p);
-        } else if p.is_dir() {
-            prune_empty_dirs(&p, keep);
+    for path in preview_cache_folders(dir) {
+        if keep.is_none_or(|keep| keep != path) {
+            let _ = std::fs::remove_dir(path);
         }
     }
 }

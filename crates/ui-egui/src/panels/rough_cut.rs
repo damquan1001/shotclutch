@@ -4,6 +4,10 @@ use std::sync::{Arc, atomic::Ordering, mpsc};
 
 use egui::{Rect, Ui, pos2, vec2};
 use serde_json::{Value, json};
+use shotclutch_engine::credentials::{
+    CredentialRef, CredentialSource, Provider, credential_for_job, forget_credential, remember_credential, remember_environment_credential,
+    remembered_credential_status,
+};
 use shotclutch_project::preedit::{AnalysisStatus, CandidateKind, CleanupMode, CleanupSettings, PreEditAnalysis, PreEditMap, Segment, TakeMatching};
 use shotclutch_project::{ItemId, Project};
 use shotclutch_time::{TICKS_PER_SECOND, Tick, TimeRange};
@@ -27,7 +31,7 @@ pub struct Workspace {
     channel: Option<u16>,
     silence_only: bool,
     assemblyai: bool,
-    assemblyai_key: String,
+    assemblyai_key: KeyControl,
     local_model: String,
     cleanup: CleanupSettings,
     cleanup_initialized: bool,
@@ -64,12 +68,73 @@ pub struct Workspace {
     document: Option<String>,
     local_review: bool,
     gemini_review: bool,
-    gemini_key: String,
+    gemini_key: KeyControl,
     gemini_model: String,
     review_install: ModelInstall,
     pending_rule_cut: Option<(ItemId, u64)>,
     review_job: Option<LocalJob>,
     evidence_install: ModelInstall,
+}
+
+#[derive(Default)]
+struct KeyControl {
+    source: CredentialSource,
+    input: String,
+    status: String,
+}
+
+impl Workspace {
+    pub(crate) fn review_running(&self) -> bool {
+        self.review_job.is_some()
+    }
+}
+
+impl KeyControl {
+    fn selected(&mut self, provider: Provider) -> Result<CredentialRef, String> {
+        credential_for_job(provider, self.source, std::mem::take(&mut self.input)).map_err(|e| e.to_string())
+    }
+
+    fn show(&mut self, ui: &mut Ui, provider: Provider) {
+        ui.horizontal_wrapped(|ui| {
+            ui.selectable_value(&mut self.source, CredentialSource::Once, "Use once");
+            ui.selectable_value(&mut self.source, CredentialSource::Vault, "Remembered key");
+            ui.selectable_value(&mut self.source, CredentialSource::Environment, provider.environment());
+        });
+        if self.source == CredentialSource::Environment {
+            if ui.button("Remember environment key").clicked() {
+                self.status = match remember_environment_credential(provider) {
+                    Ok(()) => {
+                        self.source = CredentialSource::Vault;
+                        "Key saved in the system credential store.".into()
+                    }
+                    Err(error) => error.to_string(),
+                };
+            }
+        } else {
+            ui.add(egui::TextEdit::singleline(&mut self.input).password(true).hint_text("Provider API key"));
+            ui.horizontal_wrapped(|ui| {
+                if ui.add_enabled(!self.input.is_empty(), egui::Button::new("Remember or replace key")).clicked() {
+                    self.status = match remember_credential(provider, &self.input) {
+                        Ok(()) => {
+                            self.input.clear();
+                            self.source = CredentialSource::Vault;
+                            "Key saved in the system credential store.".into()
+                        }
+                        Err(error) => error.to_string(),
+                    };
+                }
+                if ui.button("Check remembered key").clicked() {
+                    self.status = remembered_credential_status(provider).map_or_else(|e| e.to_string(), |_| "Remembered key is available.".into());
+                }
+                if ui.button("Forget remembered key").clicked() {
+                    self.status = forget_credential(provider).map_or_else(|e| e.to_string(), |_| "Remembered key removed.".into());
+                }
+            });
+        }
+        if !self.status.is_empty() {
+            ui.label(&self.status);
+        }
+    }
 }
 
 struct LocalJob {
@@ -244,19 +309,26 @@ impl Workspace {
             };
             json!({"start":Tick::from_seconds_f64(start).0.to_string(),"end":Tick::from_seconds_f64(end).0.to_string()})
         };
-        if self
-            .command(
-                app,
-                "preedit.analyze",
-                json!({
-                    "item":item.0.to_string(),"audioStream":self.stream,"channel":self.channel,"model":model,"language":self.language,"range":range,
-                    "apiKey":if self.assemblyai { Some(&self.assemblyai_key) } else { None },"minPauseMs":self.pause_ms,"handleMs":self.handle_ms,"autoCut":true,"cleanup":self.cleanup_options(cut),
-                    "previousMap":self.map.map(|id| id.to_string()),"resume":resume.map(|id| id.to_string())
-                }),
-            )
-            .is_some()
-        {
-            self.pending_rule_cut=(cut && self.local_review && self.cleanup.cut_bad_takes && !self.silence_only).then(||(item,app.session.project.preedit.maps.keys().next_back().copied().unwrap_or(0)));
+        let params = json!({
+            "item":item.0.to_string(),"audioStream":self.stream,"channel":self.channel,"model":model,"language":self.language,"range":range,
+            "minPauseMs":self.pause_ms,"handleMs":self.handle_ms,"autoCut":true,"cleanup":self.cleanup_options(cut),
+            "previousMap":self.map.map(|id| id.to_string()),"resume":resume.map(|id| id.to_string())
+        });
+        let started = if self.assemblyai && !self.silence_only {
+            let result = self
+                .assemblyai_key
+                .selected(Provider::AssemblyAi)
+                .and_then(|credential| shotclutch_engine::preedit::start_authorized_speech(&mut app.session, &params, credential).map_err(|e| e.to_string()));
+            if let Err(error) = &result {
+                self.message = error.clone();
+            }
+            result.is_ok()
+        } else {
+            self.command(app, "preedit.analyze", params).is_some()
+        };
+        if started {
+            self.pending_rule_cut = (cut && self.local_review && self.cleanup.cut_bad_takes && !self.silence_only)
+                .then(|| (item, app.session.project.preedit.maps.keys().next_back().copied().unwrap_or(0)));
             self.cleanup_initialized = true;
             self.tab = ReviewTab::Script;
         }
@@ -399,11 +471,11 @@ impl Workspace {
             }
         }
     }
-    fn reviewer(&self) -> Result<shotclutch_engine::preedit::review_provider::ReviewProvider, String> {
+    fn reviewer(&mut self) -> Result<shotclutch_engine::preedit::review_provider::ReviewProvider, String> {
         use shotclutch_engine::preedit::review_provider::{DEFAULT_GEMINI_MODEL, GeminiConfig, ReviewProvider};
         if self.gemini_review {
             let model = if self.gemini_model.is_empty() { DEFAULT_GEMINI_MODEL } else { &self.gemini_model };
-            GeminiConfig::new(model, &self.gemini_key).map(ReviewProvider::Gemini)
+            GeminiConfig::new(model, self.gemini_key.selected(Provider::Gemini)?).map(ReviewProvider::Gemini)
         } else {
             Ok(ReviewProvider::Local)
         }
@@ -420,15 +492,13 @@ impl Workspace {
             });
             if self.gemini_review {
                 ui.label("Review sends transcript text to Google. API usage is billed to your account. Audio and video stay on this device.");
-                let key = ui.add(egui::TextEdit::singleline(&mut self.gemini_key).password(true).hint_text("Gemini API key (or GEMINI_API_KEY)"));
-                app.auto.add_response("roughCut.gemini.key", &key, "Gemini API key");
+                self.gemini_key.show(ui, Provider::Gemini);
                 if self.gemini_model.is_empty() {
                     self.gemini_model = DEFAULT_GEMINI_MODEL.into();
                 }
                 ui.label("Gemini model ID");
                 let model = ui.text_edit_singleline(&mut self.gemini_model);
                 app.auto.add_response("roughCut.gemini.model", &model, "Gemini model ID");
-                ui.label("The key is kept for this app session only.");
                 ui.hyperlink_to("Get a Gemini API key", "https://aistudio.google.com/apikey");
             } else if self.local_review {
                 ui.label("Requires llama.cpp (llama-completion). The transcript stays on this device during review.");
@@ -592,9 +662,8 @@ impl Workspace {
             });
             if self.assemblyai {
                 ui.label("Transcribe sends the selected audio to AssemblyAI. API usage is billed to your account.");
-                let key = ui.add(egui::TextEdit::singleline(&mut self.assemblyai_key).password(true).hint_text("AssemblyAI API key (or ASSEMBLYAI_API_KEY)"));
-                app.auto.add_response("roughCut.assemblyai.key", &key, "AssemblyAI API key");
-                ui.label(egui::RichText::new("Key kept for this session. Completed audio sections can be resumed.").small().color(tokens.text_dim));
+                self.assemblyai_key.show(ui, Provider::AssemblyAi);
+                ui.label(egui::RichText::new("Completed audio sections can be resumed.").small().color(tokens.text_dim));
             } else {
                 let profile = egui::ComboBox::from_id_salt("smart-cut-speech-profile")
                     .selected_text(shotclutch_engine::transcript::speech_model(&self.local_model).map_or("Select speech profile", |m| m.name))
@@ -1623,6 +1692,7 @@ pub fn show(app: &mut ShotClutchApp, ui: &mut Ui, rect: Rect) {
             model_install: std::mem::take(&mut workspace.model_install),
             gemini_review: workspace.gemini_review,
             gemini_key: std::mem::take(&mut workspace.gemini_key),
+            assemblyai_key: std::mem::take(&mut workspace.assemblyai_key),
             gemini_model: std::mem::take(&mut workspace.gemini_model),
             document: Some(document),
             language: "en".into(),

@@ -130,6 +130,10 @@ fn parse_video_name(name: &str) -> Option<(&str, i64, i64)> {
     (len > 0).then_some((hash, i64::from(off), i64::from(len)))
 }
 
+pub(crate) fn is_preview_file(name: &str) -> bool {
+    parse_video_name(name).is_some() || name.strip_suffix(".wav").is_some_and(is_hash)
+}
+
 /// The parts of `[a, b)` not covered by the sorted, merged intervals `cov`.
 fn gaps(cov: &[(i64, i64)], a: i64, b: i64) -> Vec<(i64, i64)> {
     let mut out = Vec::new();
@@ -206,7 +210,7 @@ impl PreviewStore {
         {
             for e in rd.flatten() {
                 let name = e.file_name().to_string_lossy().to_string();
-                if parse_video_name(&name).is_some() || name.strip_suffix(".wav").is_some_and(is_hash) {
+                if is_preview_file(&name) {
                     files.insert(name);
                 }
             }

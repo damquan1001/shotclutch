@@ -66,11 +66,11 @@ pub fn install_runtime(models: &Path, progress: &mut dyn FnMut(u64, u64, &str) -
     let python = python_path(&runtime);
     if !python.is_file() {
         let bootstrap = std::env::var_os("SHOTCLUTCH_PYTHON").unwrap_or_else(|| if cfg!(windows) { "python".into() } else { "python3".into() });
-        let mut command = Command::new(bootstrap);
+        let mut command = shotclutch_env::worker_command(bootstrap);
         command.args(["-m", "venv"]).arg(&runtime);
         checked_process(command, progress, "Creating local speech runtime")?;
     }
-    let mut check = Command::new(&python);
+    let mut check = shotclutch_env::worker_command(&python);
     check.arg("-B").arg(&worker).arg("--check");
     match checked_process(check, progress, "Checking local speech runtime") {
         Ok(()) => {}
@@ -78,14 +78,14 @@ pub fn install_runtime(models: &Path, progress: &mut dyn FnMut(u64, u64, &str) -
         Err(_) => {
             let requirements = runtime.join("requirements.txt");
             std::fs::write(&requirements, REQUIREMENTS)?;
-            let mut install = Command::new(&python);
+            let mut install = shotclutch_env::worker_command(&python);
             install
                 .args(["-m", "pip", "install", "--disable-pip-version-check", "--no-input", "--cache-dir"])
                 .arg(runtime.join("pip-cache"))
                 .arg("-r")
                 .arg(requirements);
             checked_process(install, progress, "Installing pinned CPU speech runtime")?;
-            let mut verify = Command::new(&python);
+            let mut verify = shotclutch_env::worker_command(&python);
             verify.arg("-B").arg(&worker).arg("--check");
             checked_process(verify, progress, "Verifying local speech runtime")?;
         }
@@ -115,7 +115,7 @@ impl Worker {
         }
         let worker = runtime.join("worker.py");
         std::fs::write(&worker, SCRIPT)?;
-        let mut command = Command::new(python);
+        let mut command = shotclutch_env::worker_command(python);
         command
             .arg("-B")
             .arg("-u")

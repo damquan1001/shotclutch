@@ -262,7 +262,10 @@ impl AppLogger {
 
 impl log::Log for AppLogger {
     fn enabled(&self, metadata: &log::Metadata<'_>) -> bool {
-        metadata.level() <= self.filter.level_for(metadata.target())
+        let target = metadata.target();
+        // HTTP debug/trace may include response Location headers and provider URLs.
+        !["ureq", "ureq_proto"].iter().any(|family| target == *family || target.strip_prefix(*family).is_some_and(|tail| tail.starts_with("::")))
+            && metadata.level() <= self.filter.level_for(target)
     }
 
     fn log(&self, record: &log::Record<'_>) {
