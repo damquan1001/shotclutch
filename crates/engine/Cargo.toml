@@ -72,7 +72,8 @@ keyring = { version = "=3.6.3", features = ["windows-native"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 keyring = { version = "=3.6.3", features = ["apple-native"] }
-security-framework = "=2.11.1"
+# Match the macOS keyring backend so its boxed OS errors retain their concrete type.
+security-framework = "=3.7.0"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 keyring = { version = "=3.6.3", features = ["sync-secret-service", "crypto-rust", "vendored"] }
